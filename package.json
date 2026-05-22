@@ -1,0 +1,16 @@
+{
+  "name": "lrs-conformance-ts",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.15",
+    "@types/bun": "^1.3.14",
+    "@typescript/native-preview": "^7.0.0-dev.20260522.1",
+    "oxlint": "^1.66.0",
+    "zod": "^4.4.3"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
