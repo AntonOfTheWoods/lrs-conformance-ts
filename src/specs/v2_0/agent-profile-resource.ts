@@ -1,0 +1,1328 @@
+import {
+  agentProfileLegacySuiteFile,
+  buildAgentProfileDocumentFixture,
+  buildAgentProfileIdentityFixture,
+  buildDocumentResourceValidationCase,
+  buildVersionedRequest,
+  documentRoundTripCase,
+  existingNonJsonDocumentBody,
+  invalidAgentQuery,
+  invalidJsonDocumentBody,
+  invalidSerializedQueryBoolean,
+  invalidSerializedQueryObject,
+  invalidSinceTimestamp,
+  listEquals,
+  nonJsonDocumentBody,
+  omitQueryParam,
+  parametersLegacySuiteFile,
+  requestSequenceCase,
+  singleRequestCase,
+  specVersion,
+  validSinceTimestamp,
+} from "./shared";
+import type { SuiteDefinition } from "./shared";
+
+export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition {
+  const profileDocument = buildAgentProfileDocumentFixture();
+  const profileIdentity = buildAgentProfileIdentityFixture();
+  const profileValidationIdentity = buildAgentProfileIdentityFixture({
+    agent: JSON.stringify({
+      objectType: "Agent",
+      mbox: "mailto:agent-profile-validation@example.test",
+      name: "Agent Profile Validation",
+    }),
+    profileId: "proof-agent-profile-validation",
+  });
+  const profileListIdentity = buildAgentProfileIdentityFixture({
+    agent: JSON.stringify({
+      objectType: "Agent",
+      mbox: "mailto:agent-profile-list@example.test",
+      name: "Agent Profile List",
+    }),
+    profileId: "proof-agent-profile-list",
+  });
+  const profileSinceIdentity = buildAgentProfileIdentityFixture({
+    agent: JSON.stringify({
+      objectType: "Agent",
+      mbox: "mailto:agent-profile-since@example.test",
+      name: "Agent Profile Since",
+    }),
+    profileId: "proof-agent-profile-since",
+  });
+  const profileMergeIdentity = buildAgentProfileIdentityFixture({
+    agent: JSON.stringify({
+      objectType: "Agent",
+      mbox: "mailto:agent-profile-merge@example.test",
+      name: "Agent Profile Merge",
+    }),
+    profileId: "proof-agent-profile-merge",
+  });
+  const profileNonJsonPostRejectIdentity = buildAgentProfileIdentityFixture({
+    agent: JSON.stringify({
+      objectType: "Agent",
+      mbox: "mailto:agent-profile-merge-reject-post@example.test",
+      name: "Agent Profile Merge Reject Post",
+    }),
+    profileId: "proof-agent-profile-merge-reject-post",
+  });
+  const profileExistingNonJsonRejectIdentity = buildAgentProfileIdentityFixture({
+    agent: JSON.stringify({
+      objectType: "Agent",
+      mbox: "mailto:agent-profile-merge-reject-existing@example.test",
+      name: "Agent Profile Merge Reject Existing",
+    }),
+    profileId: "proof-agent-profile-merge-reject-existing",
+  });
+  const profileDeleteIdentity = buildAgentProfileIdentityFixture({
+    agent: JSON.stringify({
+      objectType: "Agent",
+      mbox: "mailto:agent-profile-delete@example.test",
+      name: "Agent Profile Delete",
+    }),
+    profileId: "proof-agent-profile-delete",
+  });
+  const profileListQuery = {
+    agent: profileListIdentity.agent,
+  };
+  const profileSinceQuery = {
+    agent: profileSinceIdentity.agent,
+  };
+  const profileDeleteListQuery = {
+    agent: profileDeleteIdentity.agent,
+  };
+  const profileRequestBody = {
+    value: profileDocument,
+    fixtureName: "agent-profile-default",
+  };
+  function buildAgentProfileTraceIdentity(idSuffix: string) {
+    return buildAgentProfileIdentityFixture({
+      agent: JSON.stringify({
+        objectType: "Agent",
+        mbox: `mailto:agent-profile-${idSuffix}@example.test`,
+        name: `Agent Profile ${idSuffix}`,
+      }),
+      profileId: `proof-agent-profile-${idSuffix}`,
+    });
+  }
+
+  const profilePutAcceptedIdentity = buildAgentProfileTraceIdentity("put-accepted");
+  const profilePostAcceptedIdentity = buildAgentProfileTraceIdentity("post-accepted");
+  const profileGetAcceptedIdentity = buildAgentProfileTraceIdentity("get-accepted");
+  const profileSinceAcceptedIdentity = buildAgentProfileTraceIdentity("since-accepted");
+  const profilePostAsPutIdentity = buildAgentProfileTraceIdentity("post-as-put");
+  const profileLegacyNonJsonRejectIdentity = buildAgentProfileTraceIdentity("merge-reject-legacy-non-json");
+  const profileInvalidJsonMergeRejectIdentity = buildAgentProfileTraceIdentity("merge-reject-invalid-json");
+  const profileLastModifiedIdentity = buildAgentProfileTraceIdentity("last-modified");
+  const updatedAgentProfileDocument = {
+    preference: "digest-only",
+    notifications: {
+      email: false,
+      digest: "weekly",
+    },
+  };
+
+  const roundTripCase = documentRoundTripCase({
+    caseId: "v2.agents-profile.document-roundtrip",
+    title: "The Agent Profile Resource returns a stored document when queried by profileId",
+    specVersion,
+    endpoint: "agents-profile",
+    submitMethod: "POST",
+    requirementRefs: [
+      {
+        id: "XAPI-00269",
+        section: "Communication 2.6.s3",
+        title: "Agent Profile GET with profileId returns the stored document",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "roundtrip"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    query: profileIdentity,
+    body: profileDocument,
+    bodyFixtureName: "agent-profile-default",
+    queryJsonPathEquals: [
+      {
+        path: ["preference"],
+        equals: profileDocument.preference,
+      },
+      {
+        path: ["notifications", "email"],
+        equals: profileDocument.notifications.email,
+      },
+      {
+        path: ["notifications", "digest"],
+        equals: profileDocument.notifications.digest,
+      },
+    ],
+    capabilityFlags: ["document", "retrieval", "agent-profile"],
+    notes: [
+      "proof-slice agent profile roundtrip",
+      'legacy note: XAPI-00269 upstream comment - An LRS\'s Agent Profile API upon processing a successful GET request with a valid Agent Object and valid "profileId" as a parameter returns the document satisfying the requirements of the GET and code 200 OK',
+    ],
+  });
+
+  const listCase = requestSequenceCase({
+    caseId: "v2.agents-profile.document-list",
+    title: "The Agent Profile Resource lists stored profile ids when queried without profileId",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00270",
+        section: "Communication 2.6.s4",
+        title: "Agent Profile GET without profileId returns matching ids",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "list"],
+    capabilityFlags: ["document", "list", "agent-profile"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    notes: [
+      "proof-slice agent profile list",
+      'legacy note: XAPI-00270 upstream comment - An LRS\'s Agent Profile API upon processing a successful GET request with a valid Agent Object and without "profileId" as a parameter returns an array of ids of agent profile documents satisfying the requirements of the GET and code 200 OK',
+    ],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profileListIdentity, {
+          value: buildAgentProfileDocumentFixture(),
+          fixtureName: "agent-profile-default",
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "agents-profile", profileListQuery),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([profileListIdentity.profileId]),
+        },
+      },
+    ],
+  });
+
+  const sinceCase = requestSequenceCase({
+    caseId: "v2.agents-profile.document-list-since",
+    title: "The Agent Profile Resource filters listed profile ids using the since parameter",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00268",
+        section: "Communication 2.6.s4",
+        title: "Agent Profile GET without profileId accepts since",
+      },
+      {
+        id: "XAPI-00275",
+        section: "Communication 2.6.s4",
+        title: "Agent Profile list results can be filtered by since",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "list", "since"],
+    capabilityFlags: ["document", "list", "agent-profile", "since"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    notes: [
+      "proof-slice agent profile since filtering",
+      'legacy note: XAPI-00268 upstream comment - An LRS\'s Agent Profile API can process a GET request with "since" as a parameter. Returning 200 OK and all matching profiles after the date/time of the “since” parameter',
+      'legacy note: XAPI-00275 upstream comment - The Agent Profile API\'s returned array of ids from a successful GET request all refer to documents stored after the TimeStamp in the "since" parameter of the GET request if such a parameter was present',
+    ],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profileSinceIdentity, {
+          value: buildAgentProfileDocumentFixture(),
+          fixtureName: "agent-profile-default",
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "agents-profile", {
+          ...profileSinceQuery,
+          since: validSinceTimestamp,
+        }),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([profileSinceIdentity.profileId]),
+        },
+      },
+    ],
+  });
+
+  const invalidSinceCase = singleRequestCase({
+    caseId: "v2.agents-profile.invalid-since",
+    title: "The Agent Profile Resource rejects an invalid since value when listing profile ids",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00260",
+        section: "Communication 2.6.s4",
+        title: "Agent Profile rejects invalid since values",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "list", "since"],
+    capabilityFlags: ["document", "list", "agent-profile", "since"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    request: buildVersionedRequest("GET", "agents-profile", {
+      agent: profileSinceIdentity.agent,
+      since: invalidSinceTimestamp,
+    }),
+    assertion: {
+      status: 400,
+    },
+    notes: [
+      "proof-slice agent profile invalid since",
+      'legacy note: XAPI-00260 upstream comment - An LRS\'s Agent Profile API rejects a GET request with "since" as a parameter if it is not a "TimeStamp", with error code 400 Bad Request',
+      'legacy note: XAPI-00260 upstream describe - An LRS\\\'s Agent Profile Resource rejects a GET request with "since" as a parameter if it is not a "TimeStamp", with error code 400 Bad Request',
+    ],
+  });
+
+  const invalidAgentQueryCase = singleRequestCase({
+    caseId: "v2.agents-profile.document-invalid-agent-query",
+    title: "The Agent Profile Resource rejects a POST request whose agent query value is not valid JSON",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00284",
+        section: "Communication 2.6",
+        title: "Agent Profile rejects invalid JSON agent query values",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "invalid", "agent-query"],
+    capabilityFlags: ["document", "agent-profile", "invalid", "agent-query"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    request: buildVersionedRequest(
+      "POST",
+      "agents-profile",
+      {
+        ...profileMergeIdentity,
+        profileId: `${profileMergeIdentity.profileId}-invalid-agent`,
+        agent: invalidAgentQuery,
+      },
+      {
+        value: {
+          car: "Honda",
+        },
+      },
+    ),
+    assertion: {
+      status: 400,
+    },
+    notes: [
+      "proof-slice agent profile invalid agent query",
+      'legacy note: XAPI-00284 upstream comment - An LRS must reject with 400 Bad Request a POST request to the Activitiy Profile API which contains name/value pairs with invalid JSON and the Content-Type header is "application/json"',
+    ],
+  });
+
+  const mergeCase = requestSequenceCase({
+    caseId: "v2.agents-profile.document-merge",
+    title: "The Agent Profile Resource merges JSON documents on POST when a profile already exists",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00279",
+        section: "Communication 2.2.s7",
+        title: "Agent Profile performs JSON document merge",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "merge"],
+    capabilityFlags: ["document", "merge", "agent-profile"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    notes: [
+      "proof-slice agent profile merge",
+      'legacy note: XAPI-00279 upstream comment - An LRS\'s Agent Profile API performs a Document Merge if a profileId is found and both it and the document in the POST request have type "application/json" If the merge is successful, the LRS MUST respond with HTTP status code 204 No Content. not quite, but is this close enough??',
+    ],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profileMergeIdentity, {
+          value: {
+            car: "Honda",
+          },
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profileMergeIdentity, {
+          value: {
+            type: "Civic",
+          },
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "agents-profile", profileMergeIdentity),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["car"],
+              equals: "Honda",
+            },
+            {
+              path: ["type"],
+              equals: "Civic",
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const nonJsonPostRejectCase = requestSequenceCase({
+    caseId: "v2.agents-profile.document-merge-rejects-non-json-post",
+    title: "The Agent Profile Resource rejects a POST merge when the incoming document is not application/json",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00278",
+        section: "Communication 2.3.s3.table1.row3",
+        title: "Agent Profile rejects non-JSON POST merges without mutation",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "merge", "invalid"],
+    capabilityFlags: ["document", "merge", "agent-profile", "invalid"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    notes: [
+      "proof-slice agent profile non-json incoming merge rejection",
+      "legacy note: merge rejection scenario case 1 (incoming POST body is non-JSON)",
+      "legacy note: XAPI-00278 upstream comment - An LRS's Agent Profile API, rejects a POST request if the document is found and either document's type is not \"application/json\" with error code 400 Bad Request",
+      'legacy note: XAPI-00278 upstream describe - An LRSs Agent Profile Resource, rejects a POST request if the document is found and either documents type is not "application/json" with error code 400 Bad Request',
+    ],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profileNonJsonPostRejectIdentity, {
+          value: {
+            car: "Honda",
+          },
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profileNonJsonPostRejectIdentity, {
+          kind: "text",
+          value: nonJsonDocumentBody,
+          contentType: "application/octet-stream",
+        }),
+        assertion: {
+          status: 400,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "agents-profile", profileNonJsonPostRejectIdentity),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["car"],
+              equals: "Honda",
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const existingNonJsonRejectCase = requestSequenceCase({
+    caseId: "v2.agents-profile.document-merge-rejects-existing-non-json",
+    title: "The Agent Profile Resource rejects a POST merge when the existing document is not application/json",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00278",
+        section: "Communication 2.3.s3.table1.row3",
+        title: "Agent Profile rejects merges against non-JSON stored documents",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "merge", "invalid"],
+    capabilityFlags: ["document", "merge", "agent-profile", "invalid"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    notes: [
+      "proof-slice agent profile existing non-json merge rejection",
+      "legacy note: merge rejection scenario case 2 (existing stored document is non-JSON)",
+      "legacy note: XAPI-00278 upstream comment - An LRS's Agent Profile API, rejects a POST request if the document is found and either document's type is not \"application/json\" with error code 400 Bad Request",
+      'legacy note: XAPI-00278 upstream describe - An LRSs Agent Profile Resource, rejects a POST request if the document is found and either documents type is not "application/json" with error code 400 Bad Request',
+    ],
+    steps: [
+      {
+        request: buildVersionedRequest("PUT", "agents-profile", profileExistingNonJsonRejectIdentity, {
+          kind: "text",
+          value: existingNonJsonDocumentBody,
+          contentType: "application/octet-stream",
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profileExistingNonJsonRejectIdentity, {
+          value: {
+            car: "Honda",
+          },
+        }),
+        assertion: {
+          status: 400,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "agents-profile", profileExistingNonJsonRejectIdentity),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: [],
+              equals: existingNonJsonDocumentBody,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const deleteCase = requestSequenceCase({
+    caseId: "v2.agents-profile.delete-document",
+    title: "The Agent Profile Resource deletes a stored document and removes it from profile listings",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00271",
+        section: "Communication 2.6.s3",
+        title: "Agent Profile DELETE removes the associated profile",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "delete"],
+    capabilityFlags: ["document", "delete", "agent-profile"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    notes: [
+      "proof-slice agent profile delete",
+      "legacy note: XAPI-00271 upstream comment - An LRS's Agent Profile API upon processing a successful DELETE request deletes the associated profile and returns code 204 No Content",
+    ],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profileDeleteIdentity, {
+          value: buildAgentProfileDocumentFixture(),
+          fixtureName: "agent-profile-default",
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("DELETE", "agents-profile", profileDeleteIdentity),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "agents-profile", profileDeleteListQuery),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([]),
+        },
+      },
+    ],
+  });
+
+  const putAcceptedCase = singleRequestCase({
+    caseId: "v2.agents-profile.accepts.put",
+    title: "The Agent Profile Resource accepts PUT requests with 204 No Content",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00273",
+        section: "Communication 2.6.s3",
+        title: "Agent Profile Resource accepts PUT requests with 204 No Content",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "write"],
+    capabilityFlags: ["document", "agent-profile", "write"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    request: buildVersionedRequest("PUT", "agents-profile", profilePutAcceptedIdentity, profileRequestBody, {
+      "If-None-Match": "*",
+    }),
+    assertion: {
+      status: 204,
+    },
+    notes: [
+      "proof-slice agent profile put accepted",
+      "legacy note: XAPI-00273 upstream comment - An LRS's Agent Profile API upon processing a successful PUT request returns code 204 No Content",
+    ],
+  });
+
+  const postAcceptedCase = singleRequestCase({
+    caseId: "v2.agents-profile.accepts.post",
+    title: "The Agent Profile Resource accepts POST requests with 204 No Content",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00272",
+        section: "Communication 2.6.s3",
+        title: "Agent Profile Resource accepts POST requests with 204 No Content",
+      },
+      {
+        id: "XAPI-00283",
+        section: "Communication 2.6.s3",
+        title: "Agent Profile Resource accepts POST requests",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "write"],
+    capabilityFlags: ["document", "agent-profile", "write"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    request: buildVersionedRequest("POST", "agents-profile", profilePostAcceptedIdentity, profileRequestBody),
+    assertion: {
+      status: 204,
+    },
+    notes: [
+      "proof-slice agent profile post accepted",
+      "legacy note: XAPI-00272 upstream comment - An LRS's Agent Profile API upon processing a successful POST request returns code 204 No Content",
+      "legacy note: XAPI-00283 upstream comment - An LRS will accept a POST request to the Agent Profile API",
+    ],
+  });
+
+  const getAcceptedCase = documentRoundTripCase({
+    caseId: "v2.agents-profile.accepts.get",
+    title: "The Agent Profile Resource accepts GET requests and returns the stored document",
+    specVersion,
+    endpoint: "agents-profile",
+    submitMethod: "POST",
+    requirementRefs: [
+      {
+        id: "XAPI-00274",
+        section: "Communication 2.6.s2",
+        title: "Agent Profile Resource accepts GET requests and returns the stored document",
+      },
+      {
+        id: "XAPI-00259",
+        section: "Communication 2.6",
+        title: "Agent Profile GET with a valid agent object returns 200 OK and profile content",
+      },
+      {
+        id: "XAPI-00282",
+        section: "Communication 2.2.s3.table2.row3.a, Communication 2.2.table2.row3.c",
+        title: 'The Agent Profile Resource exists at "base IRI"+"/agents/profile"',
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "retrieval"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    query: profileGetAcceptedIdentity,
+    body: profileDocument,
+    bodyFixtureName: "agent-profile-default",
+    queryJsonPathEquals: [
+      {
+        path: ["preference"],
+        equals: profileDocument.preference,
+      },
+      {
+        path: ["notifications", "email"],
+        equals: profileDocument.notifications.email,
+      },
+      {
+        path: ["notifications", "digest"],
+        equals: profileDocument.notifications.digest,
+      },
+    ],
+    capabilityFlags: ["document", "retrieval", "agent-profile"],
+    notes: [
+      "proof-slice agent profile get accepted",
+      "legacy note: XAPI-00274 upstream comment - An LRS's Agent Profile API accepts valid GET requests with code 200 OK, Profile document",
+      "legacy note: XAPI-00259 upstream comment - The Agent Profile API MUST return 200 OK - Profile Content when a GET request is received with a valid agent JSON Object.",
+      'legacy note: XAPI-00282 upstream comment - An LRS has an Agent Profile API with endpoint "base IRI"+"/agents/profile"',
+      'legacy note: XAPI-00282 upstream describe - An LRS has an Agent Profile Resource with endpoint "base IRI"+"/agents/profile"',
+    ],
+  });
+
+  const sinceAcceptedCase = requestSequenceCase({
+    caseId: "v2.agents-profile.document-list-since-accepted",
+    title: "The Agent Profile Resource can process GET requests with the since parameter",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00268",
+        section: "Communication 2.6.s4.table1.row2",
+        title: "Agent Profile Resource can process GET requests with since",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "list", "since"],
+    capabilityFlags: ["document", "list", "agent-profile", "since"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    notes: [
+      "proof-slice agent profile since accepted",
+      'legacy note: XAPI-00268 upstream comment - An LRS\'s Agent Profile API can process a GET request with "since" as a parameter. Returning 200 OK and all matching profiles after the date/time of the “since” parameter',
+    ],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profileSinceAcceptedIdentity, profileRequestBody),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "agents-profile", {
+          agent: profileSinceAcceptedIdentity.agent,
+          since: validSinceTimestamp,
+        }),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([profileSinceAcceptedIdentity.profileId]),
+        },
+      },
+    ],
+  });
+
+  const postAsPutCase = requestSequenceCase({
+    caseId: "v2.agents-profile.document-post-as-put",
+    title: "The Agent Profile Resource treats POST as PUT when no document exists",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00280",
+        section: "Communication 2.2.s7",
+        title: "Agent Profile Resource treats POST as PUT when no document exists",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "merge", "write"],
+    capabilityFlags: ["document", "agent-profile", "write"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    notes: [
+      "proof-slice agent profile post as put",
+      "legacy note: XAPI-00280 upstream comment - An LRS's Agent Profile API, upon receiving a POST request for a document not currently in the LRS, treats it as a PUT request and store a new document.Returning 204 No Content",
+    ],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profilePostAsPutIdentity, profileRequestBody),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "agents-profile", profilePostAsPutIdentity),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["preference"],
+              equals: profileDocument.preference,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const legacyNonJsonRejectCase = requestSequenceCase({
+    caseId: "v2.agents-profile.document-merge-rejects-legacy-non-json-post",
+    title: "The Agent Profile Resource rejects legacy non-JSON POST merges without mutation",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00281",
+        section: "Communication 2.6",
+        title: "Agent Profile Resource rejects legacy non-JSON POST merges without mutation",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "merge", "invalid"],
+    capabilityFlags: ["document", "merge", "agent-profile", "invalid"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    notes: [
+      "proof-slice agent profile legacy non-json merge rejection",
+      'legacy note: XAPI-00281 upstream comment - An LRS must reject with 400 Bad Request a POST request to the Activitiy Profile API which contains name/value pairs with invalid JSON and the Content-Type header is "application/json"',
+    ],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profileLegacyNonJsonRejectIdentity, {
+          value: {
+            car: "Honda",
+          },
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profileLegacyNonJsonRejectIdentity, {
+          kind: "text",
+          value: nonJsonDocumentBody,
+          contentType: "not/json",
+        }),
+        assertion: {
+          status: 400,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "agents-profile", profileLegacyNonJsonRejectIdentity),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["car"],
+              equals: "Honda",
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const invalidJsonMergeRejectCase = requestSequenceCase({
+    caseId: "v2.agents-profile.document-merge-rejects-invalid-json-body",
+    title: "The Agent Profile Resource rejects POST merges when the incoming JSON document body is invalid",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00278",
+        section: "Communication 2.3.s3.table1.row3",
+        title: "Agent Profile Resource rejects invalid JSON POST merges without mutation",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "merge", "invalid", "json"],
+    capabilityFlags: ["document", "merge", "agent-profile", "invalid", "json"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    notes: [
+      "proof-slice agent profile invalid JSON merge rejection",
+      "legacy note: merge rejection scenario case 3 (incoming JSON body is syntactically invalid)",
+      "legacy note: XAPI-00278 upstream comment - An LRS's Agent Profile API, rejects a POST request if the document is found and either document's type is not \"application/json\" with error code 400 Bad Request",
+      'legacy note: XAPI-00278 upstream describe - An LRSs Agent Profile Resource, rejects a POST request if the document is found and either documents type is not "application/json" with error code 400 Bad Request',
+    ],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profileInvalidJsonMergeRejectIdentity, {
+          value: {
+            car: "Honda",
+          },
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profileInvalidJsonMergeRejectIdentity, {
+          kind: "text",
+          value: invalidJsonDocumentBody,
+          contentType: "application/json",
+        }),
+        assertion: {
+          status: 400,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "agents-profile", profileInvalidJsonMergeRejectIdentity),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["car"],
+              equals: "Honda",
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const lastModifiedExistsCase = requestSequenceCase({
+    caseId: "v2.agents-profile.headers.last-modified-present",
+    title: "The Agent Profile Resource includes a Last-Modified header on successful GET responses",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "LEGACY-AGENT-PROFILE-LAST-MODIFIED-PRESENT",
+        section: "Communication 2.6",
+        title: "Agent Profile Resource GET responses include Last-Modified",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "headers"],
+    capabilityFlags: ["document", "headers", "agent-profile"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    notes: ["proof-slice agent profile last-modified present"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profileLastModifiedIdentity, profileRequestBody),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "agents-profile", profileLastModifiedIdentity),
+        assertion: {
+          status: 200,
+          expectedHeaderPatterns: [
+            {
+              key: "last-modified",
+              pattern:
+                "(^[A-Z][a-z]{2}, \\d{2} [A-Z][a-z]{2} \\d{4} \\d{2}:\\d{2}:\\d{2} GMT$)|(^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$)",
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const lastModifiedUpdatesCase = requestSequenceCase({
+    caseId: "v2.agents-profile.headers.last-modified-updates",
+    title: "The Agent Profile Resource updates Last-Modified when the stored document changes",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "LEGACY-AGENT-PROFILE-LAST-MODIFIED-UPDATES",
+        section: "Communication 2.6",
+        title: "Agent Profile Resource updates Last-Modified when the stored document changes",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "headers"],
+    capabilityFlags: ["document", "headers", "agent-profile"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    notes: ["proof-slice agent profile last-modified updates"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profileLastModifiedIdentity, profileRequestBody),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "agents-profile", profileLastModifiedIdentity),
+        assertion: {
+          status: 200,
+          expectedHeaderPatterns: [
+            {
+              key: "last-modified",
+              pattern:
+                "(^[A-Z][a-z]{2}, \\d{2} [A-Z][a-z]{2} \\d{4} \\d{2}:\\d{2}:\\d{2} GMT$)|(^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$)",
+            },
+          ],
+        },
+      },
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profileLastModifiedIdentity, {
+          value: updatedAgentProfileDocument,
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "agents-profile", profileLastModifiedIdentity),
+        assertion: {
+          status: 200,
+          expectedHeaderPatterns: [
+            {
+              key: "last-modified",
+              pattern:
+                "(^[A-Z][a-z]{2}, \\d{2} [A-Z][a-z]{2} \\d{4} \\d{2}:\\d{2}:\\d{2} GMT$)|(^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$)",
+            },
+          ],
+          expectedHeaderDateAfterStep: [
+            {
+              key: "last-modified",
+              fromStep: 2,
+            },
+          ],
+          jsonPathEquals: [
+            {
+              path: ["preference"],
+              equals: updatedAgentProfileDocument.preference,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const validationCases = [
+    buildDocumentResourceValidationCase({
+      caseId: "v2.agents-profile.validation.missing-agent.put",
+      title: "The Agent Profile Resource rejects PUT without agent",
+      specVersion,
+      endpoint: "agents-profile",
+      method: "PUT",
+      query: omitQueryParam(profileValidationIdentity, "agent"),
+      body: profileRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00264",
+          section: "Communication 2.6.s3.table1.row1",
+          title: "Agent Profile rejects PUT without agent",
+        },
+      ],
+      tags: ["v2.0.0", "agents-profile", "validation", "agent"],
+      capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00264 upstream comment - An LRS\'s Agent Profile API rejects a PUT request without "agent" as a parameter with error code 400 Bad Request',
+      ],
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.agents-profile.validation.invalid-agent.put",
+      title: "The Agent Profile Resource rejects PUT with an invalid agent query value",
+      specVersion,
+      endpoint: "agents-profile",
+      method: "PUT",
+      query: {
+        ...profileValidationIdentity,
+        agent: "true",
+      },
+      body: profileRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00257",
+          section: "Communication 2.6.s3.table1.row1",
+          title: "Agent Profile rejects PUT with a non-Agent query value",
+        },
+      ],
+      tags: ["v2.0.0", "agents-profile", "validation", "agent"],
+      capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00257 upstream comment - An LRS\'s Agent Profile API rejects a PUT request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request',
+        'legacy note: XAPI-00257 upstream describe - An LRS\\\'s Agent Profile Resource rejects a PUT request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request',
+      ],
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.agents-profile.validation.missing-agent.post",
+      title: "The Agent Profile Resource rejects POST without agent",
+      specVersion,
+      endpoint: "agents-profile",
+      method: "POST",
+      query: omitQueryParam(profileValidationIdentity, "agent"),
+      body: profileRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00263",
+          section: "Communication 2.6.s3.table1.row1",
+          title: "Agent Profile rejects POST without agent",
+        },
+      ],
+      tags: ["v2.0.0", "agents-profile", "validation", "agent"],
+      capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00263 upstream comment - An LRS\'s Agent Profile API rejects a POST request without "agent" as a parameter with error code 400 Bad Request',
+      ],
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.agents-profile.validation.invalid-agent.post",
+      title: "The Agent Profile Resource rejects POST with an invalid agent query value",
+      specVersion,
+      endpoint: "agents-profile",
+      method: "POST",
+      query: {
+        ...profileValidationIdentity,
+        agent: "true",
+      },
+      body: profileRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00256",
+          section: "Communication 2.6.s3.table1.row1",
+          title: "Agent Profile rejects POST with a non-Agent query value",
+        },
+      ],
+      tags: ["v2.0.0", "agents-profile", "validation", "agent"],
+      capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00256 upstream comment - An LRS\'s Agent Profile API rejects a POST request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request',
+      ],
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.agents-profile.validation.missing-agent.get",
+      title: "The Agent Profile Resource rejects GET without agent",
+      specVersion,
+      endpoint: "agents-profile",
+      method: "GET",
+      query: omitQueryParam(profileValidationIdentity, "agent"),
+      requirementRefs: [
+        {
+          id: "XAPI-00261",
+          section: "Communication 2.6.s4.table1.row1",
+          title: "Agent Profile rejects GET without agent",
+        },
+      ],
+      tags: ["v2.0.0", "agents-profile", "validation", "agent"],
+      capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00261 upstream comment - An LRS\'s Agent Profile API rejects a GET request without "agent" as a parameter with error code 400 Bad Request',
+      ],
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.agents-profile.validation.invalid-agent.get",
+      title: "The Agent Profile Resource rejects GET with an invalid agent query value",
+      specVersion,
+      endpoint: "agents-profile",
+      method: "GET",
+      query: {
+        ...profileValidationIdentity,
+        agent: "true",
+      },
+      requirementRefs: [
+        {
+          id: "XAPI-00258",
+          section: "Communication 2.6.s4.table1.row1",
+          title: "Agent Profile rejects GET with a non-Agent query value",
+        },
+      ],
+      tags: ["v2.0.0", "agents-profile", "validation", "agent"],
+      capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00258 upstream comment - An LRS\'s Agent Profile API rejects a GET request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request',
+        'legacy note: XAPI-00258 upstream describe - An LRS\\\'s Agent Profile Resource rejects a GET request with "agent" as a parameter if it is a valid, in structure, Agent with error code 400 Bad Request',
+      ],
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.agents-profile.validation.missing-agent.delete",
+      title: "The Agent Profile Resource rejects DELETE without agent",
+      specVersion,
+      endpoint: "agents-profile",
+      method: "DELETE",
+      query: omitQueryParam(profileValidationIdentity, "agent"),
+      requirementRefs: [
+        {
+          id: "XAPI-00262",
+          section: "Communication 2.6.s3.table1.row1",
+          title: "Agent Profile rejects DELETE without agent",
+        },
+      ],
+      tags: ["v2.0.0", "agents-profile", "validation", "agent"],
+      capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00262 upstream comment - An LRS\'s Agent Profile API rejects a DELETE request without "agent" as a parameter with error code 400 Bad Request',
+      ],
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.agents-profile.validation.invalid-agent.delete",
+      title: "The Agent Profile Resource rejects DELETE with an invalid agent query value",
+      specVersion,
+      endpoint: "agents-profile",
+      method: "DELETE",
+      query: {
+        ...profileValidationIdentity,
+        agent: "true",
+      },
+      requirementRefs: [
+        {
+          id: "XAPI-00255",
+          section: "Communication 2.6.s3.table1.row1",
+          title: "Agent Profile rejects DELETE with a non-Agent query value",
+        },
+      ],
+      tags: ["v2.0.0", "agents-profile", "validation", "agent"],
+      capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00255 upstream comment - An LRS\'s Agent Profile API rejects a DELETE request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request',
+        'legacy note: XAPI-00255 upstream describe - An LRS\\\'s Agent Profile Resource rejects a DELETE request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request',
+      ],
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.agents-profile.validation.missing-profileId.put",
+      title: "The Agent Profile Resource rejects PUT without profileId",
+      specVersion,
+      endpoint: "agents-profile",
+      method: "PUT",
+      query: omitQueryParam(profileValidationIdentity, "profileId"),
+      body: profileRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00267",
+          section: "Communication 2.6.s3.table1.row2",
+          title: "Agent Profile rejects PUT without profileId",
+        },
+      ],
+      tags: ["v2.0.0", "agents-profile", "validation", "profileId"],
+      capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00267 upstream comment - An LRS\'s Agent Profile API rejects a PUT request without "profileId" as a parameter with error code 400 Bad Request',
+      ],
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.agents-profile.validation.missing-profileId.post",
+      title: "The Agent Profile Resource rejects POST without profileId",
+      specVersion,
+      endpoint: "agents-profile",
+      method: "POST",
+      query: omitQueryParam(profileValidationIdentity, "profileId"),
+      body: profileRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00266",
+          section: "Communication 2.6.s3.table1.row2",
+          title: "Agent Profile rejects POST without profileId",
+        },
+      ],
+      tags: ["v2.0.0", "agents-profile", "validation", "profileId"],
+      capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00266 upstream comment - An LRS\'s Agent Profile API rejects a POST request without "profileId" as a parameter with error code 400 Bad Request',
+      ],
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.agents-profile.validation.missing-profileId.delete",
+      title: "The Agent Profile Resource rejects DELETE without profileId",
+      specVersion,
+      endpoint: "agents-profile",
+      method: "DELETE",
+      query: omitQueryParam(profileValidationIdentity, "profileId"),
+      requirementRefs: [
+        {
+          id: "XAPI-00265",
+          section: "Communication 2.6.s3.table1.row2",
+          title: "Agent Profile rejects DELETE without profileId",
+        },
+      ],
+      tags: ["v2.0.0", "agents-profile", "validation", "profileId"],
+      capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00265 upstream comment - An LRS\'s Agent Profile API rejects a DELETE request without "profileId" as a parameter with error code 400 Bad Request',
+      ],
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.agents-profile.validation.invalid-profileId.put",
+      title: "The Agent Profile Resource rejects PUT when profileId is not a string",
+      specVersion,
+      endpoint: "agents-profile",
+      method: "PUT",
+      query: {
+        ...profileValidationIdentity,
+        profileId: invalidSerializedQueryObject,
+      },
+      body: profileRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00277",
+          section: "Communication 2.6 table3 row2.a",
+          title: "Agent Profile rejects PUT when profileId is not a string",
+        },
+      ],
+      tags: ["v2.0.0", "agents-profile", "validation", "profileId"],
+      capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: parametersLegacySuiteFile,
+      expectedStatus: 400,
+
+      notes: ["legacy note: XAPI-00277 upstream comment - in parameters folder"],
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.agents-profile.validation.invalid-profileId.post",
+      title: "The Agent Profile Resource rejects POST when profileId is not a string",
+      specVersion,
+      endpoint: "agents-profile",
+      method: "POST",
+      query: {
+        ...profileValidationIdentity,
+        profileId: invalidSerializedQueryBoolean,
+      },
+      body: profileRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00276",
+          section: "Communication 2.6 table3 row2.a",
+          title: "Agent Profile rejects POST when profileId is not a string",
+        },
+      ],
+      tags: ["v2.0.0", "agents-profile", "validation", "profileId"],
+      capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: parametersLegacySuiteFile,
+      expectedStatus: 400,
+
+      notes: ["legacy note: XAPI-00276 upstream comment - in parameters folder"],
+    }),
+  ];
+
+  return {
+    type: "suite",
+    id: "v2.proof-slice.agents-profile",
+    title: "Agent Profile Resource",
+    specVersion,
+    tags: ["proof-slice", "agents-profile"],
+    children: [
+      {
+        type: "suite",
+        id: "v2.proof-slice.agents-profile.acceptance",
+        title: "Agent Profile Acceptance",
+        specVersion,
+        tags: ["acceptance"],
+        children: [putAcceptedCase, postAcceptedCase, getAcceptedCase],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.agents-profile.roundtrip",
+        title: "Agent Profile Roundtrip",
+        specVersion,
+        tags: ["roundtrip"],
+        children: [roundTripCase],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.agents-profile.listing",
+        title: "Agent Profile Listing",
+        specVersion,
+        tags: ["list"],
+        children: [listCase],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.agents-profile.since",
+        title: "Agent Profile Since",
+        specVersion,
+        tags: ["list", "since"],
+        children: [sinceCase, sinceAcceptedCase, invalidSinceCase, invalidAgentQueryCase],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.agents-profile.merge",
+        title: "Agent Profile Merge",
+        specVersion,
+        tags: ["merge"],
+        children: [
+          mergeCase,
+          postAsPutCase,
+          nonJsonPostRejectCase,
+          legacyNonJsonRejectCase,
+          existingNonJsonRejectCase,
+          invalidJsonMergeRejectCase,
+        ],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.agents-profile.deletion",
+        title: "Agent Profile Deletion",
+        specVersion,
+        tags: ["delete"],
+        children: [deleteCase],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.agents-profile.headers",
+        title: "Agent Profile Headers",
+        specVersion,
+        tags: ["headers"],
+        children: [lastModifiedExistsCase, lastModifiedUpdatesCase],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.agents-profile.validation",
+        title: "Agent Profile Validation",
+        specVersion,
+        tags: ["validation"],
+        children: validationCases,
+      },
+    ],
+  };
+}

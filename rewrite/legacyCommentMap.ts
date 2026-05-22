@@ -1,0 +1,535 @@
+export const LEGACY_XAPI_COMMENT_MAP: Record<string, string> = {
+  "XAPI-00001": "in formatting.js",
+  "XAPI-00002": "An LRS stores 32-bit floating point numbers with at least the precision of IEEE 754",
+  "XAPI-00003": "in formatting.js",
+  "XAPI-00004": "in formatting.js",
+  "XAPI-00005": "in formatting.js",
+  "XAPI-00006": "in formatting.js",
+  "XAPI-00007": "in formatting.js",
+  "XAPI-00008": "in formatting.js",
+  "XAPI-00009": "in formatting.js",
+  "XAPI-00010": "in formatting.js",
+  "XAPI-00011":
+    "An LRS rejects with error code 400 Bad Request a Statement containing IRL or IRI values without a scheme.",
+  "XAPI-00012":
+    "The LRS rejects with error code 400 Bad Request parameter values which do not validate to the same standards required for values of the same types in Statements.",
+  "XAPI-00013": "in formatting.js",
+  "XAPI-00014": "All Objects are well-created JSON Objects (Nature of Binding)",
+  "XAPI-00015": "in Communication 1.4 - should stay in Comm 1.4 Encoding",
+  "XAPI-00016":
+    "A Voiding Statement cannot Target another Voiding Statement. LRS behavior this new VOIDING statement MAY be rejected. If the LRS accepts that statement, the violating VOIDING statement SHOULD be ignored. Adjust this test accordingly",
+  "XAPI-00017": "in voiding.js",
+  "XAPI-00018":
+    "An LRS MUST consider a Statement it contains voided if the Statement is not itself a voiding Statement and the LRS also contains a voiding Statement referring to the first Statement. Test: Void a statement and then send a GET for that statement which uses “statementId” instead of “voidedStatementId.” The statement should then not be returned in the GET request, which should return a 404.",
+  "XAPI-00019": "in voiding.js",
+  "XAPI-00020": "in voiding.js",
+  "XAPI-00021":
+    "these are all in Multiplicity folder, the community said this won't be a problem and do not test it. some are also covered in templating tests, usually in these cases post and 200 or 400.",
+  "XAPI-00022": "in timestamp_property.js",
+  "XAPI-00023": "in Data 2.4.8 Stored Property",
+  "XAPI-00024": "in authorities.js",
+  "XAPI-00025": "in attachments.js",
+  "XAPI-00026": 'An LRS generates the "id" property of a Statement if none is provided (Modify, 4.1.1.a)',
+  "XAPI-00027": "in uuids.js",
+  "XAPI-00028": "in uuids.js",
+  "XAPI-00029": "in uuids.js",
+  "XAPI-00030": "in uuids.js",
+  "XAPI-00031":
+    'An "actor" property\'s "objectType" property is either "Agent" or "Group" An LRS rejects with 400 Bad Request an actor with an “objectType” which is not “Agent” or “Group”',
+  "XAPI-00032":
+    'An "objectType" property is a String. If present, the LRS must validate and reject with 400 Bad Request if invalid',
+  "XAPI-00033":
+    'A "name" property is a String. If present, the LRS must validate and reject with 400 Bad Request if invalid.',
+  "XAPI-00034":
+    'An "actor" property with "objectType" as "Agent" uses exactly one of the following Inverse Functional Identifier properties: "mbox", "mbox_sha1sum", "openid", "account". An LRS rejects with 400 Bad Request any agent object: - Where the IFI property is absent - Where the IFI value is invalid - With more than one IFI',
+  "XAPI-00035":
+    'A Group uses the "member" property. An LRS rejects with 400 Bad Request if the "member" property is present anywhere but in a group object (Actor or team).',
+  "XAPI-00036":
+    'The "member" property is an array of Objects following Agent requirements. An LRS rejects with 400 Bad Request any group object which has a member property with anything other than a valid array of Agents as a value',
+  "XAPI-00037":
+    'An "actor" property with "objectType" as "Group" uses exactly one of the following Inverse Functional Identifier properties: "mbox", "mbox_sha1sum", "openid", "account" or a member property with at least one Agent. An LRS rejects with 400 Bad Request any group object with: - no IFI and no member property - more than one IFI - an invalid IFI value The remaining 6 suites take care of XAPI-00037',
+  "XAPI-00038":
+    'An "mbox" property has the form "mailto:email address" and is an IRI. An LRS rejects with 400 Bad Request if a statement that uses the “mbox” IFI is an invalid form.',
+  "XAPI-00039":
+    'An "mbox_sha1sum" property is a String An LRS rejects with 400 Bad Request if a statement uses the “mbox_sha1sum” IFI and it is not a valid string.',
+  "XAPI-00040":
+    'An "openid" property is a URI. An LRS rejects with 400 Bad Request if a statement uses the “openID” IFI and the URI is invalid.',
+  "XAPI-00041":
+    "An “account” property is an object. An LRS rejects with 400 Bad Request if a statement uses an invalid Account Object. A valid account is defined by the requirements listed in XAPI-I-63 and XAPI-I-66 Covers next suite",
+  "XAPI-00042":
+    "An Account Object's homePage\" property is an IRL. An LRS rejects with 400 Bad Request if a statement uses the “account” IFI and the “homePage” property is absent or has an invalid IRL.",
+  "XAPI-00043":
+    'An Account Object "name" property is a String. An LRS rejects with 400 Bad Request if a statement uses the “account” IFI and the “name” property is absent or has an invalid string.',
+  "XAPI-00044": "in verbs.js - two suites",
+  "XAPI-00045": "in verbs.js",
+  "XAPI-00046": "in objects.js",
+  "XAPI-00047": "in activities.js",
+  "XAPI-00048": "in activities.js",
+  "XAPI-00049": "in activities.js",
+  "XAPI-00050": "in activities.js",
+  "XAPI-00051": "in activities.js",
+  "XAPI-00052": "in activities.js",
+  "XAPI-00053": "in activities.js",
+  "XAPI-00054": "in activities.js",
+  "XAPI-00055": "in activities.js",
+  "XAPI-00056": "in activities.js",
+  "XAPI-00057": "in activities.js",
+  "XAPI-00058": "in activities.js",
+  "XAPI-00059": "in activities.js",
+  "XAPI-00060": "in activities.js",
+  "XAPI-00061": "in activities.js",
+  "XAPI-00062": "in activities.js",
+  "XAPI-00063": "in activities.js",
+  "XAPI-00064":
+    'An Activity Definition uses the "interactionType" property if correctResponsesPattern is present. An LRS rejects a statement with 400 Bad Request if a correctResponsePattern is present and interactionType is not.',
+  "XAPI-00065":
+    'Statements that use an Agent or Group as an Object MUST specify an "objectType" property. The LRS rejects with 400 Bad Request if the “objectType” property is absent and the Object is an Agent Object or Group Object.',
+  "XAPI-00066": "in substatements.js",
+  "XAPI-00067": "in substatements.js",
+  "XAPI-00068": "in substatements.js",
+  "XAPI-00069": "in substatements.js",
+  "XAPI-00070": "in substatements.js",
+  "XAPI-00071": "in substatements.js",
+  "XAPI-00072": "in statementrefs.js",
+  "XAPI-00073": "in statementrefs.js",
+  "XAPI-00074":
+    'A "success" property is a Boolean. The LRS rejects with 400 Bad Request a Statement which has a Result Object with a “success” property which does not have a valid Boolean value, if present.',
+  "XAPI-00075":
+    'A "completion" property is a Boolean. The LRS rejects with 400 Bad Request a Statement which has a Result Object with a “completion” property which does not have a valid Boolean value, if present.',
+  "XAPI-00076":
+    'A "response" property is a String. The LRS rejects with 400 Bad Request a Statement which has a Result Object with a “response” property which does not have a valid String value, if present.',
+  "XAPI-00077":
+    'A "duration" property is a formatted to ISO 8601 durations (see Data 4.6). The LRS rejects with 400 Bad Request a Statement which has a Result Object with a “duration” property which does not have a valid ISO 8601 value, if present.',
+  "XAPI-00078":
+    'An "extensions" property is an Object. The LRS rejects with 400 Bad Request a Statement which has a Result Object with aa “extensions” property which does not have a valid Extensions Object, if present.',
+  "XAPI-00079":
+    'A "score" property is an Object. The LRS rejects with 400 Bad Request a “score” property which is not a valid object.',
+  "XAPI-00080":
+    'If the "score" Object uses the "max" property, the value must be a decimal number more than the "min" property, if it is present. If "min" is not present "max" can be any number. The LRS rejects with 400 Bad Request a statement with a Result Object using the “max” property (if it is present) which is not a decimal number or is lesser than the value of the “min” property, if it is present. If this is the test, this will need to be moved, so that the result can be checked, oh no now that i read closer, no get and check it needed just a couple more tests sending in particular configurations of min and max and expecting 400\'s or 200\'s',
+  "XAPI-00081":
+    'If the "score" Object uses the "min" property, the value must be a decimal number less than the "max" property, if it is present. If "max" is not present "min" can be any number. The LRS rejects with 400 Bad Request a statement with a Result Object using the “min” property (if it is present) which is not a decimal number or is greater than the value of the “max” property, if it is present.',
+  "XAPI-00082":
+    'If the "score" Object uses the "raw" property, the value must be a decimal number between the "min" and "max", if they are present. If they are not present "raw" can be any number. The LRS rejects with 400 Bad Request a statement with a Result Object using the “raw” property (if it is present) which is not a decimal number or is greater than the value of the “max” property, if it is present, or lesser than the value of the “min” property, if it is present.',
+  "XAPI-00083":
+    'If the "score" Object uses the "scaled" property, the value must be a decimal number between -1 and 1. The LRS rejects with 400 Bad Request a statement with a Result Object using the “scaled” property (if it is present) which is not a decimal number or is greater than 1 or less than -1.',
+  "XAPI-00084": "in contexts.js",
+  "XAPI-00085": "in contexts.js",
+  "XAPI-00086": "in contexts.js",
+  "XAPI-00087": "1 - in contexts.js",
+  "XAPI-00088": "in contexts.js",
+  "XAPI-00089": "in contexts.js",
+  "XAPI-00090": "in contexts.js",
+  "XAPI-00091": "in contexts.js",
+  "XAPI-00092": "in contexts.js",
+  "XAPI-00093": "in contextactivities.js",
+  "XAPI-00094": "in contextactivities.js",
+  "XAPI-00095": "removed per 02/08/2017 spec call",
+  "XAPI-00096":
+    "An LRS's Statement Resource returns a ContextActivity in an array, even if only a single ContextActivity is returned.",
+  "XAPI-00097": 'An LRS MUST assign the "stored" property timestamp upon receiving a statement.',
+  "XAPI-00098":
+    'An "authority" property which is also a Group contains exactly two Agents. The LRS rejects with 400 Bad Request a statement which has an “authority” property with a “objectType” of “Group” with more or less than two Oauth Agents as values of the “member” property.',
+  "XAPI-00099": 'An LRS populates the "authority" property if it is not provided in the Statement',
+  "XAPI-00100":
+    'An LRS rejects with error code 400 Bad Request, a Request whose "authority" is a Group having more than two Agents',
+  "XAPI-00101":
+    'An LRS rejects with error code 400 Bad Request, a Request which uses "version" and has the value set to anything but "1.0" or "1.0.x", where x is the semantic versioning number',
+  "XAPI-00102":
+    'A "length" property is an Integer. The LRS rejects with 400 Bad Request a statement whichdoes not have a “length” property or the “length” property is not a valid integer in octets in the Attachment Object.',
+  "XAPI-00103":
+    'A "sha2" property is a String. The LRS rejects with 400 Bad Request a statement which does not have a “sha2” property or the ”sha2” property is not a valid hash in the Attachment Object.',
+  "XAPI-00104":
+    'A "fileUrl" property is an IRL. The LRS rejects with 400 Bad Request a statement the “fileURL” property if it is present and it is not a valid IRL in the Attachment Object.',
+  "XAPI-00105":
+    'A "contentType" property is an Internet Media/MIME type. The LRS rejects with 400 Bad Request a statement which does not have a “contentType” property or the “contentType” property value is not Internet Media/MIME in the Attachment Object.',
+  "XAPI-00106":
+    'A "display" property is a Language Map. The LRS rejects with 400 Bad Request a statement which does not have a “display” property or the “display” property value is not a valid Language Map in the Attachment Object.',
+  "XAPI-00107":
+    'A "usageType" property is an IRI. The LRS rejects with 400 Bad Request a statement which does not have a "usageType" property or the "usageType" property value is not a valid IRI in the Attachment Object.',
+  "XAPI-00108":
+    'If not empty, the "more" property\'s IRL refers to a specific container object corresponding to the next page of results from the original GET request. To test make a GET request which will return a known number of statements and confirm the LRS returns a “more” property which has an IRL with a container of the remaining statements and that the IRL is valid.',
+  "XAPI-00109":
+    'The "more" property is absent or an empty string (no whitespace) if the entire results of the original GET request have been returned. To test make a GET request which will return a known number of statements and check to make sure the LRS either returns an empty string or the more property is absent.',
+  "XAPI-00110":
+    'A "statements" property is an Array of Statements. Make a GET request which will return at least one statement and confirm the “statements” property is a valid Array of Statements.',
+  "XAPI-00111":
+    'A "more" property\'s referenced container object follows the same rules as the original GET request, originating with a single "statements" property and a single "more" property.',
+  "XAPI-00112": "duplicate of XAPI-00149 Communication 2.1.3 Statements GET",
+  "XAPI-00113":
+    'An LRS\'s Statement API, upon processing a successful GET request, will return a single "statements" property and a single "more" property. A single "more" property must be present if there are additional results available.',
+  "XAPI-00114": 'A "statements" property result which is paginated will create a container for each additional page.',
+  "XAPI-00115":
+    "A Signed Statement MUST include a JSON web signature (JWS) as defined here: http://tools.ietf.org/html/rfc7515, as an Attachment with a usageType of http://adlnet.gov/expapi/attachments/signature and a contentType of application/octet-stream. The LRS must reject with 400 a statement which has usageType of http://adlnet.gov/expapi/attachments/signature and a contentType of application/octet-stream but does not have a signature attached.",
+  "XAPI-00116":
+    "The JWS signature MUST have a payload of a valid JSON serialization of the complete Statement before the signature was added.The LRS must reject with 400 a statement which does not have a valid JSON serialization.",
+  "XAPI-00117":
+    'The JWS signature MUST use an algorithm of "RS256", "RS384", or "RS512". The LRS must reject with 400 a statement which does not use one of these algorithms or does not use one of these algorithms correctly.',
+  "XAPI-00118": "in extensions.js",
+  "XAPI-00119":
+    "An Extension can be null, an empty string, objects with nothing in them. The LRS accepts with 200 if a PUT or 204 if a POST an otherwise valid statement which has any extension value including null, an empty string, or an empty object. Tests for other emptys and PUT",
+  "XAPI-00120": "in extensions.js",
+  "XAPI-00121": "in languages.js",
+  "XAPI-00122":
+    "A Timestamp MUST preserve precision to at least milliseconds (3 decimal points beyond seconds). The LRS accepts a statement with a valid timestamp which has more than 3 decimal points beyond seconds and when recalled it returns at least 3 decimals points beyond seconds.",
+  "XAPI-00123": "in timestamps.js",
+  "XAPI-00124": "in durations.js",
+  "XAPI-00125":
+    "An LRS responds to a HEAD request in the same way as a GET request, but without the message-body. This means run ALL GET tests with HEAD",
+  "XAPI-00126": "An LRS accepts HEAD requests.",
+  "XAPI-00127":
+    'An LRS rejects with error code 400 Bad Request, a PUT or POST Request which does not have a "Content-Type" header with value "application/json" or "multipart/mixed"',
+  "XAPI-00128":
+    "An LRS rejects with error code 400 Bad Request, a PUT or POST Request which has excess multi-part sections that are not attachments.",
+  "XAPI-00129":
+    "An LRS rejects with error code 400 Bad Request, a PUT or POST Request which is missing multi-part sections for non-fileURL attachments must be rejected.",
+  "XAPI-00130":
+    'An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and does not have a Boundary before each "Content-Type" header',
+  "XAPI-00131":
+    'An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and does not have a body header named "boundary"',
+  "XAPI-00132":
+    'An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and for any part except the first does not have a Header named "X-Experience-API-Hash" with a value of one of those found in a "sha2" property of a Statement in the first part of this document',
+  "XAPI-00133":
+    'An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and does not have all of the Statements in the first document part',
+  "XAPI-00134":
+    'An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and does not the first document part with a "Content-Type" header with a value of "application/json"',
+  "XAPI-00135":
+    'An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and for any part except the first does not have a Header named "Content-Transfer-Encoding" with a value of "binary"',
+  "XAPI-00136": "there is no XAPI-00136",
+  "XAPI-00137": "removed",
+  "XAPI-00138": "removed",
+  "XAPI-00139": 'An LRS has a Statement API with endpoint "base IRI"+"/statements"',
+  "XAPI-00140":
+    "generic and covered by other files - An LRS implements all of the Statement, State, Agent, and Activity Profile sub-APIs",
+  "XAPI-00141": "covered by XAPI-00195, XAPI-00275, XAPI-00294",
+  "XAPI-00142":
+    "An LRS cannot modify a Statement in the event it receives a Statement with statementID equal to a Statement in the LRS already. To test: Send one statement with a particular statement ID. Send a second statement with the same statement ID but everything else different. Retrieve the statement before the second statement and after and both retrieved statements MUST match.",
+  "XAPI-00143": "An LRS's Statement API upon processing a valid PUT request successfully returns code 204 No Content",
+  "XAPI-00144":
+    'An LRS\'s Statement API accepts PUT requests only if it contains a "statementId" parameter, returning 204 No Content',
+  "XAPI-00145":
+    'An LRS\'s Statement API rejects a PUT request which does not have a "statementId" parameter, returning 400 Bad Request',
+  "XAPI-00146":
+    "An LRS's Statement API upon processing a successful POST request returns code 200 OK and all Statement UUIDs within the POST",
+  "XAPI-00147": "An LRS's Statement API accepts POST requests",
+  "XAPI-00148": "in H.Communication1.3-AlternateRequestSyntax.js",
+  "XAPI-00149":
+    'The LRS will NOT reject a GET request which returns an empty "statements" property. Send a GET request which will not return any results and check that a 200 Ok and an empty StatementResult Object is returned.',
+  "XAPI-00150":
+    'An LRS\'s Statement API rejects a GET request with both "voidedStatementId" and anything other than "attachments" or "format" as parameters with error code 400 Bad Request.',
+  "XAPI-00151":
+    'An LRS\'s Statement API rejects a GET request with both "statementId" and anything other than "attachments" or "format" as parameters with error code 400 Bad Request.',
+  "XAPI-00152": "removed per spec call 2/8/17",
+  "XAPI-00153":
+    'An LRS\'s Statement API upon processing a GET request, returns a header with name "X-Experience-API-Consistent-Through" regardless of the code returned.',
+  "XAPI-00154":
+    'An LRS\'s Statement API upon processing a successful GET request with neither a "statementId" nor a "voidedStatementId" parameter, returns code 200 OK and a StatementResult Object.',
+  "XAPI-00155":
+    'An LRS\'s Statement API upon processing a successful GET request with a "voidedStatementId" parameter, returns code 200 OK and a single Statement with the corresponding "id".',
+  "XAPI-00156":
+    'An LRS\'s Statement API upon processing a successful GET request with a "statementId" parameter, returns code 200 OK and a single Statement with the corresponding "id".',
+  "XAPI-00157": 'An LRS\'s Statement API can process a GET request with "voidedStatementId" as a parameter',
+  "XAPI-00158": 'An LRS\'s Statement API can process a GET request with "statementId" as a parameter',
+  "XAPI-00159": "An LRS's Statement API accepts GET requests",
+  "XAPI-00160": 'An LRS\'s "X-Experience-API-Consistent-Through" header is an ISO 8601 combined date and time',
+  "XAPI-00161":
+    'An LRS\'s Statement API not return attachment data and only return application/json if the "attachment" parameter set to "false"',
+  "XAPI-00162":
+    "An LRS's Statement API processes a successful GET request using a parameter (such as stored time) which includes a voided statement and unvoided statements targeting the voided statement. The API must return 200 Ok and the statement result object, containing statements which target a voided statement, but not the voided statement itself.",
+  "XAPI-00163":
+    "An LRS's Statement API, upon processing a successful GET request, can only return a Voided Statement if that Statement is specified in the voidedStatementId parameter of that request",
+  "XAPI-00164":
+    'The Statements within the "statements" property will correspond to the filtering criterion sent in with the GET request',
+  "XAPI-00165": 'An LRS\'s Statement API, upon receiving a GET request, MUST have a "Content-Type" header',
+  "XAPI-00166":
+    'An LRS\'s Statement API can process a GET request with "ascending" as a parameter The Statement API MUST return 200 OK, StatementResult Object with results in ascending order of stored time if the ascending parameter is set to true.',
+  "XAPI-00167":
+    'An LRS\'s Statement API can process a GET request with "attachments" as a parameter. The Statement API MUST return 200 OK, StatementResult Object and use the multipart response format and include all attachments if the attachment parameter is set to true',
+  "XAPI-00168":
+    'An LRS\'s Statement API can process a GET request with "format" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with results in the requested format or in “exact” if the “format” parameter is absent.',
+  "XAPI-00169":
+    'An LRS\'s Statement API can process a GET request with "format" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with results in the requested format. If “canonical”, return Activity Objects and Verbs populated with the canonical definition of the Activity Objects and Display of the Verbs as determined by the LRS, returning only one language.',
+  "XAPI-00170":
+    'An LRS\'s Statement API can process a GET request with "format" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with results in the requested format. If “exact”, return Agent, Activity, Verb and Group Objects populated exactly as they were when the Statement was received.',
+  "XAPI-00171":
+    'An LRS\'s Statement API can process a GET request with "format" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with results in the requested format. If “ids”, only include identifiers for Agent, Activity, Verb, Group Objects, and members of Anonymous groups.',
+  "XAPI-00172":
+    'If the "Accept-Language" header is present as part of the GET request to the Statement API and the "format" parameter is set to "canonical", the LRS MUST apply this data to choose the matching language in the response.',
+  "XAPI-00173":
+    'An LRS\'s Statement API can process a GET request with "limit" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with only the number of results set by the integer in the limit parameter. If the limit parameter is not present, the limit is defaulted to 0 which returns all results up to the server limit.',
+  "XAPI-00174":
+    'An LRS\'s Statement API can process a GET request with "until" as a parameter. The Statement API MUST return 200 OK, StatementResult Object containing all statements which have a stored timestamp at or before the specified until parameter timestamp.',
+  "XAPI-00175":
+    'An LRS\'s Statement API can process a GET request with "since" as a parameter. The Statement API MUST return 200 OK, StatementResult Object containing all statements which have a stored timestamp after the since parameter timestamp in the query.',
+  "XAPI-00176":
+    'An LRS\'s Statement API can process a GET request with "related_agents" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with exact match agent results if the agent parameter is set with a valid Agent or Identified Group JSON Object unless the related_agents parameter is set to true. If set to true it MUST return 200 OK, StatementResult Object with agent matches in the Actor, Object, authority, instructor, team, or any of these properties in a contained SubStatement',
+  "XAPI-00177":
+    'An LRS\'s Statement API can process a GET request with "related_activities" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with exact match activity results if the activity parameter is set with a valid Verb IRI unless the related_activities parameter is set to true. If set to true it MUST return 200 OK, StatementResult Object with activity ID matches in the Statement Object, and Context Objects and SubStatement Objects.',
+  "XAPI-00178":
+    'An LRS\'s Statement API can process a GET request with "registration" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with exact match registration results if the registration parameter is set with a valid registration UUID',
+  "XAPI-00179":
+    'An LRS\'s Statement API can process a GET request with "activity" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with exact match activity results if the activity parameter is set with a valid activity IRI',
+  "XAPI-00180":
+    'An LRS\'s Statement API can process a GET request with "verb" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with exact match verb results if the verb parameter is set with a valid Verb IRI',
+  "XAPI-00181":
+    'An LRS\'s Statement API can process a GET request with "agent" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with exact match agent result if the agent parameter is set with a valid Agent IFI',
+  "XAPI-00182": "An LRS makes no modifications to stored data for any rejected request.",
+  "XAPI-00183": "A Document Merge only performs overwrites at one level deep, although the entire object is replaced.",
+  "XAPI-00184": "A Document Merge overwrites any duplicate values from the previous document with the new document.",
+  "XAPI-00185": "untestable",
+  "XAPI-00186": "untestable",
+  "XAPI-00187": "An LRS's State API upon processing a successful DELETE request returns code 204 No Content",
+  "XAPI-00188": "An LRS's State API upon processing a successful GET request returns 200 Ok, State Document",
+  "XAPI-00189": "An LRS's State API upon processing a successful POST request returns code 204 No Content",
+  "XAPI-00190": "An LRS's State API upon processing a successful PUT request returns code 204 No Content",
+  "XAPI-00191":
+    'An LRS\'s State API upon processing a successful DELETE request with a valid "stateId" as a parameter deletes the document satisfying the requirements of the DELETE and returns code 204 No Content NOTE: There is no requirement here that the LRS reacts to the "since" parameter in the case of a DELETE request with valid "stateId" - this is intentional',
+  "XAPI-00192":
+    'An LRS\'s State API upon processing a successful GET request with a valid "stateId" as a parameter returns the document satisfying the requirements of the GET and code 200 OK NOTE: There is no requirement here that the LRS reacts to the "since" parameter in the case of a GET request with valid "stateId" - this is intentional',
+  "XAPI-00193":
+    'An LRS\'s State API upon processing a successful GET request without "stateId" as a parameter returns an array of ids of state data documents satisfying the requirements of the GET and code 200 OK',
+  "XAPI-00194":
+    'An LRS\'s State API upon processing a successful DELETE request without "stateId" as a parameter deletes documents satisfying the requirements of the DELETE and code 204 No Content',
+  "XAPI-00195":
+    'An LRS\'s returned array of ids from a successful GET request all refer to documents stored after the TimeStamp in the "since" parameter of the GET request',
+  "XAPI-00196":
+    'An LRS\'s State API rejects a DELETE request with "agent" as a parameter if it is not in JSON format with error code 400 Bad Request',
+  "XAPI-00197":
+    'An LRS\'s State API rejects a GET request with "agent" as a parameter if it is not in JSON format with error code 400 Bad Request',
+  "XAPI-00198":
+    'An LRS\'s State API rejects a POST request with "agent" as a parameter if it is not in JSON format with error code 400 Bad Request',
+  "XAPI-00199":
+    'An LRS\'s State API rejects a PUT request with "agent" as a parameter if it is not in JSON format with error code 400 Bad Request',
+  "XAPI-00200":
+    'An LRS\'s State API rejects a DELETE request with "registration" as a parameter if it is not a UUID with error code 400 Bad Request',
+  "XAPI-00201":
+    'An LRS\'s State API rejects a GET request with "registration" as a parameter if it is not a UUID with error code 400 Bad Request',
+  "XAPI-00202":
+    'An LRS\'s State API rejects a POST request with "registration" as a parameter if it is not a UUID with error code 400 Bad Request',
+  "XAPI-00203":
+    'An LRS\'s State API rejects a PUT request with "registration" as a parameter if it is not a UUID with error code 400 Bad Request',
+  "XAPI-00204":
+    'An LRS\'s State API rejects a GET request with "since" as a parameter if it is not a "TimeStamp", with error code 400 Bad Request',
+  "XAPI-00205": "No 'since' property with DELETE in the State Resource",
+  "XAPI-00206":
+    'An LRS\'s State API rejects a PUT request without "stateId" as a parameter with error code 400 Bad Request',
+  "XAPI-00207":
+    'An LRS\'s State API rejects a DELETE request without "activityId" as a parameter with error code 400 Bad Request',
+  "XAPI-00208":
+    'An LRS\'s State API rejects a GET request without "activityId" as a parameter with error code 400 Bad Request',
+  "XAPI-00209":
+    'An LRS\'s State API rejects a POST request without "activityId" as a parameter with error code 400 Bad Request',
+  "XAPI-00210":
+    'An LRS\'s State API rejects a PUT request without "activityId" as a parameter with error code 400 Bad Request',
+  "XAPI-00211":
+    'An LRS\'s State API rejects a POST request without "stateId" as a parameter with error code 400 Bad Request',
+  "XAPI-00212":
+    'An LRS\'s State API rejects a DELETE request without "agent" as a parameter with error code 400 Bad Request',
+  "XAPI-00213":
+    'An LRS\'s State API rejects a GET request without "agent" as a parameter with error code 400 Bad Request',
+  "XAPI-00214":
+    'An LRS\'s State API rejects a POST request without "agent" as a parameter with error code 400 Bad Request',
+  "XAPI-00215":
+    'An LRS\'s State API rejects a PUT request without "agent" as a parameter with error code 400 Bad Request',
+  "XAPI-00216": 'An LRS\'s State API can process a DELETE request with "stateId" as a parameter',
+  "XAPI-00217": 'An LRS\'s State API can process a GET request with "stateId" as a parameter',
+  "XAPI-00218": 'An LRS\'s State API can process a PUT request with "registration" as a parameter',
+  "XAPI-00219": 'An LRS\'s State API can process a DELETE request with "registration" as a parameter',
+  "XAPI-00220": 'An LRS\'s State API can process a GET request with "registration" as a parameter',
+  "XAPI-00221":
+    'An LRS\'s State API can process a GET request with "since" as a parameter. Returning 200 OK and all matching profiles after the date/time of the “since” parameter.',
+  "XAPI-00222": "duplicate of XAPI-00195",
+  "XAPI-00223": "No 'since' property with DELETE in the State Resource",
+  "XAPI-00224": "in Parameters folder",
+  "XAPI-00225": "in Parameters folder",
+  "XAPI-00226": "in Parameters folder",
+  "XAPI-00227": 'An LRS\'s State API can process a POST request with "registration" as a parameter',
+  "XAPI-00228": "in Parameters folder",
+  "XAPI-00229":
+    "An LRS's State API, rejects a POST request if the document is found and either document is not a valid JSON Object",
+  "XAPI-00230": 'An LRS has a State API with endpoint "base IRI"+"/activities/state"',
+  "XAPI-00231": "An LRS will accept a POST request to the State API",
+  "XAPI-00232":
+    "An LRS's State API, rejects a POST request if the document is found and either document's type is not \"application/json\" with error code 400 Bad Request",
+  "XAPI-00233":
+    "An LRS's State API, upon receiving a POST request for a document not currently in the LRS, treats it as a PUT request and store a new document. Returning 204 No Content",
+  "XAPI-00234":
+    'An LRS\'s State API performs a Document Merge if a profileId is found and both it and the document in the POST request have type "application/json". If the merge is successful, the LRS MUST respond with HTTP status code 204 No Content.',
+  "XAPI-00235":
+    'An LRS must reject with 400 Bad Request a POST request to the State API which contains name/value pairs with invalid JSON and the Content-Type header is "application/json"',
+  "XAPI-00236": "An LRS's Agents API accepts GET requests with response 200 OK, Person Object",
+  "XAPI-00237":
+    'A Person Object\'s "objectType" property is a String and is "Person" The LRS must return a valid “objectType” string.',
+  "XAPI-00238":
+    'A Person Object\'s "name" property is an Array of Strings. The LRS must return a “name” property with a valid Array of Strings, if present.',
+  "XAPI-00239":
+    'A Person Object\'s "mbox" property is an Array of IRIs. The LRS must return an “mbox” property with a valid array of IRIs, if present.',
+  "XAPI-00240":
+    'A Person Object\'s "mbox_sha1sum" property is an Array of Strings. The LRS must return a Person Object which has a “mbox_sha1sum” and is valid array of strings, if present.',
+  "XAPI-00241":
+    'A Person Object\'s "openid" property is an Array of Strings The LRS must return a “openid” value which is valid array of strings, if present.',
+  "XAPI-00242":
+    'A Person Object\'s "account" property is an Array of Account Objects The LRS must return a Person Object with a “name” value which is a valid array of account objects, if present.',
+  "XAPI-00243":
+    'An LRS\'s Agents API rejects a GET request without "agent" as a parameter with error code 400 Bad Request',
+  "XAPI-00244":
+    'A Person Object\'s "mbox" entries have the form "mailto:emailaddress". The LRS must return a Person Object which has a “mbox” value with the form "mailto:emailaddress"',
+  "XAPI-00245": 'An LRS has an Agents API with endpoint "base IRI" + /agents"',
+  "XAPI-00246":
+    "same as 248 - The Agents Resource MUST have an endpoint which accepts GET requests and returns a special, Person Object where each attribute has an array value and it is legal to include multiple identifying properties.",
+  "XAPI-00247":
+    "same as 248 - If an LRS does not have any additional information about an Agent to return from the Agents Resource, the LRS MUST still return a Person when queried, but that Person Object will only include the information associated with the requested Agent.",
+  "XAPI-00248":
+    'An LRS\'s Agents API upon processing a successful GET request returns a Person Object based on matched data from the "agent" parameter and code 200 OK',
+  "XAPI-00249":
+    'An LRSs Agents API rejects a GET request with "agent" as a parameter if it is not a valid (in structure) Agent with error code 400 Bad Request (XAPI-00249)',
+  "XAPI-00250":
+    'An LRS\'s Activities API rejects a GET request without "activityId" as a parameter with error code 400 Bad Request.',
+  "XAPI-00251":
+    "An LRS's Activities API upon processing a successful GET request returns 200 OK and the complete Activity Object.",
+  "XAPI-00252":
+    'An LRS has an Activities API with endpoint "base IRI" + /activities" (7.5) Implicit (in that it is not named this by the spec).',
+  "XAPI-00253": "An LRS's Activities API accepts GET requests.",
+  "XAPI-00254":
+    "The Activity Object must contain all available information about an activity from any statements who target the same “activityId”. For example, LRS accepts two statements each with a different language description of an activity using the exact same “activityId”. The LRS must return both language descriptions when a GET request is made to the Activities endpoint for that “activityId”.",
+  "XAPI-00255":
+    'An LRS\'s Agent Profile API rejects a DELETE request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request',
+  "XAPI-00256":
+    'An LRS\'s Agent Profile API rejects a POST request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request',
+  "XAPI-00257":
+    'An LRS\'s Agent Profile API rejects a PUT request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request',
+  "XAPI-00258":
+    'An LRS\'s Agent Profile API rejects a GET request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request',
+  "XAPI-00259":
+    "The Agent Profile API MUST return 200 OK - Profile Content when a GET request is received with a valid agent JSON Object.",
+  "XAPI-00260":
+    'An LRS\'s Agent Profile API rejects a GET request with "since" as a parameter if it is not a "TimeStamp", with error code 400 Bad Request',
+  "XAPI-00261":
+    'An LRS\'s Agent Profile API rejects a GET request without "agent" as a parameter with error code 400 Bad Request',
+  "XAPI-00262":
+    'An LRS\'s Agent Profile API rejects a DELETE request without "agent" as a parameter with error code 400 Bad Request',
+  "XAPI-00263":
+    'An LRS\'s Agent Profile API rejects a POST request without "agent" as a parameter with error code 400 Bad Request',
+  "XAPI-00264":
+    'An LRS\'s Agent Profile API rejects a PUT request without "agent" as a parameter with error code 400 Bad Request',
+  "XAPI-00265":
+    'An LRS\'s Agent Profile API rejects a DELETE request without "profileId" as a parameter with error code 400 Bad Request',
+  "XAPI-00266":
+    'An LRS\'s Agent Profile API rejects a POST request without "profileId" as a parameter with error code 400 Bad Request',
+  "XAPI-00267":
+    'An LRS\'s Agent Profile API rejects a PUT request without "profileId" as a parameter with error code 400 Bad Request',
+  "XAPI-00268":
+    'An LRS\'s Agent Profile API can process a GET request with "since" as a parameter. Returning 200 OK and all matching profiles after the date/time of the “since” parameter',
+  "XAPI-00269":
+    'An LRS\'s Agent Profile API upon processing a successful GET request with a valid Agent Object and valid "profileId" as a parameter returns the document satisfying the requirements of the GET and code 200 OK',
+  "XAPI-00270":
+    'An LRS\'s Agent Profile API upon processing a successful GET request with a valid Agent Object and without "profileId" as a parameter returns an array of ids of agent profile documents satisfying the requirements of the GET and code 200 OK',
+  "XAPI-00271":
+    "An LRS's Agent Profile API upon processing a successful DELETE request deletes the associated profile and returns code 204 No Content",
+  "XAPI-00272": "An LRS's Agent Profile API upon processing a successful POST request returns code 204 No Content",
+  "XAPI-00273": "An LRS's Agent Profile API upon processing a successful PUT request returns code 204 No Content",
+  "XAPI-00274": "An LRS's Agent Profile API accepts valid GET requests with code 200 OK, Profile document",
+  "XAPI-00275":
+    'The Agent Profile API\'s returned array of ids from a successful GET request all refer to documents stored after the TimeStamp in the "since" parameter of the GET request if such a parameter was present',
+  "XAPI-00276": "in parameters folder",
+  "XAPI-00277": "in parameters folder",
+  "XAPI-00278":
+    "An LRS's Agent Profile API, rejects a POST request if the document is found and either document's type is not \"application/json\" with error code 400 Bad Request",
+  "XAPI-00279":
+    'An LRS\'s Agent Profile API performs a Document Merge if a profileId is found and both it and the document in the POST request have type "application/json" If the merge is successful, the LRS MUST respond with HTTP status code 204 No Content. not quite, but is this close enough??',
+  "XAPI-00280":
+    "An LRS's Agent Profile API, upon receiving a POST request for a document not currently in the LRS, treats it as a PUT request and store a new document.Returning 204 No Content",
+  "XAPI-00281":
+    'An LRS must reject with 400 Bad Request a POST request to the Activitiy Profile API which contains name/value pairs with invalid JSON and the Content-Type header is "application/json"',
+  "XAPI-00282": 'An LRS has an Agent Profile API with endpoint "base IRI"+"/agents/profile"',
+  "XAPI-00283": "An LRS will accept a POST request to the Agent Profile API",
+  "XAPI-00284":
+    'An LRS must reject with 400 Bad Request a POST request to the Activitiy Profile API which contains name/value pairs with invalid JSON and the Content-Type header is "application/json"',
+  "XAPI-00285":
+    "An LRS's Activity Profile API upon processing a successful DELETE request deletes the associated profile and returns code 204 No Content",
+  "XAPI-00286": "An LRS's Activity Profile API upon processing a successful POST request returns code 204 No Content",
+  "XAPI-00287": "An LRS's Activity Profile API upon processing a successful PUT request returns code 204 No Content",
+  "XAPI-00288":
+    'An LRS\'s Activity Profile API upon processing a successful GET request with a valid "profileId" as a parameter returns the document satisfying the requirements of the GET and code 200 OK',
+  "XAPI-00289":
+    'An LRS\'s Activity Profile API upon processing a successful GET request without "profileId" as a parameter returns an array of ids of activity profile documents satisfying the requirements of the GET and code 200 OK',
+  "XAPI-00290": "An LRS's Activity Profile API accepts GET requests",
+  "XAPI-00291": "An LRS's Activity Profile API accepts DELETE requests",
+  "XAPI-00292": "An LRS's Activity Profile API accepts POST requests",
+  "XAPI-00293": "An LRS's Activity Profile API accepts PUT requests",
+  "XAPI-00294":
+    'The Activity Profile API\'s returned array of ids from a successful GET request all refer to documents stored after the TimeStamp in the "since" parameter of the GET request if such a parameter was present',
+  "XAPI-00295":
+    'An LRS\'s Activity Profile API rejects a GET request with "since" as a parameter if it is not a "TimeStamp", with error code 400 Bad Request',
+  "XAPI-00296":
+    'An LRS\'s Activity Profile API rejects a GET request without "activityId" as a parameter with error code 400 Bad Request',
+  "XAPI-00297":
+    'An LRS\'s Activity Profile API rejects a DELETE request without "activityId" as a parameter with error code 400 Bad Request',
+  "XAPI-00298":
+    'An LRS\'s Activity Profile API rejects a POST request without "activityId" as a parameter with error code 400 Bad Request',
+  "XAPI-00299":
+    'An LRS\'s Activity Profile API rejects a PUT request without "activityId" as a parameter with error code 400 Bad Request',
+  "XAPI-00300":
+    'An LRS\'s Activity Profile API rejects a DELETE request without "profileId" as a parameter with error code 400 Bad Request',
+  "XAPI-00301":
+    'An LRS\'s Activity Profile API rejects a POST request without "profileId" as a parameter with error code 400 Bad Request',
+  "XAPI-00302":
+    'An LRS\'s Activity Profile API rejects a PUT request without "profileId" as a parameter with error code 400 Bad Request',
+  "XAPI-00303":
+    'An LRS\'s Activity Profile API can process a GET request with "since" as a parameter. Returning 200 OK and all matching profiles after the date/time of the “since” parameter.',
+  "XAPI-00304": "'agent' is not a valid parameter in the Activity Profile Resource",
+  "XAPI-00305": "in Parameters folder",
+  "XAPI-00306": "in Parameters folder",
+  "XAPI-00307": "in Parameters folder",
+  "XAPI-00308":
+    'An LRS\'s Activity Profile API performs a Document Merge if a activityId is found and both it and the document in the POST request have type "application/json" If the merge is successful, the LRS MUST respond with HTTP status code 204 No Content. activityId??',
+  "XAPI-00309":
+    "An LRS's Activity Profile API, rejects a POST request if the document is found and either document's type is not \"application/json\" with error code 400 Bad Request",
+  "XAPI-00310":
+    "An LRS's Activity Profile API, upon receiving a POST request for a document not currently in the LRS, treats it as a PUT request and store a new document. Returning 204 No Content",
+  "XAPI-00311": 'An LRS has an Activity Profile API with endpoint "base IRI"+"/activities/profile"',
+  "XAPI-00312": "An LRS will accept a POST request to the Activity Profile API",
+  "XAPI-00313":
+    "An LRS's Activity Profile API, rejects a POST request if the document is found and either doucment is not a valid JSON Object",
+  "XAPI-00314":
+    'An LRS\'s must reject, with 400 Bad Request, a POST request to the Activity Profile API which contains name/value pairs with invalid JSON and the Content-Type header is "application/json"',
+  "XAPI-00315": 'An LRS has an About API with endpoint "base IRI"+"/about"',
+  "XAPI-00316":
+    'An LRS\'s About API\'s version property can only have values of "0.9", "0.95", "1.0.0", or “1.0.x” with',
+  "XAPI-00317": "An LRS's About API's version property contains at least one string of \"1.0.x\"",
+  "XAPI-00318": "An LRS's About API's version property is an array of strings",
+  "XAPI-00319":
+    "An LRS's About Resource accepts GET requests. Upon processing a successful GET request returns a version property and code 200 OK",
+  "XAPI-00320": "bad test - extesion property is optional in spec",
+  "XAPI-00321":
+    'An LRS rejects with error code 400 Bad Request, a Request which does not use a "X-Experience-API-Version" header name to any API except the About API',
+  "XAPI-00322":
+    "An LRS must support HTTP/1.1 entity tags (ETags) to implement optimistic concurrency control when handling APIs where PUT may overwrite existing data (State, Agent Profile, and Activity Profile)",
+  "XAPI-00323":
+    "not found yet - An LRS can only reject Statements using the error codes in this specification - what are we to test here??",
+  "XAPI-00324":
+    "An LRS rejects with error code 400 Bad Request any request to an API which uses a parameter not recognized by the LRS",
+  "XAPI-00325":
+    "An LRS rejects with error code 400 Bad Request any request to an API which uses a parameter with differing case",
+  "XAPI-00326":
+    "An LRS rejects with a 400 Bad Request any batch of Statements in which one or more Statements is rejected and if necessary, restores the LRS to the state in which it was before the batch began processing. The response may identify the first statementId which failed.",
+  "XAPI-00327":
+    "not found yet - An LRS rejects a Statement of insufficient permissions (credentials are valid, but not adequate) with error code 403 Forbidden",
+  "XAPI-00328":
+    "An LRS rejects a Statement due to size if the Statement exceeds the size limit the LRS is configured to with error code 413 Request Entity Too Large. Held out for now. No upper limit constraint.",
+  "XAPI-00329":
+    "not found yet - An LRS rejects a Statement due to network/server issues with an error code of 500 Internal Server Error",
+  "XAPI-00330": 'An LRS will not modify Statements based on a "version" before "1.0.1"',
+  "XAPI-00331":
+    'An LRS rejects with error code 400 Bad Request, a Request which the "X-Experience-API-Version" header\'s value is anything but "2.0" or "2.0.x", where x is the semantic versioning number to any API except the About API.',
+  "XAPI-00332": "in Data 2.4.10 Statements Version Property",
+  "XAPI-00333":
+    'An LRS sends a header response with "X-Experience-API-Version" as the name and latest patch version after 1.0.0 as the value',
+  "XAPI-00334":
+    "An LRS rejects a Statement of bad authorization (either authentication needed or failed credentials) with error code 401 Unauthorized",
+  "XAPI-00335": "An LRS must support HTTP Basic Authentication",
+  "XAPI-00336": "The LRS MUST support the Alternate Request Syntax.",
+  "XAPI-01001":
+    "Rewrite parity requirement: statementId GET roundtrip behavior remains covered in rewrite statement query cases.",
+  "XAPI-01002":
+    "Rewrite parity requirement: statement metadata/header consistency remains covered in rewrite statement header/substatement cases.",
+};

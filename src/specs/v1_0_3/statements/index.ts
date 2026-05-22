@@ -1,0 +1,14 @@
+export { createV103StatementResourceProofSliceSuite } from "./resource";
+export { createV103StatementQueryProofSliceSuite } from "./query";
+export { createV103StatementsFormattingProofSliceSuite } from "./formatting";
+export { createV103StatementsResultAndObjectsProofSliceSuite } from "./result-and-objects";
+export { createV103StatementsContextProofSliceSuite } from "./context";
+export { createV103StatementsRepresentationProofSliceSuite } from "./representation";
+export { createV103StatementsSpecialDataTypesProofSliceSuite } from "./special-data-types";
+export { createV103StatementsIdProofSliceSuite } from "./id";
+export { createV103StatementsMetadataProofSliceSuite } from "./metadata";
+export { createV103StatementsAttachmentsProofSliceSuite } from "./attachments";
+export { createV103StatementsAuthorityProofSliceSuite } from "./authority";
+export { createV103StatementsSignedStatementsProofSliceSuite } from "./signed-statements";
+export { createV103StatementsAdditionalDataTypesProofSliceSuite } from "./additional-data-types";
+export { createV103StatementsQueryValidationProofSliceSuite } from "./query-validation";
