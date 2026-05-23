@@ -11,7 +11,7 @@ import {
   createV20StateResourceProofSliceSuite,
 } from "../src/specs/v2_0/proof-slice";
 
-const expectedCaseCount = 424;
+const expectedCaseCount = 460;
 const expectedCaseIdAnchors = [
   "v2.statements.required-fields.missing-actor",
   "v2.statements.invalid-types.result-completion-string",
@@ -39,10 +39,22 @@ const expectedCaseIdAnchors = [
   "v2.statements.authority-group-rejection.non-oauth-members",
   "v2.statements.authority-group-rejection.identified-openid",
   "v2.statements.authority-group-rejection.anonymous-three-member",
+  "v2.statements.transport.put-roundtrip",
+  "v2.statements.transport.put-requires-statement-id",
+  "v2.statements.transport.put-is-immutable",
+  "v2.statements.voiding.voided-statement-id-roundtrip",
+  "v2.statements.voiding.statement-id-hides-voided",
   "v2.statements.invalid-attachment-iri.file-url-no-scheme",
   "v2.statements.numeric-precision.score-roundtrip",
   "v2.statements.query-validation.invalid-registration",
   "v2.statements.query.statement-id-roundtrip",
+  "v2.statements.query.empty-result",
+  "v2.statements.query.agent",
+  "v2.statements.query.related-agents",
+  "v2.statements.query.since",
+  "v2.statements.query.limit",
+  "v2.statements.query.exclusive.statement-id.with-agent",
+  "v2.statements.query.exclusive.voided-statement-id.with-limit",
   "v2.activities-state.document-invalid-agent-query",
   "v2.activities-state.document-merge-rejects-non-json-post",
   "v2.activities-state.document-merge-rejects-existing-non-json",
@@ -175,7 +187,7 @@ describe("RegistryBuilder", () => {
       "Activity Profile Resource",
       "Agent Profile Resource",
     ]);
-    expect(batteries["2.0.0"]?.tests.children[0]?.children).toHaveLength(4);
+    expect(batteries["2.0.0"]?.tests.children[0]?.children).toHaveLength(5);
     expect(batteries["2.0.0"]?.tests.children[1]?.children).toHaveLength(5);
     expect(batteries["2.0.0"]?.tests.children[2]?.children).toHaveLength(5);
     expect(batteries["2.0.0"]?.tests.children[3]?.children).toHaveLength(5);

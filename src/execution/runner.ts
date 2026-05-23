@@ -25,6 +25,7 @@ type RequestSequenceExecution = Extract<ExecutionPlan, { kind: "request-sequence
 type SingleRequestAssertion = Extract<AssertionPlan, { kind: "single-request" }>;
 type SubmitAndQueryAssertion = Extract<AssertionPlan, { kind: "submit-and-query" }>;
 type RequestSequenceAssertion = Extract<AssertionPlan, { kind: "request-sequence" }>;
+type FetchImpl = (input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) => ReturnType<typeof fetch>;
 type SingleRequestCase = Omit<CaseDefinition, "execution" | "assertion"> & {
   execution: SingleRequestExecution;
   assertion: SingleRequestAssertion;
@@ -38,10 +39,25 @@ type RequestSequenceCase = Omit<CaseDefinition, "execution" | "assertion"> & {
   assertion: RequestSequenceAssertion;
 };
 
+interface RuntimeBasicAuthOptions {
+  username: string;
+  password: string;
+}
+
+interface RuntimeOauth1AuthOptions {
+  authorizationHeader: string;
+}
+
+interface RuntimeAuthOptions {
+  basic?: RuntimeBasicAuthOptions;
+  oauth1?: RuntimeOauth1AuthOptions;
+}
+
 export interface RuntimeRunOptions {
   baseUrl: string;
-  fetchImpl?: typeof fetch;
+  fetchImpl?: FetchImpl;
   onEvent?: (event: ExecutionEvent) => void | Promise<void>;
+  auth?: RuntimeAuthOptions;
 }
 
 export interface RuntimeRunResult {
@@ -59,6 +75,15 @@ const endpointPaths: Record<HttpRequest["endpoint"], string> = {
   agents: "agents",
   "agents-profile": "agents/profile",
   statements: "statements",
+};
+
+const defaultBasicAuth: RuntimeBasicAuthOptions = {
+  username: "proof-basic-user",
+  password: "proof-basic-password",
+};
+
+const defaultOauth1Auth: RuntimeOauth1AuthOptions = {
+  authorizationHeader: 'OAuth oauth_consumer_key="proof-consumer-key"',
 };
 
 function withTrailingSlash(value: string): string {
@@ -163,6 +188,31 @@ function assertRequestExpectation(response: Response, body: unknown, assertion: 
   return errors;
 }
 
+function buildBasicAuthorizationHeader(credentials: RuntimeBasicAuthOptions): string {
+  return `Basic ${Buffer.from(`${credentials.username}:${credentials.password}`).toString("base64")}`;
+}
+
+function applyAuthorizationHeader(request: HttpRequest, headers: Headers, options: RuntimeRunOptions): void {
+  if (headers.has("authorization")) {
+    return;
+  }
+
+  switch (request.authMode) {
+    case "none":
+      return;
+    case "basic": {
+      const credentials = options.auth?.basic ?? defaultBasicAuth;
+      headers.set("authorization", buildBasicAuthorizationHeader(credentials));
+      return;
+    }
+    case "oauth1": {
+      const oauth1 = options.auth?.oauth1 ?? defaultOauth1Auth;
+      headers.set("authorization", oauth1.authorizationHeader);
+      return;
+    }
+  }
+}
+
 async function executeHttpRequest(request: HttpRequest, options: RuntimeRunOptions): Promise<Response> {
   const url = new URL(endpointPaths[request.endpoint], withTrailingSlash(options.baseUrl));
   for (const [key, value] of Object.entries(request.query)) {
@@ -170,6 +220,7 @@ async function executeHttpRequest(request: HttpRequest, options: RuntimeRunOptio
   }
 
   const headers = new Headers(request.headers);
+  applyAuthorizationHeader(request, headers, options);
   const init: RequestInit = {
     method: request.method,
     headers,

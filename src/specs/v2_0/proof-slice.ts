@@ -1,7 +1,9 @@
 import type {
+  CaseDefinition,
   EndpointKind,
   HttpMethod,
   HttpRequest,
+  JsonPathExpectation,
   JsonObject,
   RegistryDefinition,
   RequirementRef,
@@ -15,7 +17,7 @@ import {
   buildAgentProfileDocumentFixture,
   buildAgentProfileIdentityFixture,
 } from "../../fixtures/v2_0/documents";
-import { buildStatementFixture, type FixtureTransform } from "../../fixtures/v2_0/statements";
+import { buildStatementFixture, type FixtureTransform, type StatementFixture } from "../../fixtures/v2_0/statements";
 import { RegistryBuilder } from "../../registry/builder";
 import {
   documentRoundTripCase,
@@ -46,8 +48,12 @@ const groupsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/t
 const authoritiesLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.4.2-Authority-Requirements.js";
 const authoritiesLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/authorities.js";
+const statementLifecycleLegacySuiteFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v1_0_3/Data2.3-StatementLifecycle.js";
 const accountObjectsLegacyConfigFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/accountobjects.js";
+
+const proofUuidPrefix = "33333333-3333-4333-8333-";
 
 function buildVersionedHeaders(extraHeaders: Record<string, string> = {}): Record<string, string> {
   return {
@@ -105,6 +111,18 @@ function buildVersionedRequest(
   };
 }
 
+function buildStatementBody(body: JsonObject): NonNullable<HttpRequest["body"]> {
+  return {
+    kind: "json",
+    value: body,
+    sourceFixture: {
+      version: specVersion,
+      domain: "statements",
+      name: "default",
+    },
+  };
+}
+
 function buildStatementPostRequest(body: JsonObject, extraHeaders: Record<string, string> = {}): HttpRequest {
   return {
     method: "POST",
@@ -112,27 +130,61 @@ function buildStatementPostRequest(body: JsonObject, extraHeaders: Record<string
     authMode: "basic",
     headers: buildVersionedHeaders(extraHeaders),
     query: {},
-    body: {
-      kind: "json",
-      value: body,
-      sourceFixture: {
-        version: specVersion,
-        domain: "statements",
-        name: "default",
-      },
-    },
+    body: buildStatementBody(body),
   };
 }
 
-function buildStatementGetRequest(statementId: string, extraHeaders: Record<string, string> = {}): HttpRequest {
+function buildStatementLookupRequest(
+  queryKey: "statementId" | "voidedStatementId",
+  statementId: string,
+  extraHeaders: Record<string, string> = {},
+): HttpRequest {
   return {
     method: "GET",
     endpoint: "statements",
     authMode: "basic",
     headers: buildVersionedHeaders(extraHeaders),
     query: {
+      [queryKey]: statementId,
+    },
+  };
+}
+
+function buildStatementGetRequest(statementId: string, extraHeaders: Record<string, string> = {}): HttpRequest {
+  return buildStatementLookupRequest("statementId", statementId, extraHeaders);
+}
+
+function buildVoidedStatementGetRequest(statementId: string, extraHeaders: Record<string, string> = {}): HttpRequest {
+  return buildStatementLookupRequest("voidedStatementId", statementId, extraHeaders);
+}
+
+function buildStatementPutRequest(
+  statementId: string,
+  body: JsonObject,
+  extraHeaders: Record<string, string> = {},
+): HttpRequest {
+  return {
+    method: "PUT",
+    endpoint: "statements",
+    authMode: "basic",
+    headers: buildVersionedHeaders(extraHeaders),
+    query: {
       statementId,
     },
+    body: buildStatementBody(body),
+  };
+}
+
+function buildStatementCollectionRequest(
+  query: Record<string, string>,
+  extraHeaders: Record<string, string> = {},
+): HttpRequest {
+  return {
+    method: "GET",
+    endpoint: "statements",
+    authMode: "basic",
+    headers: buildVersionedHeaders(extraHeaders),
+    query,
   };
 }
 
@@ -143,6 +195,203 @@ function listEquals(expected: string[]) {
       equals: expected,
     },
   ];
+}
+
+function buildProofUuid(sequence: number): string {
+  return `${proofUuidPrefix}${sequence.toString().padStart(12, "0")}`;
+}
+
+function buildProofTimestamp(second: number): string {
+  return `2026-05-23T12:00:${second.toString().padStart(2, "0")}Z`;
+}
+
+function buildProofStatement(sequence: number, transforms: FixtureTransform[] = []): StatementFixture {
+  return buildStatementFixture([
+    {
+      operation: "set",
+      path: ["id"],
+      value: buildProofUuid(sequence),
+    },
+    {
+      operation: "set",
+      path: ["timestamp"],
+      value: buildProofTimestamp(sequence),
+    },
+    ...transforms,
+  ]);
+}
+
+function buildAgentQuery(mbox: string): string {
+  return JSON.stringify({
+    objectType: "Agent",
+    mbox,
+  });
+}
+
+function buildStatementCollectionExpectations(expectedStatementIds: string[]): JsonPathExpectation[] {
+  return [
+    {
+      path: ["statements", "length"],
+      equals: expectedStatementIds.length,
+    },
+    ...expectedStatementIds.map((statementId, index) => ({
+      path: ["statements", String(index), "id"],
+      equals: statementId,
+    })),
+  ];
+}
+
+interface StatementCollectionQueryCaseOptions {
+  caseId: string;
+  title: string;
+  requirementRefs: RequirementRef[];
+  tags: string[];
+  setupStatements: StatementFixture[];
+  query: Record<string, string>;
+  expectedStatementIds: string[];
+  legacyTraceSuiteFile: string;
+  notes?: string[];
+  capabilityFlags?: string[];
+}
+
+function buildStatementCollectionQueryCase(options: StatementCollectionQueryCaseOptions): CaseDefinition {
+  return requestSequenceCase({
+    caseId: options.caseId,
+    title: options.title,
+    specVersion,
+    requirementRefs: options.requirementRefs,
+    tags: options.tags,
+    capabilityFlags: options.capabilityFlags ?? ["query", "retrieval"],
+    legacyTraceSuiteFile: options.legacyTraceSuiteFile,
+    notes: options.notes ?? ["proof-slice statement collection query"],
+    steps: [
+      ...options.setupStatements.map((statement) => ({
+        request: buildStatementPostRequest(statement),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["id"],
+              equals: statement.id,
+            },
+          ],
+        },
+      })),
+      {
+        request: buildStatementCollectionRequest(options.query),
+        assertion: {
+          status: 200,
+          expectedHeaders: [
+            {
+              key: "X-Experience-API-Version",
+              equals: specVersion,
+            },
+          ],
+          jsonPathEquals: buildStatementCollectionExpectations(options.expectedStatementIds),
+        },
+      },
+    ],
+  });
+}
+
+function buildStatementQueryExclusivityCases(options: {
+  familyId: string;
+  baseQueryKey: "statementId" | "voidedStatementId";
+  baseQueryValue: string;
+  requirementRef: RequirementRef;
+}): CaseDefinition[] {
+  const queryVariants: Array<{ idSuffix: string; label: string; query: Record<string, string> }> = [
+    {
+      idSuffix: "with-agent",
+      label: "agent",
+      query: {
+        agent: buildAgentQuery("mailto:statement-query-exclusive@example.test"),
+      },
+    },
+    {
+      idSuffix: "with-verb",
+      label: "verb",
+      query: {
+        verb: "https://example.test/xapi/verbs/query-exclusive",
+      },
+    },
+    {
+      idSuffix: "with-activity",
+      label: "activity",
+      query: {
+        activity: "https://example.test/xapi/activities/query-exclusive",
+      },
+    },
+    {
+      idSuffix: "with-registration",
+      label: "registration",
+      query: {
+        registration: buildProofUuid(900),
+      },
+    },
+    {
+      idSuffix: "with-related-activities",
+      label: "related_activities",
+      query: {
+        related_activities: "true",
+      },
+    },
+    {
+      idSuffix: "with-related-agents",
+      label: "related_agents",
+      query: {
+        related_agents: "true",
+      },
+    },
+    {
+      idSuffix: "with-since",
+      label: "since",
+      query: {
+        since: buildProofTimestamp(50),
+      },
+    },
+    {
+      idSuffix: "with-until",
+      label: "until",
+      query: {
+        until: buildProofTimestamp(51),
+      },
+    },
+    {
+      idSuffix: "with-limit",
+      label: "limit",
+      query: {
+        limit: "1",
+      },
+    },
+    {
+      idSuffix: "with-ascending",
+      label: "ascending",
+      query: {
+        ascending: "true",
+      },
+    },
+  ];
+
+  return queryVariants.map((variant) =>
+    singleRequestCase({
+      caseId: `${options.familyId}.${variant.idSuffix}`,
+      title: `The Statements resource rejects a GET request that combines ${options.baseQueryKey} with ${variant.label}`,
+      specVersion,
+      requirementRefs: [options.requirementRef],
+      tags: ["v2.0.0", "statements", "query", "validation", "exclusive"],
+      capabilityFlags: ["query", "validation"],
+      legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+      request: buildStatementCollectionRequest({
+        [options.baseQueryKey]: options.baseQueryValue,
+        ...variant.query,
+      }),
+      assertion: {
+        status: 400,
+      },
+      notes: ["proof-slice statement query exclusivity"],
+    }),
+  );
 }
 
 const validSinceTimestamp = "2020-01-01T00:00:00.000Z";
@@ -1705,6 +1954,11 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     transforms: [
       {
         operation: "set",
+        path: ["id"],
+        value: buildProofUuid(200),
+      },
+      {
+        operation: "set",
         path: ["result", "score", "min"],
         value: min,
       },
@@ -1744,6 +1998,691 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     ],
     capabilityFlags: ["query", "retrieval", "precision"],
     notes: ["proof-slice numeric precision"],
+  });
+
+  const putRoundTripStatement = buildProofStatement(201, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/transport-put-roundtrip",
+    },
+  ]);
+
+  const putRoundTripCase = requestSequenceCase({
+    caseId: "v2.statements.transport.put-roundtrip",
+    title: "The Statements resource persists a statement written with PUT and retrieves it by statementId",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00143",
+        section: "Communication 2.1.1.s1",
+        title: "Successful Statement PUT returns 204 No Content",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "transport", "put"],
+    capabilityFlags: ["transport", "query", "retrieval"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    notes: ["proof-slice statement PUT roundtrip"],
+    steps: [
+      {
+        request: buildStatementPutRequest(putRoundTripStatement.id, putRoundTripStatement),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildStatementGetRequest(putRoundTripStatement.id),
+        assertion: {
+          status: 200,
+          expectedHeaders: [
+            {
+              key: "X-Experience-API-Version",
+              equals: specVersion,
+            },
+          ],
+          jsonPathEquals: [
+            {
+              path: ["id"],
+              equals: putRoundTripStatement.id,
+            },
+            {
+              path: ["verb", "id"],
+              equals: "https://example.test/xapi/verbs/transport-put-roundtrip",
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const putRequiresStatementIdStatement = buildProofStatement(202, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/transport-put-missing-id",
+    },
+  ]);
+
+  const putRequiresStatementIdCase = singleRequestCase({
+    caseId: "v2.statements.transport.put-requires-statement-id",
+    title: "The Statements resource rejects PUT without a statementId query parameter",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00145",
+        section: "Communication 2.1.1.s1.table1.row1",
+        title: "Statement PUT rejects requests without statementId",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "transport", "put"],
+    capabilityFlags: ["transport", "validation"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    request: {
+      method: "PUT",
+      endpoint: "statements",
+      authMode: "basic",
+      headers: buildVersionedHeaders(),
+      query: {},
+      body: buildStatementBody(putRequiresStatementIdStatement),
+    },
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice statement PUT requires statementId"],
+  });
+
+  const immutableOriginalVerbId = "https://example.test/xapi/verbs/transport-put-original";
+  const immutableReplacementVerbId = "https://example.test/xapi/verbs/transport-put-replacement";
+  const immutableOriginalStatement = buildProofStatement(203, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: immutableOriginalVerbId,
+    },
+  ]);
+  const immutableReplacementStatement = buildProofStatement(203, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: immutableReplacementVerbId,
+    },
+  ]);
+
+  const putImmutableCase = requestSequenceCase({
+    caseId: "v2.statements.transport.put-is-immutable",
+    title:
+      "The Statements resource does not modify an existing statement when the same statementId is written again with PUT",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00142",
+        section: "Communication 2.1.1.s2.b2",
+        title: "Statement PUT cannot modify an existing Statement",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "transport", "put", "immutability"],
+    capabilityFlags: ["transport", "query", "retrieval"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    notes: ["proof-slice statement PUT immutability"],
+    steps: [
+      {
+        request: buildStatementPutRequest(immutableOriginalStatement.id, immutableOriginalStatement),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildStatementPutRequest(immutableReplacementStatement.id, immutableReplacementStatement),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildStatementGetRequest(immutableOriginalStatement.id),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["verb", "id"],
+              equals: immutableOriginalVerbId,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const voidedStatement = buildProofStatement(204, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/voiding-target",
+    },
+  ]);
+  const voidingStatement = buildProofStatement(205, [
+    {
+      operation: "set",
+      path: ["verb"],
+      value: buildVerbFixture("http://adlnet.gov/expapi/verbs/voided", "voided"),
+    },
+    {
+      operation: "set",
+      path: ["object"],
+      value: {
+        objectType: "StatementRef",
+        id: voidedStatement.id,
+      },
+    },
+  ]);
+
+  const voidedStatementQueryCase = requestSequenceCase({
+    caseId: "v2.statements.voiding.voided-statement-id-roundtrip",
+    title: "The Statements resource returns a voided statement when queried by voidedStatementId",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00155",
+        section: "Communication 2.1.3.s1",
+        title: "GET with voidedStatementId returns the corresponding Statement",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "voiding", "query"],
+    capabilityFlags: ["transport", "query", "retrieval", "voiding"],
+    legacyTraceSuiteFile: statementLifecycleLegacySuiteFile,
+    notes: ["proof-slice voided statement retrieval"],
+    steps: [
+      {
+        request: buildStatementPostRequest(voidedStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementPostRequest(voidingStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildVoidedStatementGetRequest(voidedStatement.id),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["id"],
+              equals: voidedStatement.id,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const hiddenVoidedStatement = buildProofStatement(206, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/voiding-hidden-target",
+    },
+  ]);
+  const hidingVoidingStatement = buildProofStatement(207, [
+    {
+      operation: "set",
+      path: ["verb"],
+      value: buildVerbFixture("http://adlnet.gov/expapi/verbs/voided", "voided"),
+    },
+    {
+      operation: "set",
+      path: ["object"],
+      value: {
+        objectType: "StatementRef",
+        id: hiddenVoidedStatement.id,
+      },
+    },
+  ]);
+
+  const hiddenVoidedStatementCase = requestSequenceCase({
+    caseId: "v2.statements.voiding.statement-id-hides-voided",
+    title: "The Statements resource does not return a voided statement when queried by statementId",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00163",
+        section: "Communication 2.1.4.s1.b1",
+        title: "Voided Statements are only returned for voidedStatementId lookups",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "voiding", "query"],
+    capabilityFlags: ["transport", "query", "retrieval", "voiding"],
+    legacyTraceSuiteFile: statementLifecycleLegacySuiteFile,
+    notes: ["proof-slice hidden voided statement lookup"],
+    steps: [
+      {
+        request: buildStatementPostRequest(hiddenVoidedStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementPostRequest(hidingVoidingStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementGetRequest(hiddenVoidedStatement.id),
+        assertion: {
+          status: 404,
+        },
+      },
+    ],
+  });
+
+  const emptyResultCase = singleRequestCase({
+    caseId: "v2.statements.query.empty-result",
+    title: "The Statements resource returns 200 with an empty StatementResult when a collection query matches nothing",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00149",
+        section: "Communication 2.1.3.s2.b4",
+        title: "GET returns an empty StatementResult instead of rejecting the request",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "query", "retrieval"],
+    capabilityFlags: ["query", "retrieval"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    request: buildStatementCollectionRequest({
+      verb: "https://example.test/xapi/verbs/non-existent-proof-query",
+    }),
+    assertion: {
+      status: 200,
+      jsonPathEquals: [
+        {
+          path: ["statements"],
+          equals: [],
+        },
+      ],
+    },
+    notes: ["proof-slice empty statement query result"],
+  });
+
+  const exactAgentStatement = buildProofStatement(21, [
+    {
+      operation: "set",
+      path: ["actor"],
+      value: buildAgentWithMbox("mailto:query-agent-match@example.test"),
+    },
+  ]);
+  const exactAgentNoiseStatement = buildProofStatement(22, [
+    {
+      operation: "set",
+      path: ["actor"],
+      value: buildAgentWithMbox("mailto:query-agent-noise@example.test"),
+    },
+  ]);
+
+  const agentQueryCase = buildStatementCollectionQueryCase({
+    caseId: "v2.statements.query.agent",
+    title: "The Statements resource returns exact actor matches for an agent query",
+    requirementRefs: [
+      {
+        id: "XAPI-00181",
+        section: "Communication 2.1.3.s1.table1.row3",
+        title: "GET with agent returns exact agent matches",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "query", "agent"],
+    setupStatements: [exactAgentStatement, exactAgentNoiseStatement],
+    query: {
+      agent: buildAgentQuery("mailto:query-agent-match@example.test"),
+    },
+    expectedStatementIds: [exactAgentStatement.id],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+  });
+
+  const exactVerbStatement = buildProofStatement(23, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/query-verb-match",
+    },
+  ]);
+  const exactVerbNoiseStatement = buildProofStatement(24, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/query-verb-noise",
+    },
+  ]);
+
+  const verbQueryCase = buildStatementCollectionQueryCase({
+    caseId: "v2.statements.query.verb",
+    title: "The Statements resource returns exact verb matches for a verb query",
+    requirementRefs: [
+      {
+        id: "XAPI-00180",
+        section: "Communication 2.1.3.s1.table1.row4",
+        title: "GET with verb returns exact verb matches",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "query", "verb"],
+    setupStatements: [exactVerbStatement, exactVerbNoiseStatement],
+    query: {
+      verb: "https://example.test/xapi/verbs/query-verb-match",
+    },
+    expectedStatementIds: [exactVerbStatement.id],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+  });
+
+  const exactActivityStatement = buildProofStatement(25, [
+    {
+      operation: "set",
+      path: ["object"],
+      value: buildActivityObjectFixture("https://example.test/xapi/activities/query-activity-match"),
+    },
+  ]);
+  const exactActivityNoiseStatement = buildProofStatement(26, [
+    {
+      operation: "set",
+      path: ["object"],
+      value: buildActivityObjectFixture("https://example.test/xapi/activities/query-activity-noise"),
+    },
+  ]);
+
+  const activityQueryCase = buildStatementCollectionQueryCase({
+    caseId: "v2.statements.query.activity",
+    title: "The Statements resource returns exact activity matches for an activity query",
+    requirementRefs: [
+      {
+        id: "XAPI-00179",
+        section: "Communication 2.1.3.s1.table1.row5",
+        title: "GET with activity returns exact activity matches",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "query", "activity"],
+    setupStatements: [exactActivityStatement, exactActivityNoiseStatement],
+    query: {
+      activity: "https://example.test/xapi/activities/query-activity-match",
+    },
+    expectedStatementIds: [exactActivityStatement.id],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+  });
+
+  const exactRegistrationId = buildProofUuid(901);
+  const exactRegistrationNoiseId = buildProofUuid(902);
+  const exactRegistrationStatement = buildProofStatement(27, [
+    {
+      operation: "set",
+      path: ["context", "registration"],
+      value: exactRegistrationId,
+    },
+  ]);
+  const exactRegistrationNoiseStatement = buildProofStatement(28, [
+    {
+      operation: "set",
+      path: ["context", "registration"],
+      value: exactRegistrationNoiseId,
+    },
+  ]);
+
+  const registrationQueryCase = buildStatementCollectionQueryCase({
+    caseId: "v2.statements.query.registration",
+    title: "The Statements resource returns exact registration matches for a registration query",
+    requirementRefs: [
+      {
+        id: "XAPI-00178",
+        section: "Communication 2.1.3.s1.table1.row6",
+        title: "GET with registration returns exact registration matches",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "query", "registration"],
+    setupStatements: [exactRegistrationStatement, exactRegistrationNoiseStatement],
+    query: {
+      registration: exactRegistrationId,
+    },
+    expectedStatementIds: [exactRegistrationStatement.id],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+  });
+
+  const relatedActivityId = "https://example.test/xapi/activities/query-related-activity";
+  const relatedActivityNoiseId = "https://example.test/xapi/activities/query-related-activity-noise";
+  const relatedActivityStatement = buildProofStatement(29, [
+    {
+      operation: "set",
+      path: ["context", "contextActivities", "category"],
+      value: [buildActivityObjectFixture(relatedActivityId)],
+    },
+  ]);
+  const relatedActivityNoiseStatement = buildProofStatement(30, [
+    {
+      operation: "set",
+      path: ["context", "contextActivities", "category"],
+      value: [buildActivityObjectFixture(relatedActivityNoiseId)],
+    },
+  ]);
+
+  const relatedActivitiesQueryCase = buildStatementCollectionQueryCase({
+    caseId: "v2.statements.query.related-activities",
+    title: "The Statements resource returns related activity matches from nested Activity objects",
+    requirementRefs: [
+      {
+        id: "XAPI-00177",
+        section: "Communication 2.1.3.s1.table1.row7",
+        title: "GET with related_activities returns nested activity matches",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "query", "related-activities"],
+    setupStatements: [relatedActivityStatement, relatedActivityNoiseStatement],
+    query: {
+      activity: relatedActivityId,
+      related_activities: "true",
+    },
+    expectedStatementIds: [relatedActivityStatement.id],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+  });
+
+  const relatedAgentMbox = "mailto:query-related-agent@example.test";
+  const relatedAgentNoiseMbox = "mailto:query-related-agent-noise@example.test";
+  const relatedAgentStatement = buildProofStatement(31, [
+    {
+      operation: "set",
+      path: ["context", "instructor"],
+      value: buildAgentWithMbox(relatedAgentMbox),
+    },
+  ]);
+  const relatedAgentNoiseStatement = buildProofStatement(32, [
+    {
+      operation: "set",
+      path: ["context", "instructor"],
+      value: buildAgentWithMbox(relatedAgentNoiseMbox),
+    },
+  ]);
+
+  const relatedAgentsQueryCase = buildStatementCollectionQueryCase({
+    caseId: "v2.statements.query.related-agents",
+    title: "The Statements resource returns related agent matches from nested actor-like values",
+    requirementRefs: [
+      {
+        id: "XAPI-00176",
+        section: "Communication 2.1.3.s1.table1.row8",
+        title: "GET with related_agents returns nested agent matches",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "query", "related-agents"],
+    setupStatements: [relatedAgentStatement, relatedAgentNoiseStatement],
+    query: {
+      agent: buildAgentQuery(relatedAgentMbox),
+      related_agents: "true",
+    },
+    expectedStatementIds: [relatedAgentStatement.id],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+  });
+
+  const sinceVerbId = "https://example.test/xapi/verbs/query-since";
+  const sinceOlderStatement = buildProofStatement(33, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: sinceVerbId,
+    },
+  ]);
+  const sinceNewerStatement = buildProofStatement(34, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: sinceVerbId,
+    },
+  ]);
+
+  const sinceQueryCase = buildStatementCollectionQueryCase({
+    caseId: "v2.statements.query.since",
+    title: "The Statements resource filters collection results to statements stored after the since value",
+    requirementRefs: [
+      {
+        id: "XAPI-00175",
+        section: "Communication 2.1.3.s1.table1.row9",
+        title: "GET with since returns statements stored after the provided timestamp",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "query", "since"],
+    setupStatements: [sinceOlderStatement, sinceNewerStatement],
+    query: {
+      verb: sinceVerbId,
+      since: buildProofTimestamp(33),
+    },
+    expectedStatementIds: [sinceNewerStatement.id],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+  });
+
+  const untilVerbId = "https://example.test/xapi/verbs/query-until";
+  const untilOlderStatement = buildProofStatement(35, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: untilVerbId,
+    },
+  ]);
+  const untilNewerStatement = buildProofStatement(36, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: untilVerbId,
+    },
+  ]);
+
+  const untilQueryCase = buildStatementCollectionQueryCase({
+    caseId: "v2.statements.query.until",
+    title: "The Statements resource filters collection results to statements stored at or before the until value",
+    requirementRefs: [
+      {
+        id: "XAPI-00174",
+        section: "Communication 2.1.3.s1.table1.row10",
+        title: "GET with until returns statements stored at or before the provided timestamp",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "query", "until"],
+    setupStatements: [untilOlderStatement, untilNewerStatement],
+    query: {
+      verb: untilVerbId,
+      until: buildProofTimestamp(35),
+    },
+    expectedStatementIds: [untilOlderStatement.id],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+  });
+
+  const limitVerbId = "https://example.test/xapi/verbs/query-limit";
+  const limitOlderStatement = buildProofStatement(37, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: limitVerbId,
+    },
+  ]);
+  const limitNewerStatement = buildProofStatement(38, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: limitVerbId,
+    },
+  ]);
+
+  const limitQueryCase = buildStatementCollectionQueryCase({
+    caseId: "v2.statements.query.limit",
+    title: "The Statements resource limits collection results to the requested maximum number of statements",
+    requirementRefs: [
+      {
+        id: "XAPI-00173",
+        section: "Communication 2.1.3.s1.table1.row11",
+        title: "GET with limit returns no more than the requested number of statements",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "query", "limit"],
+    setupStatements: [limitOlderStatement, limitNewerStatement],
+    query: {
+      verb: limitVerbId,
+      limit: "1",
+    },
+    expectedStatementIds: [limitNewerStatement.id],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+  });
+
+  const ascendingVerbId = "https://example.test/xapi/verbs/query-ascending";
+  const ascendingOlderStatement = buildProofStatement(39, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: ascendingVerbId,
+    },
+  ]);
+  const ascendingNewerStatement = buildProofStatement(40, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: ascendingVerbId,
+    },
+  ]);
+
+  const ascendingQueryCase = buildStatementCollectionQueryCase({
+    caseId: "v2.statements.query.ascending",
+    title: "The Statements resource orders collection results by stored time when ascending is true",
+    requirementRefs: [
+      {
+        id: "XAPI-00166",
+        section: "Communication 2.1.3.s1.table1.row14",
+        title: "GET with ascending returns results in ascending stored order",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "query", "ascending"],
+    setupStatements: [ascendingOlderStatement, ascendingNewerStatement],
+    query: {
+      verb: ascendingVerbId,
+      ascending: "true",
+    },
+    expectedStatementIds: [ascendingOlderStatement.id, ascendingNewerStatement.id],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+  });
+
+  const statementIdExclusivityCases = buildStatementQueryExclusivityCases({
+    familyId: "v2.statements.query.exclusive.statement-id",
+    baseQueryKey: "statementId",
+    baseQueryValue: buildProofUuid(950),
+    requirementRef: {
+      id: "XAPI-00151",
+      section: "Communication 2.1.3.s2.b2",
+      title: "GET rejects statementId combined with collection query parameters",
+    },
+  });
+
+  const voidedStatementIdExclusivityCases = buildStatementQueryExclusivityCases({
+    familyId: "v2.statements.query.exclusive.voided-statement-id",
+    baseQueryKey: "voidedStatementId",
+    baseQueryValue: buildProofUuid(951),
+    requirementRef: {
+      id: "XAPI-00150",
+      section: "Communication 2.1.3.s2.b2",
+      title: "GET rejects voidedStatementId combined with collection query parameters",
+    },
   });
 
   const queryValidationCases = statementQueryValidationFamily({
@@ -1854,6 +2793,13 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     ],
     tags: ["v2.0.0", "statements", "query", "retrieval"],
     legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    transforms: [
+      {
+        operation: "set",
+        path: ["id"],
+        value: buildProofUuid(208),
+      },
+    ],
   });
 
   return {
@@ -1908,6 +2854,20 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
       },
       {
         type: "suite",
+        id: "v2.proof-slice.statements.transport",
+        title: "Statement Transport",
+        specVersion,
+        tags: ["transport"],
+        children: [
+          putRoundTripCase,
+          putRequiresStatementIdCase,
+          putImmutableCase,
+          voidedStatementQueryCase,
+          hiddenVoidedStatementCase,
+        ],
+      },
+      {
+        type: "suite",
         id: "v2.proof-slice.statements.query-validation",
         title: "Statement Query Validation",
         specVersion,
@@ -1920,7 +2880,22 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
         title: "Statement Query",
         specVersion,
         tags: ["query"],
-        children: [queryCase],
+        children: [
+          queryCase,
+          emptyResultCase,
+          agentQueryCase,
+          verbQueryCase,
+          activityQueryCase,
+          registrationQueryCase,
+          relatedActivitiesQueryCase,
+          relatedAgentsQueryCase,
+          sinceQueryCase,
+          untilQueryCase,
+          limitQueryCase,
+          ascendingQueryCase,
+          ...statementIdExclusivityCases,
+          ...voidedStatementIdExclusivityCases,
+        ],
       },
     ],
   };

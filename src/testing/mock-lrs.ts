@@ -8,7 +8,34 @@ interface StoredDocument {
   storedAt: number;
 }
 
+interface StoredStatement {
+  id: string;
+  body: JsonObject;
+  storedAt: string;
+  storedAtMs: number;
+  isVoiding: boolean;
+}
+
 const populatedAuthorityAccountHomePage = "https://example.test/xapi/auth/basic";
+const voidingVerbId = "http://adlnet.gov/expapi/verbs/voided";
+const statementQueryParameters = new Set([
+  "statementId",
+  "voidedStatementId",
+  "agent",
+  "verb",
+  "activity",
+  "registration",
+  "related_activities",
+  "related_agents",
+  "since",
+  "until",
+  "limit",
+  "ascending",
+  "format",
+  "attachments",
+]);
+const statementSingleResultAllowedExtras = new Set(["format", "attachments"]);
+const statementFormats = new Set(["exact", "canonical", "ids"]);
 
 export interface RecordedRequest {
   method: string;
@@ -22,16 +49,25 @@ export interface MockLrsHandle {
   stop(): void;
 }
 
-function createHeaders(version: string, contentType = "application/json"): Headers {
+function createHeaders(
+  version: string,
+  contentType = "application/json",
+  extraHeaders: Record<string, string> = {},
+): Headers {
   return new Headers({
     "content-type": contentType,
     "x-experience-api-version": version,
     "x-experience-api-consistent-through": new Date().toISOString(),
+    ...extraHeaders,
   });
 }
 
 function isJsonObject(value: unknown): value is JsonObject {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function cloneValue<T>(value: T): T {
+  return structuredClone(value);
 }
 
 function hasRequiredStatementFields(value: unknown): value is JsonObject {
@@ -465,6 +501,14 @@ function validateSubStatement(value: JsonObject): string | undefined {
   return validateStatementLike(value, false);
 }
 
+function validateStatementRef(value: JsonObject): string | undefined {
+  if (typeof value.id !== "string" || !isUuid(value.id)) {
+    return "statement ref id must be a UUID";
+  }
+
+  return undefined;
+}
+
 function validateObject(value: unknown): string | undefined {
   if (!isJsonObject(value)) {
     return "object must be an object";
@@ -473,6 +517,10 @@ function validateObject(value: unknown): string | undefined {
   const objectType = value.objectType;
   if (objectType === "SubStatement") {
     return validateSubStatement(value);
+  }
+
+  if (objectType === "StatementRef") {
+    return validateStatementRef(value);
   }
 
   if (
@@ -514,7 +562,128 @@ function isValidAgentParameter(value: string | null): boolean {
   }
 }
 
+function parseAgentQuery(value: string | null): JsonObject | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  try {
+    const parsed = JSON.parse(value);
+    return isJsonObject(parsed) ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function isBooleanQueryValue(value: string | null): boolean {
+  return value === "true" || value === "false";
+}
+
+function readBooleanQueryValue(value: string | null): boolean {
+  return value === "true";
+}
+
+function isValidLimitQuery(value: string | null): boolean {
+  return value !== null && /^\d+$/.test(value);
+}
+
+function isRecognizedStatementQueryParam(name: string): boolean {
+  return statementQueryParameters.has(name);
+}
+
+function isActorLikeCandidate(value: unknown): value is JsonObject {
+  return (
+    isJsonObject(value) &&
+    (value.objectType === "Agent" ||
+      value.objectType === "Group" ||
+      value.member !== undefined ||
+      "mbox" in value ||
+      "mbox_sha1sum" in value ||
+      "openid" in value ||
+      "account" in value)
+  );
+}
+
+function getActorLikeSignature(value: unknown): string | undefined {
+  if (!isJsonObject(value)) {
+    return undefined;
+  }
+
+  if (typeof value.mbox === "string") {
+    return `mbox:${value.mbox}`;
+  }
+
+  if (typeof value.mbox_sha1sum === "string") {
+    return `mbox_sha1sum:${value.mbox_sha1sum}`;
+  }
+
+  if (typeof value.openid === "string") {
+    return `openid:${value.openid}`;
+  }
+
+  if (
+    isJsonObject(value.account) &&
+    typeof value.account.homePage === "string" &&
+    typeof value.account.name === "string"
+  ) {
+    return `account:${value.account.homePage}|${value.account.name}`;
+  }
+
+  return undefined;
+}
+
+function collectActorLikeSignatures(value: unknown, signatures: Set<string>): void {
+  if (Array.isArray(value)) {
+    for (const child of value) {
+      collectActorLikeSignatures(child, signatures);
+    }
+    return;
+  }
+
+  if (!isJsonObject(value)) {
+    return;
+  }
+
+  if (isActorLikeCandidate(value)) {
+    const signature = getActorLikeSignature(value);
+    if (signature) {
+      signatures.add(signature);
+    }
+  }
+
+  for (const child of Object.values(value)) {
+    collectActorLikeSignatures(child, signatures);
+  }
+}
+
+function collectActivityIds(value: unknown, activityIds: Set<string>): void {
+  if (Array.isArray(value)) {
+    for (const child of value) {
+      collectActivityIds(child, activityIds);
+    }
+    return;
+  }
+
+  if (!isJsonObject(value)) {
+    return;
+  }
+
+  if (value.objectType === "Activity" && typeof value.id === "string") {
+    activityIds.add(value.id);
+  }
+
+  for (const child of Object.values(value)) {
+    collectActivityIds(child, activityIds);
+  }
+}
+
 function validateStatementQuery(url: URL): string | undefined {
+  for (const name of url.searchParams.keys()) {
+    if (!isRecognizedStatementQueryParam(name)) {
+      return `${name} is not a recognized parameter`;
+    }
+  }
+
   const statementId = url.searchParams.get("statementId");
   if (statementId && !isUuid(statementId)) {
     return "statementId must be a UUID";
@@ -523,6 +692,18 @@ function validateStatementQuery(url: URL): string | undefined {
   const voidedStatementId = url.searchParams.get("voidedStatementId");
   if (voidedStatementId && !isUuid(voidedStatementId)) {
     return "voidedStatementId must be a UUID";
+  }
+
+  if (statementId && voidedStatementId) {
+    return "statementId and voidedStatementId cannot both be provided";
+  }
+
+  if (statementId || voidedStatementId) {
+    for (const name of url.searchParams.keys()) {
+      if (!statementSingleResultAllowedExtras.has(name) && name !== "statementId" && name !== "voidedStatementId") {
+        return "statementId and voidedStatementId cannot be combined with collection query parameters";
+      }
+    }
   }
 
   const registration = url.searchParams.get("registration");
@@ -545,7 +726,181 @@ function validateStatementQuery(url: URL): string | undefined {
     return "activity must be an IRI";
   }
 
+  const since = url.searchParams.get("since");
+  if (since !== null && !isValidTimestamp(since)) {
+    return "since must be a timestamp";
+  }
+
+  const until = url.searchParams.get("until");
+  if (until !== null && !isValidTimestamp(until)) {
+    return "until must be a timestamp";
+  }
+
+  const limit = url.searchParams.get("limit");
+  if (limit !== null && !isValidLimitQuery(limit)) {
+    return "limit must be a non-negative integer";
+  }
+
+  for (const name of ["related_activities", "related_agents", "ascending", "attachments"] as const) {
+    const value = url.searchParams.get(name);
+    if (value !== null && !isBooleanQueryValue(value)) {
+      return `${name} must be true or false`;
+    }
+  }
+
+  const format = url.searchParams.get("format");
+  if (format !== null && !statementFormats.has(format)) {
+    return "format must be exact, canonical, or ids";
+  }
+
   return undefined;
+}
+
+function isVoidingStatement(statement: JsonObject): boolean {
+  return (
+    isJsonObject(statement.verb) &&
+    statement.verb.id === voidingVerbId &&
+    isJsonObject(statement.object) &&
+    statement.object.objectType === "StatementRef" &&
+    typeof statement.object.id === "string"
+  );
+}
+
+function buildStoredStatement(body: JsonObject): StoredStatement {
+  const storedBody = cloneValue(body);
+  const storedAt =
+    typeof storedBody.timestamp === "string" && isValidTimestamp(storedBody.timestamp)
+      ? new Date(storedBody.timestamp).toISOString()
+      : new Date().toISOString();
+  const statementId = storedBody.id;
+
+  if (typeof statementId !== "string") {
+    throw new Error("stored statement id must be a string");
+  }
+
+  storedBody.stored = storedAt;
+  if (typeof storedBody.timestamp !== "string" || !isValidTimestamp(storedBody.timestamp)) {
+    storedBody.timestamp = storedAt;
+  }
+
+  return {
+    id: statementId,
+    body: storedBody,
+    storedAt,
+    storedAtMs: Date.parse(storedAt),
+    isVoiding: isVoidingStatement(storedBody),
+  };
+}
+
+function registerVoidingStatement(
+  statement: StoredStatement,
+  statements: Map<string, StoredStatement>,
+  voidedStatementIds: Set<string>,
+): void {
+  if (!statement.isVoiding) {
+    return;
+  }
+
+  const statementObject = statement.body.object;
+  if (!isJsonObject(statementObject) || typeof statementObject.id !== "string") {
+    return;
+  }
+
+  const target = statements.get(statementObject.id);
+  if (!target || target.isVoiding || voidedStatementIds.has(target.id)) {
+    return;
+  }
+
+  voidedStatementIds.add(target.id);
+}
+
+function buildStatementResponse(statement: StoredStatement, version: string): Response {
+  return new Response(JSON.stringify(statement.body), {
+    status: 200,
+    headers: createHeaders(version, "application/json", {
+      "last-modified": statement.storedAt,
+    }),
+  });
+}
+
+function buildStatementResultResponse(statements: StoredStatement[], version: string): Response {
+  return new Response(
+    JSON.stringify({
+      statements: statements.map((statement) => statement.body),
+    }),
+    {
+      status: 200,
+      headers: createHeaders(version),
+    },
+  );
+}
+
+function matchesAgentQuery(statement: StoredStatement, query: JsonObject, relatedAgents: boolean): boolean {
+  const signature = getActorLikeSignature(query);
+  if (!signature) {
+    return false;
+  }
+
+  if (!relatedAgents) {
+    return getActorLikeSignature(statement.body.actor) === signature;
+  }
+
+  const signatures = new Set<string>();
+  collectActorLikeSignatures(statement.body, signatures);
+  return signatures.has(signature);
+}
+
+function matchesActivityQuery(statement: StoredStatement, activityId: string, relatedActivities: boolean): boolean {
+  if (!relatedActivities) {
+    const statementObject = statement.body.object;
+    return (
+      isJsonObject(statementObject) && statementObject.objectType === "Activity" && statementObject.id === activityId
+    );
+  }
+
+  const activityIds = new Set<string>();
+  collectActivityIds(statement.body, activityIds);
+  return activityIds.has(activityId);
+}
+
+function matchesCollectionStatementQuery(statement: StoredStatement, url: URL): boolean {
+  const agent = parseAgentQuery(url.searchParams.get("agent"));
+  if (agent && !matchesAgentQuery(statement, agent, readBooleanQueryValue(url.searchParams.get("related_agents")))) {
+    return false;
+  }
+
+  const verb = url.searchParams.get("verb");
+  if (verb && (!isJsonObject(statement.body.verb) || statement.body.verb.id !== verb)) {
+    return false;
+  }
+
+  const activity = url.searchParams.get("activity");
+  if (
+    activity &&
+    !matchesActivityQuery(statement, activity, readBooleanQueryValue(url.searchParams.get("related_activities")))
+  ) {
+    return false;
+  }
+
+  const registration = url.searchParams.get("registration");
+  if (registration) {
+    const context = statement.body.context;
+    if (!isJsonObject(context) || context.registration !== registration) {
+      return false;
+    }
+  }
+
+  const since = url.searchParams.get("since");
+  if (since !== null && statement.storedAtMs <= Date.parse(since)) {
+    return false;
+  }
+
+  const until = url.searchParams.get("until");
+  if (until !== null && statement.storedAtMs > Date.parse(until)) {
+    return false;
+  }
+
+  return true;
 }
 
 function buildContextKey(url: URL, requiredParams: string[]): string | undefined {
@@ -764,7 +1119,8 @@ async function handleDocumentResource(
 
 export function startMockLrs(version = "2.0.0"): MockLrsHandle {
   const requests: RecordedRequest[] = [];
-  const statements = new Map<string, JsonObject>();
+  const statements = new Map<string, StoredStatement>();
+  const voidedStatementIds = new Set<string>();
   const stateDocuments = new Map<string, StoredDocument>();
   const activityProfileDocuments = new Map<string, StoredDocument>();
   const agentProfileDocuments = new Map<string, StoredDocument>();
@@ -830,13 +1186,70 @@ export function startMockLrs(version = "2.0.0"): MockLrsHandle {
         }
 
         const statementId = body.id;
-        statements.set(statementId, {
-          ...body,
-          id: statementId,
-        });
+        if (!statements.has(statementId)) {
+          const storedStatement = buildStoredStatement({
+            ...body,
+            id: statementId,
+          });
+          statements.set(statementId, storedStatement);
+          registerVoidingStatement(storedStatement, statements, voidedStatementIds);
+        }
 
         return new Response(JSON.stringify({ id: statementId }), {
           status: 200,
+          headers: createHeaders(version),
+        });
+      }
+
+      if (request.method === "PUT") {
+        for (const name of url.searchParams.keys()) {
+          if (name !== "statementId") {
+            return new Response(JSON.stringify({ error: "statementId is required" }), {
+              status: 400,
+              headers: createHeaders(version),
+            });
+          }
+        }
+
+        const statementId = url.searchParams.get("statementId");
+        if (!statementId || !isUuid(statementId)) {
+          return new Response(JSON.stringify({ error: "statementId is required" }), {
+            status: 400,
+            headers: createHeaders(version),
+          });
+        }
+
+        let body = populateAuthorityFromRequest(await request.json(), request);
+        if (isJsonObject(body) && body.id === undefined) {
+          body = {
+            ...body,
+            id: statementId,
+          } satisfies JsonObject;
+        }
+
+        const validationError = validateStatementBody(body);
+        if (validationError) {
+          return new Response(JSON.stringify({ error: validationError }), {
+            status: 400,
+            headers: createHeaders(version),
+          });
+        }
+
+        if (!isJsonObject(body) || typeof body.id !== "string" || body.id !== statementId) {
+          return new Response(JSON.stringify({ error: "statement id must match statementId" }), {
+            status: 400,
+            headers: createHeaders(version),
+          });
+        }
+
+        if (!statements.has(statementId)) {
+          const storedStatement = buildStoredStatement(body);
+          statements.set(statementId, storedStatement);
+          registerVoidingStatement(storedStatement, statements, voidedStatementIds);
+        }
+
+        return new Response(null, {
+          status: 204,
           headers: createHeaders(version),
         });
       }
@@ -851,25 +1264,58 @@ export function startMockLrs(version = "2.0.0"): MockLrsHandle {
         }
 
         const statementId = url.searchParams.get("statementId");
-        if (!statementId) {
-          return new Response(JSON.stringify({ error: "statementId is required" }), {
-            status: 400,
-            headers: createHeaders(version),
-          });
+        if (statementId) {
+          if (voidedStatementIds.has(statementId)) {
+            return new Response(JSON.stringify({ error: "statement not found" }), {
+              status: 404,
+              headers: createHeaders(version),
+            });
+          }
+
+          const statement = statements.get(statementId);
+          if (!statement) {
+            return new Response(JSON.stringify({ error: "statement not found" }), {
+              status: 404,
+              headers: createHeaders(version),
+            });
+          }
+
+          return buildStatementResponse(statement, version);
         }
 
-        const statement = statements.get(statementId);
-        if (!statement) {
-          return new Response(JSON.stringify({ error: "statement not found" }), {
-            status: 404,
-            headers: createHeaders(version),
-          });
+        const voidedStatementId = url.searchParams.get("voidedStatementId");
+        if (voidedStatementId) {
+          if (!voidedStatementIds.has(voidedStatementId)) {
+            return new Response(JSON.stringify({ error: "statement not found" }), {
+              status: 404,
+              headers: createHeaders(version),
+            });
+          }
+
+          const statement = statements.get(voidedStatementId);
+          if (!statement) {
+            return new Response(JSON.stringify({ error: "statement not found" }), {
+              status: 404,
+              headers: createHeaders(version),
+            });
+          }
+
+          return buildStatementResponse(statement, version);
         }
 
-        return new Response(JSON.stringify(statement), {
-          status: 200,
-          headers: createHeaders(version),
-        });
+        const ascending = readBooleanQueryValue(url.searchParams.get("ascending"));
+        const limit = url.searchParams.get("limit");
+
+        let resultStatements = [...statements.values()]
+          .filter((statement) => !voidedStatementIds.has(statement.id) || statement.isVoiding)
+          .filter((statement) => matchesCollectionStatementQuery(statement, url))
+          .sort((left, right) => (ascending ? left.storedAtMs - right.storedAtMs : right.storedAtMs - left.storedAtMs));
+
+        if (limit !== null && Number(limit) > 0) {
+          resultStatements = resultStatements.slice(0, Number(limit));
+        }
+
+        return buildStatementResultResponse(resultStatements, version);
       }
 
       return new Response(JSON.stringify({ error: "method not allowed" }), {

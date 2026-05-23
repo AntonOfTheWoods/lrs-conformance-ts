@@ -112,6 +112,152 @@ function summarizeRegistryVersion(registry: RegistryDefinition, version: "2.0.0"
 }
 
 describe("runtime executor", () => {
+  test("applies authMode Authorization headers and preserves explicit overrides", async () => {
+    const seenAuthorizationHeaders: string[] = [];
+    const registry: RegistryDefinition = {
+      versions: {
+        "2.0.0": [
+          {
+            type: "suite",
+            id: "auth-proof-suite",
+            title: "Auth Proof Suite",
+            specVersion: "2.0.0",
+            tags: [],
+            children: [
+              {
+                type: "case",
+                id: "auth-proof-basic",
+                title: "basic auth header",
+                specVersion: "2.0.0",
+                requirementRefs: [
+                  {
+                    id: "AUTH-1",
+                    section: "Execution",
+                    title: "basic auth header is applied",
+                  },
+                ],
+                tags: [],
+                capabilityFlags: [],
+                execution: {
+                  kind: "single-request",
+                  request: {
+                    method: "GET",
+                    endpoint: "statements",
+                    authMode: "basic",
+                    headers: {
+                      "X-Experience-API-Version": "2.0.0",
+                    },
+                    query: {},
+                  },
+                },
+                assertion: {
+                  kind: "single-request",
+                  status: 200,
+                  expectedHeaders: [],
+                  jsonPathEquals: [],
+                  notes: [],
+                },
+              },
+              {
+                type: "case",
+                id: "auth-proof-oauth1",
+                title: "oauth1 auth header",
+                specVersion: "2.0.0",
+                requirementRefs: [
+                  {
+                    id: "AUTH-2",
+                    section: "Execution",
+                    title: "oauth1 auth header is applied",
+                  },
+                ],
+                tags: [],
+                capabilityFlags: [],
+                execution: {
+                  kind: "single-request",
+                  request: {
+                    method: "GET",
+                    endpoint: "statements",
+                    authMode: "oauth1",
+                    headers: {
+                      "X-Experience-API-Version": "2.0.0",
+                    },
+                    query: {},
+                  },
+                },
+                assertion: {
+                  kind: "single-request",
+                  status: 200,
+                  expectedHeaders: [],
+                  jsonPathEquals: [],
+                  notes: [],
+                },
+              },
+              {
+                type: "case",
+                id: "auth-proof-override",
+                title: "explicit auth header override",
+                specVersion: "2.0.0",
+                requirementRefs: [
+                  {
+                    id: "AUTH-3",
+                    section: "Execution",
+                    title: "explicit auth header is preserved",
+                  },
+                ],
+                tags: [],
+                capabilityFlags: [],
+                execution: {
+                  kind: "single-request",
+                  request: {
+                    method: "GET",
+                    endpoint: "statements",
+                    authMode: "basic",
+                    headers: {
+                      "X-Experience-API-Version": "2.0.0",
+                      Authorization: "Basic ZXhwbGljaXQ6b3ZlcnJpZGU=",
+                    },
+                    query: {},
+                  },
+                },
+                assertion: {
+                  kind: "single-request",
+                  status: 200,
+                  expectedHeaders: [],
+                  jsonPathEquals: [],
+                  notes: [],
+                },
+              },
+            ],
+          },
+        ],
+        "1.0.3": [],
+      },
+    };
+
+    const result = await runRegistryVersion(registry, "2.0.0", {
+      baseUrl: "http://example.test/xapi",
+      fetchImpl: async (_input, init) => {
+        const headers = new Headers(init?.headers);
+        seenAuthorizationHeaders.push(headers.get("authorization") ?? "<missing>");
+
+        return new Response("{}", {
+          status: 200,
+          headers: {
+            "content-type": "application/json",
+            "x-experience-api-version": "2.0.0",
+          },
+        });
+      },
+    });
+
+    expect(result.status).toBe("passed");
+    expect(seenAuthorizationHeaders).toEqual([
+      "Basic cHJvb2YtYmFzaWMtdXNlcjpwcm9vZi1iYXNpYy1wYXNzd29yZA==",
+      'OAuth oauth_consumer_key="proof-consumer-key"',
+      "Basic ZXhwbGljaXQ6b3ZlcnJpZGU=",
+    ]);
+  });
+
   test("runs the 2.0 proof slice end to end against the mock LRS", async () => {
     const registry = createProofSliceRegistry();
     const expected = summarizeRegistryVersion(registry, "2.0.0");

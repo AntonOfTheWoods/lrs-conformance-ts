@@ -60,6 +60,7 @@ interface QueryRetrievalFamilyOptions extends LegacyTraceOptions {
   queryParam: string;
   requirementRefs: RequirementRef[];
   tags: string[];
+  transforms?: FixtureTransform[];
 }
 
 interface StatementRoundTripCaseOptions extends LegacyTraceOptions {
@@ -463,6 +464,7 @@ export function queryRetrievalFamily(options: QueryRetrievalFamilyOptions): Case
     queryParam: options.queryParam,
     requirementRefs: options.requirementRefs,
     tags: options.tags,
+    transforms: options.transforms,
     legacyTraceSuiteFile: options.legacyTraceSuiteFile,
     legacyTraceConfigFile: options.legacyTraceConfigFile,
     queryJsonPathEquals: (statement) => [
