@@ -81,6 +81,8 @@ const statementLifecycleLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v1_0_3/Data2.3-StatementLifecycle.js";
 const accountObjectsLegacyConfigFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/accountobjects.js";
+const activitiesLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/activities.js";
+const objectsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/objects.js";
 const resultsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/results.js";
 const scoresLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/scores.js";
 const statementRefsLegacyConfigFile =
@@ -709,10 +711,26 @@ function buildVerbFixture(id: string, display: string): JsonObject {
   };
 }
 
-function buildActivityObjectFixture(id: string): JsonObject {
+function buildActivityObjectFixture(id: string, overrides: Partial<JsonObject> = {}): JsonObject {
   return {
     objectType: "Activity",
     id,
+    ...overrides,
+  };
+}
+
+function buildActivityDefinitionFixture(overrides: Partial<JsonObject> = {}): JsonObject {
+  return {
+    ...overrides,
+  };
+}
+
+function buildInteractionComponentFixture(id: string, description = "Proof interaction component"): JsonObject {
+  return {
+    id,
+    description: {
+      "en-US": description,
+    },
   };
 }
 
@@ -978,6 +996,43 @@ const statementRefPlacements: StatementRefPlacement[] = [
           path: ["object"],
           value: buildSubStatementFixture({
             object: statementRef,
+          }),
+        },
+      ];
+    },
+  },
+];
+
+interface ActivityObjectPlacement {
+  idSuffix: string;
+  title: string;
+  buildTransforms(activityObject: JsonObject): FixtureTransform[];
+}
+
+const activityObjectPlacements: ActivityObjectPlacement[] = [
+  {
+    idSuffix: "statement",
+    title: "a statement Activity object",
+    buildTransforms(activityObject) {
+      return [
+        {
+          operation: "set",
+          path: ["object"],
+          value: activityObject,
+        },
+      ];
+    },
+  },
+  {
+    idSuffix: "substatement",
+    title: "a substatement Activity object",
+    buildTransforms(activityObject) {
+      return [
+        {
+          operation: "set",
+          path: ["object"],
+          value: buildSubStatementFixture({
+            object: activityObject,
           }),
         },
       ];
@@ -4970,6 +5025,42 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
       title: "Result score scaled values are between -1 and 1 inclusive",
     },
   ];
+  const objectTypeVocabularyRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00046",
+      section: "Data 2.4.4.s2",
+      title: "Object objectType values are Activity, Agent, Group, SubStatement, or StatementRef",
+    },
+  ];
+  const activityIdRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00047",
+      section: "Data 2.4.4.1.s1.table1.row2",
+      title: "Activity objects require id and the id must be an IRI",
+    },
+  ];
+  const activityDefinitionRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00048",
+      section: "Data 2.4.4.1.s1.table1.row3",
+      title: "Activity definition values are Objects",
+    },
+  ];
+  const activityInteractionTypeRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00064",
+      section: "Data 2.4.4.1.s8",
+      title:
+        "Activity definitions require interactionType when correctResponsesPattern or interaction component arrays are used",
+    },
+  ];
+  const objectActorTypeRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00065",
+      section: "Data 2.4.4.2.s1.b1",
+      title: "Agent and Group statement objects require objectType",
+    },
+  ];
   const statementRefRequirementRefs: RequirementRef[] = [
     {
       id: "XAPI-00072",
@@ -5495,6 +5586,300 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
       ),
       requirementRefs: scoreMaxRequirementRefs,
     })),
+  });
+
+  const objectTypeVocabularyCases = statementMutationFamily({
+    familyId: "v2.statements.object-type-vocabulary",
+    suiteTitle: "Statement Activity And Object Typing",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "object", "object-type", "validation"],
+    legacyTraceSuiteFile: objectRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: objectsLegacyConfigFile,
+    variants: [
+      ...activityObjectPlacements.map((placement) => ({
+        idSuffix: `${placement.idSuffix}-activity`,
+        title: `A Statement rejects ${placement.title} when objectType does not exactly match Activity`,
+        transforms: placement.buildTransforms({
+          ...buildActivityObjectFixture("https://example.test/xapi/activities/invalid-object-type"),
+          objectType: "activity",
+        }),
+        requirementRefs: objectTypeVocabularyRequirementRefs,
+      })),
+      {
+        idSuffix: "statement-agent",
+        title: "A Statement rejects a statement Agent object when objectType does not exactly match Agent",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: {
+              ...buildAgentWithMbox("mailto:proof-object-type-agent@example.test"),
+              objectType: "agent",
+            },
+          },
+        ],
+        requirementRefs: objectTypeVocabularyRequirementRefs,
+      },
+      {
+        idSuffix: "substatement-agent",
+        title: "A Statement rejects a substatement Agent object when objectType does not exactly match Agent",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture({
+              object: {
+                ...buildAgentWithMbox("mailto:proof-object-type-substatement-agent@example.test"),
+                objectType: "agent",
+              },
+            }),
+          },
+        ],
+        requirementRefs: objectTypeVocabularyRequirementRefs,
+      },
+      {
+        idSuffix: "statement-group",
+        title: "A Statement rejects a statement Group object when objectType does not exactly match Group",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: {
+              ...buildGroupWithMbox("mailto:proof-object-type-group@example.test"),
+              objectType: "group",
+            },
+          },
+        ],
+        requirementRefs: objectTypeVocabularyRequirementRefs,
+      },
+      {
+        idSuffix: "substatement-group",
+        title: "A Statement rejects a substatement Group object when objectType does not exactly match Group",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture({
+              object: {
+                ...buildGroupWithMbox("mailto:proof-object-type-substatement-group@example.test"),
+                objectType: "group",
+              },
+            }),
+          },
+        ],
+        requirementRefs: objectTypeVocabularyRequirementRefs,
+      },
+      ...statementRefPlacements.map((placement) => ({
+        idSuffix: `${placement.idSuffix}-statement-ref`,
+        title: `A Statement rejects ${placement.title} when objectType does not exactly match StatementRef`,
+        transforms: placement.buildTransforms({
+          objectType: "statementref",
+          id: buildProofUuid(975),
+        }),
+        requirementRefs: objectTypeVocabularyRequirementRefs,
+      })),
+    ],
+  });
+
+  const activityMissingIdCases = statementMutationFamily({
+    familyId: "v2.statements.activity.missing-id",
+    suiteTitle: "Statement Activity Objects",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "activity", "object", "validation"],
+    legacyTraceSuiteFile: objectRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: activitiesLegacyConfigFile,
+    variants: activityObjectPlacements.map((placement) => ({
+      idSuffix: placement.idSuffix,
+      title: `A Statement rejects ${placement.title} when id is missing`,
+      transforms: placement.buildTransforms({
+        objectType: "Activity",
+      }),
+      requirementRefs: activityIdRequirementRefs,
+    })),
+  });
+
+  const activityInvalidIdCases = statementMutationFamily({
+    familyId: "v2.statements.activity.invalid-id",
+    suiteTitle: "Statement Activity Objects",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "activity", "object", "validation"],
+    legacyTraceSuiteFile: objectRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: activitiesLegacyConfigFile,
+    variants: activityObjectPlacements.map((placement) => ({
+      idSuffix: placement.idSuffix,
+      title: `A Statement rejects ${placement.title} when id is not an IRI`,
+      transforms: placement.buildTransforms(buildActivityObjectFixture(invalidOpenId)),
+      requirementRefs: activityIdRequirementRefs,
+    })),
+  });
+
+  const activityDefinitionTypeCases = statementMutationFamily({
+    familyId: "v2.statements.activity.definition-type",
+    suiteTitle: "Statement Activity Objects",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "activity", "definition", "validation"],
+    legacyTraceSuiteFile: objectRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: activitiesLegacyConfigFile,
+    variants: activityObjectPlacements.map((placement) => ({
+      idSuffix: placement.idSuffix,
+      title: `A Statement rejects ${placement.title} when definition is not an object`,
+      transforms: placement.buildTransforms(
+        buildActivityObjectFixture(`https://example.test/xapi/activities/${placement.idSuffix}-definition-not-object`, {
+          definition: "not-an-object",
+        }),
+      ),
+      requirementRefs: activityDefinitionRequirementRefs,
+    })),
+  });
+
+  const interactionCarrierVariants = [
+    {
+      idSuffix: "correct-responses-pattern",
+      label: "correctResponsesPattern",
+      definition: buildActivityDefinitionFixture({
+        correctResponsesPattern: ["proof-response"],
+      }),
+    },
+    {
+      idSuffix: "choices",
+      label: "choices",
+      definition: buildActivityDefinitionFixture({
+        choices: [buildInteractionComponentFixture("choice-a", "Proof choice")],
+      }),
+    },
+    {
+      idSuffix: "scale",
+      label: "scale",
+      definition: buildActivityDefinitionFixture({
+        scale: [buildInteractionComponentFixture("scale-a", "Proof scale")],
+      }),
+    },
+    {
+      idSuffix: "source",
+      label: "source",
+      definition: buildActivityDefinitionFixture({
+        source: [buildInteractionComponentFixture("source-a", "Proof source")],
+      }),
+    },
+    {
+      idSuffix: "target",
+      label: "target",
+      definition: buildActivityDefinitionFixture({
+        target: [buildInteractionComponentFixture("target-a", "Proof target")],
+      }),
+    },
+    {
+      idSuffix: "steps",
+      label: "steps",
+      definition: buildActivityDefinitionFixture({
+        steps: [buildInteractionComponentFixture("step-a", "Proof step")],
+      }),
+    },
+  ] as const;
+
+  const activityInteractionTypeRequiredCases = statementMutationFamily({
+    familyId: "v2.statements.activity.interaction-type-required",
+    suiteTitle: "Statement Activity Objects",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "activity", "definition", "interaction-type", "validation"],
+    legacyTraceSuiteFile: objectRequirementsLegacySuiteFile,
+    variants: activityObjectPlacements.flatMap((placement) =>
+      interactionCarrierVariants.map((variant) => ({
+        idSuffix: `${placement.idSuffix}-${variant.idSuffix}`,
+        title: `A Statement rejects ${placement.title} when ${variant.label} is used without interactionType`,
+        transforms: placement.buildTransforms(
+          buildActivityObjectFixture(
+            `https://example.test/xapi/activities/${placement.idSuffix}-${variant.idSuffix}-without-interaction-type`,
+            {
+              definition: variant.definition,
+            },
+          ),
+        ),
+        requirementRefs: activityInteractionTypeRequirementRefs,
+      })),
+    ),
+  });
+
+  const objectActorTypeRequiredCases = statementMutationFamily({
+    familyId: "v2.statements.object-agent-group.requires-object-type",
+    suiteTitle: "Statement Activity And Object Typing",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "object", "agent", "group", "object-type", "validation"],
+    legacyTraceSuiteFile: objectRequirementsLegacySuiteFile,
+    variants: [
+      {
+        idSuffix: "statement-agent",
+        title: "A Statement rejects a statement Agent object when objectType is omitted",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: {
+              mbox: "mailto:proof-object-agent-without-type@example.test",
+              name: "Proof Agent",
+            },
+          },
+        ],
+        requirementRefs: objectActorTypeRequirementRefs,
+      },
+      {
+        idSuffix: "statement-group",
+        title: "A Statement rejects a statement Group object when objectType is omitted",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: {
+              mbox: "mailto:proof-object-group-without-type@example.test",
+              name: "Proof Group",
+              member: [buildAgentWithMbox(validGroupMemberMbox)],
+            },
+          },
+        ],
+        requirementRefs: objectActorTypeRequirementRefs,
+      },
+      {
+        idSuffix: "substatement-agent",
+        title: "A Statement rejects a substatement Agent object when objectType is omitted",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture({
+              object: {
+                mbox: "mailto:proof-substatement-object-agent-without-type@example.test",
+                name: "Proof Agent",
+              },
+            }),
+          },
+        ],
+        requirementRefs: objectActorTypeRequirementRefs,
+      },
+      {
+        idSuffix: "substatement-group",
+        title: "A Statement rejects a substatement Group object when objectType is omitted",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture({
+              object: {
+                mbox: "mailto:proof-substatement-object-group-without-type@example.test",
+                name: "Proof Group",
+                member: [buildAgentWithMbox(validGroupMemberMbox)],
+              },
+            }),
+          },
+        ],
+        requirementRefs: objectActorTypeRequirementRefs,
+      },
+    ],
   });
 
   const statementRefAcceptanceCases = statementMutationFamily({
@@ -6572,6 +6957,21 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
               ...scoreMinRejectionCases,
               ...scoreMaxAcceptanceCases,
               ...scoreMaxRejectionCases,
+            ],
+          },
+          {
+            type: "suite",
+            id: "v2.proof-slice.statements.result-and-objects.activity-object",
+            title: "Activity And Object Typing",
+            specVersion,
+            tags: ["activity", "object"],
+            children: [
+              ...objectTypeVocabularyCases,
+              ...activityMissingIdCases,
+              ...activityInvalidIdCases,
+              ...activityDefinitionTypeCases,
+              ...activityInteractionTypeRequiredCases,
+              ...objectActorTypeRequiredCases,
             ],
           },
           {

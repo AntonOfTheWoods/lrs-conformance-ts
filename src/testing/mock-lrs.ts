@@ -573,6 +573,19 @@ function validateActivityDefinition(value: unknown): string | undefined {
     }
   }
 
+  const correctResponsesPattern = value.correctResponsesPattern;
+  if (correctResponsesPattern !== undefined) {
+    if (!Array.isArray(correctResponsesPattern)) {
+      return "object definition correctResponsesPattern must be an array";
+    }
+
+    for (const pattern of correctResponsesPattern) {
+      if (typeof pattern !== "string") {
+        return "object definition correctResponsesPattern entries must be strings";
+      }
+    }
+  }
+
   if (value.extensions !== undefined) {
     const extensionsError = validateExtensions(value.extensions, "object definition extensions");
     if (extensionsError) {
@@ -587,6 +600,18 @@ function validateActivityDefinition(value: unknown): string | undefined {
         return componentError;
       }
     }
+  }
+
+  if (
+    interactionType === undefined &&
+    (correctResponsesPattern !== undefined ||
+      value.choices !== undefined ||
+      value.scale !== undefined ||
+      value.source !== undefined ||
+      value.target !== undefined ||
+      value.steps !== undefined)
+  ) {
+    return "object definition interactionType is required when correctResponsesPattern or interaction component arrays are present";
   }
 
   return undefined;
@@ -1227,11 +1252,16 @@ function validateObject(value: unknown): string | undefined {
   if (
     objectType === "Agent" ||
     objectType === "Group" ||
+    "member" in value ||
     "mbox" in value ||
     "openid" in value ||
     "account" in value ||
     "mbox_sha1sum" in value
   ) {
+    if (objectType === undefined) {
+      return "object Agent and Group values must specify objectType";
+    }
+
     return validateActorLike(value);
   }
 
