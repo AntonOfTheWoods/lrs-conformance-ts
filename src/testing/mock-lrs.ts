@@ -64,6 +64,7 @@ const statementQueryParameters = new Set([
   "since",
   "until",
   "limit",
+  "offset",
   "ascending",
   "format",
   "attachments",
@@ -1263,6 +1264,12 @@ function validateStatementLike(
     return objectError;
   }
 
+  if (!options.isSubStatement && isJsonObject(value.verb) && value.verb.id === voidingVerbId) {
+    if (!isJsonObject(value.object) || value.object.objectType !== "StatementRef") {
+      return "voiding statement object must be a StatementRef";
+    }
+  }
+
   if (value.authority !== undefined) {
     const authorityError = validateAuthority(value.authority);
     if (authorityError) {
@@ -1866,6 +1873,11 @@ function validateStatementQuery(url: URL): string | undefined {
     return "limit must be a non-negative integer";
   }
 
+  const offset = url.searchParams.get("offset");
+  if (offset !== null && !isValidLimitQuery(offset)) {
+    return "offset must be a non-negative integer";
+  }
+
   for (const name of ["related_activities", "related_agents", "ascending", "attachments"] as const) {
     const value = url.searchParams.get(name);
     if (value !== null && !isBooleanQueryValue(value)) {
@@ -2054,6 +2066,12 @@ function buildStatementResponse(
   });
 }
 
+function buildStatementCollectionMoreValue(url: URL, nextOffset: number): string {
+  const params = new URLSearchParams(url.searchParams);
+  params.set("offset", String(nextOffset));
+  return `/xapi/statements?${params.toString()}`;
+}
+
 function buildStatementResultResponse(
   statements: StoredStatement[],
   version: string,
@@ -2061,6 +2079,7 @@ function buildStatementResultResponse(
     format: string | null;
     acceptLanguage: string | null;
     includeAttachments: boolean;
+    more: string;
   },
 ): Response {
   const formattedStatements = statements.map((statement) =>
@@ -2077,14 +2096,14 @@ function buildStatementResultResponse(
 
     if (attachmentParts.size > 0) {
       return buildMultipartStatementResponse(
-        JSON.stringify({ statements: formattedStatements }),
+        JSON.stringify({ statements: formattedStatements, more: options.more }),
         [...attachmentParts.values()],
         version,
       );
     }
   }
 
-  return new Response(JSON.stringify({ statements: formattedStatements }), {
+  return new Response(JSON.stringify({ statements: formattedStatements, more: options.more }), {
     status: 200,
     headers: createHeaders(version),
   });
@@ -2997,20 +3016,33 @@ export function startMockLrs(version = "2.0.0"): MockLrsHandle {
 
         const ascending = readBooleanQueryValue(url.searchParams.get("ascending"));
         const limit = url.searchParams.get("limit");
+        const offset = url.searchParams.get("offset");
 
         let resultStatements = [...statements.values()]
           .filter((statement) => !voidedStatementIds.has(statement.id) || statement.isVoiding)
           .filter((statement) => matchesCollectionStatementQuery(statement, url))
           .sort((left, right) => (ascending ? left.storedAtMs - right.storedAtMs : right.storedAtMs - left.storedAtMs));
 
+        const offsetValue = offset !== null ? Number(offset) : 0;
+        let more = "";
+
         if (limit !== null && Number(limit) > 0) {
-          resultStatements = resultStatements.slice(0, Number(limit));
+          const limitValue = Number(limit);
+          const nextOffset = offsetValue + limitValue;
+          if (nextOffset < resultStatements.length) {
+            more = buildStatementCollectionMoreValue(url, nextOffset);
+          }
+
+          resultStatements = resultStatements.slice(offsetValue, nextOffset);
+        } else if (offsetValue > 0) {
+          resultStatements = resultStatements.slice(offsetValue);
         }
 
         const response = buildStatementResultResponse(resultStatements, version, {
           format,
           acceptLanguage,
           includeAttachments,
+          more,
         });
 
         return request.method === "HEAD" ? withoutBody(response) : response;

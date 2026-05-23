@@ -60,6 +60,8 @@ const timestampRequirementsLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.4.2-Timestamp-Requirements.js";
 const versionRequirementsLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.4.3-Version-Requirements.js";
+const retrievalOfStatementsLegacySuiteFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/E.Data2.5-RetrievalofStatements.js";
 const statementResourceLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.1.6.1-Statement-Resource.js";
 const errorCodesLegacySuiteFile =
@@ -92,11 +94,12 @@ const agentsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/t
 const attachmentsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/attachments.js";
 const groupsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/groups.js";
 const verbsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/verbs.js";
+const voidingLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/voiding.js";
 const authoritiesLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.4.2-Authority-Requirements.js";
 const authoritiesLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/authorities.js";
 const statementLifecycleLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v1_0_3/Data2.3-StatementLifecycle.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.5-Statement-Voiding.js";
 const accountObjectsLegacyConfigFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/accountobjects.js";
 const activitiesLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/activities.js";
@@ -556,6 +559,10 @@ function buildStatementCollectionExpectations(expectedStatementIds: string[]): J
       equals: statementId,
     })),
   ];
+}
+
+function buildStatementCollectionMorePath(query: Record<string, string>): string {
+  return `/xapi/statements?${new URLSearchParams(query).toString()}`;
 }
 
 interface StatementCollectionQueryCaseOptions {
@@ -4653,6 +4660,11 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     specVersion,
     requirementRefs: [
       {
+        id: "XAPI-00018",
+        section: "Data 2.3.2.s2.b3",
+        title: "Voided statements are returned only through voidedStatementId lookups",
+      },
+      {
         id: "XAPI-00155",
         section: "Communication 2.1.3.s1",
         title: "GET with voidedStatementId returns the corresponding Statement",
@@ -4719,6 +4731,11 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     specVersion,
     requirementRefs: [
       {
+        id: "XAPI-00018",
+        section: "Data 2.3.2.s2.b3",
+        title: "Voided statements are hidden from statementId lookups",
+      },
+      {
         id: "XAPI-00163",
         section: "Communication 2.1.4.s1.b1",
         title: "Voided Statements are only returned for voidedStatementId lookups",
@@ -4745,6 +4762,265 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
         request: buildStatementGetRequest(hiddenVoidedStatement.id),
         assertion: {
           status: 404,
+        },
+      },
+    ],
+  });
+
+  const missingTargetVoidingStatement = buildProofStatement(970, [
+    {
+      operation: "set",
+      path: ["verb"],
+      value: buildVerbFixture("http://adlnet.gov/expapi/verbs/voided", "voided"),
+    },
+    {
+      operation: "set",
+      path: ["object"],
+      value: {
+        objectType: "StatementRef",
+        id: buildProofUuid(971),
+      },
+    },
+  ]);
+
+  const missingTargetVoidingAcceptedCase = singleRequestCase({
+    caseId: "v2.statements.voiding.missing-target-accepted",
+    title: "The Statements resource accepts a voiding statement whose StatementRef target is not present",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00019",
+        section: "Data 2.3.2",
+        title: 'Voiding statements are identified by the voided verb and StatementRef object',
+      },
+      {
+        id: "XAPI-00020",
+        section: "Data 2.3.2.s2.b1",
+        title: 'Voiding statements use StatementRef as the objectType',
+      },
+    ],
+    tags: ["v2.0.0", "statements", "voiding"],
+    capabilityFlags: ["transport", "voiding"],
+    legacyTraceSuiteFile: statementLifecycleLegacySuiteFile,
+    legacyTraceConfigFile: voidingLegacyConfigFile,
+    request: buildStatementPostRequest(missingTargetVoidingStatement),
+    assertion: {
+      status: 200,
+      jsonPathEquals: listEquals([missingTargetVoidingStatement.id]),
+    },
+    notes: ["proof-slice missing target voiding acceptance"],
+  });
+
+  const invalidVoidingObjectCase = singleRequestCase({
+    caseId: "v2.statements.voiding.requires-statement-ref-object",
+    title: "The Statements resource rejects a voiding statement when its object is not a StatementRef",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00017",
+        section: "Data 2.3.2.s2.b1",
+        title: 'Voiding statements are rejected when objectType is not StatementRef',
+      },
+    ],
+    tags: ["v2.0.0", "statements", "voiding", "validation"],
+    capabilityFlags: ["transport", "voiding", "validation"],
+    legacyTraceSuiteFile: statementLifecycleLegacySuiteFile,
+    legacyTraceConfigFile: voidingLegacyConfigFile,
+    request: buildStatementPostRequest(
+      buildProofStatement(972, [
+        {
+          operation: "set",
+          path: ["verb"],
+          value: buildVerbFixture("http://adlnet.gov/expapi/verbs/voided", "voided"),
+        },
+        {
+          operation: "set",
+          path: ["object"],
+          value: buildActivityObjectFixture("https://example.test/xapi/activities/not-a-statement-ref"),
+        },
+      ]),
+    ),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice invalid voiding object rejection"],
+  });
+
+  const revoidedTargetStatement = buildProofStatement(973, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/revoid-target",
+    },
+  ]);
+  const firstRevoidingStatement = buildProofStatement(974, [
+    {
+      operation: "set",
+      path: ["verb"],
+      value: buildVerbFixture("http://adlnet.gov/expapi/verbs/voided", "voided"),
+    },
+    {
+      operation: "set",
+      path: ["object"],
+      value: {
+        objectType: "StatementRef",
+        id: revoidedTargetStatement.id,
+      },
+    },
+  ]);
+  const secondRevoidingStatement = buildProofStatement(975, [
+    {
+      operation: "set",
+      path: ["verb"],
+      value: buildVerbFixture("http://adlnet.gov/expapi/verbs/voided", "voided"),
+    },
+    {
+      operation: "set",
+      path: ["object"],
+      value: {
+        objectType: "StatementRef",
+        id: revoidedTargetStatement.id,
+      },
+    },
+  ]);
+
+  const repeatedVoidingIgnoredCase = requestSequenceCase({
+    caseId: "v2.statements.voiding.repeated-target-ignored",
+    title: "The Statements resource ignores a second voiding statement that targets an already voided statement",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00016",
+        section: "Data 2.3.2.s2.b7",
+        title: "Voiding statements that target already voided statements are ignored if accepted",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "voiding"],
+    capabilityFlags: ["transport", "query", "retrieval", "voiding"],
+    legacyTraceSuiteFile: statementLifecycleLegacySuiteFile,
+    notes: ["proof-slice repeated voiding is ignored"],
+    steps: [
+      {
+        request: buildStatementPostRequest(revoidedTargetStatement),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([revoidedTargetStatement.id]),
+        },
+      },
+      {
+        request: buildStatementPostRequest(firstRevoidingStatement),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([firstRevoidingStatement.id]),
+        },
+      },
+      {
+        request: buildStatementPostRequest(secondRevoidingStatement),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([secondRevoidingStatement.id]),
+        },
+      },
+      {
+        request: buildVoidedStatementGetRequest(revoidedTargetStatement.id),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["id"],
+              equals: revoidedTargetStatement.id,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const protectedVoidingTargetStatement = buildProofStatement(976, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/protected-voiding-target",
+    },
+  ]);
+  const protectedVoidingStatement = buildProofStatement(977, [
+    {
+      operation: "set",
+      path: ["verb"],
+      value: buildVerbFixture("http://adlnet.gov/expapi/verbs/voided", "voided"),
+    },
+    {
+      operation: "set",
+      path: ["object"],
+      value: {
+        objectType: "StatementRef",
+        id: protectedVoidingTargetStatement.id,
+      },
+    },
+  ]);
+  const illegalVoidingOfVoidingStatement = buildProofStatement(978, [
+    {
+      operation: "set",
+      path: ["verb"],
+      value: buildVerbFixture("http://adlnet.gov/expapi/verbs/voided", "voided"),
+    },
+    {
+      operation: "set",
+      path: ["object"],
+      value: {
+        objectType: "StatementRef",
+        id: protectedVoidingStatement.id,
+      },
+    },
+  ]);
+
+  const voidingStatementRemainsVisibleCase = requestSequenceCase({
+    caseId: "v2.statements.voiding.cannot-target-voiding-statement",
+    title: "The Statements resource does not void a voiding statement when another voiding statement targets it",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00016",
+        section: "Data 2.3.2.s2.b7",
+        title: "Voiding statements cannot target other voiding statements",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "voiding"],
+    capabilityFlags: ["transport", "query", "retrieval", "voiding"],
+    legacyTraceSuiteFile: statementLifecycleLegacySuiteFile,
+    notes: ["proof-slice voiding statements remain visible when targeted"],
+    steps: [
+      {
+        request: buildStatementPostRequest(protectedVoidingTargetStatement),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([protectedVoidingTargetStatement.id]),
+        },
+      },
+      {
+        request: buildStatementPostRequest(protectedVoidingStatement),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([protectedVoidingStatement.id]),
+        },
+      },
+      {
+        request: buildStatementPostRequest(illegalVoidingOfVoidingStatement),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([illegalVoidingOfVoidingStatement.id]),
+        },
+      },
+      {
+        request: buildStatementGetRequest(protectedVoidingStatement.id),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["id"],
+              equals: protectedVoidingStatement.id,
+            },
+          ],
         },
       },
     ],
@@ -5355,6 +5631,192 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
       ],
     },
     notes: ["proof-slice empty statement query result"],
+  });
+
+  const retrievalArrayVerbId = "https://example.test/xapi/verbs/retrieval-array";
+  const retrievalArrayStatement = buildProofStatement(979, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: retrievalArrayVerbId,
+    },
+    {
+      operation: "set",
+      path: ["actor", "mbox"],
+      value: "mailto:retrieval-array-statement@example.test",
+    },
+  ]);
+  const retrievalArraySubstatement = buildProofStatement(980, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: retrievalArrayVerbId,
+    },
+    {
+      operation: "set",
+      path: ["actor", "mbox"],
+      value: "mailto:retrieval-array-substatement@example.test",
+    },
+    {
+      operation: "set",
+      path: ["object"],
+      value: buildSubStatementFixture(),
+    },
+  ]);
+
+  const retrievalStatementsArrayCase = requestSequenceCase({
+    caseId: "v2.statements.retrieval.statement-result-array",
+    title: "The Statements resource returns StatementResult collections with a statements array and empty more when all matches are returned",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00110",
+        section: "Data 2.5.s2.table1.row1",
+        title: 'StatementResult collections expose a "statements" array',
+      },
+      {
+        id: "XAPI-00109",
+        section: "Data 2.5.s2.table1.row2",
+        title: 'StatementResult collections return an empty or absent "more" when fully exhausted',
+      },
+    ],
+    tags: ["v2.0.0", "statements", "retrieval", "query"],
+    capabilityFlags: ["transport", "query", "retrieval"],
+    legacyTraceSuiteFile: retrievalOfStatementsLegacySuiteFile,
+    notes: ["proof-slice retrieval statements array and empty more"],
+    steps: [
+      {
+        request: buildStatementPostRequest(retrievalArrayStatement),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([retrievalArrayStatement.id]),
+        },
+      },
+      {
+        request: buildStatementPostRequest(retrievalArraySubstatement),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([retrievalArraySubstatement.id]),
+        },
+      },
+      {
+        request: buildStatementCollectionRequest({
+          verb: retrievalArrayVerbId,
+        }),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            ...buildStatementCollectionExpectations([retrievalArraySubstatement.id, retrievalArrayStatement.id]),
+            {
+              path: ["more"],
+              equals: "",
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const retrievalPagedVerbId = "https://example.test/xapi/verbs/retrieval-paged";
+  const retrievalPagedOlderStatement = buildProofStatement(981, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: retrievalPagedVerbId,
+    },
+  ]);
+  const retrievalPagedNewerStatement = buildProofStatement(982, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: retrievalPagedVerbId,
+    },
+  ]);
+  const retrievalPagedMorePath = buildStatementCollectionMorePath({
+    verb: retrievalPagedVerbId,
+    limit: "1",
+    offset: "1",
+  });
+
+  const retrievalPaginationCase = requestSequenceCase({
+    caseId: "v2.statements.retrieval.pagination.more-container",
+    title: "The Statements resource returns a usable more path for paginated StatementResult containers and preserves the container shape on follow-up pages",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00108",
+        section: "Data 2.5.s2.table1.row2",
+        title: 'A non-empty "more" IRL refers to the next page of results',
+      },
+      {
+        id: "XAPI-00111",
+        section: "Data 2.5.s2.table1.row2",
+        title: 'A "more" container follows the same StatementResult rules as the original GET',
+      },
+      {
+        id: "XAPI-00113",
+        section: "Data 2.5.s2.table1",
+        title: 'Successful paginated GETs return both "statements" and "more"',
+      },
+      {
+        id: "XAPI-00114",
+        section: "Data 2.5.s2.table1.row1",
+        title: 'Paginated StatementResults create a container for each additional page',
+      },
+    ],
+    tags: ["v2.0.0", "statements", "retrieval", "pagination"],
+    capabilityFlags: ["transport", "query", "retrieval"],
+    legacyTraceSuiteFile: retrievalOfStatementsLegacySuiteFile,
+    notes: ["proof-slice retrieval pagination containers"],
+    steps: [
+      {
+        request: buildStatementPostRequest(retrievalPagedOlderStatement),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([retrievalPagedOlderStatement.id]),
+        },
+      },
+      {
+        request: buildStatementPostRequest(retrievalPagedNewerStatement),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([retrievalPagedNewerStatement.id]),
+        },
+      },
+      {
+        request: buildStatementCollectionRequest({
+          verb: retrievalPagedVerbId,
+          limit: "1",
+        }),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            ...buildStatementCollectionExpectations([retrievalPagedNewerStatement.id]),
+            {
+              path: ["more"],
+              equals: retrievalPagedMorePath,
+            },
+          ],
+        },
+      },
+      {
+        request: buildStatementCollectionRequest({
+          verb: retrievalPagedVerbId,
+          limit: "1",
+          offset: "1",
+        }),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            ...buildStatementCollectionExpectations([retrievalPagedOlderStatement.id]),
+            {
+              path: ["more"],
+              equals: "",
+            },
+          ],
+        },
+      },
+    ],
   });
 
   const exactAgentStatement = buildProofStatement(21, [
@@ -9450,6 +9912,10 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
           batchSuccessCase,
           duplicateBatchCase,
           batchRollbackCase,
+          missingTargetVoidingAcceptedCase,
+          invalidVoidingObjectCase,
+          repeatedVoidingIgnoredCase,
+          voidingStatementRemainsVisibleCase,
           voidedStatementQueryCase,
           hiddenVoidedStatementCase,
         ],
@@ -9486,6 +9952,8 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
         specVersion,
         tags: ["query"],
         children: [
+          retrievalStatementsArrayCase,
+          retrievalPaginationCase,
           queryCase,
           emptyResultCase,
           agentQueryCase,
