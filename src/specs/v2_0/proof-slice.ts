@@ -36,6 +36,11 @@ const specVersion = "2.0.0" as const;
 const formattingLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/Data2.2-FormattingRequirements.js";
 const formattingLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/formatting.js";
+const contextLegacySuiteFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.2.5-Context-Requirements.js";
+const contextsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/contexts.js";
+const contextActivitiesLegacyConfigFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/contextactivities.js";
 const statementResourceLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.1.6.1-Statement-Resource.js";
 const errorCodesLegacySuiteFile =
@@ -864,6 +869,128 @@ function buildAttachmentFixture(overrides: Partial<JsonObject> = {}): JsonObject
     fileUrl: "https://example.test/files/proof.txt",
     ...overrides,
   };
+}
+
+type ContextActivityKind = "parent" | "grouping" | "category" | "other";
+
+interface ContextPlacement {
+  idSuffix: string;
+  title: string;
+  buildTransforms(context: JsonObject): FixtureTransform[];
+}
+
+const contextPlacements: ContextPlacement[] = [
+  {
+    idSuffix: "statement",
+    title: "a statement context",
+    buildTransforms(context) {
+      return [
+        {
+          operation: "set",
+          path: ["context"],
+          value: context,
+        },
+      ];
+    },
+  },
+  {
+    idSuffix: "substatement",
+    title: "a substatement context",
+    buildTransforms(context) {
+      return [
+        {
+          operation: "set",
+          path: ["object"],
+          value: buildSubStatementFixture(),
+        },
+        {
+          operation: "set",
+          path: ["object", "context"],
+          value: context,
+        },
+      ];
+    },
+  },
+];
+
+const contextActivityKinds: ContextActivityKind[] = ["parent", "grouping", "category", "other"];
+
+function buildContextStatementRefFixture(id: string): JsonObject {
+  return {
+    objectType: "StatementRef",
+    id,
+  };
+}
+
+function buildContextActivityFixture(id: string, includeObjectType = true): JsonObject {
+  return includeObjectType
+    ? {
+        objectType: "Activity",
+        id,
+      }
+    : {
+        id,
+      };
+}
+
+function buildContextActivitiesFixture(activities: JsonObject): JsonObject {
+  return {
+    contextActivities: activities,
+  };
+}
+
+function buildContextPropertyFixture(name: "revision" | "platform", value: string): JsonObject {
+  return {
+    [name]: value,
+  } as JsonObject;
+}
+
+function buildContextPropertyConstraintTransforms(
+  propertyName: "revision" | "platform",
+  value: string,
+  object: JsonObject,
+  placement: "statement" | "substatement",
+): FixtureTransform[] {
+  const context = buildContextPropertyFixture(propertyName, value);
+
+  if (placement === "statement") {
+    return [
+      {
+        operation: "set",
+        path: ["context"],
+        value: context,
+      },
+      {
+        operation: "set",
+        path: ["object"],
+        value: object,
+      },
+    ];
+  }
+
+  return [
+    {
+      operation: "set",
+      path: ["object"],
+      value: buildSubStatementFixture(),
+    },
+    {
+      operation: "set",
+      path: ["object", "context"],
+      value: context,
+    },
+    {
+      operation: "set",
+      path: ["object", "object"],
+      value: object,
+    },
+  ];
+}
+
+function buildContextActivitiesRoundTripPath(placementId: string, kind: ContextActivityKind): string[] {
+  return placementId === "statement"
+    ? ["context", "contextActivities", kind]
+    : ["object", "context", "contextActivities", kind];
 }
 
 interface ActorLikePlacement {
@@ -2192,6 +2319,1044 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
             id: "XAPI-00098",
             section: "Data 2.4.9.s3.b1",
             title: "Authority groups require exactly two members",
+          },
+        ],
+      },
+    ],
+  });
+
+  const caseSensitiveKeyCases = statementMutationFamily({
+    familyId: "v2.statements.case-sensitive-keys",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "formatting", "keys"],
+    legacyTraceSuiteFile: formattingLegacySuiteFile,
+    legacyTraceConfigFile: formattingLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "id",
+        title: 'A Statement rejects a case-mismatched top-level key for "id"',
+        transforms: [
+          {
+            operation: "set",
+            path: ["iD"],
+            value: buildProofUuid(201),
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00008",
+            section: "Data 2.2.s4.b1.b5",
+            title: "Statement keys are case-sensitive",
+          },
+          {
+            id: "XAPI-00010",
+            section: "Data 2.2.s4.b1.b5",
+            title: "Statements reject unsupported keys",
+          },
+        ],
+      },
+      {
+        idSuffix: "actor",
+        title: 'A Statement rejects a case-mismatched top-level key for "actor"',
+        transforms: [
+          {
+            operation: "set",
+            path: ["Actor"],
+            value: buildAgentWithMbox("mailto:case-sensitive-actor@example.test"),
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00008",
+            section: "Data 2.2.s4.b1.b5",
+            title: "Statement keys are case-sensitive",
+          },
+          {
+            id: "XAPI-00010",
+            section: "Data 2.2.s4.b1.b5",
+            title: "Statements reject unsupported keys",
+          },
+        ],
+      },
+      {
+        idSuffix: "verb",
+        title: 'A Statement rejects a case-mismatched top-level key for "verb"',
+        transforms: [
+          {
+            operation: "set",
+            path: ["veRb"],
+            value: buildVerbFixture("https://example.test/xapi/verbs/case-sensitive", "case-sensitive"),
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00008",
+            section: "Data 2.2.s4.b1.b5",
+            title: "Statement keys are case-sensitive",
+          },
+          {
+            id: "XAPI-00010",
+            section: "Data 2.2.s4.b1.b5",
+            title: "Statements reject unsupported keys",
+          },
+        ],
+      },
+      {
+        idSuffix: "object",
+        title: 'A Statement rejects a case-mismatched top-level key for "object"',
+        transforms: [
+          {
+            operation: "set",
+            path: ["oBject"],
+            value: buildActivityObjectFixture("https://example.test/xapi/activities/case-sensitive-object"),
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00008",
+            section: "Data 2.2.s4.b1.b5",
+            title: "Statement keys are case-sensitive",
+          },
+          {
+            id: "XAPI-00010",
+            section: "Data 2.2.s4.b1.b5",
+            title: "Statements reject unsupported keys",
+          },
+        ],
+      },
+      {
+        idSuffix: "result",
+        title: 'A Statement rejects a case-mismatched top-level key for "result"',
+        transforms: [
+          {
+            operation: "set",
+            path: ["RESULT"],
+            value: {
+              completion: true,
+            },
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00008",
+            section: "Data 2.2.s4.b1.b5",
+            title: "Statement keys are case-sensitive",
+          },
+          {
+            id: "XAPI-00010",
+            section: "Data 2.2.s4.b1.b5",
+            title: "Statements reject unsupported keys",
+          },
+        ],
+      },
+      {
+        idSuffix: "context",
+        title: 'A Statement rejects a case-mismatched top-level key for "context"',
+        transforms: [
+          {
+            operation: "set",
+            path: ["conText"],
+            value: {
+              language: "en-US",
+            },
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00008",
+            section: "Data 2.2.s4.b1.b5",
+            title: "Statement keys are case-sensitive",
+          },
+          {
+            id: "XAPI-00010",
+            section: "Data 2.2.s4.b1.b5",
+            title: "Statements reject unsupported keys",
+          },
+        ],
+      },
+      {
+        idSuffix: "timestamp",
+        title: 'A Statement rejects a case-mismatched top-level key for "timestamp"',
+        transforms: [
+          {
+            operation: "set",
+            path: ["timeStamp"],
+            value: buildProofTimestamp(202),
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00008",
+            section: "Data 2.2.s4.b1.b5",
+            title: "Statement keys are case-sensitive",
+          },
+          {
+            id: "XAPI-00010",
+            section: "Data 2.2.s4.b1.b5",
+            title: "Statements reject unsupported keys",
+          },
+        ],
+      },
+      {
+        idSuffix: "stored",
+        title: 'A Statement rejects a case-mismatched top-level key for "stored"',
+        transforms: [
+          {
+            operation: "set",
+            path: ["STOred"],
+            value: buildProofStoredTimestamp(202),
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00008",
+            section: "Data 2.2.s4.b1.b5",
+            title: "Statement keys are case-sensitive",
+          },
+          {
+            id: "XAPI-00010",
+            section: "Data 2.2.s4.b1.b5",
+            title: "Statements reject unsupported keys",
+          },
+        ],
+      },
+      {
+        idSuffix: "authority",
+        title: 'A Statement rejects a case-mismatched top-level key for "authority"',
+        transforms: [
+          {
+            operation: "set",
+            path: ["auTHORity"],
+            value: buildAgentWithMbox("mailto:case-sensitive-authority@example.test"),
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00008",
+            section: "Data 2.2.s4.b1.b5",
+            title: "Statement keys are case-sensitive",
+          },
+          {
+            id: "XAPI-00010",
+            section: "Data 2.2.s4.b1.b5",
+            title: "Statements reject unsupported keys",
+          },
+        ],
+      },
+      {
+        idSuffix: "version",
+        title: 'A Statement rejects a case-mismatched top-level key for "version"',
+        transforms: [
+          {
+            operation: "set",
+            path: ["Version"],
+            value: specVersion,
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00008",
+            section: "Data 2.2.s4.b1.b5",
+            title: "Statement keys are case-sensitive",
+          },
+          {
+            id: "XAPI-00010",
+            section: "Data 2.2.s4.b1.b5",
+            title: "Statements reject unsupported keys",
+          },
+        ],
+      },
+      {
+        idSuffix: "attachments",
+        title: 'A Statement rejects a case-mismatched top-level key for "attachments"',
+        transforms: [
+          {
+            operation: "set",
+            path: ["attachmentS"],
+            value: [buildAttachmentFixture()],
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00008",
+            section: "Data 2.2.s4.b1.b5",
+            title: "Statement keys are case-sensitive",
+          },
+          {
+            id: "XAPI-00010",
+            section: "Data 2.2.s4.b1.b5",
+            title: "Statements reject unsupported keys",
+          },
+        ],
+      },
+    ],
+  });
+
+  const interactionTypeCaseCases = statementMutationFamily({
+    familyId: "v2.statements.interaction-type-case",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "formatting", "interaction-type"],
+    legacyTraceSuiteFile: formattingLegacySuiteFile,
+    legacyTraceConfigFile: formattingLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "true-false",
+        title: 'A Statement rejects an interactionType value whose case does not exactly match "true-false"',
+        transforms: [
+          {
+            operation: "set",
+            path: ["object", "definition", "interactionType"],
+            value: "true-faLse",
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00009",
+            section: "Data 2.2.s4.b1.b6",
+            title: "Enumerated values are case-sensitive",
+          },
+        ],
+      },
+      {
+        idSuffix: "choice",
+        title: 'A Statement rejects an interactionType value whose case does not exactly match "choice"',
+        transforms: [
+          {
+            operation: "set",
+            path: ["object", "definition", "interactionType"],
+            value: "choiCe",
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00009",
+            section: "Data 2.2.s4.b1.b6",
+            title: "Enumerated values are case-sensitive",
+          },
+        ],
+      },
+      {
+        idSuffix: "fill-in",
+        title: 'A Statement rejects an interactionType value whose case does not exactly match "fill-in"',
+        transforms: [
+          {
+            operation: "set",
+            path: ["object", "definition", "interactionType"],
+            value: "fill-iN",
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00009",
+            section: "Data 2.2.s4.b1.b6",
+            title: "Enumerated values are case-sensitive",
+          },
+        ],
+      },
+      {
+        idSuffix: "long-fill-in",
+        title: 'A Statement rejects an interactionType value whose case does not exactly match "long-fill-in"',
+        transforms: [
+          {
+            operation: "set",
+            path: ["object", "definition", "interactionType"],
+            value: "long-fiLl-in",
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00009",
+            section: "Data 2.2.s4.b1.b6",
+            title: "Enumerated values are case-sensitive",
+          },
+        ],
+      },
+      {
+        idSuffix: "matching",
+        title: 'A Statement rejects an interactionType value whose case does not exactly match "matching"',
+        transforms: [
+          {
+            operation: "set",
+            path: ["object", "definition", "interactionType"],
+            value: "matchIng",
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00009",
+            section: "Data 2.2.s4.b1.b6",
+            title: "Enumerated values are case-sensitive",
+          },
+        ],
+      },
+      {
+        idSuffix: "performance",
+        title: 'A Statement rejects an interactionType value whose case does not exactly match "performance"',
+        transforms: [
+          {
+            operation: "set",
+            path: ["object", "definition", "interactionType"],
+            value: "perfOrmance",
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00009",
+            section: "Data 2.2.s4.b1.b6",
+            title: "Enumerated values are case-sensitive",
+          },
+        ],
+      },
+      {
+        idSuffix: "sequencing",
+        title: 'A Statement rejects an interactionType value whose case does not exactly match "sequencing"',
+        transforms: [
+          {
+            operation: "set",
+            path: ["object", "definition", "interactionType"],
+            value: "seqUencing",
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00009",
+            section: "Data 2.2.s4.b1.b6",
+            title: "Enumerated values are case-sensitive",
+          },
+        ],
+      },
+      {
+        idSuffix: "likert",
+        title: 'A Statement rejects an interactionType value whose case does not exactly match "likert"',
+        transforms: [
+          {
+            operation: "set",
+            path: ["object", "definition", "interactionType"],
+            value: "liKert",
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00009",
+            section: "Data 2.2.s4.b1.b6",
+            title: "Enumerated values are case-sensitive",
+          },
+        ],
+      },
+      {
+        idSuffix: "numeric",
+        title: 'A Statement rejects an interactionType value whose case does not exactly match "numeric"',
+        transforms: [
+          {
+            operation: "set",
+            path: ["object", "definition", "interactionType"],
+            value: "nUmeric",
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00009",
+            section: "Data 2.2.s4.b1.b6",
+            title: "Enumerated values are case-sensitive",
+          },
+        ],
+      },
+      {
+        idSuffix: "other",
+        title: 'A Statement rejects an interactionType value whose case does not exactly match "other"',
+        transforms: [
+          {
+            operation: "set",
+            path: ["object", "definition", "interactionType"],
+            value: "Other",
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00009",
+            section: "Data 2.2.s4.b1.b6",
+            title: "Enumerated values are case-sensitive",
+          },
+        ],
+      },
+    ],
+  });
+
+  const extensionKeyCases = statementMutationFamily({
+    familyId: "v2.statements.invalid-extension-iri",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "formatting", "extensions", "iri"],
+    legacyTraceSuiteFile: formattingLegacySuiteFile,
+    legacyTraceConfigFile: formattingLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "object-definition",
+        title: "A Statement rejects an object definition extension key without an IRI scheme",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object", "definition", "extensions"],
+            value: {
+              "not.valid.com/extension": 1234,
+            },
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00011",
+            section: "Data 2.2.s4.b1.b8",
+            title: "Extension keys must be IRIs",
+          },
+        ],
+      },
+      {
+        idSuffix: "context",
+        title: "A Statement rejects a context extension key without an IRI scheme",
+        transforms: [
+          {
+            operation: "set",
+            path: ["context", "extensions"],
+            value: {
+              "example.com/extension/wrong": 1234,
+            },
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00011",
+            section: "Data 2.2.s4.b1.b8",
+            title: "Extension keys must be IRIs",
+          },
+        ],
+      },
+      {
+        idSuffix: "result",
+        title: "A Statement rejects a result extension key without an IRI scheme",
+        transforms: [
+          {
+            operation: "set",
+            path: ["result", "extensions"],
+            value: {
+              "example.com/extension/wrong": 1234,
+            },
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00011",
+            section: "Data 2.2.s4.b1.b8",
+            title: "Extension keys must be IRIs",
+          },
+        ],
+      },
+    ],
+  });
+
+  const languageTagAcceptanceCases = statementMutationFamily({
+    familyId: "v2.statements.language-tags.accepted",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    expectedStatus: 200,
+    tags: ["v2.0.0", "statements", "formatting", "language-tags", "acceptance"],
+    legacyTraceSuiteFile: formattingLegacySuiteFile,
+    legacyTraceConfigFile: formattingLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "verb-display",
+        title: "A Statement accepts a valid RFC 5646 language key in verb.display",
+        transforms: [
+          {
+            operation: "set",
+            path: ["verb", "display"],
+            value: { de: "besucht" },
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00013",
+            section: "Data 2.2.s4.b2",
+            title: "Language map keys follow RFC 5646",
+          },
+        ],
+      },
+      {
+        idSuffix: "object-name",
+        title: "A Statement accepts a valid RFC 5646 language key in object.definition.name",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object", "definition", "name"],
+            value: { "de-DE": "Beweis Aktivitat" },
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00013",
+            section: "Data 2.2.s4.b2",
+            title: "Language map keys follow RFC 5646",
+          },
+        ],
+      },
+      {
+        idSuffix: "object-description",
+        title: "A Statement accepts a valid RFC 5646 language key in object.definition.description",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object", "definition", "description"],
+            value: { "zh-Hant": "證明描述" },
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00013",
+            section: "Data 2.2.s4.b2",
+            title: "Language map keys follow RFC 5646",
+          },
+        ],
+      },
+      {
+        idSuffix: "context-language",
+        title: "A Statement accepts a valid RFC 5646 context.language value",
+        transforms: [
+          {
+            operation: "set",
+            path: ["context", "language"],
+            value: "cmn",
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00013",
+            section: "Data 2.2.s4.b2",
+            title: "Language values follow RFC 5646",
+          },
+        ],
+      },
+      {
+        idSuffix: "attachment-display",
+        title: "A Statement accepts a valid RFC 5646 language key in attachment.display",
+        transforms: [
+          {
+            operation: "set",
+            path: ["attachments"],
+            value: [
+              buildAttachmentFixture({
+                display: {
+                  "en-US": "Proof Attachment",
+                  es: "Adjunto de prueba",
+                },
+              }),
+            ],
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00013",
+            section: "Data 2.2.s4.b2",
+            title: "Language map keys follow RFC 5646",
+          },
+        ],
+      },
+      {
+        idSuffix: "attachment-description",
+        title: "A Statement accepts a valid RFC 5646 language key in attachment.description",
+        transforms: [
+          {
+            operation: "set",
+            path: ["attachments"],
+            value: [
+              buildAttachmentFixture({
+                description: {
+                  "en-US": "Proof Attachment Description",
+                  "es-MX": "Descripcion del adjunto de prueba",
+                },
+              }),
+            ],
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00013",
+            section: "Data 2.2.s4.b2",
+            title: "Language map keys follow RFC 5646",
+          },
+        ],
+      },
+      {
+        idSuffix: "substatement-verb-display",
+        title: "A Statement accepts a valid RFC 5646 language key in a substatement verb.display",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture(),
+          },
+          {
+            operation: "set",
+            path: ["object", "verb", "display"],
+            value: { "sr-Cyrl": "искусити" },
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00013",
+            section: "Data 2.2.s4.b2",
+            title: "Language map keys follow RFC 5646",
+          },
+        ],
+      },
+      {
+        idSuffix: "substatement-object-name",
+        title: "A Statement accepts a valid RFC 5646 language key in a substatement activity name",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture(),
+          },
+          {
+            operation: "set",
+            path: ["object", "object", "definition", "name"],
+            value: { "zh-Hans-CN": "子活动" },
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00013",
+            section: "Data 2.2.s4.b2",
+            title: "Language map keys follow RFC 5646",
+          },
+        ],
+      },
+      {
+        idSuffix: "substatement-object-description",
+        title: "A Statement accepts a valid RFC 5646 language key in a substatement activity description",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture(),
+          },
+          {
+            operation: "set",
+            path: ["object", "object", "definition", "description"],
+            value: { ase: "Substatement activity description" },
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00013",
+            section: "Data 2.2.s4.b2",
+            title: "Language map keys follow RFC 5646",
+          },
+        ],
+      },
+      {
+        idSuffix: "substatement-context-language",
+        title: "A Statement accepts a valid RFC 5646 context.language value in a substatement",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture(),
+          },
+          {
+            operation: "set",
+            path: ["object", "context", "language"],
+            value: "fr-CA",
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00013",
+            section: "Data 2.2.s4.b2",
+            title: "Language values follow RFC 5646",
+          },
+        ],
+      },
+    ],
+  });
+
+  const languageTagRejectionCases = statementMutationFamily({
+    familyId: "v2.statements.language-tags.rejected",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "formatting", "language-tags", "rejection"],
+    legacyTraceSuiteFile: formattingLegacySuiteFile,
+    legacyTraceConfigFile: formattingLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "verb-display",
+        title: "A Statement rejects an invalid RFC 5646 language key in verb.display",
+        transforms: [
+          {
+            operation: "set",
+            path: ["verb", "display"],
+            value: { something: "besucht" },
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00013",
+            section: "Data 2.2.s4.b2",
+            title: "Language map keys follow RFC 5646",
+          },
+        ],
+      },
+      {
+        idSuffix: "object-name",
+        title: "A Statement rejects an invalid RFC 5646 language key in object.definition.name",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object", "definition", "name"],
+            value: { something: "Bad activity name" },
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00013",
+            section: "Data 2.2.s4.b2",
+            title: "Language map keys follow RFC 5646",
+          },
+        ],
+      },
+      {
+        idSuffix: "object-description",
+        title: "A Statement rejects an invalid RFC 5646 language key in object.definition.description",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object", "definition", "description"],
+            value: { something: "Bad activity description" },
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00013",
+            section: "Data 2.2.s4.b2",
+            title: "Language map keys follow RFC 5646",
+          },
+        ],
+      },
+      {
+        idSuffix: "context-language",
+        title: "A Statement rejects an invalid RFC 5646 context.language value",
+        transforms: [
+          {
+            operation: "set",
+            path: ["context", "language"],
+            value: "something",
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00013",
+            section: "Data 2.2.s4.b2",
+            title: "Language values follow RFC 5646",
+          },
+        ],
+      },
+      {
+        idSuffix: "attachment-display",
+        title: "A Statement rejects an invalid RFC 5646 language key in attachment.display",
+        transforms: [
+          {
+            operation: "set",
+            path: ["attachments"],
+            value: [
+              buildAttachmentFixture({
+                display: {
+                  "en-US": "Proof Attachment",
+                  something: "Adjunto de prueba",
+                },
+              }),
+            ],
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00013",
+            section: "Data 2.2.s4.b2",
+            title: "Language map keys follow RFC 5646",
+          },
+        ],
+      },
+      {
+        idSuffix: "attachment-description",
+        title: "A Statement rejects an invalid RFC 5646 language key in attachment.description",
+        transforms: [
+          {
+            operation: "set",
+            path: ["attachments"],
+            value: [
+              buildAttachmentFixture({
+                description: {
+                  "en-US": "Proof Attachment Description",
+                  something: "Descripcion del adjunto de prueba",
+                },
+              }),
+            ],
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00013",
+            section: "Data 2.2.s4.b2",
+            title: "Language map keys follow RFC 5646",
+          },
+        ],
+      },
+      {
+        idSuffix: "substatement-verb-display",
+        title: "A Statement rejects an invalid RFC 5646 language key in a substatement verb.display",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture(),
+          },
+          {
+            operation: "set",
+            path: ["object", "verb", "display"],
+            value: { something: "bad" },
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00013",
+            section: "Data 2.2.s4.b2",
+            title: "Language map keys follow RFC 5646",
+          },
+        ],
+      },
+      {
+        idSuffix: "substatement-object-name",
+        title: "A Statement rejects an invalid RFC 5646 language key in a substatement activity name",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture(),
+          },
+          {
+            operation: "set",
+            path: ["object", "object", "definition", "name"],
+            value: { "zh-z-aaa-z-bbb-c-ccc": "Invalid language tag" },
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00013",
+            section: "Data 2.2.s4.b2",
+            title: "Language map keys follow RFC 5646",
+          },
+        ],
+      },
+      {
+        idSuffix: "substatement-object-description",
+        title: "A Statement rejects an invalid RFC 5646 language key in a substatement activity description",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture(),
+          },
+          {
+            operation: "set",
+            path: ["object", "object", "definition", "description"],
+            value: { something: "Invalid language tag" },
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00013",
+            section: "Data 2.2.s4.b2",
+            title: "Language map keys follow RFC 5646",
+          },
+        ],
+      },
+      {
+        idSuffix: "substatement-context-language",
+        title: "A Statement rejects an invalid RFC 5646 context.language value in a substatement",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture(),
+          },
+          {
+            operation: "set",
+            path: ["object", "context", "language"],
+            value: "something",
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00013",
+            section: "Data 2.2.s4.b2",
+            title: "Language values follow RFC 5646",
+          },
+        ],
+      },
+    ],
+  });
+
+  const malformedObjectTypeCases = statementMutationFamily({
+    familyId: "v2.statements.malformed-object-type",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "formatting", "object-type"],
+    legacyTraceSuiteFile: formattingLegacySuiteFile,
+    variants: [
+      {
+        idSuffix: "actor",
+        title: "A Statement rejects an actor objectType value that does not exactly match Agent",
+        transforms: [
+          {
+            operation: "set",
+            path: ["actor", "objectType"],
+            value: '"objectType": "Agent"',
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00014",
+            section: "Data 2.1",
+            title: "All Objects are well-created JSON Objects",
+          },
+        ],
+      },
+      {
+        idSuffix: "substatement-actor",
+        title: "A Statement rejects a substatement actor objectType value that does not exactly match Agent",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture(),
+          },
+          {
+            operation: "set",
+            path: ["object", "actor", "objectType"],
+            value: '"objectType": "Agent"',
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00014",
+            section: "Data 2.1",
+            title: "All Objects are well-created JSON Objects",
           },
         ],
       },
@@ -3623,6 +4788,619 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     ],
   });
 
+  const contextRegistrationRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00086",
+      section: "Data 2.4.6",
+      title: "Context registration values are UUIDs",
+    },
+  ];
+  const contextTeamRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00087",
+      section: "Data 2.4.6",
+      title: "Context team values are Groups",
+    },
+  ];
+  const contextActivitiesRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00088",
+      section: "Data 2.4.6",
+      title: "ContextActivities values are objects",
+    },
+  ];
+  const contextRevisionRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00084",
+      section: "Data 2.4.6",
+      title: "Context revision values are strings and only apply to Activity objects",
+    },
+  ];
+  const contextPlatformRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00085",
+      section: "Data 2.4.6",
+      title: "Context platform values are strings and only apply to Activity objects",
+    },
+  ];
+  const contextStatementRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00092",
+      section: "Data 2.4.6",
+      title: "Context statement values are StatementRefs",
+    },
+  ];
+  const contextActivityKeyRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00093",
+      section: "Data 2.4.6.2",
+      title: "ContextActivities only use parent, grouping, category, and other keys",
+    },
+  ];
+  const contextActivityValueRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00094",
+      section: "Data 2.4.6.2",
+      title: "ContextActivities values are Activities or arrays of Activities",
+    },
+  ];
+  const contextActivityRoundTripRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00096",
+      section: "Data 2.4.6.2",
+      title: "Retrieved ContextActivities values are arrays",
+    },
+  ];
+
+  const invalidRegistrationCases = statementMutationFamily({
+    familyId: "v2.statements.context.invalid-registration",
+    suiteTitle: "Statement Context",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "context", "registration", "validation"],
+    legacyTraceSuiteFile: contextLegacySuiteFile,
+    legacyTraceConfigFile: contextsLegacyConfigFile,
+    variants: contextPlacements.flatMap((placement) => [
+      {
+        idSuffix: `${placement.idSuffix}-object`,
+        title: `A Statement rejects ${placement.title} registration when it is an object`,
+        transforms: placement.buildTransforms({
+          registration: {
+            invalid: true,
+          },
+        }),
+        requirementRefs: contextRegistrationRequirementRefs,
+      },
+      {
+        idSuffix: `${placement.idSuffix}-string`,
+        title: `A Statement rejects ${placement.title} registration when it is not a UUID`,
+        transforms: placement.buildTransforms({
+          registration: "not-a-uuid",
+        }),
+        requirementRefs: contextRegistrationRequirementRefs,
+      },
+    ]),
+  });
+
+  const invalidTeamCases = statementMutationFamily({
+    familyId: "v2.statements.context.invalid-team",
+    suiteTitle: "Statement Context",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "context", "team", "validation"],
+    legacyTraceSuiteFile: contextLegacySuiteFile,
+    legacyTraceConfigFile: contextsLegacyConfigFile,
+    variants: contextPlacements.flatMap((placement) => [
+      {
+        idSuffix: `${placement.idSuffix}-agent`,
+        title: `A Statement rejects ${placement.title} team when it is an Agent`,
+        transforms: placement.buildTransforms({
+          team: buildAgentWithMbox(`mailto:${placement.idSuffix}-context-team-agent@example.test`),
+        }),
+        requirementRefs: contextTeamRequirementRefs,
+      },
+      {
+        idSuffix: `${placement.idSuffix}-object`,
+        title: `A Statement rejects ${placement.title} team when it is not a Group`,
+        transforms: placement.buildTransforms({
+          team: {
+            name: "not-a-group",
+          },
+        }),
+        requirementRefs: contextTeamRequirementRefs,
+      },
+      {
+        idSuffix: `${placement.idSuffix}-string`,
+        title: `A Statement rejects ${placement.title} team when it is a string`,
+        transforms: placement.buildTransforms({
+          team: "not-a-group",
+        }),
+        requirementRefs: contextTeamRequirementRefs,
+      },
+    ]),
+  });
+
+  const invalidContextActivitiesTypeCases = statementMutationFamily({
+    familyId: "v2.statements.context.invalid-context-activities-type",
+    suiteTitle: "Statement Context",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "context", "context-activities", "validation"],
+    legacyTraceSuiteFile: contextLegacySuiteFile,
+    legacyTraceConfigFile: contextsLegacyConfigFile,
+    variants: contextPlacements.map((placement) => ({
+      idSuffix: `${placement.idSuffix}-string`,
+      title: `A Statement rejects ${placement.title} contextActivities when it is not an object`,
+      transforms: placement.buildTransforms({
+        contextActivities: "not-an-object",
+      }),
+      requirementRefs: contextActivitiesRequirementRefs,
+    })),
+  });
+
+  const invalidRevisionTypeCases = statementMutationFamily({
+    familyId: "v2.statements.context.invalid-revision-type",
+    suiteTitle: "Statement Context",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "context", "revision", "validation"],
+    legacyTraceSuiteFile: contextLegacySuiteFile,
+    legacyTraceConfigFile: contextsLegacyConfigFile,
+    variants: contextPlacements.flatMap((placement) => [
+      {
+        idSuffix: `${placement.idSuffix}-number`,
+        title: `A Statement rejects ${placement.title} revision when it is a number`,
+        transforms: placement.buildTransforms({
+          revision: 12,
+        }),
+        requirementRefs: contextRevisionRequirementRefs,
+      },
+      {
+        idSuffix: `${placement.idSuffix}-object`,
+        title: `A Statement rejects ${placement.title} revision when it is an object`,
+        transforms: placement.buildTransforms({
+          revision: {
+            invalid: true,
+          },
+        }),
+        requirementRefs: contextRevisionRequirementRefs,
+      },
+    ]),
+  });
+
+  const revisionConstraintTargets = [
+    {
+      idSuffix: "statement-agent",
+      title: "A Statement rejects a statement context revision when the statement object is an Agent",
+      placement: "statement" as const,
+      object: buildAgentWithMbox("mailto:context-revision-statement-agent@example.test"),
+    },
+    {
+      idSuffix: "statement-group",
+      title: "A Statement rejects a statement context revision when the statement object is a Group",
+      placement: "statement" as const,
+      object: buildGroupWithMbox("mailto:context-revision-statement-group@example.test"),
+    },
+    {
+      idSuffix: "statement-statement-ref",
+      title: "A Statement rejects a statement context revision when the statement object is a StatementRef",
+      placement: "statement" as const,
+      object: buildContextStatementRefFixture(buildProofUuid(929)),
+    },
+    {
+      idSuffix: "statement-substatement",
+      title: "A Statement rejects a statement context revision when the statement object is a SubStatement",
+      placement: "statement" as const,
+      object: buildSubStatementFixture(),
+    },
+    {
+      idSuffix: "substatement-agent",
+      title: "A Statement rejects a substatement context revision when the substatement object is an Agent",
+      placement: "substatement" as const,
+      object: buildAgentWithMbox("mailto:context-revision-substatement-agent@example.test"),
+    },
+    {
+      idSuffix: "substatement-group",
+      title: "A Statement rejects a substatement context revision when the substatement object is a Group",
+      placement: "substatement" as const,
+      object: buildGroupWithMbox("mailto:context-revision-substatement-group@example.test"),
+    },
+    {
+      idSuffix: "substatement-statement-ref",
+      title: "A Statement rejects a substatement context revision when the substatement object is a StatementRef",
+      placement: "substatement" as const,
+      object: buildContextStatementRefFixture(buildProofUuid(930)),
+    },
+  ];
+
+  const revisionActivityOnlyRejectionCases = statementMutationFamily({
+    familyId: "v2.statements.context.revision-activity-only",
+    suiteTitle: "Statement Context",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "context", "revision", "validation"],
+    legacyTraceSuiteFile: contextLegacySuiteFile,
+    legacyTraceConfigFile: contextsLegacyConfigFile,
+    variants: revisionConstraintTargets.map((target) => ({
+      idSuffix: target.idSuffix,
+      title: target.title,
+      transforms: buildContextPropertyConstraintTransforms(
+        "revision",
+        "proof-revision",
+        target.object,
+        target.placement,
+      ),
+      requirementRefs: contextRevisionRequirementRefs,
+    })),
+  });
+
+  const revisionNoObjectTypeCases = statementMutationFamily({
+    familyId: "v2.statements.context.revision-no-object-type",
+    suiteTitle: "Statement Context",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "context", "revision"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: contextLegacySuiteFile,
+    legacyTraceConfigFile: contextsLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "statement",
+        title: "A Statement accepts a statement context revision when the statement object omits objectType",
+        transforms: buildContextPropertyConstraintTransforms(
+          "revision",
+          "proof-revision",
+          buildContextActivityFixture("https://example.test/xapi/activities/context-revision-no-object-type", false),
+          "statement",
+        ),
+        requirementRefs: contextRevisionRequirementRefs,
+      },
+      {
+        idSuffix: "substatement",
+        title: "A Statement accepts a substatement context revision when the substatement object omits objectType",
+        transforms: buildContextPropertyConstraintTransforms(
+          "revision",
+          "proof-revision",
+          buildContextActivityFixture(
+            "https://example.test/xapi/activities/context-substatement-revision-no-object-type",
+            false,
+          ),
+          "substatement",
+        ),
+        requirementRefs: contextRevisionRequirementRefs,
+      },
+    ],
+  });
+
+  const invalidPlatformTypeCases = statementMutationFamily({
+    familyId: "v2.statements.context.invalid-platform-type",
+    suiteTitle: "Statement Context",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "context", "platform", "validation"],
+    legacyTraceSuiteFile: contextLegacySuiteFile,
+    legacyTraceConfigFile: contextsLegacyConfigFile,
+    variants: contextPlacements.flatMap((placement) => [
+      {
+        idSuffix: `${placement.idSuffix}-number`,
+        title: `A Statement rejects ${placement.title} platform when it is a number`,
+        transforms: placement.buildTransforms({
+          platform: 12,
+        }),
+        requirementRefs: contextPlatformRequirementRefs,
+      },
+      {
+        idSuffix: `${placement.idSuffix}-object`,
+        title: `A Statement rejects ${placement.title} platform when it is an object`,
+        transforms: placement.buildTransforms({
+          platform: {
+            invalid: true,
+          },
+        }),
+        requirementRefs: contextPlatformRequirementRefs,
+      },
+    ]),
+  });
+
+  const platformConstraintTargets = [
+    {
+      idSuffix: "statement-agent",
+      title: "A Statement rejects a statement context platform when the statement object is an Agent",
+      placement: "statement" as const,
+      object: buildAgentWithMbox("mailto:context-platform-statement-agent@example.test"),
+    },
+    {
+      idSuffix: "statement-group",
+      title: "A Statement rejects a statement context platform when the statement object is a Group",
+      placement: "statement" as const,
+      object: buildGroupWithMbox("mailto:context-platform-statement-group@example.test"),
+    },
+    {
+      idSuffix: "statement-statement-ref",
+      title: "A Statement rejects a statement context platform when the statement object is a StatementRef",
+      placement: "statement" as const,
+      object: buildContextStatementRefFixture(buildProofUuid(931)),
+    },
+    {
+      idSuffix: "statement-substatement",
+      title: "A Statement rejects a statement context platform when the statement object is a SubStatement",
+      placement: "statement" as const,
+      object: buildSubStatementFixture(),
+    },
+    {
+      idSuffix: "substatement-agent",
+      title: "A Statement rejects a substatement context platform when the substatement object is an Agent",
+      placement: "substatement" as const,
+      object: buildAgentWithMbox("mailto:context-platform-substatement-agent@example.test"),
+    },
+    {
+      idSuffix: "substatement-group",
+      title: "A Statement rejects a substatement context platform when the substatement object is a Group",
+      placement: "substatement" as const,
+      object: buildGroupWithMbox("mailto:context-platform-substatement-group@example.test"),
+    },
+    {
+      idSuffix: "substatement-statement-ref",
+      title: "A Statement rejects a substatement context platform when the substatement object is a StatementRef",
+      placement: "substatement" as const,
+      object: buildContextStatementRefFixture(buildProofUuid(932)),
+    },
+  ];
+
+  const platformActivityOnlyRejectionCases = statementMutationFamily({
+    familyId: "v2.statements.context.platform-activity-only",
+    suiteTitle: "Statement Context",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "context", "platform", "validation"],
+    legacyTraceSuiteFile: contextLegacySuiteFile,
+    legacyTraceConfigFile: contextsLegacyConfigFile,
+    variants: platformConstraintTargets.map((target) => ({
+      idSuffix: target.idSuffix,
+      title: target.title,
+      transforms: buildContextPropertyConstraintTransforms(
+        "platform",
+        "proof-platform",
+        target.object,
+        target.placement,
+      ),
+      requirementRefs: contextPlatformRequirementRefs,
+    })),
+  });
+
+  const platformNoObjectTypeCases = statementMutationFamily({
+    familyId: "v2.statements.context.platform-no-object-type",
+    suiteTitle: "Statement Context",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "context", "platform"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: contextLegacySuiteFile,
+    legacyTraceConfigFile: contextsLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "statement",
+        title: "A Statement accepts a statement context platform when the statement object omits objectType",
+        transforms: buildContextPropertyConstraintTransforms(
+          "platform",
+          "proof-platform",
+          buildContextActivityFixture("https://example.test/xapi/activities/context-platform-no-object-type", false),
+          "statement",
+        ),
+        requirementRefs: contextPlatformRequirementRefs,
+      },
+      {
+        idSuffix: "substatement",
+        title: "A Statement accepts a substatement context platform when the substatement object omits objectType",
+        transforms: buildContextPropertyConstraintTransforms(
+          "platform",
+          "proof-platform",
+          buildContextActivityFixture(
+            "https://example.test/xapi/activities/context-substatement-platform-no-object-type",
+            false,
+          ),
+          "substatement",
+        ),
+        requirementRefs: contextPlatformRequirementRefs,
+      },
+    ],
+  });
+
+  const invalidContextStatementRefCases = statementMutationFamily({
+    familyId: "v2.statements.context.invalid-statement-ref",
+    suiteTitle: "Statement Context",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "context", "statement-ref", "validation"],
+    legacyTraceSuiteFile: contextLegacySuiteFile,
+    legacyTraceConfigFile: contextsLegacyConfigFile,
+    variants: contextPlacements.flatMap((placement) => [
+      {
+        idSuffix: `${placement.idSuffix}-object-type`,
+        title: `A Statement rejects ${placement.title} statement when objectType does not exactly match StatementRef`,
+        transforms: placement.buildTransforms({
+          statement: {
+            objectType: "statementref",
+            id: buildProofUuid(933),
+          },
+        }),
+        requirementRefs: contextStatementRequirementRefs,
+      },
+      {
+        idSuffix: `${placement.idSuffix}-id`,
+        title: `A Statement rejects ${placement.title} statement when its id is not a UUID`,
+        transforms: placement.buildTransforms({
+          statement: buildContextStatementRefFixture("not-a-uuid"),
+        }),
+        requirementRefs: contextStatementRequirementRefs,
+      },
+    ]),
+  });
+
+  const contextActivityKeyAcceptanceCases = statementMutationFamily({
+    familyId: "v2.statements.context.context-activities-keys",
+    suiteTitle: "Statement Context Activities",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "context", "context-activities", "keys"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: contextLegacySuiteFile,
+    legacyTraceConfigFile: contextActivitiesLegacyConfigFile,
+    variants: [
+      ...contextPlacements.flatMap((placement) =>
+        contextActivityKinds.map((kind) => ({
+          idSuffix: `${placement.idSuffix}-${kind}`,
+          title: `A Statement accepts ${placement.title} contextActivities ${kind} values`,
+          transforms: placement.buildTransforms(
+            buildContextActivitiesFixture({
+              [kind]: buildContextActivityFixture(
+                `https://example.test/xapi/activities/${placement.idSuffix}-context-${kind}`,
+              ),
+            } as JsonObject),
+          ),
+          requirementRefs: contextActivityKeyRequirementRefs,
+        })),
+      ),
+      ...contextPlacements.map((placement) => ({
+        idSuffix: `${placement.idSuffix}-all`,
+        title: `A Statement accepts ${placement.title} contextActivities with parent, grouping, category, and other`,
+        transforms: placement.buildTransforms(
+          buildContextActivitiesFixture({
+            parent: buildContextActivityFixture(
+              `https://example.test/xapi/activities/${placement.idSuffix}-context-parent-all`,
+            ),
+            grouping: buildContextActivityFixture(
+              `https://example.test/xapi/activities/${placement.idSuffix}-context-grouping-all`,
+            ),
+            category: buildContextActivityFixture(
+              `https://example.test/xapi/activities/${placement.idSuffix}-context-category-all`,
+            ),
+            other: buildContextActivityFixture(
+              `https://example.test/xapi/activities/${placement.idSuffix}-context-other-all`,
+            ),
+          }),
+        ),
+        requirementRefs: contextActivityKeyRequirementRefs,
+      })),
+    ],
+  });
+
+  const contextActivityInvalidKeyCases = statementMutationFamily({
+    familyId: "v2.statements.context.context-activities-invalid-key",
+    suiteTitle: "Statement Context Activities",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "context", "context-activities", "keys", "validation"],
+    legacyTraceSuiteFile: contextLegacySuiteFile,
+    legacyTraceConfigFile: contextActivitiesLegacyConfigFile,
+    variants: contextPlacements.map((placement) => ({
+      idSuffix: placement.idSuffix,
+      title: `A Statement rejects ${placement.title} contextActivities keys outside parent, grouping, category, and other`,
+      transforms: placement.buildTransforms(
+        buildContextActivitiesFixture({
+          invalid: buildContextActivityFixture(
+            `https://example.test/xapi/activities/${placement.idSuffix}-context-invalid-key`,
+          ),
+        }),
+      ),
+      requirementRefs: contextActivityKeyRequirementRefs,
+    })),
+  });
+
+  const contextActivityArrayValueCases = statementMutationFamily({
+    familyId: "v2.statements.context.context-activities-values",
+    suiteTitle: "Statement Context Activities",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "context", "context-activities", "values"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: contextLegacySuiteFile,
+    legacyTraceConfigFile: contextActivitiesLegacyConfigFile,
+    variants: contextPlacements.flatMap((placement) =>
+      contextActivityKinds.map((kind) => ({
+        idSuffix: `${placement.idSuffix}-${kind}-array`,
+        title: `A Statement accepts ${placement.title} contextActivities ${kind} arrays of Activities`,
+        transforms: placement.buildTransforms(
+          buildContextActivitiesFixture({
+            [kind]: [
+              buildContextActivityFixture(
+                `https://example.test/xapi/activities/${placement.idSuffix}-context-${kind}-array`,
+              ),
+            ],
+          } as JsonObject),
+        ),
+        requirementRefs: contextActivityValueRequirementRefs,
+      })),
+    ),
+  });
+
+  const contextActivityInvalidValueCases = statementMutationFamily({
+    familyId: "v2.statements.context.context-activities-invalid-value",
+    suiteTitle: "Statement Context Activities",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "context", "context-activities", "values", "validation"],
+    legacyTraceSuiteFile: contextLegacySuiteFile,
+    legacyTraceConfigFile: contextActivitiesLegacyConfigFile,
+    variants: contextPlacements.map((placement) => ({
+      idSuffix: placement.idSuffix,
+      title: `A Statement rejects ${placement.title} contextActivities arrays when they contain non-Activity values`,
+      transforms: placement.buildTransforms(
+        buildContextActivitiesFixture({
+          category: [
+            buildContextActivityFixture(
+              `https://example.test/xapi/activities/${placement.idSuffix}-context-category-invalid-array`,
+            ),
+            "not-an-activity",
+          ],
+        }),
+      ),
+      requirementRefs: contextActivityValueRequirementRefs,
+    })),
+  });
+
+  const contextActivitiesRoundTripCases = contextPlacements.flatMap((placement) =>
+    contextActivityKinds.map((kind) => {
+      const activityId = `https://example.test/xapi/activities/${placement.idSuffix}-context-roundtrip-${kind}`;
+      const statementId = buildProofUuid(
+        placement.idSuffix === "statement"
+          ? 934 + contextActivityKinds.indexOf(kind)
+          : 938 + contextActivityKinds.indexOf(kind),
+      );
+
+      return statementRoundTripCase({
+        caseId: `v2.statements.context.context-activities-roundtrip.${placement.idSuffix}-${kind}`,
+        title: `The Statements resource returns ${placement.title} contextActivities ${kind} values as arrays`,
+        specVersion,
+        queryParam: "statementId",
+        requirementRefs: contextActivityRoundTripRequirementRefs,
+        tags: ["v2.0.0", "statements", "context", "context-activities", "retrieval"],
+        capabilityFlags: ["query", "retrieval", "context-activities"],
+        legacyTraceSuiteFile: contextLegacySuiteFile,
+        legacyTraceConfigFile: contextActivitiesLegacyConfigFile,
+        transforms: [
+          {
+            operation: "set",
+            path: ["id"],
+            value: statementId,
+          },
+          ...placement.buildTransforms(
+            buildContextActivitiesFixture({
+              [kind]: buildContextActivityFixture(activityId),
+            } as JsonObject),
+          ),
+        ],
+        queryJsonPathEquals: [
+          {
+            path: buildContextActivitiesRoundTripPath(placement.idSuffix, kind),
+            equals: [buildContextActivityFixture(activityId)],
+          },
+        ],
+        notes: ["proof-slice contextActivities retrieval returns arrays"],
+      });
+    }),
+  );
+
   return {
     type: "suite",
     id: "v2.proof-slice.statements",
@@ -3657,6 +5435,12 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
           ...agentIfiExclusivityCases,
           ...groupIfiExclusivityCases,
           ...attachmentIriCases,
+          ...caseSensitiveKeyCases,
+          ...interactionTypeCaseCases,
+          ...extensionKeyCases,
+          ...languageTagAcceptanceCases,
+          ...languageTagRejectionCases,
+          ...malformedObjectTypeCases,
           precisionCase,
         ],
       },
@@ -3671,6 +5455,55 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
           authorityPopulationCase,
           authorityNonOauthMembersCase,
           ...authorityGroupRejectionCases,
+        ],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.statements.context",
+        title: "Statement Context",
+        specVersion,
+        tags: ["context"],
+        children: [
+          {
+            type: "suite",
+            id: "v2.proof-slice.statements.context.validation",
+            title: "Context Validation",
+            specVersion,
+            tags: ["validation"],
+            children: [
+              ...invalidRegistrationCases,
+              ...invalidTeamCases,
+              ...invalidContextActivitiesTypeCases,
+              ...invalidRevisionTypeCases,
+              ...revisionActivityOnlyRejectionCases,
+              ...revisionNoObjectTypeCases,
+              ...invalidPlatformTypeCases,
+              ...platformActivityOnlyRejectionCases,
+              ...platformNoObjectTypeCases,
+              ...invalidContextStatementRefCases,
+            ],
+          },
+          {
+            type: "suite",
+            id: "v2.proof-slice.statements.context.activities",
+            title: "Context Activities",
+            specVersion,
+            tags: ["context-activities"],
+            children: [
+              ...contextActivityKeyAcceptanceCases,
+              ...contextActivityInvalidKeyCases,
+              ...contextActivityArrayValueCases,
+              ...contextActivityInvalidValueCases,
+            ],
+          },
+          {
+            type: "suite",
+            id: "v2.proof-slice.statements.context.roundtrip",
+            title: "Context Roundtrip",
+            specVersion,
+            tags: ["retrieval"],
+            children: contextActivitiesRoundTripCases,
+          },
         ],
       },
       {

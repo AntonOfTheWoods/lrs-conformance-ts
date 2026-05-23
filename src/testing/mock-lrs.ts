@@ -70,6 +70,68 @@ const statementQueryParameters = new Set([
 ]);
 const statementSingleResultAllowedExtras = new Set(["format", "attachments"]);
 const statementFormats = new Set(["exact", "canonical", "ids"]);
+const statementKeys = new Set([
+  "id",
+  "actor",
+  "verb",
+  "object",
+  "result",
+  "context",
+  "timestamp",
+  "stored",
+  "authority",
+  "version",
+  "attachments",
+]);
+const subStatementKeys = new Set(["objectType", "actor", "verb", "object", "result", "context", "timestamp"]);
+const agentKeys = new Set(["objectType", "name", "mbox", "mbox_sha1sum", "openid", "account"]);
+const groupKeys = new Set(["objectType", "name", "mbox", "mbox_sha1sum", "openid", "account", "member"]);
+const accountKeys = new Set(["homePage", "name"]);
+const verbKeys = new Set(["id", "display"]);
+const attachmentKeys = new Set(["usageType", "display", "description", "contentType", "length", "sha2", "fileUrl"]);
+const activityKeys = new Set(["objectType", "id", "definition"]);
+const activityDefinitionKeys = new Set([
+  "name",
+  "description",
+  "type",
+  "moreInfo",
+  "interactionType",
+  "correctResponsesPattern",
+  "choices",
+  "scale",
+  "source",
+  "target",
+  "steps",
+  "extensions",
+]);
+const interactionComponentKeys = new Set(["id", "description"]);
+const contextKeys = new Set([
+  "registration",
+  "instructor",
+  "team",
+  "contextActivities",
+  "revision",
+  "platform",
+  "language",
+  "statement",
+  "extensions",
+]);
+const contextActivityKeys = new Set(["parent", "grouping", "category", "other"]);
+const resultKeys = new Set(["score", "success", "completion", "response", "duration", "extensions"]);
+const scoreKeys = new Set(["scaled", "raw", "min", "max"]);
+const statementRefKeys = new Set(["objectType", "id"]);
+const interactionTypes = new Set([
+  "true-false",
+  "choice",
+  "fill-in",
+  "long-fill-in",
+  "matching",
+  "performance",
+  "sequencing",
+  "likert",
+  "numeric",
+  "other",
+]);
 
 export interface RecordedRequest {
   method: string;
@@ -304,6 +366,228 @@ function isLanguageMap(value: unknown): value is JsonObject {
   );
 }
 
+function validateAllowedKeys(value: JsonObject, allowedKeys: ReadonlySet<string>, label: string): string | undefined {
+  for (const key of Object.keys(value)) {
+    if (!allowedKeys.has(key)) {
+      return `${label} contains unsupported key ${key}`;
+    }
+  }
+
+  return undefined;
+}
+
+function isValidLanguageTag(value: string): boolean {
+  try {
+    return Intl.getCanonicalLocales(value).length === 1;
+  } catch {
+    return false;
+  }
+}
+
+function validateLanguageMapValue(value: unknown, label: string): string | undefined {
+  if (!isLanguageMap(value)) {
+    return `${label} must be a language map`;
+  }
+
+  for (const key of Object.keys(value)) {
+    if (!isValidLanguageTag(key)) {
+      return `${label} keys must be RFC 5646 language tags`;
+    }
+  }
+
+  return undefined;
+}
+
+function validateExtensions(value: unknown, label: string): string | undefined {
+  if (!isJsonObject(value)) {
+    return `${label} must be an object`;
+  }
+
+  for (const key of Object.keys(value)) {
+    if (!hasUriScheme(key)) {
+      return `${label} keys must be IRIs`;
+    }
+  }
+
+  return undefined;
+}
+
+function validateInteractionComponents(value: unknown, label: string): string | undefined {
+  if (!Array.isArray(value)) {
+    return `${label} must be an array`;
+  }
+
+  for (const component of value) {
+    if (!isJsonObject(component)) {
+      return `${label} entries must be objects`;
+    }
+
+    const keyError = validateAllowedKeys(component, interactionComponentKeys, `${label} entry`);
+    if (keyError) {
+      return keyError;
+    }
+
+    if (typeof component.id !== "string" || component.id.length === 0) {
+      return `${label} entry id must be a string`;
+    }
+
+    if (component.description !== undefined) {
+      const descriptionError = validateLanguageMapValue(component.description, `${label} entry description`);
+      if (descriptionError) {
+        return descriptionError;
+      }
+    }
+  }
+
+  return undefined;
+}
+
+function validateContextActivityEntry(value: unknown, label: string): string | undefined {
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      if (!isJsonObject(item)) {
+        return `${label} entries must be Activity objects`;
+      }
+
+      const activityError = validateActivityObject(item);
+      if (activityError) {
+        return activityError;
+      }
+    }
+
+    return undefined;
+  }
+
+  if (!isJsonObject(value)) {
+    return `${label} must be an Activity or array of Activities`;
+  }
+
+  return validateActivityObject(value);
+}
+
+function validateContextActivities(value: unknown): string | undefined {
+  if (!isJsonObject(value)) {
+    return "contextActivities must be an object";
+  }
+
+  const keyError = validateAllowedKeys(value, contextActivityKeys, "contextActivities");
+  if (keyError) {
+    return keyError;
+  }
+
+  for (const [key, child] of Object.entries(value)) {
+    const entryError = validateContextActivityEntry(child, `contextActivities ${key}`);
+    if (entryError) {
+      return entryError;
+    }
+  }
+
+  return undefined;
+}
+
+function normalizeContextActivitiesInValue(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map((child) => normalizeContextActivitiesInValue(child));
+  }
+
+  if (!isJsonObject(value)) {
+    return value;
+  }
+
+  const next: JsonObject = {};
+
+  for (const [key, child] of Object.entries(value)) {
+    if (key === "contextActivities" && isJsonObject(child)) {
+      const normalizedContextActivities: JsonObject = {};
+
+      for (const [activityKey, activityValue] of Object.entries(child)) {
+        if (Array.isArray(activityValue)) {
+          normalizedContextActivities[activityKey] = activityValue.map((item) =>
+            normalizeContextActivitiesInValue(item),
+          );
+          continue;
+        }
+
+        normalizedContextActivities[activityKey] = [normalizeContextActivitiesInValue(activityValue)];
+      }
+
+      next[key] = normalizedContextActivities;
+      continue;
+    }
+
+    next[key] = normalizeContextActivitiesInValue(child);
+  }
+
+  return next;
+}
+
+function isActivityObjectForContextConstraints(value: unknown): boolean {
+  return (
+    isJsonObject(value) &&
+    ((typeof value.id === "string" && value.objectType === undefined) || value.objectType === "Activity")
+  );
+}
+
+function validateActivityDefinition(value: unknown): string | undefined {
+  if (!isJsonObject(value)) {
+    return "object definition must be an object";
+  }
+
+  const keyError = validateAllowedKeys(value, activityDefinitionKeys, "object definition");
+  if (keyError) {
+    return keyError;
+  }
+
+  if (value.name !== undefined) {
+    const nameError = validateLanguageMapValue(value.name, "object definition name");
+    if (nameError) {
+      return nameError;
+    }
+  }
+
+  if (value.description !== undefined) {
+    const descriptionError = validateLanguageMapValue(value.description, "object definition description");
+    if (descriptionError) {
+      return descriptionError;
+    }
+  }
+
+  const type = value.type;
+  if (type !== undefined && (typeof type !== "string" || !hasUriScheme(type))) {
+    return "object definition type must be an IRI";
+  }
+
+  const moreInfo = value.moreInfo;
+  if (moreInfo !== undefined && (typeof moreInfo !== "string" || !hasUriScheme(moreInfo))) {
+    return "object definition moreInfo must be an IRI";
+  }
+
+  const interactionType = value.interactionType;
+  if (interactionType !== undefined) {
+    if (typeof interactionType !== "string" || !interactionTypes.has(interactionType)) {
+      return "object definition interactionType must match an xAPI interaction type exactly";
+    }
+  }
+
+  if (value.extensions !== undefined) {
+    const extensionsError = validateExtensions(value.extensions, "object definition extensions");
+    if (extensionsError) {
+      return extensionsError;
+    }
+  }
+
+  for (const field of ["choices", "scale", "source", "target", "steps"] as const) {
+    if (value[field] !== undefined) {
+      const componentError = validateInteractionComponents(value[field], `object definition ${field}`);
+      if (componentError) {
+        return componentError;
+      }
+    }
+  }
+
+  return undefined;
+}
+
 function selectLanguageKey(value: JsonObject, acceptLanguage: string | null): string | undefined {
   const keys = Object.keys(value);
   if (keys.length === 0) {
@@ -351,8 +635,24 @@ function canonicalizeLanguageMap(value: JsonObject, acceptLanguage: string | nul
 }
 
 function validateVerb(value: unknown): string | undefined {
-  if (!isJsonObject(value) || typeof value.id !== "string" || !hasUriScheme(value.id)) {
+  if (!isJsonObject(value)) {
+    return "verb must be an object";
+  }
+
+  const keyError = validateAllowedKeys(value, verbKeys, "verb");
+  if (keyError) {
+    return keyError;
+  }
+
+  if (typeof value.id !== "string" || !hasUriScheme(value.id)) {
     return "verb id must be an IRI";
+  }
+
+  if (value.display !== undefined) {
+    const displayError = validateLanguageMapValue(value.display, "verb display");
+    if (displayError) {
+      return displayError;
+    }
   }
 
   return undefined;
@@ -361,6 +661,11 @@ function validateVerb(value: unknown): string | undefined {
 function validateAccount(value: unknown): string | undefined {
   if (!isJsonObject(value)) {
     return "account must be an object";
+  }
+
+  const keyError = validateAllowedKeys(value, accountKeys, "account");
+  if (keyError) {
+    return keyError;
   }
 
   const homePage = value.homePage;
@@ -409,6 +714,15 @@ function validateIfiFormats(value: JsonObject): string | undefined {
 }
 
 function validateAgentLike(value: JsonObject): string | undefined {
+  if (value.objectType !== undefined && value.objectType !== "Agent") {
+    return "agent objectType must be Agent";
+  }
+
+  const keyError = validateAllowedKeys(value, agentKeys, "agent");
+  if (keyError) {
+    return keyError;
+  }
+
   const ifiCount = countIfis(value);
   if (ifiCount > 1) {
     return "actor-like value must use only one IFI";
@@ -450,6 +764,15 @@ function validateGroupMembers(value: unknown): string | undefined {
 }
 
 function validateGroupLike(value: JsonObject): string | undefined {
+  if (value.objectType !== undefined && value.objectType !== "Group") {
+    return "group objectType must be Group";
+  }
+
+  const keyError = validateAllowedKeys(value, groupKeys, "group");
+  if (keyError) {
+    return keyError;
+  }
+
   const ifiCount = countIfis(value);
   if (ifiCount > 1) {
     return "actor-like value must use only one IFI";
@@ -477,6 +800,10 @@ function validateGroupLike(value: JsonObject): string | undefined {
 function validateActorLike(value: unknown): string | undefined {
   if (!isJsonObject(value)) {
     return "actor-like value must be an object";
+  }
+
+  if (value.objectType !== undefined && value.objectType !== "Agent" && value.objectType !== "Group") {
+    return "actor-like objectType must be Agent or Group";
   }
 
   return value.objectType === "Group" || value.member !== undefined
@@ -544,6 +871,11 @@ function validateContext(value: unknown): string | undefined {
     return "context must be an object";
   }
 
+  const keyError = validateAllowedKeys(value, contextKeys, "context");
+  if (keyError) {
+    return keyError;
+  }
+
   if (value.instructor !== undefined) {
     const instructorError = validateActorLike(value.instructor);
     if (instructorError) {
@@ -551,10 +883,55 @@ function validateContext(value: unknown): string | undefined {
     }
   }
 
+  if (value.registration !== undefined && (typeof value.registration !== "string" || !isUuid(value.registration))) {
+    return "context.registration must be a UUID";
+  }
+
   if (value.team !== undefined) {
-    const teamError = validateActorLike(value.team);
+    if (!isJsonObject(value.team)) {
+      return "context.team must be a Group";
+    }
+
+    const teamError = validateGroupLike(value.team);
     if (teamError) {
       return teamError;
+    }
+  }
+
+  if (value.contextActivities !== undefined) {
+    const contextActivitiesError = validateContextActivities(value.contextActivities);
+    if (contextActivitiesError) {
+      return contextActivitiesError;
+    }
+  }
+
+  if (value.revision !== undefined && typeof value.revision !== "string") {
+    return "context.revision must be a string";
+  }
+
+  if (value.platform !== undefined && typeof value.platform !== "string") {
+    return "context.platform must be a string";
+  }
+
+  if (value.language !== undefined && (typeof value.language !== "string" || !isValidLanguageTag(value.language))) {
+    return "context.language must be an RFC 5646 language tag";
+  }
+
+  if (value.statement !== undefined) {
+    if (!isJsonObject(value.statement)) {
+      return "context.statement must be a StatementRef";
+    }
+
+    const statementError = validateStatementRef(value.statement);
+    if (statementError) {
+      return statementError;
+    }
+  }
+
+  if (value.extensions !== undefined) {
+    const extensionsError = validateExtensions(value.extensions, "context.extensions");
+    if (extensionsError) {
+      return extensionsError;
     }
   }
 
@@ -571,6 +948,11 @@ function validateAttachments(value: unknown): string | undefined {
       return "attachments must contain objects";
     }
 
+    const keyError = validateAllowedKeys(attachment, attachmentKeys, "attachment");
+    if (keyError) {
+      return keyError;
+    }
+
     if (typeof attachment.usageType !== "string" || !hasUriScheme(attachment.usageType)) {
       return "attachment usageType must be an IRI";
     }
@@ -579,12 +961,35 @@ function validateAttachments(value: unknown): string | undefined {
     if (fileUrl !== undefined && (typeof fileUrl !== "string" || !hasUriScheme(fileUrl))) {
       return "attachment fileUrl must be an IRI";
     }
+
+    if (attachment.display !== undefined) {
+      const displayError = validateLanguageMapValue(attachment.display, "attachment display");
+      if (displayError) {
+        return displayError;
+      }
+    }
+
+    if (attachment.description !== undefined) {
+      const descriptionError = validateLanguageMapValue(attachment.description, "attachment description");
+      if (descriptionError) {
+        return descriptionError;
+      }
+    }
   }
 
   return undefined;
 }
 
 function validateActivityObject(value: JsonObject): string | undefined {
+  const keyError = validateAllowedKeys(value, activityKeys, "activity object");
+  if (keyError) {
+    return keyError;
+  }
+
+  if (value.objectType !== undefined && value.objectType !== "Activity") {
+    return "activity objectType must be Activity";
+  }
+
   const objectId = value.id;
   if (typeof objectId !== "string" || !hasUriScheme(objectId)) {
     return "object id must be an IRI";
@@ -592,18 +997,56 @@ function validateActivityObject(value: JsonObject): string | undefined {
 
   const definition = value.definition;
   if (definition !== undefined) {
-    if (!isJsonObject(definition)) {
-      return "object definition must be an object";
+    const definitionError = validateActivityDefinition(definition);
+    if (definitionError) {
+      return definitionError;
+    }
+  }
+
+  return undefined;
+}
+
+function validateResult(value: unknown): string | undefined {
+  if (!isJsonObject(value)) {
+    return "result must be an object";
+  }
+
+  const keyError = validateAllowedKeys(value, resultKeys, "result");
+  if (keyError) {
+    return keyError;
+  }
+
+  if (value.success !== undefined && typeof value.success !== "boolean") {
+    return "result.success must be a boolean";
+  }
+
+  if (value.completion !== undefined && typeof value.completion !== "boolean") {
+    return "result.completion must be a boolean";
+  }
+
+  const score = value.score;
+  if (score !== undefined) {
+    if (!isJsonObject(score)) {
+      return "result.score must be an object";
     }
 
-    const type = definition.type;
-    if (type !== undefined && (typeof type !== "string" || !hasUriScheme(type))) {
-      return "object definition type must be an IRI";
+    const scoreKeyError = validateAllowedKeys(score, scoreKeys, "result.score");
+    if (scoreKeyError) {
+      return scoreKeyError;
     }
 
-    const moreInfo = definition.moreInfo;
-    if (moreInfo !== undefined && (typeof moreInfo !== "string" || !hasUriScheme(moreInfo))) {
-      return "object definition moreInfo must be an IRI";
+    for (const field of ["scaled", "raw", "min", "max"] as const) {
+      const scoreValue = score[field];
+      if (scoreValue !== undefined && !isFiniteNumber(scoreValue)) {
+        return `result.score.${field} must be a number`;
+      }
+    }
+  }
+
+  if (value.extensions !== undefined) {
+    const extensionsError = validateExtensions(value.extensions, "result.extensions");
+    if (extensionsError) {
+      return extensionsError;
     }
   }
 
@@ -611,6 +1054,15 @@ function validateActivityObject(value: JsonObject): string | undefined {
 }
 
 function validateStatementLike(value: JsonObject, requireId: boolean): string | undefined {
+  const keyError = validateAllowedKeys(
+    value,
+    requireId ? statementKeys : subStatementKeys,
+    requireId ? "statement" : "substatement",
+  );
+  if (keyError) {
+    return keyError;
+  }
+
   if (requireId) {
     const statementId = value.id;
     if (typeof statementId !== "string" || !isUuid(statementId)) {
@@ -645,6 +1097,15 @@ function validateStatementLike(value: JsonObject, requireId: boolean): string | 
     if (contextError) {
       return contextError;
     }
+
+    const context = value.context;
+    if (
+      isJsonObject(context) &&
+      (context.revision !== undefined || context.platform !== undefined) &&
+      !isActivityObjectForContextConstraints(value.object)
+    ) {
+      return "context.revision and context.platform require the statement object to be an Activity";
+    }
   }
 
   if (value.attachments !== undefined) {
@@ -656,30 +1117,9 @@ function validateStatementLike(value: JsonObject, requireId: boolean): string | 
 
   const result = value.result;
   if (result !== undefined) {
-    if (!isJsonObject(result)) {
-      return "result must be an object";
-    }
-
-    if (result.success !== undefined && typeof result.success !== "boolean") {
-      return "result.success must be a boolean";
-    }
-
-    if (result.completion !== undefined && typeof result.completion !== "boolean") {
-      return "result.completion must be a boolean";
-    }
-
-    const score = result.score;
-    if (score !== undefined) {
-      if (!isJsonObject(score)) {
-        return "result.score must be an object";
-      }
-
-      for (const field of ["scaled", "raw", "min", "max"] as const) {
-        const scoreValue = score[field];
-        if (scoreValue !== undefined && !isFiniteNumber(scoreValue)) {
-          return `result.score.${field} must be a number`;
-        }
-      }
+    const resultError = validateResult(result);
+    if (resultError) {
+      return resultError;
     }
   }
 
@@ -687,6 +1127,10 @@ function validateStatementLike(value: JsonObject, requireId: boolean): string | 
 }
 
 function validateSubStatement(value: JsonObject): string | undefined {
+  if (value.objectType !== undefined && value.objectType !== "SubStatement") {
+    return "substatement objectType must be SubStatement";
+  }
+
   if (!["actor", "verb", "object"].every((key) => key in value)) {
     return "substatement must include actor, verb, and object";
   }
@@ -695,6 +1139,15 @@ function validateSubStatement(value: JsonObject): string | undefined {
 }
 
 function validateStatementRef(value: JsonObject): string | undefined {
+  const keyError = validateAllowedKeys(value, statementRefKeys, "statement ref");
+  if (keyError) {
+    return keyError;
+  }
+
+  if (value.objectType !== undefined && value.objectType !== "StatementRef") {
+    return "statement ref objectType must be StatementRef";
+  }
+
   if (typeof value.id !== "string" || !isUuid(value.id)) {
     return "statement ref id must be a UUID";
   }
@@ -1316,7 +1769,7 @@ function buildStoredStatement(
   body: JsonObject,
   attachmentParts: Map<string, StoredAttachmentPart> = new Map(),
 ): StoredStatement {
-  const storedBody = cloneValue(body);
+  const storedBody = normalizeContextActivitiesInValue(cloneValue(body)) as JsonObject;
   const storedAt =
     typeof storedBody.timestamp === "string" && isValidTimestamp(storedBody.timestamp)
       ? new Date(storedBody.timestamp).toISOString()

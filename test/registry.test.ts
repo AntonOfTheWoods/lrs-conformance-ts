@@ -15,7 +15,7 @@ import {
   createV20StateResourceProofSliceSuite,
 } from "../src/specs/v2_0/proof-slice";
 
-const expectedCaseCount = 532;
+const expectedCaseCount = 650;
 const expectedCaseIdAnchors = [
   "v2.statements.required-fields.missing-actor",
   "v2.statements.invalid-types.result-completion-string",
@@ -97,6 +97,16 @@ const expectedCaseIdAnchors = [
   "v2.communication.concurrency.activities-state.etag-header",
   "v2.communication.concurrency.activities-profile.put-accepts-current-if-match",
   "v2.communication.concurrency.agents-profile.delete-accepts-current-if-match",
+  "v2.statements.case-sensitive-keys.version",
+  "v2.statements.interaction-type-case.other",
+  "v2.statements.invalid-extension-iri.context",
+  "v2.statements.language-tags.accepted.substatement-context-language",
+  "v2.statements.language-tags.rejected.attachment-description",
+  "v2.statements.malformed-object-type.substatement-actor",
+  "v2.statements.context.invalid-registration.statement-string",
+  "v2.statements.context.revision-activity-only.statement-substatement",
+  "v2.statements.context.context-activities-keys.substatement-all",
+  "v2.statements.context.context-activities-roundtrip.statement-category",
 ];
 
 describe("RegistryBuilder", () => {
@@ -236,7 +246,8 @@ describe("RegistryBuilder", () => {
       "About Resource",
       "Communication",
     ]);
-    expect(batteries["2.0.0"]?.tests.children[0]?.children).toHaveLength(6);
+    expect(batteries["2.0.0"]?.tests.children[0]?.children).toHaveLength(7);
+    expect(batteries["2.0.0"]?.tests.children[0]?.children[2]?.children).toHaveLength(3);
     expect(batteries["2.0.0"]?.tests.children[1]?.children).toHaveLength(5);
     expect(batteries["2.0.0"]?.tests.children[2]?.children).toHaveLength(5);
     expect(batteries["2.0.0"]?.tests.children[3]?.children).toHaveLength(5);

@@ -11,6 +11,8 @@ import { runRegistryVersion } from "../src/execution/runner";
 import { createProofSliceRegistry } from "../src/specs/v2_0/proof-slice";
 import { startMockLrs } from "../src/testing/mock-lrs";
 
+const proofSliceExecutionTimeoutMs = 10_000;
+
 function countBy<T>(items: readonly T[], toKey: (item: T) => string): Map<string, number> {
   const counts = new Map<string, number>();
 
@@ -264,108 +266,122 @@ describe("runtime executor", () => {
     ]);
   });
 
-  test("runs the 2.0 proof slice end to end against the mock LRS", async () => {
-    const registry = createProofSliceRegistry();
-    const expected = summarizeRegistryVersion(registry, "2.0.0");
-    const mockLrs = startMockLrs();
+  test(
+    "runs the 2.0 proof slice end to end against the mock LRS",
+    async () => {
+      const registry = createProofSliceRegistry();
+      const expected = summarizeRegistryVersion(registry, "2.0.0");
+      const mockLrs = startMockLrs();
 
-    try {
-      const result = await runRegistryVersion(registry, "2.0.0", {
-        baseUrl: mockLrs.baseUrl,
-      });
+      try {
+        const result = await runRegistryVersion(registry, "2.0.0", {
+          baseUrl: mockLrs.baseUrl,
+        });
 
-      expect(result.status).toBe("passed");
-      expect(result.root.children).toHaveLength(8);
-      expect(result.root.children.every((child) => child.status === "passed")).toBe(true);
+        expect(result.status).toBe("passed");
+        expect(result.root.children).toHaveLength(8);
+        expect(result.root.children.every((child) => child.status === "passed")).toBe(true);
 
-      const methodCounts = countBy(mockLrs.requests, (request) => request.method);
-      const pathCounts = countBy(mockLrs.requests, (request) => request.path);
+        const methodCounts = countBy(mockLrs.requests, (request) => request.method);
+        const pathCounts = countBy(mockLrs.requests, (request) => request.path);
 
-      expect(mockLrs.requests).toHaveLength(expected.requests);
-      expect(methodCounts.get("POST")).toBe(expected.methods.get("POST"));
-      expect(methodCounts.get("GET")).toBe(expected.methods.get("GET"));
-      expect(methodCounts.get("HEAD")).toBe(expected.methods.get("HEAD"));
-      expect(methodCounts.get("DELETE")).toBe(expected.methods.get("DELETE"));
-      expect(methodCounts.get("PUT")).toBe(expected.methods.get("PUT"));
-      expect(pathCounts.get("/xapi/statements")).toBe(expected.paths.get("/xapi/statements"));
-      expect(pathCounts.get("/xapi/about")).toBe(expected.paths.get("/xapi/about"));
-      expect(pathCounts.get("/xapi/activities")).toBe(expected.paths.get("/xapi/activities"));
-      expect(pathCounts.get("/xapi/activities/state")).toBe(expected.paths.get("/xapi/activities/state"));
-      expect(pathCounts.get("/xapi/activities/profile")).toBe(expected.paths.get("/xapi/activities/profile"));
-      expect(pathCounts.get("/xapi/agents")).toBe(expected.paths.get("/xapi/agents"));
-      expect(pathCounts.get("/xapi/agents/profile")).toBe(expected.paths.get("/xapi/agents/profile"));
-      expect(mockLrs.requests.some((request) => request.method === "GET" && request.path === "/xapi/about")).toBe(true);
-      expect(
-        mockLrs.requests.some(
-          (request) => request.method === "GET" && request.path === "/xapi/activities" && "activityId" in request.query,
-        ),
-      ).toBe(true);
-      expect(
-        mockLrs.requests.some(
-          (request) => request.method === "GET" && request.path === "/xapi/agents" && "agent" in request.query,
-        ),
-      ).toBe(true);
-      expect(
-        mockLrs.requests.some(
-          (request) =>
-            request.method === "DELETE" && request.path === "/xapi/activities/state" && !("stateId" in request.query),
-        ),
-      ).toBe(true);
-      expect(
-        mockLrs.requests.some(
-          (request) =>
-            request.method === "GET" && request.path === "/xapi/activities/profile" && !("profileId" in request.query),
-        ),
-      ).toBe(true);
-      expect(
-        mockLrs.requests.some(
-          (request) =>
-            request.method === "GET" && request.path === "/xapi/agents/profile" && !("profileId" in request.query),
-        ),
-      ).toBe(true);
-      expect(
-        mockLrs.requests.some(
-          (request) =>
-            request.method === "GET" && request.path === "/xapi/activities/state" && "since" in request.query,
-        ),
-      ).toBe(true);
-      expect(
-        mockLrs.requests.some(
-          (request) =>
-            request.method === "GET" && request.path === "/xapi/activities/profile" && "since" in request.query,
-        ),
-      ).toBe(true);
-      expect(
-        mockLrs.requests.some(
-          (request) => request.method === "GET" && request.path === "/xapi/agents/profile" && "since" in request.query,
-        ),
-      ).toBe(true);
-      expect(mockLrs.requests.some((request) => request.method === "HEAD")).toBe(true);
-    } finally {
-      mockLrs.stop();
-    }
-  });
+        expect(mockLrs.requests).toHaveLength(expected.requests);
+        expect(methodCounts.get("POST")).toBe(expected.methods.get("POST"));
+        expect(methodCounts.get("GET")).toBe(expected.methods.get("GET"));
+        expect(methodCounts.get("HEAD")).toBe(expected.methods.get("HEAD"));
+        expect(methodCounts.get("DELETE")).toBe(expected.methods.get("DELETE"));
+        expect(methodCounts.get("PUT")).toBe(expected.methods.get("PUT"));
+        expect(pathCounts.get("/xapi/statements")).toBe(expected.paths.get("/xapi/statements"));
+        expect(pathCounts.get("/xapi/about")).toBe(expected.paths.get("/xapi/about"));
+        expect(pathCounts.get("/xapi/activities")).toBe(expected.paths.get("/xapi/activities"));
+        expect(pathCounts.get("/xapi/activities/state")).toBe(expected.paths.get("/xapi/activities/state"));
+        expect(pathCounts.get("/xapi/activities/profile")).toBe(expected.paths.get("/xapi/activities/profile"));
+        expect(pathCounts.get("/xapi/agents")).toBe(expected.paths.get("/xapi/agents"));
+        expect(pathCounts.get("/xapi/agents/profile")).toBe(expected.paths.get("/xapi/agents/profile"));
+        expect(mockLrs.requests.some((request) => request.method === "GET" && request.path === "/xapi/about")).toBe(
+          true,
+        );
+        expect(
+          mockLrs.requests.some(
+            (request) =>
+              request.method === "GET" && request.path === "/xapi/activities" && "activityId" in request.query,
+          ),
+        ).toBe(true);
+        expect(
+          mockLrs.requests.some(
+            (request) => request.method === "GET" && request.path === "/xapi/agents" && "agent" in request.query,
+          ),
+        ).toBe(true);
+        expect(
+          mockLrs.requests.some(
+            (request) =>
+              request.method === "DELETE" && request.path === "/xapi/activities/state" && !("stateId" in request.query),
+          ),
+        ).toBe(true);
+        expect(
+          mockLrs.requests.some(
+            (request) =>
+              request.method === "GET" &&
+              request.path === "/xapi/activities/profile" &&
+              !("profileId" in request.query),
+          ),
+        ).toBe(true);
+        expect(
+          mockLrs.requests.some(
+            (request) =>
+              request.method === "GET" && request.path === "/xapi/agents/profile" && !("profileId" in request.query),
+          ),
+        ).toBe(true);
+        expect(
+          mockLrs.requests.some(
+            (request) =>
+              request.method === "GET" && request.path === "/xapi/activities/state" && "since" in request.query,
+          ),
+        ).toBe(true);
+        expect(
+          mockLrs.requests.some(
+            (request) =>
+              request.method === "GET" && request.path === "/xapi/activities/profile" && "since" in request.query,
+          ),
+        ).toBe(true);
+        expect(
+          mockLrs.requests.some(
+            (request) =>
+              request.method === "GET" && request.path === "/xapi/agents/profile" && "since" in request.query,
+          ),
+        ).toBe(true);
+        expect(mockLrs.requests.some((request) => request.method === "HEAD")).toBe(true);
+      } finally {
+        mockLrs.stop();
+      }
+    },
+    proofSliceExecutionTimeoutMs,
+  );
 
-  test("emits run, suite, and case events for the proof slice", async () => {
-    const registry = createProofSliceRegistry();
-    const expected = summarizeRegistryVersion(registry, "2.0.0");
-    const mockLrs = startMockLrs();
+  test(
+    "emits run, suite, and case events for the proof slice",
+    async () => {
+      const registry = createProofSliceRegistry();
+      const expected = summarizeRegistryVersion(registry, "2.0.0");
+      const mockLrs = startMockLrs();
 
-    try {
-      const result = await runRegistryVersion(registry, "2.0.0", {
-        baseUrl: mockLrs.baseUrl,
-      });
+      try {
+        const result = await runRegistryVersion(registry, "2.0.0", {
+          baseUrl: mockLrs.baseUrl,
+        });
 
-      expect(result.events[0]?.kind).toBe("run-start");
-      expect(result.events.at(-1)?.kind).toBe("run-finish");
-      expect(result.events.filter((event) => event.kind === "suite-start")).toHaveLength(expected.suites);
-      expect(result.events.filter((event) => event.kind === "case-start")).toHaveLength(expected.cases);
-      expect(result.events.filter((event) => event.kind === "case-finish")).toHaveLength(expected.cases);
-      expect(
-        result.events.filter((event) => event.kind === "case-finish").every((event) => event.status === "passed"),
-      ).toBe(true);
-    } finally {
-      mockLrs.stop();
-    }
-  });
+        expect(result.events[0]?.kind).toBe("run-start");
+        expect(result.events.at(-1)?.kind).toBe("run-finish");
+        expect(result.events.filter((event) => event.kind === "suite-start")).toHaveLength(expected.suites);
+        expect(result.events.filter((event) => event.kind === "case-start")).toHaveLength(expected.cases);
+        expect(result.events.filter((event) => event.kind === "case-finish")).toHaveLength(expected.cases);
+        expect(
+          result.events.filter((event) => event.kind === "case-finish").every((event) => event.status === "passed"),
+        ).toBe(true);
+      } finally {
+        mockLrs.stop();
+      }
+    },
+    proofSliceExecutionTimeoutMs,
+  );
 });
