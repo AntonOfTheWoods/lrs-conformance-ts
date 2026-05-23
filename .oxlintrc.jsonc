@@ -1,0 +1,51 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oxc-project/oxlint/main/npm/oxlint/configuration_schema.json",
+  // Keep the fast oxc-based checks here; `vue-tsc` still handles deeper Vue type semantics.
+  "plugins": ["eslint", "typescript", "react", "import", "node", "vitest", "oxc"],
+  "env": {
+    "browser": true,
+    "node": true,
+    "es2026": true,
+  },
+  "rules": {
+    "no-unused-vars": "error",
+    "typescript/ban-ts-comment": "error",
+    "typescript/no-explicit-any": "error",
+    "typescript/no-unused-vars": "error",
+    "typescript/no-deprecated": "error",
+    "typescript/consistent-type-imports": "error",
+    "typescript/no-floating-promises": "error",
+    "typescript/no-misused-promises": [
+      "error",
+      {
+        "checksVoidReturn": {
+          "attributes": false,
+        },
+      },
+    ],
+  },
+  "options": {
+    "denyWarnings": true,
+    "reportUnusedDisableDirectives": "error",
+    "typeAware": true,
+  },
+  "settings": {
+    "react": {
+      "version": "19.2.5",
+    },
+  },
+  "ignorePatterns": [
+    "dist/",
+    "build/",
+    ".output/",
+    ".tanstack/",
+    ".turbo/",
+    "coverage/",
+    "playwright-report/",
+    "node_modules/",
+    "**/*.mjs",
+    "**/*.cjs",
+    "**/*.iife.js",
+    "**/routeTree.gen.ts",
+  ],
+}
