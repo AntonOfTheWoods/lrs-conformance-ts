@@ -9,16 +9,10 @@ const upstreamV20Root = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/tes
 
 const auditedMissingV20RequirementIds = {
   "XAPI-00021": "Multiplicity-folder-only note in the upstream ID Requirements suite; not executed from test/v2_0.",
-  "XAPI-00041":
-    "Config-backed Account Object acceptance in ifis.js; current proof covers account behavior but does not yet attach this legacy id directly.",
   "XAPI-00063":
     "Stale suite comment pointing to activities.js; no concrete XAPI-00063 config definition exists in upstream test/v2_0.",
   "XAPI-00095": "Removed per the 2017 spec-call note in Context Requirements.",
   "XAPI-00112": "Explicit duplicate of XAPI-00149 in Retrieval of Statements.",
-  "XAPI-00118":
-    "Config-backed extension-key IRI requirement in extensions.js; behavior is exercised, but this legacy id is not yet attached directly.",
-  "XAPI-00121":
-    "Config-backed language-map RFC 5646 requirement in languages.js; language-tag behavior is exercised, but this legacy id is not yet attached directly.",
   "XAPI-00136": "Marked as nonexistent in the upstream Content Types suite.",
   "XAPI-00137": "Marked as removed in the upstream Content Types suite.",
   "XAPI-00138": "Marked as removed in the upstream Content Types suite.",

@@ -15,7 +15,7 @@ import {
   createV20StateResourceProofSliceSuite,
 } from "../src/specs/v2_0/proof-slice";
 
-const expectedCaseCount = 1337;
+const expectedCaseCount = 1415;
 const expectedCaseIdAnchors = [
   "v2.statements.required-fields.missing-actor",
   "v2.statements.invalid-types.result-completion-string",
@@ -25,10 +25,15 @@ const expectedCaseIdAnchors = [
   "v2.statements.invalid-mbox-iri.substatement-context-team-group",
   "v2.statements.invalid-mbox-mailto.actor-agent",
   "v2.statements.invalid-mbox-sha1sum.actor-agent",
+  "v2.statements.verify.statement-template.default",
+  "v2.statements.verify.activity-template.substatement-sequencing",
+  "v2.statements.verify.activity-definition.statement-extensions",
+  "v2.statements.verify.context-activity-single.substatement-other",
   "v2.statements.invalid-openid.actor-agent",
   "v2.statements.account-home-page-missing.actor-agent",
   "v2.statements.account-home-page-invalid.substatement-context-team-group",
   "v2.statements.account-name-missing.actor-agent",
+  "v2.statements.account-property-acceptance.actor-agent",
   "v2.statements.agent-ifi-acceptance.authority-agent-account",
   "v2.statements.agent-ifi-required.actor-agent",
   "v2.statements.group-ifi-or-member-required.actor-group",
@@ -38,6 +43,8 @@ const expectedCaseIdAnchors = [
   "v2.statements.agent-ifi-exclusivity.substatement-context-instructor-agent-openid-with-mbox-sha1sum",
   "v2.statements.group-ifi-exclusivity.actor-group-mbox-with-openid",
   "v2.statements.group-ifi-exclusivity.substatement-context-team-group-account-with-mbox-sha1sum",
+  "v2.statements.language-maps.legacy-rejected.verb-display",
+  "v2.statements.extensions.legacy-invalid-key.statement-activity",
   "v2.statements.authority-group-acceptance.anonymous-two-member",
   "v2.statements.authority-populates-when-missing",
   "v2.statements.authority-group-rejection.non-oauth-members",

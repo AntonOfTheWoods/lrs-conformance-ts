@@ -38,6 +38,7 @@ const formattingLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/Data2.2-FormattingRequirements.js";
 const formattingLegacyConfigFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/formatting.js";
+const verifyLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/verify.js";
 const actorRequirementsLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.1-Actor-Requirements.js";
 const verbRequirementsLegacySuiteFile =
@@ -132,6 +133,9 @@ const statementRefsLegacyConfigFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/statementrefs.js";
 const subStatementsLegacyConfigFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/substatements.js";
+const extensionsLegacyConfigFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/extensions.js";
+const languagesLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/languages.js";
 
 const proofUuidPrefix = "33333333-3333-4333-8333-";
 const multipartStatementRequestBoundary = "mock-proof-statement-request";
@@ -3296,6 +3300,33 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     }),
   });
 
+  const accountPropertyAcceptanceCases = statementMutationFamily({
+    familyId: "v2.statements.account-property-acceptance",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "formatting", "ifi", "account", "acceptance"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: actorRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: ifisLegacyConfigFile,
+    variants: [...agentActorPlacements, ...identifiedGroupPlacements].map((placement) => ({
+      idSuffix: placement.idSuffix,
+      title: `A Statement accepts ${placement.title} when account is the sole IFI`,
+      transforms: placement.buildTransforms(
+        placement.kind === "agent"
+          ? buildAgentWithAccount(buildAccount(validAccountHomePage, validAccountName))
+          : buildGroupWithAccount(buildAccount(validAccountHomePage, validAccountName)),
+      ),
+      requirementRefs: [
+        {
+          id: "XAPI-00041",
+          section: "Data 2.4.2.4",
+          title: 'An Account Object is the "account" property of a Group or Agent',
+        },
+      ],
+    })),
+  });
+
   const agentIfiAcceptanceCases = statementMutationFamily({
     familyId: "v2.statements.agent-ifi-acceptance",
     suiteTitle: "Statement Formatting",
@@ -4582,6 +4613,191 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
             id: "XAPI-00013",
             section: "Data 2.2.s4.b2",
             title: "Language values follow RFC 5646",
+          },
+        ],
+      },
+    ],
+  });
+
+  const legacyLanguageMapRejectionCases = statementMutationFamily({
+    familyId: "v2.statements.language-maps.legacy-rejected",
+    suiteTitle: "Statement Special Data Types",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "language-maps", "legacy", "rejection"],
+    legacyTraceSuiteFile: specialDataTypesLegacySuiteFile,
+    legacyTraceConfigFile: languagesLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "verb-display",
+        title: "A Statement rejects an invalid language map in verb.display",
+        transforms: [
+          {
+            operation: "set",
+            path: ["verb", "display"],
+            value: { something: "besucht" },
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00121",
+            section: "Data 4.2.s1",
+            title: "A Language Map follows RFC 5646",
+          },
+        ],
+      },
+      {
+        idSuffix: "object-name",
+        title: "A Statement rejects an invalid language map in object.definition.name",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object", "definition", "name"],
+            value: { something: "Bad activity name" },
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00121",
+            section: "Data 4.2.s1",
+            title: "A Language Map follows RFC 5646",
+          },
+        ],
+      },
+      {
+        idSuffix: "object-description",
+        title: "A Statement rejects an invalid language map in object.definition.description",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object", "definition", "description"],
+            value: { something: "Bad activity description" },
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00121",
+            section: "Data 4.2.s1",
+            title: "A Language Map follows RFC 5646",
+          },
+        ],
+      },
+      {
+        idSuffix: "attachment-display",
+        title: "A Statement rejects an invalid language map in attachment.display",
+        transforms: [
+          {
+            operation: "set",
+            path: ["attachments"],
+            value: [
+              buildAttachmentFixture({
+                display: {
+                  "en-US": "Proof Attachment",
+                  something: "Adjunto de prueba",
+                },
+              }),
+            ],
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00121",
+            section: "Data 4.2.s1",
+            title: "A Language Map follows RFC 5646",
+          },
+        ],
+      },
+      {
+        idSuffix: "attachment-description",
+        title: "A Statement rejects an invalid language map in attachment.description",
+        transforms: [
+          {
+            operation: "set",
+            path: ["attachments"],
+            value: [
+              buildAttachmentFixture({
+                description: {
+                  "en-US": "Proof Attachment Description",
+                  something: "Descripcion del adjunto de prueba",
+                },
+              }),
+            ],
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00121",
+            section: "Data 4.2.s1",
+            title: "A Language Map follows RFC 5646",
+          },
+        ],
+      },
+      {
+        idSuffix: "substatement-verb-display",
+        title: "A Statement rejects an invalid language map in a substatement verb.display",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture(),
+          },
+          {
+            operation: "set",
+            path: ["object", "verb", "display"],
+            value: { something: "bad" },
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00121",
+            section: "Data 4.2.s1",
+            title: "A Language Map follows RFC 5646",
+          },
+        ],
+      },
+      {
+        idSuffix: "substatement-object-name",
+        title: "A Statement rejects an invalid language map in a substatement activity name",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture(),
+          },
+          {
+            operation: "set",
+            path: ["object", "object", "definition", "name"],
+            value: { "zh-z-aaa-z-bbb-c-ccc": "Invalid language tag" },
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00121",
+            section: "Data 4.2.s1",
+            title: "A Language Map follows RFC 5646",
+          },
+        ],
+      },
+      {
+        idSuffix: "substatement-object-description",
+        title: "A Statement rejects an invalid language map in a substatement activity description",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture(),
+          },
+          {
+            operation: "set",
+            path: ["object", "object", "definition", "description"],
+            value: { something: "Invalid language tag" },
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00121",
+            section: "Data 4.2.s1",
+            title: "A Language Map follows RFC 5646",
           },
         ],
       },
@@ -10141,6 +10357,153 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     ]),
   });
 
+  const legacyExtensionKeyCases = statementMutationFamily({
+    familyId: "v2.statements.extensions.legacy-invalid-key",
+    suiteTitle: "Statement Special Data Types",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "extensions", "legacy", "iri"],
+    legacyTraceSuiteFile: specialDataTypesLegacySuiteFile,
+    legacyTraceConfigFile: extensionsLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "statement-activity",
+        title: "A Statement rejects a non-IRI extension key in object.definition.extensions",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object", "definition", "extensions"],
+            value: {
+              id: "valid",
+            },
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00118",
+            section: "Data 4.1.s3.b1",
+            title: 'An Extension "key" is an IRI',
+          },
+        ],
+      },
+      {
+        idSuffix: "statement-result",
+        title: "A Statement rejects a non-IRI extension key in result.extensions",
+        transforms: [
+          {
+            operation: "set",
+            path: ["result", "extensions"],
+            value: {
+              id: "valid",
+            },
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00118",
+            section: "Data 4.1.s3.b1",
+            title: 'An Extension "key" is an IRI',
+          },
+        ],
+      },
+      {
+        idSuffix: "statement-context",
+        title: "A Statement rejects a non-IRI extension key in context.extensions",
+        transforms: [
+          {
+            operation: "set",
+            path: ["context", "extensions"],
+            value: {
+              id: "valid",
+            },
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00118",
+            section: "Data 4.1.s3.b1",
+            title: 'An Extension "key" is an IRI',
+          },
+        ],
+      },
+      {
+        idSuffix: "substatement-activity",
+        title: "A Statement rejects a non-IRI extension key in a substatement activity definition",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture(),
+          },
+          {
+            operation: "set",
+            path: ["object", "object", "definition", "extensions"],
+            value: {
+              id: "valid",
+            },
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00118",
+            section: "Data 4.1.s3.b1",
+            title: 'An Extension "key" is an IRI',
+          },
+        ],
+      },
+      {
+        idSuffix: "substatement-result",
+        title: "A Statement rejects a non-IRI extension key in a substatement result",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture(),
+          },
+          {
+            operation: "set",
+            path: ["object", "result", "extensions"],
+            value: {
+              id: "valid",
+            },
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00118",
+            section: "Data 4.1.s3.b1",
+            title: 'An Extension "key" is an IRI',
+          },
+        ],
+      },
+      {
+        idSuffix: "substatement-context",
+        title: "A Statement rejects a non-IRI extension key in a substatement context",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture(),
+          },
+          {
+            operation: "set",
+            path: ["object", "context", "extensions"],
+            value: {
+              id: "valid",
+            },
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00118",
+            section: "Data 4.1.s3.b1",
+            title: 'An Extension "key" is an IRI',
+          },
+        ],
+      },
+    ],
+  });
+
   const activityInteractionComponentAcceptanceCases = statementMutationFamily({
     familyId: "v2.statements.activity.interaction-components.acceptance",
     suiteTitle: "Statement Activity Objects",
@@ -12651,6 +13014,370 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     ],
   });
 
+  const verifyTemplateRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00014",
+      section: "Data 2.2",
+      title: "All Objects are well-created JSON Objects",
+    },
+  ];
+
+  const verifyStatementTemplateAcceptanceCases = statementMutationFamily({
+    familyId: "v2.statements.verify.statement-template",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "verify-template", "formatting", "acceptance"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: formattingLegacySuiteFile,
+    legacyTraceConfigFile: verifyLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "default",
+        title: "A Statement accepts the default verify statement template",
+        transforms: [
+          {
+            operation: "set",
+            path: ["timestamp"],
+            value: "2013-05-18T05:32:34.804Z",
+          },
+        ],
+        requirementRefs: verifyTemplateRequirementRefs,
+      },
+    ],
+  });
+
+  const verifyVerbTemplateAcceptanceCases = statementMutationFamily({
+    familyId: "v2.statements.verify.verb-template",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "verify-template", "verb", "acceptance"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: formattingLegacySuiteFile,
+    legacyTraceConfigFile: verifyLegacyConfigFile,
+    variants: verbPlacements.map((placement) => ({
+      idSuffix: placement.idSuffix,
+      title: `A Statement accepts ${placement.title} verify template`,
+      transforms: placement.buildTransforms(
+        buildVerbFixture(`https://example.test/xapi/verbs/verify-template-${placement.idSuffix}`, "verified"),
+      ),
+      requirementRefs: verifyTemplateRequirementRefs,
+    })),
+  });
+
+  const verifyDefaultActivityDefinition = buildActivityDefinitionFixture({
+    name: {
+      "en-US": "Proof verify activity",
+    },
+    description: {
+      "en-US": "Proof verify activity description",
+    },
+    type: "https://example.test/xapi/activity-types/verify-default",
+    moreInfo: "https://example.test/xapi/activities/verify-default/more-info",
+    extensions: {
+      "https://example.test/xapi/activities/extensions/verify-default": true,
+    },
+  });
+
+  const verifyActivitySubstatementTemplateIds = new Set(["choice", "likert", "matching", "performance", "sequencing"]);
+
+  const verifyActivityTemplateAcceptanceCases = statementMutationFamily({
+    familyId: "v2.statements.verify.activity-template",
+    suiteTitle: "Statement Activity Objects",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "verify-template", "activity", "acceptance"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: formattingLegacySuiteFile,
+    legacyTraceConfigFile: verifyLegacyConfigFile,
+    variants: [
+      ...activityObjectPlacements.map((placement) => ({
+        idSuffix: `${placement.idSuffix}-default`,
+        title: `A Statement accepts ${placement.title} default verify template`,
+        transforms: placement.buildTransforms(
+          buildActivityObjectFixture(`https://example.test/xapi/activities/verify-${placement.idSuffix}-default`, {
+            definition: verifyDefaultActivityDefinition,
+          }),
+        ),
+        requirementRefs: verifyTemplateRequirementRefs,
+      })),
+      ...activityObjectPlacements.flatMap((placement) =>
+        activityInteractionTypeAcceptanceVariants
+          .filter(
+            (variant) =>
+              placement.idSuffix === "statement" || verifyActivitySubstatementTemplateIds.has(variant.idSuffix),
+          )
+          .map((variant) => ({
+            idSuffix: `${placement.idSuffix}-${variant.idSuffix}`,
+            title: `A Statement accepts ${placement.title} verify template using interactionType ${variant.label}`,
+            transforms: placement.buildTransforms(
+              buildActivityObjectFixture(
+                `https://example.test/xapi/activities/verify-${placement.idSuffix}-${variant.idSuffix}`,
+                {
+                  definition: variant.definition,
+                },
+              ),
+            ),
+            requirementRefs: verifyTemplateRequirementRefs,
+          })),
+      ),
+    ],
+  });
+
+  const verifyActivityDefinitionVariants = [
+    {
+      idSuffix: "empty-definition",
+      label: "omits all optional definition properties",
+      definition: {},
+    },
+    {
+      idSuffix: "name",
+      label: 'contains only "name"',
+      definition: {
+        name: {
+          "en-GB": "example meeting",
+          "en-US": "example meeting",
+        },
+      },
+    },
+    {
+      idSuffix: "description",
+      label: 'contains only "description"',
+      definition: {
+        description: {
+          "en-GB": "An example meeting that happened on a specific occasion with certain people present.",
+          "en-US": "An example meeting that happened on a specific occasion with certain people present.",
+        },
+      },
+    },
+    {
+      idSuffix: "type",
+      label: 'contains only "type"',
+      definition: {
+        type: "http://adlnet.gov/expapi/activities/meeting",
+      },
+    },
+    {
+      idSuffix: "more-info",
+      label: 'contains only "moreInfo"',
+      definition: {
+        moreInfo: "http://virtualmeeting.example.com/345256",
+      },
+    },
+    {
+      idSuffix: "extensions",
+      label: 'contains only "extensions"',
+      definition: {
+        extensions: {
+          "http://example.com/profiles/meetings/extension/location": "X:\\meetings\\minutes\\examplemeeting.one",
+          "http://example.com/profiles/meetings/extension/reporter": {
+            name: "Thomas",
+            id: "http://openid.com/342",
+          },
+        },
+      },
+    },
+    {
+      idSuffix: "interaction-type",
+      label: 'contains only "interactionType"',
+      definition: {
+        interactionType: "fill-in",
+        correctResponsesPattern: ['Bob"s your uncle'],
+      },
+    },
+  ] as const;
+
+  const verifyActivityDefinitionAcceptanceCases = statementMutationFamily({
+    familyId: "v2.statements.verify.activity-definition",
+    suiteTitle: "Statement Activity Objects",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "verify-template", "activity", "definition", "acceptance"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: formattingLegacySuiteFile,
+    legacyTraceConfigFile: verifyLegacyConfigFile,
+    variants: activityObjectPlacements.flatMap((placement) =>
+      verifyActivityDefinitionVariants.map((variant) => ({
+        idSuffix: `${placement.idSuffix}-${variant.idSuffix}`,
+        title: `A Statement accepts ${placement.title} verify template when definition ${variant.label}`,
+        transforms: placement.buildTransforms(
+          buildActivityObjectFixture(
+            `https://example.test/xapi/activities/verify-${placement.idSuffix}-definition-${variant.idSuffix}`,
+            {
+              definition: buildActivityDefinitionFixture(variant.definition),
+            },
+          ),
+        ),
+        requirementRefs: verifyTemplateRequirementRefs,
+      })),
+    ),
+  });
+
+  const verifyResultTemplateAcceptanceCases = statementMutationFamily({
+    familyId: "v2.statements.verify.result-template",
+    suiteTitle: "Statement Result",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "verify-template", "result", "acceptance"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: formattingLegacySuiteFile,
+    legacyTraceConfigFile: verifyLegacyConfigFile,
+    variants: resultPlacements.map((placement, index) => ({
+      idSuffix: placement.idSuffix,
+      title: `A Statement accepts ${placement.title} default verify template`,
+      transforms: placement.buildTransforms(
+        buildResultFixture({
+          response: `proof verify result response ${index}`,
+        }),
+      ),
+      requirementRefs: verifyTemplateRequirementRefs,
+    })),
+  });
+
+  function buildVerifyDefaultContextFixture(seed: number, placementId: string): JsonObject {
+    return {
+      registration: buildProofUuid(seed),
+      instructor: buildAgentWithMbox(`mailto:verify-context-instructor-${placementId}@example.test`),
+      team: buildGroupWithMbox(`mailto:verify-context-team-${placementId}@example.test`),
+      contextActivities: {
+        category: buildContextActivityFixture(`https://example.test/xapi/activities/verify-context-${placementId}`),
+      },
+      language: "en-US",
+    };
+  }
+
+  const verifyContextTemplateAcceptanceCases = statementMutationFamily({
+    familyId: "v2.statements.verify.context-template",
+    suiteTitle: "Statement Context",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "verify-template", "context", "acceptance"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: formattingLegacySuiteFile,
+    legacyTraceConfigFile: verifyLegacyConfigFile,
+    variants: contextPlacements.map((placement, index) => ({
+      idSuffix: placement.idSuffix,
+      title: `A Statement accepts ${placement.title} default verify template`,
+      transforms: placement.buildTransforms(buildVerifyDefaultContextFixture(6400 + index, placement.idSuffix)),
+      requirementRefs: verifyTemplateRequirementRefs,
+    })),
+  });
+
+  const verifyContextActivitySingleAcceptanceCases = statementMutationFamily({
+    familyId: "v2.statements.verify.context-activity-single",
+    suiteTitle: "Statement Context Activities",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "verify-template", "context", "context-activities", "acceptance"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: formattingLegacySuiteFile,
+    legacyTraceConfigFile: verifyLegacyConfigFile,
+    variants: contextPlacements.flatMap((placement) =>
+      contextActivityKinds.map((kind) => ({
+        idSuffix: `${placement.idSuffix}-${kind}`,
+        title: `A Statement accepts ${placement.title} verify template when contextActivities.${kind} is a single Activity`,
+        transforms: placement.buildTransforms(
+          buildContextActivitiesFixture({
+            [kind]: buildContextActivityFixture(
+              `https://example.test/xapi/activities/verify-${placement.idSuffix}-${kind}`,
+            ),
+          } as JsonObject),
+        ),
+        requirementRefs: verifyTemplateRequirementRefs,
+      })),
+    ),
+  });
+
+  const verifyLanguageTemplateAcceptanceCases = statementMutationFamily({
+    familyId: "v2.statements.verify.language-template",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "verify-template", "languages", "acceptance"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: formattingLegacySuiteFile,
+    legacyTraceConfigFile: verifyLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "statement-verb",
+        title: "A Statement accepts a statement verb verify template when display is omitted",
+        transforms: [
+          {
+            operation: "set",
+            path: ["verb"],
+            value: {
+              id: "https://example.test/xapi/verbs/verify-language-statement",
+            },
+          },
+        ],
+        requirementRefs: verifyTemplateRequirementRefs,
+      },
+      {
+        idSuffix: "statement-object",
+        title: "A Statement accepts a statement Activity verify template when language maps are omitted",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildActivityObjectFixture("https://example.test/xapi/activities/verify-language-statement", {
+              definition: buildActivityDefinitionFixture({
+                type: "https://example.test/xapi/activity-types/verify-language-statement",
+              }),
+            }),
+          },
+        ],
+        requirementRefs: verifyTemplateRequirementRefs,
+      },
+      {
+        idSuffix: "statement-attachment",
+        title: "A Statement accepts an attachment verify template with valid language maps",
+        transforms: [
+          {
+            operation: "set",
+            path: ["attachments"],
+            value: [buildAttachmentFixture()],
+          },
+        ],
+        requirementRefs: verifyTemplateRequirementRefs,
+      },
+      {
+        idSuffix: "substatement-verb",
+        title: "A Statement accepts a substatement verb verify template when display is omitted",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture({
+              verb: {
+                id: "https://example.test/xapi/verbs/verify-language-substatement",
+              },
+            }),
+          },
+        ],
+        requirementRefs: verifyTemplateRequirementRefs,
+      },
+      {
+        idSuffix: "substatement-object",
+        title: "A Statement accepts a substatement Activity verify template when language maps are omitted",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture({
+              object: buildActivityObjectFixture("https://example.test/xapi/activities/verify-language-substatement", {
+                definition: buildActivityDefinitionFixture({
+                  type: "https://example.test/xapi/activity-types/verify-language-substatement",
+                }),
+              }),
+            }),
+          },
+        ],
+        requirementRefs: verifyTemplateRequirementRefs,
+      },
+    ],
+  });
+
   const missingSignaturePartStatement = buildProofStatement(5300, [
     {
       operation: "set",
@@ -12852,6 +13579,8 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
           ...mboxMailtoCases,
           ...mboxSha1sumCases,
           ...openIdCases,
+          ...verifyStatementTemplateAcceptanceCases,
+          ...verifyVerbTemplateAcceptanceCases,
           ...accountHomePageMissingCases,
           ...accountHomePageInvalidCases,
           ...accountNameMissingCases,
@@ -12868,12 +13597,14 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
           ...groupIfiOrMemberRequiredCases,
           ...groupIfiAcceptanceCases,
           ...groupIfiAcceptanceNoMemberCases,
+          ...accountPropertyAcceptanceCases,
           ...agentIfiExclusivityCases,
           ...groupIfiExclusivityCases,
           ...attachmentIriCases,
           ...caseSensitiveKeyCases,
           ...interactionTypeCaseCases,
           ...extensionKeyCases,
+          ...verifyLanguageTemplateAcceptanceCases,
           ...languageTagAcceptanceCases,
           ...languageTagRejectionCases,
           ...malformedObjectTypeCases,
@@ -12926,6 +13657,7 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
             specVersion,
             tags: ["result"],
             children: [
+              ...verifyResultTemplateAcceptanceCases,
               ...resultSuccessTypeCases,
               ...resultCompletionTypeCases,
               ...resultResponseTypeCases,
@@ -12950,6 +13682,8 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
             specVersion,
             tags: ["activity", "object"],
             children: [
+              ...verifyActivityTemplateAcceptanceCases,
+              ...verifyActivityDefinitionAcceptanceCases,
               ...objectTypeVocabularyCases,
               ...activityMissingIdCases,
               ...activityInvalidIdCases,
@@ -13034,6 +13768,7 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
             specVersion,
             tags: ["validation"],
             children: [
+              ...verifyContextTemplateAcceptanceCases,
               ...invalidRegistrationCases,
               ...invalidTeamCases,
               ...invalidContextActivitiesTypeCases,
@@ -13053,6 +13788,7 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
             specVersion,
             tags: ["context-activities"],
             children: [
+              ...verifyContextActivitySingleAcceptanceCases,
               ...contextActivityKeyAcceptanceCases,
               ...contextActivityInvalidKeyCases,
               ...contextActivityArrayValueCases,
@@ -13230,7 +13966,13 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
         title: "Special Data Types And Rules",
         specVersion,
         tags: ["special-data-types"],
-        children: [...specialExtensionAcceptanceCases, specialTimestampPrecisionCase, specialStoredPrecisionCase],
+        children: [
+          ...specialExtensionAcceptanceCases,
+          ...legacyLanguageMapRejectionCases,
+          ...legacyExtensionKeyCases,
+          specialTimestampPrecisionCase,
+          specialStoredPrecisionCase,
+        ],
       },
     ],
   };
