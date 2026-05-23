@@ -67,11 +67,20 @@ export type HeaderExpectation = z.infer<typeof HeaderExpectationSchema>;
 
 export const JsonPathExpectationSchema = z
   .object({
-    path: z.array(z.string().min(1)).min(1),
+    path: z.array(z.string().min(1)).min(0),
     equals: z.unknown(),
   })
   .strict();
 export type JsonPathExpectation = z.infer<typeof JsonPathExpectationSchema>;
+
+export const RequestAssertionSchema = z
+  .object({
+    status: z.number().int().min(100).max(599),
+    expectedHeaders: z.array(HeaderExpectationSchema).default([]),
+    jsonPathEquals: z.array(JsonPathExpectationSchema).default([]),
+  })
+  .strict();
+export type RequestAssertion = z.infer<typeof RequestAssertionSchema>;
 
 export const HttpRequestSchema = z
   .object({
@@ -109,6 +118,12 @@ export const ExecutionPlanSchema = z.discriminatedUnion("kind", [
       polling: PollingPlanSchema.optional(),
     })
     .strict(),
+  z
+    .object({
+      kind: z.literal("request-sequence"),
+      steps: z.array(HttpRequestSchema).min(1),
+    })
+    .strict(),
 ]);
 export type ExecutionPlan = z.infer<typeof ExecutionPlanSchema>;
 
@@ -129,6 +144,13 @@ export const AssertionPlanSchema = z.discriminatedUnion("kind", [
       queryStatus: z.number().int().min(100).max(599),
       expectedHeaders: z.array(HeaderExpectationSchema).default([]),
       queryJsonPathEquals: z.array(JsonPathExpectationSchema).default([]),
+      notes: z.array(z.string()).default([]),
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal("request-sequence"),
+      steps: z.array(RequestAssertionSchema).min(1),
       notes: z.array(z.string()).default([]),
     })
     .strict(),

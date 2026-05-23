@@ -1,10 +1,12 @@
 import type {
-  AssertionPlan,
   CaseDefinition,
   EndpointKind,
+  HeaderExpectation,
   HttpMethod,
+  HttpRequest,
   JsonPathExpectation,
   PollingPlan,
+  RequestAssertion,
   RequirementRef,
   SpecVersion,
 } from "../domain/contracts";
@@ -93,13 +95,62 @@ interface DocumentRoundTripCaseOptions extends LegacyTraceOptions {
   bodyFixtureName?: string;
 }
 
-function singleRequestAssertion(status: number, notes: string[] = []): AssertionPlan {
+interface RequestAssertionDefinition {
+  status: number;
+  expectedHeaders?: HeaderExpectation[];
+  jsonPathEquals?: JsonPathExpectation[];
+}
+
+interface SingleRequestCaseOptions extends LegacyTraceOptions {
+  caseId: string;
+  title: string;
+  specVersion: SpecVersion;
+  requirementRefs: RequirementRef[];
+  tags: string[];
+  capabilityFlags?: string[];
+  request: HttpRequest;
+  assertion: RequestAssertionDefinition;
+  notes?: string[];
+}
+
+interface RequestSequenceStepOptions {
+  request: HttpRequest;
+  assertion: RequestAssertionDefinition;
+}
+
+interface RequestSequenceCaseOptions extends LegacyTraceOptions {
+  caseId: string;
+  title: string;
+  specVersion: SpecVersion;
+  requirementRefs: RequirementRef[];
+  tags: string[];
+  capabilityFlags?: string[];
+  steps: RequestSequenceStepOptions[];
+  notes?: string[];
+}
+
+interface StatementQueryValidationVariant {
+  idSuffix: string;
+  title: string;
+  query: Record<string, string>;
+  requirementRefs: RequirementRef[];
+  capabilityFlags?: string[];
+}
+
+interface StatementQueryValidationFamilyOptions extends LegacyTraceOptions {
+  familyId: string;
+  suiteTitle: string;
+  specVersion: SpecVersion;
+  tags: string[];
+  expectedStatus?: number;
+  variants: StatementQueryValidationVariant[];
+}
+
+function withAssertionDefaults(assertion: RequestAssertionDefinition): RequestAssertion {
   return {
-    kind: "single-request",
-    status,
-    expectedHeaders: [],
-    jsonPathEquals: [],
-    notes,
+    status: assertion.status,
+    expectedHeaders: assertion.expectedHeaders ?? [],
+    jsonPathEquals: assertion.jsonPathEquals ?? [],
   };
 }
 
@@ -131,6 +182,50 @@ function buildLegacyTrace(options: LegacyTraceOptions): CaseDefinition["legacyTr
   };
 }
 
+export function singleRequestCase(options: SingleRequestCaseOptions): CaseDefinition {
+  return {
+    type: "case",
+    id: options.caseId,
+    title: options.title,
+    specVersion: options.specVersion,
+    requirementRefs: options.requirementRefs,
+    tags: options.tags,
+    capabilityFlags: options.capabilityFlags ?? [],
+    legacyTrace: buildLegacyTrace(options),
+    execution: {
+      kind: "single-request",
+      request: options.request,
+    },
+    assertion: {
+      kind: "single-request",
+      ...withAssertionDefaults(options.assertion),
+      notes: options.notes ?? [],
+    },
+  };
+}
+
+export function requestSequenceCase(options: RequestSequenceCaseOptions): CaseDefinition {
+  return {
+    type: "case",
+    id: options.caseId,
+    title: options.title,
+    specVersion: options.specVersion,
+    requirementRefs: options.requirementRefs,
+    tags: options.tags,
+    capabilityFlags: options.capabilityFlags ?? [],
+    legacyTrace: buildLegacyTrace(options),
+    execution: {
+      kind: "request-sequence",
+      steps: options.steps.map((step) => step.request),
+    },
+    assertion: {
+      kind: "request-sequence",
+      steps: options.steps.map((step) => withAssertionDefaults(step.assertion)),
+      notes: options.notes ?? [],
+    },
+  };
+}
+
 function buildStatementSingleRequestCase(
   options: {
     id: string;
@@ -145,36 +240,36 @@ function buildStatementSingleRequestCase(
     notes: string[];
   } & LegacyTraceOptions,
 ): CaseDefinition {
-  return {
-    type: "case",
-    id: options.id,
+  return singleRequestCase({
+    caseId: options.id,
     title: options.title,
     specVersion: options.specVersion,
     requirementRefs: options.requirementRefs,
     tags: options.tags,
     capabilityFlags: options.capabilityFlags,
-    legacyTrace: buildLegacyTrace(options),
-    execution: {
-      kind: "single-request",
-      request: {
-        method: "POST",
-        endpoint: options.endpoint,
-        authMode: "basic",
-        headers: versionHeaders(options.specVersion),
-        query: {},
-        body: {
-          kind: "json",
-          value: buildStatementFixture(options.transforms),
-          sourceFixture: {
-            version: options.specVersion,
-            domain: "statements",
-            name: "default",
-          },
+    legacyTraceSuiteFile: options.legacyTraceSuiteFile,
+    legacyTraceConfigFile: options.legacyTraceConfigFile,
+    request: {
+      method: "POST",
+      endpoint: options.endpoint,
+      authMode: "basic",
+      headers: versionHeaders(options.specVersion),
+      query: {},
+      body: {
+        kind: "json",
+        value: buildStatementFixture(options.transforms),
+        sourceFixture: {
+          version: options.specVersion,
+          domain: "statements",
+          name: "default",
         },
       },
     },
-    assertion: singleRequestAssertion(options.status, options.notes),
-  };
+    assertion: {
+      status: options.status,
+    },
+    notes: options.notes,
+  });
 }
 
 function buildSubmitAndQueryCase(
@@ -379,4 +474,30 @@ export function queryRetrievalFamily(options: QueryRetrievalFamilyOptions): Case
     capabilityFlags: ["query", "retrieval"],
     notes: ["proof-slice query retrieval"],
   });
+}
+
+export function statementQueryValidationFamily(options: StatementQueryValidationFamilyOptions): CaseDefinition[] {
+  return options.variants.map((variant) =>
+    singleRequestCase({
+      caseId: `${options.familyId}.${variant.idSuffix}`,
+      title: variant.title,
+      specVersion: options.specVersion,
+      requirementRefs: variant.requirementRefs,
+      tags: options.tags,
+      capabilityFlags: variant.capabilityFlags ?? ["query", "validation"],
+      legacyTraceSuiteFile: options.legacyTraceSuiteFile,
+      legacyTraceConfigFile: options.legacyTraceConfigFile,
+      request: {
+        method: "GET",
+        endpoint: "statements",
+        authMode: "basic",
+        headers: versionHeaders(options.specVersion),
+        query: variant.query,
+      },
+      assertion: {
+        status: options.expectedStatus ?? 400,
+      },
+      notes: [options.suiteTitle],
+    }),
+  );
 }

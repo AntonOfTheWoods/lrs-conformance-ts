@@ -1,5 +1,11 @@
 import type { JsonObject } from "../domain/contracts";
 
+interface StoredDocument {
+  id: string;
+  contextKey: string;
+  body: unknown;
+}
+
 export interface RecordedRequest {
   method: string;
   path: string;
@@ -58,22 +64,194 @@ function isValidStatement(value: unknown): value is JsonObject {
   return hasRequiredStatementFields(value) && !containsDisallowedNull(value);
 }
 
-function buildStateDocumentKey(url: URL): string | undefined {
-  const activityId = url.searchParams.get("activityId");
-  const agent = url.searchParams.get("agent");
-  const stateId = url.searchParams.get("stateId");
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
 
-  if (!activityId || !agent || !stateId) {
-    return undefined;
+function hasUriScheme(value: string): boolean {
+  return /^[a-z][a-z0-9+.-]*:/i.test(value);
+}
+
+function isValidAgentParameter(value: string | null): boolean {
+  if (!value) {
+    return false;
   }
 
-  return `${activityId}::${agent}::${stateId}`;
+  try {
+    const parsed = JSON.parse(value);
+    return isJsonObject(parsed);
+  } catch {
+    return false;
+  }
+}
+
+function validateStatementQuery(url: URL): string | undefined {
+  const statementId = url.searchParams.get("statementId");
+  if (statementId && !isUuid(statementId)) {
+    return "statementId must be a UUID";
+  }
+
+  const voidedStatementId = url.searchParams.get("voidedStatementId");
+  if (voidedStatementId && !isUuid(voidedStatementId)) {
+    return "voidedStatementId must be a UUID";
+  }
+
+  const registration = url.searchParams.get("registration");
+  if (registration && !isUuid(registration)) {
+    return "registration must be a UUID";
+  }
+
+  const agent = url.searchParams.get("agent");
+  if (agent && !isValidAgentParameter(agent)) {
+    return "agent must be valid JSON";
+  }
+
+  const verb = url.searchParams.get("verb");
+  if (verb && !hasUriScheme(verb)) {
+    return "verb must be an IRI";
+  }
+
+  const activity = url.searchParams.get("activity");
+  if (activity && !hasUriScheme(activity)) {
+    return "activity must be an IRI";
+  }
+
+  return undefined;
+}
+
+function buildContextKey(url: URL, requiredParams: string[]): string | undefined {
+  const values: string[] = [];
+
+  for (const name of requiredParams) {
+    const value = url.searchParams.get(name);
+    if (!value) {
+      return undefined;
+    }
+
+    if (name === "agent" && !isValidAgentParameter(value)) {
+      return undefined;
+    }
+
+    values.push(`${name}=${value}`);
+  }
+
+  return values.join("&");
+}
+
+function buildDocumentKey(contextKey: string, documentId: string): string {
+  return `${contextKey}::${documentId}`;
+}
+
+function listDocumentIds(store: Map<string, StoredDocument>, contextKey: string): string[] {
+  return [...store.values()].filter((document) => document.contextKey === contextKey).map((document) => document.id);
+}
+
+function deleteDocumentsByContext(store: Map<string, StoredDocument>, contextKey: string): void {
+  for (const [key, document] of store.entries()) {
+    if (document.contextKey === contextKey) {
+      store.delete(key);
+    }
+  }
+}
+
+async function handleDocumentResource(
+  request: Request,
+  url: URL,
+  version: string,
+  store: Map<string, StoredDocument>,
+  options: {
+    requiredParams: string[];
+    idParam: string;
+    allowCollectionDelete: boolean;
+  },
+): Promise<Response> {
+  const contextKey = buildContextKey(url, options.requiredParams);
+  if (!contextKey) {
+    return new Response(JSON.stringify({ error: `${options.requiredParams.join(", ")} are required` }), {
+      status: 400,
+      headers: createHeaders(version),
+    });
+  }
+
+  const documentId = url.searchParams.get(options.idParam);
+
+  if (request.method === "PUT" || request.method === "POST") {
+    if (!documentId) {
+      return new Response(JSON.stringify({ error: `${options.idParam} is required` }), {
+        status: 400,
+        headers: createHeaders(version),
+      });
+    }
+
+    store.set(buildDocumentKey(contextKey, documentId), {
+      id: documentId,
+      contextKey,
+      body: await request.json(),
+    });
+
+    return new Response(null, {
+      status: 204,
+      headers: createHeaders(version),
+    });
+  }
+
+  if (request.method === "GET") {
+    if (!documentId) {
+      return new Response(JSON.stringify(listDocumentIds(store, contextKey)), {
+        status: 200,
+        headers: createHeaders(version),
+      });
+    }
+
+    const document = store.get(buildDocumentKey(contextKey, documentId));
+    if (!document) {
+      return new Response(JSON.stringify({ error: "document not found" }), {
+        status: 404,
+        headers: createHeaders(version),
+      });
+    }
+
+    return new Response(JSON.stringify(document.body), {
+      status: 200,
+      headers: createHeaders(version),
+    });
+  }
+
+  if (request.method === "DELETE") {
+    if (!documentId) {
+      if (!options.allowCollectionDelete) {
+        return new Response(JSON.stringify({ error: `${options.idParam} is required` }), {
+          status: 400,
+          headers: createHeaders(version),
+        });
+      }
+
+      deleteDocumentsByContext(store, contextKey);
+      return new Response(null, {
+        status: 204,
+        headers: createHeaders(version),
+      });
+    }
+
+    store.delete(buildDocumentKey(contextKey, documentId));
+    return new Response(null, {
+      status: 204,
+      headers: createHeaders(version),
+    });
+  }
+
+  return new Response(JSON.stringify({ error: "method not allowed" }), {
+    status: 405,
+    headers: createHeaders(version),
+  });
 }
 
 export function startMockLrs(version = "2.0.0"): MockLrsHandle {
   const requests: RecordedRequest[] = [];
   const statements = new Map<string, JsonObject>();
-  const stateDocuments = new Map<string, unknown>();
+  const stateDocuments = new Map<string, StoredDocument>();
+  const activityProfileDocuments = new Map<string, StoredDocument>();
+  const agentProfileDocuments = new Map<string, StoredDocument>();
 
   const server = Bun.serve({
     hostname: "127.0.0.1",
@@ -88,48 +266,26 @@ export function startMockLrs(version = "2.0.0"): MockLrsHandle {
       });
 
       if (url.pathname === "/xapi/activities/state") {
-        const stateKey = buildStateDocumentKey(url);
-        if (!stateKey) {
-          return new Response(JSON.stringify({ error: "activityId, agent, and stateId are required" }), {
-            status: 400,
-            headers: createHeaders(version),
-          });
-        }
+        return handleDocumentResource(request, url, version, stateDocuments, {
+          requiredParams: ["activityId", "agent"],
+          idParam: "stateId",
+          allowCollectionDelete: true,
+        });
+      }
 
-        if (request.method === "PUT" || request.method === "POST") {
-          stateDocuments.set(stateKey, await request.json());
-          return new Response(null, {
-            status: 204,
-            headers: createHeaders(version),
-          });
-        }
+      if (url.pathname === "/xapi/activities/profile") {
+        return handleDocumentResource(request, url, version, activityProfileDocuments, {
+          requiredParams: ["activityId"],
+          idParam: "profileId",
+          allowCollectionDelete: false,
+        });
+      }
 
-        if (request.method === "GET") {
-          const document = stateDocuments.get(stateKey);
-          if (document === undefined) {
-            return new Response(JSON.stringify({ error: "state document not found" }), {
-              status: 404,
-              headers: createHeaders(version),
-            });
-          }
-
-          return new Response(JSON.stringify(document), {
-            status: 200,
-            headers: createHeaders(version),
-          });
-        }
-
-        if (request.method === "DELETE") {
-          stateDocuments.delete(stateKey);
-          return new Response(null, {
-            status: 204,
-            headers: createHeaders(version),
-          });
-        }
-
-        return new Response(JSON.stringify({ error: "method not allowed" }), {
-          status: 405,
-          headers: createHeaders(version),
+      if (url.pathname === "/xapi/agents/profile") {
+        return handleDocumentResource(request, url, version, agentProfileDocuments, {
+          requiredParams: ["agent"],
+          idParam: "profileId",
+          allowCollectionDelete: false,
         });
       }
 
@@ -162,6 +318,14 @@ export function startMockLrs(version = "2.0.0"): MockLrsHandle {
       }
 
       if (request.method === "GET") {
+        const validationError = validateStatementQuery(url);
+        if (validationError) {
+          return new Response(JSON.stringify({ error: validationError }), {
+            status: 400,
+            headers: createHeaders(version),
+          });
+        }
+
         const statementId = url.searchParams.get("statementId");
         if (!statementId) {
           return new Response(JSON.stringify({ error: "statementId is required" }), {

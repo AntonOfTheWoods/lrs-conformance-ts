@@ -4,6 +4,8 @@ import type { SuiteDefinition } from "../src/domain/contracts";
 import { buildStatementFixture } from "../src/fixtures/v2_0/statements";
 import { RegistryBuilder } from "../src/registry/builder";
 import {
+  createV20ActivityProfileResourceProofSliceSuite,
+  createV20AgentProfileResourceProofSliceSuite,
   createProofSliceRegistry,
   createV20ProofSliceSuite,
   createV20StateResourceProofSliceSuite,
@@ -100,11 +102,13 @@ describe("RegistryBuilder", () => {
     const builder = new RegistryBuilder();
     builder.addSuite("2.0.0", createV20ProofSliceSuite());
     builder.addSuite("2.0.0", createV20StateResourceProofSliceSuite());
+    builder.addSuite("2.0.0", createV20ActivityProfileResourceProofSliceSuite());
+    builder.addSuite("2.0.0", createV20AgentProfileResourceProofSliceSuite());
 
     const manifest = builder.compileManifest();
 
-    expect(manifest.versions["2.0.0"].suiteCount).toBe(2);
-    expect(manifest.versions["2.0.0"].caseCount).toBe(9);
+    expect(manifest.versions["2.0.0"].suiteCount).toBe(4);
+    expect(manifest.versions["2.0.0"].caseCount).toBe(23);
     expect(manifest.versions["2.0.0"].caseIds).toEqual([
       "v2.statements.required-fields.missing-actor",
       "v2.statements.required-fields.missing-verb",
@@ -113,8 +117,22 @@ describe("RegistryBuilder", () => {
       "v2.statements.invalid-values.verb-display-null",
       "v2.statements.invalid-values.object-id-null",
       "v2.statements.numeric-precision.score-roundtrip",
+      "v2.statements.query-validation.invalid-statement-id",
+      "v2.statements.query-validation.invalid-voided-statement-id",
+      "v2.statements.query-validation.invalid-agent",
+      "v2.statements.query-validation.invalid-verb",
+      "v2.statements.query-validation.invalid-activity",
+      "v2.statements.query-validation.invalid-registration",
       "v2.statements.query.statement-id-roundtrip",
       "v2.activities-state.document-roundtrip",
+      "v2.activities-state.document-list",
+      "v2.activities-state.delete-context-documents",
+      "v2.activities-profile.document-roundtrip",
+      "v2.activities-profile.document-list",
+      "v2.activities-profile.delete-document",
+      "v2.agents-profile.document-roundtrip",
+      "v2.agents-profile.document-list",
+      "v2.agents-profile.delete-document",
     ]);
     expect(manifest.versions["1.0.3"].caseCount).toBe(0);
   });
@@ -123,13 +141,20 @@ describe("RegistryBuilder", () => {
     const builder = new RegistryBuilder();
     builder.addSuite("2.0.0", createV20ProofSliceSuite());
     builder.addSuite("2.0.0", createV20StateResourceProofSliceSuite());
+    builder.addSuite("2.0.0", createV20ActivityProfileResourceProofSliceSuite());
+    builder.addSuite("2.0.0", createV20AgentProfileResourceProofSliceSuite());
 
     const batteries = builder.compileBatteries();
 
-    expect(batteries["2.0.0"]?.conformanceTestCount).toBe(9);
-    expect(batteries["2.0.0"]?.tests.children[0]?.text).toBe("Statements");
-    expect(batteries["2.0.0"]?.tests.children[0]?.children).toHaveLength(2);
-    expect(batteries["2.0.0"]?.tests.children[1]?.text).toBe("State Resource");
+    expect(batteries["2.0.0"]?.conformanceTestCount).toBe(23);
+    expect(batteries["2.0.0"]?.tests.children.map((child) => child.text)).toEqual([
+      "Statements",
+      "State Resource",
+      "Activity Profile Resource",
+      "Agent Profile Resource",
+    ]);
+    expect(batteries["2.0.0"]?.tests.children[0]?.children).toHaveLength(3);
+    expect(batteries["2.0.0"]?.tests.children[1]?.children).toHaveLength(3);
     expect(batteries["1.0.3"]).toBeUndefined();
   });
 });
@@ -138,9 +163,13 @@ describe("Proof slice registry", () => {
   test("exposes a versioned registry tree for xAPI 2.0.0", () => {
     const registry = createProofSliceRegistry();
 
-    expect(registry.versions["2.0.0"]).toHaveLength(2);
-    expect(registry.versions["2.0.0"][0]?.id).toBe("v2.proof-slice.statements");
+    expect(registry.versions["2.0.0"]).toHaveLength(4);
+    expect(registry.versions["2.0.0"].map((suite) => suite.id)).toEqual([
+      "v2.proof-slice.statements",
+      "v2.proof-slice.activities-state",
+      "v2.proof-slice.activities-profile",
+      "v2.proof-slice.agents-profile",
+    ]);
     expect(registry.versions["2.0.0"][0]?.children[0]?.type).toBe("suite");
-    expect(registry.versions["2.0.0"][1]?.id).toBe("v2.proof-slice.activities-state");
   });
 });

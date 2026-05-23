@@ -10,6 +10,7 @@ import {
   type HttpRequest,
   type JsonPathExpectation,
   type JsonObject,
+  type RequestAssertion,
   type RegistryDefinition,
   type SpecVersion,
   SuiteResultSchema,
@@ -20,8 +21,10 @@ import {
 type RunStatus = SuiteResult["status"];
 type SingleRequestExecution = Extract<ExecutionPlan, { kind: "single-request" }>;
 type SubmitAndQueryExecution = Extract<ExecutionPlan, { kind: "submit-and-query" }>;
+type RequestSequenceExecution = Extract<ExecutionPlan, { kind: "request-sequence" }>;
 type SingleRequestAssertion = Extract<AssertionPlan, { kind: "single-request" }>;
 type SubmitAndQueryAssertion = Extract<AssertionPlan, { kind: "submit-and-query" }>;
+type RequestSequenceAssertion = Extract<AssertionPlan, { kind: "request-sequence" }>;
 type SingleRequestCase = Omit<CaseDefinition, "execution" | "assertion"> & {
   execution: SingleRequestExecution;
   assertion: SingleRequestAssertion;
@@ -29,6 +32,10 @@ type SingleRequestCase = Omit<CaseDefinition, "execution" | "assertion"> & {
 type SubmitAndQueryCase = Omit<CaseDefinition, "execution" | "assertion"> & {
   execution: SubmitAndQueryExecution;
   assertion: SubmitAndQueryAssertion;
+};
+type RequestSequenceCase = Omit<CaseDefinition, "execution" | "assertion"> & {
+  execution: RequestSequenceExecution;
+  assertion: RequestSequenceAssertion;
 };
 
 export interface RuntimeRunOptions {
@@ -72,6 +79,10 @@ function isSingleRequestCase(testCase: CaseDefinition): testCase is SingleReques
 
 function isSubmitAndQueryCase(testCase: CaseDefinition): testCase is SubmitAndQueryCase {
   return testCase.execution.kind === "submit-and-query" && testCase.assertion.kind === "submit-and-query";
+}
+
+function isRequestSequenceCase(testCase: CaseDefinition): testCase is RequestSequenceCase {
+  return testCase.execution.kind === "request-sequence" && testCase.assertion.kind === "request-sequence";
 }
 
 function getValueAtPath(value: unknown, path: string[]): unknown {
@@ -139,6 +150,23 @@ function assertJsonPathMatches(body: unknown, expectations: JsonPathExpectation[
   });
 }
 
+function assertRequestExpectation(
+  response: Response,
+  body: unknown,
+  assertion: RequestAssertion,
+): string[] {
+  const errors: string[] = [];
+
+  if (response.status !== assertion.status) {
+    errors.push(`Expected status ${assertion.status} but received ${response.status}.`);
+  }
+
+  errors.push(...assertHeaders(response, assertion.expectedHeaders));
+  errors.push(...assertJsonPathMatches(body, assertion.jsonPathEquals));
+
+  return errors;
+}
+
 async function executeHttpRequest(request: HttpRequest, options: RuntimeRunOptions): Promise<Response> {
   const url = new URL(endpointPaths[request.endpoint], withTrailingSlash(options.baseUrl));
   for (const [key, value] of Object.entries(request.query)) {
@@ -163,14 +191,7 @@ async function executeHttpRequest(request: HttpRequest, options: RuntimeRunOptio
 async function runSingleRequestCase(testCase: SingleRequestCase, options: RuntimeRunOptions): Promise<CaseResult> {
   const response = await executeHttpRequest(testCase.execution.request, options);
   const body = await parseResponseBody(response);
-  const errors: string[] = [];
-
-  if (response.status !== testCase.assertion.status) {
-    errors.push(`Expected status ${testCase.assertion.status} but received ${response.status}.`);
-  }
-
-  errors.push(...assertHeaders(response, testCase.assertion.expectedHeaders));
-  errors.push(...assertJsonPathMatches(body, testCase.assertion.jsonPathEquals));
+  const errors = assertRequestExpectation(response, body, testCase.assertion);
 
   return CaseResultSchema.parse({
     id: testCase.id,
@@ -242,6 +263,55 @@ async function runSubmitAndQueryCase(testCase: SubmitAndQueryCase, options: Runt
   });
 }
 
+async function runRequestSequenceCase(testCase: RequestSequenceCase, options: RuntimeRunOptions): Promise<CaseResult> {
+  if (testCase.execution.steps.length !== testCase.assertion.steps.length) {
+    return CaseResultSchema.parse({
+      id: testCase.id,
+      title: testCase.title,
+      status: "failed",
+      log: [
+        `Execution defined ${testCase.execution.steps.length} steps but assertion defined ${testCase.assertion.steps.length}.`,
+      ],
+    });
+  }
+
+  for (const [index, request] of testCase.execution.steps.entries()) {
+    const response = await executeHttpRequest(request, options);
+    const body = await parseResponseBody(response);
+    const assertion = testCase.assertion.steps[index];
+
+    if (!assertion) {
+      return CaseResultSchema.parse({
+        id: testCase.id,
+        title: testCase.title,
+        status: "failed",
+        log: [`Missing assertion for step ${index + 1}.`],
+      });
+    }
+
+    const errors = assertRequestExpectation(response, body, assertion);
+    if (errors.length > 0) {
+      return CaseResultSchema.parse({
+        id: testCase.id,
+        title: testCase.title,
+        status: "failed",
+        log: [
+          `Step ${index + 1} ${request.method} ${request.endpoint} failed.`,
+          ...errors,
+          `Response body: ${JSON.stringify(body)}`,
+        ],
+      });
+    }
+  }
+
+  return CaseResultSchema.parse({
+    id: testCase.id,
+    title: testCase.title,
+    status: "passed",
+    log: [],
+  });
+}
+
 async function runCase(
   testCase: CaseDefinition,
   version: SpecVersion,
@@ -269,14 +339,23 @@ async function runCase(
             status: "failed",
             log: ["Execution and assertion kinds did not align for a single-request case."],
           })
-      : isSubmitAndQueryCase(testCase)
-        ? await runSubmitAndQueryCase(testCase, options)
-        : CaseResultSchema.parse({
-            id: testCase.id,
-            title: testCase.title,
-            status: "failed",
-            log: ["Execution and assertion kinds did not align for a submit-and-query case."],
-          });
+      : testCase.execution.kind === "submit-and-query"
+        ? isSubmitAndQueryCase(testCase)
+          ? await runSubmitAndQueryCase(testCase, options)
+          : CaseResultSchema.parse({
+              id: testCase.id,
+              title: testCase.title,
+              status: "failed",
+              log: ["Execution and assertion kinds did not align for a submit-and-query case."],
+            })
+        : isRequestSequenceCase(testCase)
+          ? await runRequestSequenceCase(testCase, options)
+          : CaseResultSchema.parse({
+              id: testCase.id,
+              title: testCase.title,
+              status: "failed",
+              log: ["Execution and assertion kinds did not align for a request-sequence case."],
+            });
 
   await emitEvent(
     {
