@@ -27,6 +27,7 @@ import {
   requestSequenceCase,
   requiredFieldFamily,
   singleRequestCase,
+  statementGeneratedIdRoundTripCase,
   statementMutationFamily,
   statementQueryValidationFamily,
   statementRoundTripCase,
@@ -45,6 +46,8 @@ const objectRequirementsLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.2.3-Object-Requirements.js";
 const resultRequirementsLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.2.4-Result-Requirements.js";
+const idRequirementsLegacySuiteFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.4.2-ID-Requirements.js";
 const statementResourceLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.1.6.1-Statement-Resource.js";
 const errorCodesLegacySuiteFile =
@@ -84,7 +87,9 @@ const accountObjectsLegacyConfigFile =
 const activitiesLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/activities.js";
 const objectsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/objects.js";
 const resultsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/results.js";
+const durationsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/durations.js";
 const scoresLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/scores.js";
+const uuidsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/uuids.js";
 const statementRefsLegacyConfigFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/statementrefs.js";
 const subStatementsLegacyConfigFile =
@@ -94,6 +99,10 @@ const proofUuidPrefix = "33333333-3333-4333-8333-";
 const multipartStatementRequestBoundary = "mock-proof-statement-request";
 const multipartStatementResponseContentType = "multipart/mixed; boundary=mock-xapi-statement-attachments";
 const isoTimestampHeaderPattern = "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$";
+const invalidUuidNumeric = 12345;
+const invalidUuidObject = { key: "should fail" };
+const invalidUuidTooManyDigits = "AA97B177-9383-4934-8543-0F91A7A028368";
+const invalidUuidInvalidLetter = "MA97B177-9383-4934-8543-0F91A7A02836";
 
 function buildVersionedHeaders(extraHeaders: Record<string, string> = {}): Record<string, string> {
   return {
@@ -550,12 +559,7 @@ function buildStatementCollectionQueryCase(options: StatementCollectionQueryCase
         request: buildStatementPostRequest(statement),
         assertion: {
           status: 200,
-          jsonPathEquals: [
-            {
-              path: ["id"],
-              equals: statement.id,
-            },
-          ],
+          jsonPathEquals: listEquals([statement.id]),
         },
       })),
       {
@@ -2378,12 +2382,7 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
         }),
         assertion: {
           status: 200,
-          jsonPathEquals: [
-            {
-              path: ["id"],
-              equals: authorityPopulationStatement.id,
-            },
-          ],
+          jsonPathEquals: listEquals([authorityPopulationStatement.id]),
         },
       },
       {
@@ -3994,6 +3993,37 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     },
   ]);
 
+  const singlePostResponseStatement = buildProofStatement(209, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/post-single-response-array",
+    },
+  ]);
+
+  const singlePostResponseCase = singleRequestCase({
+    caseId: "v2.statements.transport.post-single-returns-id-array",
+    title:
+      "The Statements resource returns an array containing the submitted statement id for a successful single POST",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00146",
+        section: "Communication 2.1.2.s1",
+        title: "Successful Statement POST returns all submitted statement ids",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "transport", "post"],
+    capabilityFlags: ["transport"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    request: buildStatementPostRequest(singlePostResponseStatement),
+    assertion: {
+      status: 200,
+      jsonPathEquals: listEquals([singlePostResponseStatement.id]),
+    },
+    notes: ["proof-slice statement single POST success"],
+  });
+
   const batchSuccessCase = singleRequestCase({
     caseId: "v2.statements.transport.post-batch-success",
     title: "The Statements resource accepts a valid POST batch and returns the submitted statement ids",
@@ -4325,12 +4355,7 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
         request: buildMultipartStatementPostRequest(multipartAttachmentStatement, [multipartAttachment]),
         assertion: {
           status: 200,
-          jsonPathEquals: [
-            {
-              path: ["id"],
-              equals: multipartAttachmentStatement.id,
-            },
-          ],
+          jsonPathEquals: listEquals([multipartAttachmentStatement.id]),
         },
       },
       {
@@ -4372,12 +4397,7 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
         request: buildMultipartStatementPostRequest(multipartFallbackStatement, [multipartAttachment]),
         assertion: {
           status: 200,
-          jsonPathEquals: [
-            {
-              path: ["id"],
-              equals: multipartFallbackStatement.id,
-            },
-          ],
+          jsonPathEquals: listEquals([multipartFallbackStatement.id]),
         },
       },
       {
@@ -5406,17 +5426,59 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     endpoint: "statements",
     tags: ["v2.0.0", "statements", "result", "validation", "duration"],
     legacyTraceSuiteFile: resultRequirementsLegacySuiteFile,
-    legacyTraceConfigFile: resultsLegacyConfigFile,
-    variants: resultPlacements.map((placement) => ({
-      idSuffix: placement.idSuffix,
-      title: `A Statement rejects ${placement.title} when duration is not a valid ISO 8601 duration`,
-      transforms: placement.buildTransforms(
-        buildResultFixture({
-          duration: "PA1H0M0S",
-        }),
-      ),
-      requirementRefs: resultDurationRequirementRefs,
-    })),
+    legacyTraceConfigFile: durationsLegacyConfigFile,
+    variants: resultPlacements.flatMap((placement) => [
+      {
+        idSuffix: `${placement.idSuffix}-string`,
+        title: `A Statement rejects ${placement.title} when duration is a non-ISO string`,
+        transforms: placement.buildTransforms(
+          buildResultFixture({
+            duration: "not-a-duration",
+          }),
+        ),
+        requirementRefs: resultDurationRequirementRefs,
+      },
+      {
+        idSuffix: `${placement.idSuffix}-numeric`,
+        title: `A Statement rejects ${placement.title} when duration is numeric`,
+        transforms: placement.buildTransforms(
+          buildResultFixture({
+            duration: invalidUuidNumeric,
+          }),
+        ),
+        requirementRefs: resultDurationRequirementRefs,
+      },
+      {
+        idSuffix: `${placement.idSuffix}-object`,
+        title: `A Statement rejects ${placement.title} when duration is an object`,
+        transforms: placement.buildTransforms(
+          buildResultFixture({
+            duration: invalidUuidObject,
+          }),
+        ),
+        requirementRefs: resultDurationRequirementRefs,
+      },
+      {
+        idSuffix: `${placement.idSuffix}-invalid-designator`,
+        title: `A Statement rejects ${placement.title} when duration is PA1H0M0S`,
+        transforms: placement.buildTransforms(
+          buildResultFixture({
+            duration: "PA1H0M0S",
+          }),
+        ),
+        requirementRefs: resultDurationRequirementRefs,
+      },
+      {
+        idSuffix: `${placement.idSuffix}-mixed-week-day`,
+        title: `A Statement rejects ${placement.title} when duration is P4W1D`,
+        transforms: placement.buildTransforms(
+          buildResultFixture({
+            duration: "P4W1D",
+          }),
+        ),
+        requirementRefs: resultDurationRequirementRefs,
+      },
+    ]),
   });
 
   const validDurationVariants = [
@@ -5441,6 +5503,11 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
       value: "P3Y1M29DT4H35M59.14S",
     },
     {
+      idSuffix: "years-only",
+      label: "P3Y",
+      value: "P3Y",
+    },
+    {
       idSuffix: "weeks",
       label: "P4W",
       value: "P4W",
@@ -5455,7 +5522,7 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "statements", "result", "duration"],
     expectedStatus: 200,
     legacyTraceSuiteFile: resultRequirementsLegacySuiteFile,
-    legacyTraceConfigFile: resultsLegacyConfigFile,
+    legacyTraceConfigFile: durationsLegacyConfigFile,
     variants: resultPlacements.flatMap((placement) =>
       validDurationVariants.map((variant) => ({
         idSuffix: `${placement.idSuffix}-${variant.idSuffix}`,
@@ -7635,6 +7702,224 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     ]),
   });
 
+  const generatedStatementIdRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00026",
+      section: "Data 2.4.1.s1",
+      title: "Statement POST requests may omit id and receive a generated UUID",
+    },
+  ];
+  const uuidStringFormRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00029",
+      section: "Data 2.4.1.s1",
+      title: "All UUID types are in standard string form",
+    },
+  ];
+  const uuidRfc4122RequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00030",
+      section: "Data 2.4.1.s1",
+      title: "All UUID types follow the requirements of RFC4122",
+    },
+  ];
+
+  const generatedStatementIdRoundTripCase = statementGeneratedIdRoundTripCase({
+    caseId: "v2.statements.id.generated-roundtrip",
+    title:
+      "The Statements resource generates a UUID for a POST statement that omits id and returns the stored statement for that UUID",
+    specVersion,
+    requirementRefs: generatedStatementIdRequirementRefs,
+    tags: ["v2.0.0", "statements", "id", "generation", "query"],
+    legacyTraceSuiteFile: idRequirementsLegacySuiteFile,
+    transforms: [
+      {
+        operation: "set",
+        path: ["verb", "id"],
+        value: "https://example.test/xapi/verbs/generated-id-roundtrip",
+      },
+    ],
+    notes: ["proof-slice generated statement id roundtrip"],
+  });
+
+  const statementRefUuidStringFormCases = statementMutationFamily({
+    familyId: "v2.statements.id.statement-ref.string-form",
+    suiteTitle: "Statement Id Requirements",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "id", "statement-ref", "validation"],
+    legacyTraceSuiteFile: idRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: uuidsLegacyConfigFile,
+    variants: statementRefPlacements.flatMap((placement) => [
+      {
+        idSuffix: `${placement.idSuffix}-numeric`,
+        title: `A Statement rejects ${placement.title} when StatementRef id is numeric`,
+        transforms: placement.buildTransforms({
+          objectType: "StatementRef",
+          id: invalidUuidNumeric,
+        }),
+        requirementRefs: uuidStringFormRequirementRefs,
+      },
+      {
+        idSuffix: `${placement.idSuffix}-object`,
+        title: `A Statement rejects ${placement.title} when StatementRef id is an object`,
+        transforms: placement.buildTransforms({
+          objectType: "StatementRef",
+          id: invalidUuidObject,
+        }),
+        requirementRefs: uuidStringFormRequirementRefs,
+      },
+    ]),
+  });
+
+  const statementRefUuidRfc4122Cases = statementMutationFamily({
+    familyId: "v2.statements.id.statement-ref.rfc4122",
+    suiteTitle: "Statement Id Requirements",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "id", "statement-ref", "validation"],
+    legacyTraceSuiteFile: idRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: uuidsLegacyConfigFile,
+    variants: statementRefPlacements.flatMap((placement) => [
+      {
+        idSuffix: `${placement.idSuffix}-too-many-digits`,
+        title: `A Statement rejects ${placement.title} when StatementRef id has too many digits`,
+        transforms: placement.buildTransforms({
+          objectType: "StatementRef",
+          id: invalidUuidTooManyDigits,
+        }),
+        requirementRefs: uuidRfc4122RequirementRefs,
+      },
+      {
+        idSuffix: `${placement.idSuffix}-invalid-letter`,
+        title: `A Statement rejects ${placement.title} when StatementRef id contains invalid hexadecimal letters`,
+        transforms: placement.buildTransforms({
+          objectType: "StatementRef",
+          id: invalidUuidInvalidLetter,
+        }),
+        requirementRefs: uuidRfc4122RequirementRefs,
+      },
+    ]),
+  });
+
+  const contextRegistrationUuidStringFormCases = statementMutationFamily({
+    familyId: "v2.statements.id.context-registration.string-form",
+    suiteTitle: "Statement Id Requirements",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "id", "context", "registration", "validation"],
+    legacyTraceSuiteFile: idRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: uuidsLegacyConfigFile,
+    variants: contextPlacements.flatMap((placement) => [
+      {
+        idSuffix: `${placement.idSuffix}-numeric`,
+        title: `A Statement rejects ${placement.title} when registration is numeric`,
+        transforms: placement.buildTransforms({
+          registration: invalidUuidNumeric,
+        }),
+        requirementRefs: uuidStringFormRequirementRefs,
+      },
+      {
+        idSuffix: `${placement.idSuffix}-object`,
+        title: `A Statement rejects ${placement.title} when registration is an object`,
+        transforms: placement.buildTransforms({
+          registration: invalidUuidObject,
+        }),
+        requirementRefs: uuidStringFormRequirementRefs,
+      },
+    ]),
+  });
+
+  const contextRegistrationUuidRfc4122Cases = statementMutationFamily({
+    familyId: "v2.statements.id.context-registration.rfc4122",
+    suiteTitle: "Statement Id Requirements",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "id", "context", "registration", "validation"],
+    legacyTraceSuiteFile: idRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: uuidsLegacyConfigFile,
+    variants: contextPlacements.flatMap((placement) => [
+      {
+        idSuffix: `${placement.idSuffix}-too-many-digits`,
+        title: `A Statement rejects ${placement.title} when registration has too many digits`,
+        transforms: placement.buildTransforms({
+          registration: invalidUuidTooManyDigits,
+        }),
+        requirementRefs: uuidRfc4122RequirementRefs,
+      },
+      {
+        idSuffix: `${placement.idSuffix}-invalid-letter`,
+        title: `A Statement rejects ${placement.title} when registration contains invalid hexadecimal letters`,
+        transforms: placement.buildTransforms({
+          registration: invalidUuidInvalidLetter,
+        }),
+        requirementRefs: uuidRfc4122RequirementRefs,
+      },
+    ]),
+  });
+
+  const contextStatementUuidStringFormCases = statementMutationFamily({
+    familyId: "v2.statements.id.context-statement.string-form",
+    suiteTitle: "Statement Id Requirements",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "id", "context", "statement-ref", "validation"],
+    legacyTraceSuiteFile: idRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: uuidsLegacyConfigFile,
+    variants: contextPlacements.flatMap((placement) => [
+      {
+        idSuffix: `${placement.idSuffix}-numeric`,
+        title: `A Statement rejects ${placement.title} when context statement id is numeric`,
+        transforms: placement.buildTransforms({
+          statement: {
+            objectType: "StatementRef",
+            id: invalidUuidNumeric,
+          },
+        }),
+        requirementRefs: uuidStringFormRequirementRefs,
+      },
+      {
+        idSuffix: `${placement.idSuffix}-object`,
+        title: `A Statement rejects ${placement.title} when context statement id is an object`,
+        transforms: placement.buildTransforms({
+          statement: {
+            objectType: "StatementRef",
+            id: invalidUuidObject,
+          },
+        }),
+        requirementRefs: uuidStringFormRequirementRefs,
+      },
+    ]),
+  });
+
+  const contextStatementUuidRfc4122Cases = statementMutationFamily({
+    familyId: "v2.statements.id.context-statement.rfc4122",
+    suiteTitle: "Statement Id Requirements",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "id", "context", "statement-ref", "validation"],
+    legacyTraceSuiteFile: idRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: uuidsLegacyConfigFile,
+    variants: contextPlacements.flatMap((placement) => [
+      {
+        idSuffix: `${placement.idSuffix}-too-many-digits`,
+        title: `A Statement rejects ${placement.title} when context statement id has too many digits`,
+        transforms: placement.buildTransforms({
+          statement: buildContextStatementRefFixture(invalidUuidTooManyDigits),
+        }),
+        requirementRefs: uuidRfc4122RequirementRefs,
+      },
+      {
+        idSuffix: `${placement.idSuffix}-invalid-letter`,
+        title: `A Statement rejects ${placement.title} when context statement id contains invalid hexadecimal letters`,
+        transforms: placement.buildTransforms({
+          statement: buildContextStatementRefFixture(invalidUuidInvalidLetter),
+        }),
+        requirementRefs: uuidRfc4122RequirementRefs,
+      },
+    ]),
+  });
+
   const contextActivityKeyAcceptanceCases = statementMutationFamily({
     familyId: "v2.statements.context.context-activities-keys",
     suiteTitle: "Statement Context Activities",
@@ -8004,6 +8289,7 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
           putRoundTripCase,
           putRequiresStatementIdCase,
           putImmutableCase,
+          singlePostResponseCase,
           batchSuccessCase,
           duplicateBatchCase,
           batchRollbackCase,
@@ -8057,6 +8343,22 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
           ascendingQueryCase,
           ...statementIdExclusivityCases,
           ...voidedStatementIdExclusivityCases,
+        ],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.statements.id",
+        title: "Statement Id Requirements",
+        specVersion,
+        tags: ["id"],
+        children: [
+          generatedStatementIdRoundTripCase,
+          ...statementRefUuidStringFormCases,
+          ...statementRefUuidRfc4122Cases,
+          ...contextRegistrationUuidStringFormCases,
+          ...contextRegistrationUuidRfc4122Cases,
+          ...contextStatementUuidStringFormCases,
+          ...contextStatementUuidRfc4122Cases,
         ],
       },
     ],

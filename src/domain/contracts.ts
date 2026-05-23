@@ -122,6 +122,22 @@ export const PollingPlanSchema = z
   .strict();
 export type PollingPlan = z.infer<typeof PollingPlanSchema>;
 
+export const SubmitCaptureBindingSchema = z
+  .object({
+    fromSubmitJsonPath: z.array(z.string().min(1)).min(1),
+    toQueryParam: z.string().min(1),
+  })
+  .strict();
+export type SubmitCaptureBinding = z.infer<typeof SubmitCaptureBindingSchema>;
+
+export const SubmitQueryCaptureExpectationSchema = z
+  .object({
+    queryPath: z.array(z.string().min(1)),
+    fromSubmitJsonPath: z.array(z.string().min(1)).min(1),
+  })
+  .strict();
+export type SubmitQueryCaptureExpectation = z.infer<typeof SubmitQueryCaptureExpectationSchema>;
+
 export const ExecutionPlanSchema = z.discriminatedUnion("kind", [
   z
     .object({
@@ -135,6 +151,7 @@ export const ExecutionPlanSchema = z.discriminatedUnion("kind", [
       submit: HttpRequestSchema,
       query: HttpRequestSchema,
       polling: PollingPlanSchema.optional(),
+      capture: SubmitCaptureBindingSchema.optional(),
     })
     .strict(),
   z
@@ -166,6 +183,7 @@ export const AssertionPlanSchema = z.discriminatedUnion("kind", [
       expectedHeaders: z.array(HeaderExpectationSchema).default([]),
       expectedHeaderPatterns: z.array(HeaderPatternExpectationSchema).default([]),
       queryJsonPathEquals: z.array(JsonPathExpectationSchema).default([]),
+      queryJsonPathEqualsCaptured: z.array(SubmitQueryCaptureExpectationSchema).default([]),
       queryTextContains: z.array(z.string().min(1)).default([]),
       notes: z.array(z.string()).default([]),
     })

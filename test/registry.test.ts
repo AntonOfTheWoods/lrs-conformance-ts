@@ -15,7 +15,7 @@ import {
   createV20StateResourceProofSliceSuite,
 } from "../src/specs/v2_0/proof-slice";
 
-const expectedCaseCount = 911;
+const expectedCaseCount = 947;
 const expectedCaseIdAnchors = [
   "v2.statements.required-fields.missing-actor",
   "v2.statements.invalid-types.result-completion-string",
@@ -46,6 +46,7 @@ const expectedCaseIdAnchors = [
   "v2.statements.transport.put-roundtrip",
   "v2.statements.transport.put-requires-statement-id",
   "v2.statements.transport.put-is-immutable",
+  "v2.statements.transport.post-single-returns-id-array",
   "v2.statements.transport.post-batch-success",
   "v2.statements.transport.post-batch-rejects-duplicate-ids",
   "v2.statements.transport.post-batch-atomic-rollback",
@@ -103,7 +104,9 @@ const expectedCaseIdAnchors = [
   "v2.statements.language-tags.accepted.substatement-context-language",
   "v2.statements.language-tags.rejected.attachment-description",
   "v2.statements.malformed-object-type.substatement-actor",
+  "v2.statements.result.duration-invalid.statement-mixed-week-day",
   "v2.statements.result.duration-valid.substatement-weeks",
+  "v2.statements.result.duration-valid.statement-years-only",
   "v2.statements.score.scaled-invalid.statement-above-one",
   "v2.statements.object-type-vocabulary.statement-agent",
   "v2.statements.activity.object-type-generated.statement",
@@ -130,6 +133,10 @@ const expectedCaseIdAnchors = [
   "v2.statements.context.revision-activity-only.statement-substatement",
   "v2.statements.context.context-activities-keys.substatement-all",
   "v2.statements.context.context-activities-roundtrip.statement-category",
+  "v2.statements.id.generated-roundtrip",
+  "v2.statements.id.statement-ref.rfc4122.substatement-invalid-letter",
+  "v2.statements.id.context-registration.string-form.substatement-numeric",
+  "v2.statements.id.context-statement.rfc4122.statement-too-many-digits",
 ];
 
 describe("RegistryBuilder", () => {
@@ -269,7 +276,7 @@ describe("RegistryBuilder", () => {
       "About Resource",
       "Communication",
     ]);
-    expect(batteries["2.0.0"]?.tests.children[0]?.children).toHaveLength(8);
+    expect(batteries["2.0.0"]?.tests.children[0]?.children).toHaveLength(9);
     expect(batteries["2.0.0"]?.tests.children[0]?.children[2]?.children).toHaveLength(4);
     expect(batteries["2.0.0"]?.tests.children[0]?.children[3]?.children).toHaveLength(3);
     expect(batteries["2.0.0"]?.tests.children[1]?.children).toHaveLength(5);

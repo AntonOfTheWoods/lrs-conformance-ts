@@ -14,6 +14,7 @@ import {
   type RequestAssertion,
   type RegistryDefinition,
   type SpecVersion,
+  type SubmitQueryCaptureExpectation,
   SuiteResultSchema,
   type SuiteDefinition,
   type SuiteResult,
@@ -202,6 +203,24 @@ function assertTextContains(body: unknown, expected: string[]): string[] {
   );
 }
 
+function assertCapturedJsonPathMatches(
+  submitBody: unknown,
+  queryBody: unknown,
+  expectations: SubmitQueryCaptureExpectation[],
+): string[] {
+  return (expectations ?? []).flatMap((expectation) => {
+    const expected = getValueAtPath(submitBody, expectation.fromSubmitJsonPath);
+    const actual = getValueAtPath(queryBody, expectation.queryPath);
+    if (deepEqual(actual, expected)) {
+      return [];
+    }
+
+    return [
+      `Expected path ${expectation.queryPath.join(".")} to equal captured submit value at ${expectation.fromSubmitJsonPath.join(".")} but received ${JSON.stringify(actual)} instead of ${JSON.stringify(expected)}.`,
+    ];
+  });
+}
+
 function assertRequestExpectation(response: Response, body: unknown, assertion: RequestAssertion): string[] {
   const errors: string[] = [];
 
@@ -308,12 +327,36 @@ async function runSubmitAndQueryCase(testCase: SubmitAndQueryCase, options: Runt
     });
   }
 
+  let queryRequest = testCase.execution.query;
+  if (testCase.execution.capture) {
+    const capturedValue = getValueAtPath(submitBody, testCase.execution.capture.fromSubmitJsonPath);
+    if (typeof capturedValue !== "string") {
+      return CaseResultSchema.parse({
+        id: testCase.id,
+        title: testCase.title,
+        status: "failed",
+        log: [
+          `Expected submit response path ${testCase.execution.capture.fromSubmitJsonPath.join(".")} to produce a string query value but received ${JSON.stringify(capturedValue)}.`,
+          `Submit body: ${JSON.stringify(submitBody)}`,
+        ],
+      });
+    }
+
+    queryRequest = {
+      ...queryRequest,
+      query: {
+        ...queryRequest.query,
+        [testCase.execution.capture.toQueryParam]: capturedValue,
+      },
+    };
+  }
+
   const maxAttempts = testCase.execution.polling?.maxAttempts ?? 1;
   const intervalMs = testCase.execution.polling?.intervalMs ?? 0;
   let lastErrors: string[] = [];
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-    const queryResponse = await executeHttpRequest(testCase.execution.query, options);
+    const queryResponse = await executeHttpRequest(queryRequest, options);
     const queryBody = await parseResponseBody(queryResponse);
     const attemptErrors: string[] = [];
 
@@ -326,6 +369,9 @@ async function runSubmitAndQueryCase(testCase: SubmitAndQueryCase, options: Runt
     attemptErrors.push(...assertHeaders(queryResponse, testCase.assertion.expectedHeaders));
     attemptErrors.push(...assertHeaderPatterns(queryResponse, testCase.assertion.expectedHeaderPatterns));
     attemptErrors.push(...assertJsonPathMatches(queryBody, testCase.assertion.queryJsonPathEquals));
+    attemptErrors.push(
+      ...assertCapturedJsonPathMatches(submitBody, queryBody, testCase.assertion.queryJsonPathEqualsCaptured),
+    );
     attemptErrors.push(...assertTextContains(queryBody, testCase.assertion.queryTextContains));
 
     if (attemptErrors.length === 0) {

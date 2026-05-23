@@ -78,6 +78,18 @@ interface StatementRoundTripCaseOptions extends LegacyTraceOptions {
   polling?: PollingPlan;
 }
 
+interface StatementGeneratedIdRoundTripCaseOptions extends LegacyTraceOptions {
+  caseId: string;
+  title: string;
+  specVersion: SpecVersion;
+  requirementRefs: RequirementRef[];
+  tags: string[];
+  transforms?: FixtureTransform[];
+  capabilityFlags?: string[];
+  notes?: string[];
+  polling?: PollingPlan;
+}
+
 interface DocumentRoundTripCaseOptions extends LegacyTraceOptions {
   caseId: string;
   title: string;
@@ -292,6 +304,8 @@ function buildSubmitAndQueryCase(
     tags: string[];
     capabilityFlags: string[];
     queryJsonPathEquals: JsonPathExpectation[];
+    queryJsonPathEqualsCaptured?: Array<{ queryPath: string[]; fromSubmitJsonPath: string[] }>;
+    capturedQueryParam?: { toQueryParam: string; fromSubmitJsonPath: string[] };
     notes: string[];
     polling?: PollingPlan;
     submitStatus: number;
@@ -338,6 +352,7 @@ function buildSubmitAndQueryCase(
         headers: versionHeaders(options.specVersion),
         query: options.query,
       },
+      capture: options.capturedQueryParam,
       polling: options.polling,
     },
     assertion: {
@@ -347,6 +362,7 @@ function buildSubmitAndQueryCase(
       expectedHeaders: versionHeaderExpectations(options.specVersion),
       expectedHeaderPatterns: [],
       queryJsonPathEquals: options.queryJsonPathEquals,
+      queryJsonPathEqualsCaptured: options.queryJsonPathEqualsCaptured ?? [],
       queryTextContains: [],
       notes: options.notes,
     },
@@ -424,6 +440,55 @@ export function statementRoundTripCase(options: StatementRoundTripCaseOptions): 
     legacyTraceConfigFile: options.legacyTraceConfigFile,
     queryJsonPathEquals: expectations,
     notes: options.notes ?? ["proof-slice statement roundtrip"],
+    polling: options.polling ?? {
+      strategy: "consistent-through",
+      maxAttempts: 5,
+      intervalMs: 250,
+    },
+    submitStatus: 200,
+    queryStatus: 200,
+  });
+}
+
+export function statementGeneratedIdRoundTripCase(options: StatementGeneratedIdRoundTripCaseOptions): CaseDefinition {
+  const statement = buildStatementFixture([
+    ...(options.transforms ?? []),
+    {
+      operation: "remove",
+      path: ["id"],
+    },
+  ]);
+
+  return buildSubmitAndQueryCase({
+    caseId: options.caseId,
+    title: options.title,
+    specVersion: options.specVersion,
+    endpoint: "statements",
+    submitMethod: "POST",
+    submitQuery: {},
+    submitBody: statement,
+    submitBodySource: {
+      domain: "statements",
+      name: "default",
+    },
+    query: {},
+    requirementRefs: options.requirementRefs,
+    tags: options.tags,
+    capabilityFlags: options.capabilityFlags ?? ["query", "retrieval", "id-generation"],
+    legacyTraceSuiteFile: options.legacyTraceSuiteFile,
+    legacyTraceConfigFile: options.legacyTraceConfigFile,
+    capturedQueryParam: {
+      toQueryParam: "statementId",
+      fromSubmitJsonPath: ["0"],
+    },
+    queryJsonPathEquals: [],
+    queryJsonPathEqualsCaptured: [
+      {
+        queryPath: ["id"],
+        fromSubmitJsonPath: ["0"],
+      },
+    ],
+    notes: options.notes ?? ["proof-slice generated statement id roundtrip"],
     polling: options.polling ?? {
       strategy: "consistent-through",
       maxAttempts: 5,

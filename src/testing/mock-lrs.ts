@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 import type { JsonObject } from "../domain/contracts";
 
@@ -1153,21 +1153,26 @@ function validateResult(value: unknown): string | undefined {
   return undefined;
 }
 
-function validateStatementLike(value: JsonObject, requireId: boolean): string | undefined {
+function validateStatementLike(
+  value: JsonObject,
+  options: { requireId: boolean; isSubStatement: boolean },
+): string | undefined {
   const keyError = validateAllowedKeys(
     value,
-    requireId ? statementKeys : subStatementKeys,
-    requireId ? "statement" : "substatement",
+    options.isSubStatement ? subStatementKeys : statementKeys,
+    options.isSubStatement ? "substatement" : "statement",
   );
   if (keyError) {
     return keyError;
   }
 
-  if (requireId) {
-    const statementId = value.id;
-    if (typeof statementId !== "string" || !isUuid(statementId)) {
+  const statementId = value.id;
+  if (statementId === undefined) {
+    if (options.requireId) {
       return "statement id must be a UUID";
     }
+  } else if (typeof statementId !== "string" || !isUuid(statementId)) {
+    return "statement id must be a UUID";
   }
 
   const actorError = validateActorLike(value.actor);
@@ -1239,7 +1244,7 @@ function validateSubStatement(value: JsonObject): string | undefined {
     return "substatement object cannot be a SubStatement";
   }
 
-  return validateStatementLike(value, false);
+  return validateStatementLike(value, { requireId: false, isSubStatement: true });
 }
 
 function validateStatementRef(value: JsonObject): string | undefined {
@@ -1292,7 +1297,7 @@ function validateObject(value: unknown): string | undefined {
   return validateActivityObject(value);
 }
 
-function validateStatementBody(value: unknown): string | undefined {
+function validateStatementBody(value: unknown, requireId = true): string | undefined {
   if (!hasRequiredStatementFields(value)) {
     return "statement must include actor, verb, and object";
   }
@@ -1301,7 +1306,7 @@ function validateStatementBody(value: unknown): string | undefined {
     return "statement contains disallowed null values";
   }
 
-  return validateStatementLike(value, true);
+  return validateStatementLike(value, { requireId, isSubStatement: false });
 }
 
 function isValidAgentParameter(value: string | null): boolean {
@@ -2125,13 +2130,14 @@ function prepareStatementsForWrite(
   payload: ParsedStatementWritePayload,
   request: Request,
   version: string,
+  statements: Map<string, StoredStatement>,
 ): JsonObject[] | Response {
   const prepared: JsonObject[] = [];
   const seenIds = new Set<string>();
 
   for (const rawStatement of payload.statements) {
     const statement = populateAuthorityFromRequest(rawStatement, request);
-    const validationError = validateStatementBody(statement);
+    const validationError = validateStatementBody(statement, false);
     if (validationError) {
       return new Response(JSON.stringify({ error: validationError }), {
         status: 400,
@@ -2139,22 +2145,42 @@ function prepareStatementsForWrite(
       });
     }
 
-    if (!isJsonObject(statement) || typeof statement.id !== "string") {
+    if (!isJsonObject(statement)) {
       return new Response(JSON.stringify({ error: "statement id must be a UUID" }), {
         status: 400,
         headers: createHeaders(version),
       });
     }
 
-    if (seenIds.has(statement.id)) {
+    const nextStatementId =
+      typeof statement.id === "string"
+        ? statement.id
+        : (() => {
+            let generatedId = randomUUID();
+            while (seenIds.has(generatedId) || statements.has(generatedId)) {
+              generatedId = randomUUID();
+            }
+
+            return generatedId;
+          })();
+
+    const nextStatement =
+      typeof statement.id === "string"
+        ? statement
+        : ({
+            ...statement,
+            id: nextStatementId,
+          } satisfies JsonObject);
+
+    if (seenIds.has(nextStatementId)) {
       return new Response(JSON.stringify({ error: "statement batch contains duplicate ids" }), {
         status: 400,
         headers: createHeaders(version),
       });
     }
 
-    seenIds.add(statement.id);
-    prepared.push(statement);
+    seenIds.add(nextStatementId);
+    prepared.push(nextStatement);
   }
 
   return prepared;
@@ -2739,7 +2765,7 @@ export function startMockLrs(version = "2.0.0"): MockLrsHandle {
           return payload;
         }
 
-        const preparedStatements = prepareStatementsForWrite(payload, request, version);
+        const preparedStatements = prepareStatementsForWrite(payload, request, version, statements);
         if (preparedStatements instanceof Response) {
           return preparedStatements;
         }
@@ -2755,14 +2781,7 @@ export function startMockLrs(version = "2.0.0"): MockLrsHandle {
 
         commitStatements(preparedStatements, payload.attachmentParts, statements, voidedStatementIds);
 
-        if (payload.responseKind === "batch") {
-          return new Response(JSON.stringify(preparedStatements.map((statement) => statement.id)), {
-            status: 200,
-            headers: createHeaders(version),
-          });
-        }
-
-        return new Response(JSON.stringify({ id: preparedStatements[0]?.id }), {
+        return new Response(JSON.stringify(preparedStatements.map((statement) => statement.id)), {
           status: 200,
           headers: createHeaders(version),
         });
