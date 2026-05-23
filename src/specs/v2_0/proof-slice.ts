@@ -88,6 +88,8 @@ const versioningLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/H.Communication3.3-Versioning.js";
 const authenticationLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/H.Communication4.0-Authentication.js";
+const documentResourcesLegacySuiteFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/H.Communication2.2-DocumentResources.js";
 const ifisLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/ifis.js";
 const actorsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/actors.js";
 const agentsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/agents.js";
@@ -4791,12 +4793,12 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
       {
         id: "XAPI-00019",
         section: "Data 2.3.2",
-        title: 'Voiding statements are identified by the voided verb and StatementRef object',
+        title: "Voiding statements are identified by the voided verb and StatementRef object",
       },
       {
         id: "XAPI-00020",
         section: "Data 2.3.2.s2.b1",
-        title: 'Voiding statements use StatementRef as the objectType',
+        title: "Voiding statements use StatementRef as the objectType",
       },
     ],
     tags: ["v2.0.0", "statements", "voiding"],
@@ -4819,7 +4821,7 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
       {
         id: "XAPI-00017",
         section: "Data 2.3.2.s2.b1",
-        title: 'Voiding statements are rejected when objectType is not StatementRef',
+        title: "Voiding statements are rejected when objectType is not StatementRef",
       },
     ],
     tags: ["v2.0.0", "statements", "voiding", "validation"],
@@ -5666,7 +5668,8 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
 
   const retrievalStatementsArrayCase = requestSequenceCase({
     caseId: "v2.statements.retrieval.statement-result-array",
-    title: "The Statements resource returns StatementResult collections with a statements array and empty more when all matches are returned",
+    title:
+      "The Statements resource returns StatementResult collections with a statements array and empty more when all matches are returned",
     specVersion,
     requirementRefs: [
       {
@@ -5740,7 +5743,8 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
 
   const retrievalPaginationCase = requestSequenceCase({
     caseId: "v2.statements.retrieval.pagination.more-container",
-    title: "The Statements resource returns a usable more path for paginated StatementResult containers and preserves the container shape on follow-up pages",
+    title:
+      "The Statements resource returns a usable more path for paginated StatementResult containers and preserves the container shape on follow-up pages",
     specVersion,
     requirementRefs: [
       {
@@ -5761,7 +5765,7 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
       {
         id: "XAPI-00114",
         section: "Data 2.5.s2.table1.row1",
-        title: 'Paginated StatementResults create a container for each additional page',
+        title: "Paginated StatementResults create a container for each additional page",
       },
     ],
     tags: ["v2.0.0", "statements", "retrieval", "pagination"],
@@ -12595,6 +12599,9 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
 }
 
 export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
+  // Audited no-op 2.0 legacy suites: H.Communication1.2-Headers.js and
+  // H.Communication1.3-AlternateRequestSyntax.js do not add executable xAPI 2.0
+  // requirements beyond the existing communication surface already covered here.
   const headNoBodyExpectation: JsonPathExpectation[] = [
     {
       path: [],
@@ -12633,6 +12640,196 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
       name: "Head Agent Profile",
     }),
     profileId: "head-agent-profile-document",
+  });
+  const documentRollbackPersistedStatement = buildProofStatement(983, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/document-resource-rollback-valid",
+    },
+  ]);
+  const documentRollbackRejectedStatement = buildProofStatement(984, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: invalidLegacyString,
+    },
+  ]);
+
+  const documentResourceRejectedWriteRollbackCase = requestSequenceCase({
+    caseId: "v2.communication.document-resources.rejected-write-rollback",
+    title: "Document Resources leave stored data unchanged when a batched statement write is rejected",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00182",
+        section: "Communication 2.2",
+        title: "Rejected requests do not modify stored data",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "document-resources", "atomicity"],
+    capabilityFlags: ["communication", "document", "transport", "rollback"],
+    legacyTraceSuiteFile: documentResourcesLegacySuiteFile,
+    notes: ["proof-slice communication document resource rejected write rollback"],
+    steps: [
+      {
+        request: buildStatementBatchPostRequest([
+          documentRollbackPersistedStatement,
+          documentRollbackRejectedStatement,
+        ]),
+        assertion: {
+          status: 400,
+        },
+      },
+      {
+        request: buildStatementGetRequest(documentRollbackPersistedStatement.id),
+        assertion: {
+          status: 404,
+        },
+      },
+    ],
+  });
+
+  const documentMergeOverwriteIdentity = buildActivityStateIdentityFixture({
+    activityId: "https://example.test/xapi/activities/document-resource-overwrite",
+    stateId: "document-resource-overwrite",
+  });
+  const documentMergeShallowIdentity = buildActivityStateIdentityFixture({
+    activityId: "https://example.test/xapi/activities/document-resource-shallow",
+    stateId: "document-resource-shallow",
+  });
+
+  const documentResourceMergeOverwriteCase = requestSequenceCase({
+    caseId: "v2.communication.document-resources.merge-overwrites-duplicates",
+    title: "Document Resources overwrite duplicate top-level values during a document merge",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00184",
+        section: "Communication 2.2.s7.b1, Communication 2.2.s7.b2, Communication 2.2.s7.b3",
+        title: "Document merges overwrite duplicate values from the previous document",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "document-resources", "merge"],
+    capabilityFlags: ["communication", "document", "merge", "state"],
+    legacyTraceSuiteFile: documentResourcesLegacySuiteFile,
+    notes: ["proof-slice communication document merge duplicate overwrite"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "activities-state", documentMergeOverwriteIdentity, {
+          value: {
+            car: "MKX",
+          },
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("POST", "activities-state", documentMergeOverwriteIdentity, {
+          value: {
+            car: "MKZ",
+          },
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "activities-state", documentMergeOverwriteIdentity),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: [],
+              equals: {
+                car: "MKZ",
+              },
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const documentResourceMergeShallowCase = requestSequenceCase({
+    caseId: "v2.communication.document-resources.merge-is-one-level-deep",
+    title: "Document Resources perform merge overwrites at one level deep by replacing the entire nested object",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00183",
+        section: "Communication 2.2.s7.b1, Communication 2.2.s7.b2, Communication 2.2.s7.b3",
+        title: "Document merges only overwrite one level deep",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "document-resources", "merge"],
+    capabilityFlags: ["communication", "document", "merge", "state"],
+    legacyTraceSuiteFile: documentResourcesLegacySuiteFile,
+    notes: ["proof-slice communication document merge shallow replacement"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "activities-state", documentMergeShallowIdentity, {
+          value: {
+            car: {
+              make: "Ford",
+              model: "Escape",
+            },
+            driver: "Dale",
+            series: {
+              nascar: {
+                series: "sprint",
+              },
+            },
+          },
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("POST", "activities-state", documentMergeShallowIdentity, {
+          value: {
+            car: {
+              make: "Dodge",
+              model: "Ram",
+            },
+            driver: "Jeff",
+            series: {
+              nascar: {
+                series: "nextel",
+              },
+            },
+          },
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "activities-state", documentMergeShallowIdentity),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: [],
+              equals: {
+                car: {
+                  make: "Dodge",
+                  model: "Ram",
+                },
+                driver: "Jeff",
+                series: {
+                  nascar: {
+                    series: "nextel",
+                  },
+                },
+              },
+            },
+          ],
+        },
+      },
+    ],
   });
 
   const headActivitiesCase = requestSequenceCase({
@@ -13593,6 +13790,18 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
         specVersion,
         tags: ["communication", "concurrency"],
         children: [stateConcurrencySuite, activityProfileConcurrencySuite, agentProfileConcurrencySuite],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.communication.document-resources",
+        title: "Document Resources",
+        specVersion,
+        tags: ["communication", "document-resources"],
+        children: [
+          documentResourceRejectedWriteRollbackCase,
+          documentResourceMergeOverwriteCase,
+          documentResourceMergeShallowCase,
+        ],
       },
     ],
   };

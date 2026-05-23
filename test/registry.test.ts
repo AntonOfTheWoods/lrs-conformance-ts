@@ -15,7 +15,7 @@ import {
   createV20StateResourceProofSliceSuite,
 } from "../src/specs/v2_0/proof-slice";
 
-const expectedCaseCount = 1048;
+const expectedCaseCount = 1051;
 const expectedCaseIdAnchors = [
   "v2.statements.required-fields.missing-actor",
   "v2.statements.invalid-types.result-completion-string",
@@ -98,6 +98,9 @@ const expectedCaseIdAnchors = [
   "v2.communication.concurrency.activities-state.etag-header",
   "v2.communication.concurrency.activities-profile.put-accepts-current-if-match",
   "v2.communication.concurrency.agents-profile.delete-accepts-current-if-match",
+  "v2.communication.document-resources.rejected-write-rollback",
+  "v2.communication.document-resources.merge-overwrites-duplicates",
+  "v2.communication.document-resources.merge-is-one-level-deep",
   "v2.statements.case-sensitive-keys.version",
   "v2.statements.interaction-type-case.other",
   "v2.statements.invalid-extension-iri.context",
@@ -321,7 +324,7 @@ describe("RegistryBuilder", () => {
     expect(batteries["2.0.0"]?.tests.children[4]?.children).toHaveLength(3);
     expect(batteries["2.0.0"]?.tests.children[5]?.children).toHaveLength(2);
     expect(batteries["2.0.0"]?.tests.children[6]?.children).toHaveLength(2);
-    expect(batteries["2.0.0"]?.tests.children[7]?.children).toHaveLength(6);
+    expect(batteries["2.0.0"]?.tests.children[7]?.children).toHaveLength(7);
     expect(batteries["1.0.3"]).toBeUndefined();
   });
 });
