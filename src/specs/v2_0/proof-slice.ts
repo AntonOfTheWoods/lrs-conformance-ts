@@ -4613,6 +4613,119 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     },
   ]);
 
+  const statementEndpointPostStatement = buildProofStatement(1201, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/statement-endpoint-post",
+    },
+  ]);
+  const statementEndpointPutStatement = buildProofStatement(1202, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/statement-endpoint-put",
+    },
+  ]);
+  const statementPostAcceptedStatement = buildProofStatement(1203, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/statement-post-accepted",
+    },
+  ]);
+  const statementPutAcceptedStatement = buildProofStatement(1204, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/statement-put-accepted",
+    },
+  ]);
+
+  const statementEndpointPostCase = singleRequestCase({
+    caseId: "v2.statements.transport.endpoint.post",
+    title: "The Statements Resource exists at /statements and accepts POST requests",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00139",
+        section: "Communication 2.1",
+        title: "The Statements Resource exists at /statements",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "transport", "endpoint"],
+    capabilityFlags: ["transport"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    request: buildStatementPostRequest(statementEndpointPostStatement),
+    assertion: {
+      status: 200,
+    },
+    notes: ["proof-slice statement endpoint post exists"],
+  });
+
+  const statementEndpointPutCase = singleRequestCase({
+    caseId: "v2.statements.transport.endpoint.put",
+    title: "The Statements Resource exists at /statements and accepts PUT requests",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00139",
+        section: "Communication 2.1",
+        title: "The Statements Resource exists at /statements",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "transport", "endpoint"],
+    capabilityFlags: ["transport"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    request: buildStatementPutRequest(statementEndpointPutStatement.id, statementEndpointPutStatement),
+    assertion: {
+      status: 204,
+    },
+    notes: ["proof-slice statement endpoint put exists"],
+  });
+
+  const statementPostAcceptedCase = singleRequestCase({
+    caseId: "v2.statements.transport.post-accepted",
+    title: "The Statements Resource accepts POST requests",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00147",
+        section: "Communication 2.1.2.s1",
+        title: "The Statements Resource accepts POST requests",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "transport", "post"],
+    capabilityFlags: ["transport"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    request: buildStatementPostRequest(statementPostAcceptedStatement),
+    assertion: {
+      status: 200,
+    },
+    notes: ["proof-slice statement post accepted"],
+  });
+
+  const statementPutAcceptedCase = singleRequestCase({
+    caseId: "v2.statements.transport.put-with-statement-id-accepted",
+    title: "The Statements Resource accepts PUT requests when statementId is provided",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00144",
+        section: "Communication 2.1.1.s1.table1.row1",
+        title: "The Statements Resource accepts PUT requests only if statementId is provided",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "transport", "put"],
+    capabilityFlags: ["transport"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    request: buildStatementPutRequest(statementPutAcceptedStatement.id, statementPutAcceptedStatement),
+    assertion: {
+      status: 204,
+    },
+    notes: ["proof-slice statement put accepted with statementId"],
+  });
+
   const putRoundTripCase = requestSequenceCase({
     caseId: "v2.statements.transport.put-roundtrip",
     title: "The Statements resource persists a statement written with PUT and retrieves it by statementId",
@@ -5616,6 +5729,300 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     ],
   });
 
+  const formatProofDisplay = {
+    "en-US": "format-proof-us",
+    "en-GB": "format-proof-gb",
+  };
+  const formatProofName = {
+    "en-US": "Format Proof US",
+    "en-GB": "Format Proof GB",
+  };
+  const formatProofDescription = {
+    "en-US": "Format description US",
+    "en-GB": "Format description GB",
+  };
+
+  const formatAbsentDefaultStatement = buildProofStatement(1215, [
+    {
+      operation: "set",
+      path: ["actor"],
+      value: {
+        objectType: "Agent",
+        mbox: "mailto:format-absent-default@example.test",
+        name: "Format Proof Agent",
+      },
+    },
+    {
+      operation: "set",
+      path: ["verb"],
+      value: {
+        id: "https://example.test/xapi/verbs/format-absent-default",
+        display: formatProofDisplay,
+      },
+    },
+    {
+      operation: "set",
+      path: ["object"],
+      value: {
+        objectType: "Activity",
+        id: "https://example.test/xapi/activities/format-absent-default",
+        definition: {
+          name: formatProofName,
+          description: formatProofDescription,
+          type: "https://example.test/xapi/activity-types/format-proof",
+        },
+      },
+    },
+  ]);
+
+  const formatAbsentDefaultCase = requestSequenceCase({
+    caseId: "v2.statements.representation.format-absent-defaults-exact",
+    title: "The Statements Resource returns exact statement data when format is absent",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00168",
+        section: "Communication 2.1.3.s1.table1.row12",
+        title: "The Statements Resource defaults GET responses to exact when format is absent",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "representation", "format"],
+    capabilityFlags: ["query", "retrieval", "format"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    notes: ["proof-slice statement format absent defaults exact"],
+    steps: [
+      {
+        request: buildStatementPostRequest(formatAbsentDefaultStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementGetRequest(formatAbsentDefaultStatement.id),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["actor"],
+              equals: formatAbsentDefaultStatement.actor,
+            },
+            {
+              path: ["verb", "display"],
+              equals: formatProofDisplay,
+            },
+            {
+              path: ["object", "definition", "name"],
+              equals: formatProofName,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const acceptLanguageWithoutCanonicalStatement = buildProofStatement(1216, [
+    {
+      operation: "set",
+      path: ["actor"],
+      value: {
+        objectType: "Agent",
+        mbox: "mailto:format-no-canonical@example.test",
+        name: "Format Proof Agent",
+      },
+    },
+    {
+      operation: "set",
+      path: ["verb"],
+      value: {
+        id: "https://example.test/xapi/verbs/format-no-canonical-default",
+        display: formatProofDisplay,
+      },
+    },
+    {
+      operation: "set",
+      path: ["object"],
+      value: {
+        objectType: "Activity",
+        id: "https://example.test/xapi/activities/format-no-canonical-default",
+        definition: {
+          name: formatProofName,
+          description: formatProofDescription,
+          type: "https://example.test/xapi/activity-types/format-proof",
+        },
+      },
+    },
+  ]);
+
+  const acceptLanguageWithoutCanonicalCase = requestSequenceCase({
+    caseId: "v2.statements.representation.accept-language-ignored-without-canonical",
+    title: "The Statements Resource does not apply Accept-Language when format is absent",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00172",
+        section: "Communication 2.1.3.s1.table1.row11",
+        title: "Accept-Language only affects statement retrieval when format is canonical",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "representation", "format", "accept-language"],
+    capabilityFlags: ["query", "retrieval", "format"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    notes: ["proof-slice statement accept-language ignored without canonical"],
+    steps: [
+      {
+        request: buildStatementPostRequest(acceptLanguageWithoutCanonicalStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementGetRequest(acceptLanguageWithoutCanonicalStatement.id, {
+          "Accept-Language": "en-GB",
+        }),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["verb", "display"],
+              equals: formatProofDisplay,
+            },
+            {
+              path: ["object", "definition", "name"],
+              equals: formatProofName,
+            },
+            {
+              path: ["object", "definition", "description"],
+              equals: formatProofDescription,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const attachmentsMissingJsonStatement = buildProofStatement(1217, [
+    {
+      operation: "set",
+      path: ["attachments"],
+      value: [buildMultipartAttachmentMetadata(multipartAttachment)],
+    },
+  ]);
+  const attachmentsFalseJsonStatement = buildProofStatement(1218, [
+    {
+      operation: "set",
+      path: ["attachments"],
+      value: [buildMultipartAttachmentMetadata(multipartAttachment)],
+    },
+  ]);
+
+  const attachmentsMissingJsonCase = requestSequenceCase({
+    caseId: "v2.statements.representation.attachments-missing-json",
+    title: "The Statements Resource returns application/json when attachments is omitted",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00161",
+        section: "Communication 2.1.3.s1.b1",
+        title: "The Statements Resource does not return attachment data when attachments is omitted",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "representation", "attachments"],
+    capabilityFlags: ["query", "retrieval", "attachments"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    notes: ["proof-slice statement attachments omitted json fallback"],
+    steps: [
+      {
+        request: buildMultipartStatementPostRequest(attachmentsMissingJsonStatement, [multipartAttachment]),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([attachmentsMissingJsonStatement.id]),
+        },
+      },
+      {
+        request: buildStatementGetRequest(attachmentsMissingJsonStatement.id),
+        assertion: {
+          status: 200,
+          expectedHeaderPatterns: [
+            {
+              key: "content-type",
+              pattern: "^application/json(?:;.*)?$",
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const attachmentsFalseJsonCase = requestSequenceCase({
+    caseId: "v2.statements.representation.attachments-false-json",
+    title: "The Statements Resource returns application/json when attachments is false",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00161",
+        section: "Communication 2.1.3.s1.b1",
+        title: "The Statements Resource does not return attachment data when attachments is false",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "representation", "attachments"],
+    capabilityFlags: ["query", "retrieval", "attachments"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    notes: ["proof-slice statement attachments false json fallback"],
+    steps: [
+      {
+        request: buildMultipartStatementPostRequest(attachmentsFalseJsonStatement, [multipartAttachment]),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([attachmentsFalseJsonStatement.id]),
+        },
+      },
+      {
+        request: buildStatementCollectionRequest({
+          statementId: attachmentsFalseJsonStatement.id,
+          attachments: "false",
+        }),
+        assertion: {
+          status: 200,
+          expectedHeaderPatterns: [
+            {
+              key: "content-type",
+              pattern: "^application/json(?:;.*)?$",
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const contentTypeHeaderCase = singleRequestCase({
+    caseId: "v2.statements.representation.content-type-header",
+    title: "The Statements Resource includes a Content-Type header on successful GET responses",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00165",
+        section: "Communication 2.1.3.s1.table1.row14",
+        title: "The Statements Resource includes a Content-Type header on GET responses",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "representation", "headers"],
+    capabilityFlags: ["query", "headers"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    request: buildStatementCollectionRequest({
+      ascending: "true",
+    }),
+    assertion: {
+      status: 200,
+      expectedHeaderPatterns: [
+        {
+          key: "content-type",
+          pattern: "^application/json(?:;.*)?$",
+        },
+      ],
+    },
+    notes: ["proof-slice statement content-type header on get"],
+  });
+
   const lastModifiedStatement = buildProofStatement(231, [
     {
       operation: "set",
@@ -5729,6 +6136,157 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     },
     notes: ["proof-slice statement consistent-through error header"],
   });
+
+  const consistentThroughQueryVariants: Array<{
+    idSuffix: string;
+    title: string;
+    query: Record<string, string>;
+  }> = [
+    {
+      idSuffix: "agent",
+      title: 'GET requests with "agent"',
+      query: {
+        agent: buildAgentQuery("mailto:consistent-through-agent@example.test"),
+      },
+    },
+    {
+      idSuffix: "verb",
+      title: 'GET requests with "verb"',
+      query: {
+        verb: "https://example.test/xapi/verbs/consistent-through-verb",
+      },
+    },
+    {
+      idSuffix: "activity",
+      title: 'GET requests with "activity"',
+      query: {
+        activity: "https://example.test/xapi/activities/consistent-through-activity",
+      },
+    },
+    {
+      idSuffix: "registration",
+      title: 'GET requests with "registration"',
+      query: {
+        registration: buildProofUuid(1220),
+      },
+    },
+    {
+      idSuffix: "related-activities",
+      title: 'GET requests with "related_activities"',
+      query: {
+        activity: "https://example.test/xapi/activities/consistent-through-related-activity",
+        related_activities: "true",
+      },
+    },
+    {
+      idSuffix: "related-agents",
+      title: 'GET requests with "related_agents"',
+      query: {
+        agent: buildAgentQuery("mailto:consistent-through-related-agent@example.test"),
+        related_agents: "true",
+      },
+    },
+    {
+      idSuffix: "since",
+      title: 'GET requests with "since"',
+      query: {
+        since: buildProofTimestamp(22),
+      },
+    },
+    {
+      idSuffix: "until",
+      title: 'GET requests with "until"',
+      query: {
+        until: buildProofTimestamp(23),
+      },
+    },
+    {
+      idSuffix: "limit",
+      title: 'GET requests with "limit"',
+      query: {
+        limit: "1",
+      },
+    },
+    {
+      idSuffix: "ascending",
+      title: 'GET requests with "ascending"',
+      query: {
+        ascending: "true",
+      },
+    },
+    {
+      idSuffix: "format",
+      title: 'GET requests with "format"',
+      query: {
+        format: "ids",
+      },
+    },
+    {
+      idSuffix: "attachments",
+      title: 'GET requests with "attachments"',
+      query: {
+        attachments: "true",
+      },
+    },
+  ];
+
+  const consistentThroughPresenceCases = consistentThroughQueryVariants.map((variant) =>
+    singleRequestCase({
+      caseId: `v2.statements.headers.consistent-through.presence.${variant.idSuffix}`,
+      title: `The Statements Resource returns X-Experience-API-Consistent-Through for ${variant.title}`,
+      specVersion,
+      requirementRefs: [
+        {
+          id: "XAPI-00153",
+          section: "Communication 2.1.3.s2.b5",
+          title: "The Statements Resource returns X-Experience-API-Consistent-Through regardless of the GET query",
+        },
+      ],
+      tags: ["v2.0.0", "statements", "headers", "consistent-through"],
+      capabilityFlags: ["headers", "query"],
+      legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+      request: buildStatementCollectionRequest(variant.query),
+      assertion: {
+        status: 200,
+        expectedHeaderPatterns: [
+          {
+            key: "x-experience-api-consistent-through",
+            pattern: "^.+$",
+          },
+        ],
+      },
+      notes: [`proof-slice statement consistent-through presence ${variant.idSuffix}`],
+    }),
+  );
+
+  const consistentThroughIsoCases = consistentThroughQueryVariants.map((variant) =>
+    singleRequestCase({
+      caseId: `v2.statements.headers.consistent-through.iso.${variant.idSuffix}`,
+      title: `The Statements Resource returns an ISO 8601 X-Experience-API-Consistent-Through header for ${variant.title}`,
+      specVersion,
+      requirementRefs: [
+        {
+          id: "XAPI-00160",
+          section: "Communication 2.1.3.s2.b5",
+          title: "The Statements Resource returns an ISO 8601 X-Experience-API-Consistent-Through header",
+        },
+      ],
+      tags: ["v2.0.0", "statements", "headers", "consistent-through"],
+      capabilityFlags: ["headers", "query"],
+      legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+      request: buildStatementCollectionRequest(variant.query),
+      assertion: {
+        status: 200,
+        expectedHeaderPatterns: [
+          {
+            key: "x-experience-api-consistent-through",
+            pattern: isoTimestampHeaderPattern,
+          },
+        ],
+      },
+      notes: [`proof-slice statement consistent-through iso ${variant.idSuffix}`],
+    }),
+  );
 
   const emptyResultCase = singleRequestCase({
     caseId: "v2.statements.query.empty-result",
@@ -6438,6 +6996,430 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
         operation: "set",
         path: ["id"],
         value: buildProofUuid(208),
+      },
+    ],
+  });
+
+  const statementEndpointGetCase = singleRequestCase({
+    caseId: "v2.statements.query.endpoint.get",
+    title: "The Statements Resource exists at /statements and accepts GET requests",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00139",
+        section: "Communication 2.1",
+        title: "The Statements Resource exists at /statements",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "query", "endpoint"],
+    capabilityFlags: ["query", "retrieval"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    request: buildStatementCollectionRequest({
+      verb: "https://example.test/xapi/verbs/statement-endpoint-get",
+    }),
+    assertion: {
+      status: 200,
+    },
+    notes: ["proof-slice statement endpoint get exists"],
+  });
+
+  const statementGetAcceptedCase = singleRequestCase({
+    caseId: "v2.statements.query.get-accepted",
+    title: "The Statements Resource accepts GET requests",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00159",
+        section: "Communication 2.1.3.s1",
+        title: "The Statements Resource accepts GET requests",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "query", "retrieval"],
+    capabilityFlags: ["query", "retrieval"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    request: buildStatementCollectionRequest({
+      verb: "https://example.test/xapi/verbs/statement-get-accepted",
+    }),
+    assertion: {
+      status: 200,
+    },
+    notes: ["proof-slice statement get accepted"],
+  });
+
+  const statementResultCollectionCase = singleRequestCase({
+    caseId: "v2.statements.query.collection-statement-result",
+    title:
+      "The Statements Resource returns a StatementResult when neither statementId nor voidedStatementId is provided",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00154",
+        section: "Communication 2.1.3.s1",
+        title: "GET without statementId or voidedStatementId returns a StatementResult",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "query", "retrieval"],
+    capabilityFlags: ["query", "retrieval"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    request: buildStatementCollectionRequest({
+      verb: "https://example.test/xapi/verbs/statement-result-empty",
+    }),
+    assertion: {
+      status: 200,
+      jsonPathEquals: [
+        {
+          path: ["statements"],
+          equals: [],
+        },
+      ],
+    },
+    notes: ["proof-slice statement result collection"],
+  });
+
+  const statementIdAcceptedStatement = buildProofStatement(1205, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/statement-id-accepted",
+    },
+  ]);
+  const statementIdReturnedStatement = buildProofStatement(1206, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/statement-id-returned",
+    },
+  ]);
+  const voidedStatementIdAcceptedTargetStatement = buildProofStatement(1207, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/voided-statement-id-accepted-target",
+    },
+  ]);
+  const voidedStatementIdAcceptedVoidingStatement = buildProofStatement(1208, [
+    {
+      operation: "set",
+      path: ["verb"],
+      value: buildVerbFixture("http://adlnet.gov/expapi/verbs/voided", "voided"),
+    },
+    {
+      operation: "set",
+      path: ["object"],
+      value: {
+        objectType: "StatementRef",
+        id: voidedStatementIdAcceptedTargetStatement.id,
+      },
+    },
+  ]);
+  const statementIdFormatAllowedStatement = buildProofStatement(1209, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/statement-id-format-allowed",
+    },
+  ]);
+  const statementIdAttachmentsAllowedStatement = buildProofStatement(1210, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/statement-id-attachments-allowed",
+    },
+  ]);
+  const voidedStatementIdFormatAllowedTargetStatement = buildProofStatement(1211, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/voided-statement-id-format-target",
+    },
+  ]);
+  const voidedStatementIdFormatAllowedVoidingStatement = buildProofStatement(1212, [
+    {
+      operation: "set",
+      path: ["verb"],
+      value: buildVerbFixture("http://adlnet.gov/expapi/verbs/voided", "voided"),
+    },
+    {
+      operation: "set",
+      path: ["object"],
+      value: {
+        objectType: "StatementRef",
+        id: voidedStatementIdFormatAllowedTargetStatement.id,
+      },
+    },
+  ]);
+  const voidedStatementIdAttachmentsAllowedTargetStatement = buildProofStatement(1213, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/voided-statement-id-attachments-target",
+    },
+  ]);
+  const voidedStatementIdAttachmentsAllowedVoidingStatement = buildProofStatement(1214, [
+    {
+      operation: "set",
+      path: ["verb"],
+      value: buildVerbFixture("http://adlnet.gov/expapi/verbs/voided", "voided"),
+    },
+    {
+      operation: "set",
+      path: ["object"],
+      value: {
+        objectType: "StatementRef",
+        id: voidedStatementIdAttachmentsAllowedTargetStatement.id,
+      },
+    },
+  ]);
+
+  const statementIdAcceptedCase = requestSequenceCase({
+    caseId: "v2.statements.query.statement-id-accepted",
+    title: "The Statements Resource can process a GET request with statementId",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00158",
+        section: "Communication 2.1.3.s1.table1.row1",
+        title: "The Statements Resource can process GET requests with statementId",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "query", "statementId"],
+    capabilityFlags: ["query", "retrieval"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    notes: ["proof-slice statementId accepted"],
+    steps: [
+      {
+        request: buildStatementPostRequest(statementIdAcceptedStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementGetRequest(statementIdAcceptedStatement.id),
+        assertion: {
+          status: 200,
+        },
+      },
+    ],
+  });
+
+  const statementIdReturnedCase = requestSequenceCase({
+    caseId: "v2.statements.query.statement-id-single-statement",
+    title: "The Statements Resource returns a single Statement for a successful statementId lookup",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00156",
+        section: "Communication 2.1.3.s1",
+        title: "GET with statementId returns the corresponding Statement",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "query", "statementId"],
+    capabilityFlags: ["query", "retrieval"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    notes: ["proof-slice statementId returns matching statement"],
+    steps: [
+      {
+        request: buildStatementPostRequest(statementIdReturnedStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementGetRequest(statementIdReturnedStatement.id),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["id"],
+              equals: statementIdReturnedStatement.id,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const voidedStatementIdAcceptedCase = requestSequenceCase({
+    caseId: "v2.statements.query.voided-statement-id-accepted",
+    title: "The Statements Resource can process a GET request with voidedStatementId",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00157",
+        section: "Communication 2.1.3.s1.table1.row2",
+        title: "The Statements Resource can process GET requests with voidedStatementId",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "query", "voidedStatementId"],
+    capabilityFlags: ["query", "retrieval", "voiding"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    notes: ["proof-slice voidedStatementId accepted"],
+    steps: [
+      {
+        request: buildStatementPostRequest(voidedStatementIdAcceptedTargetStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementPostRequest(voidedStatementIdAcceptedVoidingStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildVoidedStatementGetRequest(voidedStatementIdAcceptedTargetStatement.id),
+        assertion: {
+          status: 200,
+        },
+      },
+    ],
+  });
+
+  const statementIdFormatAllowedCase = requestSequenceCase({
+    caseId: "v2.statements.query.statement-id-with-format-allowed",
+    title: "The Statements Resource allows statementId to be combined with format",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00151",
+        section: "Communication 2.1.3.s2.b2",
+        title: "statementId may be combined with format on GET requests",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "query", "statementId", "format"],
+    capabilityFlags: ["query", "retrieval", "format"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    notes: ["proof-slice statementId format allowed"],
+    steps: [
+      {
+        request: buildStatementPostRequest(statementIdFormatAllowedStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementCollectionRequest({
+          statementId: statementIdFormatAllowedStatement.id,
+          format: "ids",
+        }),
+        assertion: {
+          status: 200,
+        },
+      },
+    ],
+  });
+
+  const statementIdAttachmentsAllowedCase = requestSequenceCase({
+    caseId: "v2.statements.query.statement-id-with-attachments-allowed",
+    title: "The Statements Resource allows statementId to be combined with attachments",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00151",
+        section: "Communication 2.1.3.s2.b2",
+        title: "statementId may be combined with attachments on GET requests",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "query", "statementId", "attachments"],
+    capabilityFlags: ["query", "retrieval", "attachments"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    notes: ["proof-slice statementId attachments allowed"],
+    steps: [
+      {
+        request: buildStatementPostRequest(statementIdAttachmentsAllowedStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementCollectionRequest({
+          statementId: statementIdAttachmentsAllowedStatement.id,
+          attachments: "true",
+        }),
+        assertion: {
+          status: 200,
+        },
+      },
+    ],
+  });
+
+  const voidedStatementIdFormatAllowedCase = requestSequenceCase({
+    caseId: "v2.statements.query.voided-statement-id-with-format-allowed",
+    title: "The Statements Resource allows voidedStatementId to be combined with format",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00150",
+        section: "Communication 2.1.3.s2.b2",
+        title: "voidedStatementId may be combined with format on GET requests",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "query", "voidedStatementId", "format"],
+    capabilityFlags: ["query", "retrieval", "format", "voiding"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    notes: ["proof-slice voidedStatementId format allowed"],
+    steps: [
+      {
+        request: buildStatementPostRequest(voidedStatementIdFormatAllowedTargetStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementPostRequest(voidedStatementIdFormatAllowedVoidingStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementCollectionRequest({
+          voidedStatementId: voidedStatementIdFormatAllowedTargetStatement.id,
+          format: "ids",
+        }),
+        assertion: {
+          status: 200,
+        },
+      },
+    ],
+  });
+
+  const voidedStatementIdAttachmentsAllowedCase = requestSequenceCase({
+    caseId: "v2.statements.query.voided-statement-id-with-attachments-allowed",
+    title: "The Statements Resource allows voidedStatementId to be combined with attachments",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00150",
+        section: "Communication 2.1.3.s2.b2",
+        title: "voidedStatementId may be combined with attachments on GET requests",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "query", "voidedStatementId", "attachments"],
+    capabilityFlags: ["query", "retrieval", "attachments", "voiding"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    notes: ["proof-slice voidedStatementId attachments allowed"],
+    steps: [
+      {
+        request: buildStatementPostRequest(voidedStatementIdAttachmentsAllowedTargetStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementPostRequest(voidedStatementIdAttachmentsAllowedVoidingStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementCollectionRequest({
+          voidedStatementId: voidedStatementIdAttachmentsAllowedTargetStatement.id,
+          attachments: "true",
+        }),
+        assertion: {
+          status: 200,
+        },
       },
     ],
   });
@@ -10726,9 +11708,13 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
         specVersion,
         tags: ["transport"],
         children: [
+          statementEndpointPostCase,
+          statementEndpointPutCase,
+          statementPutAcceptedCase,
           putRoundTripCase,
           putRequiresStatementIdCase,
           putImmutableCase,
+          statementPostAcceptedCase,
           singlePostResponseCase,
           batchSuccessCase,
           duplicateBatchCase,
@@ -10748,14 +11734,21 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
         specVersion,
         tags: ["representation"],
         children: [
+          formatAbsentDefaultCase,
+          acceptLanguageWithoutCanonicalCase,
           exactFormatCase,
           canonicalFormatCase,
           idsFormatCase,
           attachmentsMultipartCase,
           attachmentsJsonFallbackCase,
+          attachmentsMissingJsonCase,
+          attachmentsFalseJsonCase,
+          contentTypeHeaderCase,
           lastModifiedCase,
           consistentThroughSuccessCase,
           consistentThroughErrorCase,
+          ...consistentThroughPresenceCases,
+          ...consistentThroughIsoCases,
         ],
       },
       {
@@ -10773,8 +11766,14 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
         specVersion,
         tags: ["query"],
         children: [
+          statementEndpointGetCase,
+          statementGetAcceptedCase,
+          statementResultCollectionCase,
           retrievalStatementsArrayCase,
           retrievalPaginationCase,
+          statementIdAcceptedCase,
+          statementIdReturnedCase,
+          voidedStatementIdAcceptedCase,
           queryCase,
           emptyResultCase,
           agentQueryCase,
@@ -10787,6 +11786,10 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
           untilQueryCase,
           limitQueryCase,
           ascendingQueryCase,
+          statementIdFormatAllowedCase,
+          statementIdAttachmentsAllowedCase,
+          voidedStatementIdFormatAllowedCase,
+          voidedStatementIdAttachmentsAllowedCase,
           ...statementIdExclusivityCases,
           ...voidedStatementIdExclusivityCases,
         ],
@@ -14003,11 +15006,7 @@ export function createV20ActivitiesResourceProofSliceSuite(): SuiteDefinition {
 export function createV20AboutResourceProofSliceSuite(): SuiteDefinition {
   const nonAboutVersionHeaderPattern = "^(2\\.0\\.0|1\\.0\\.[1-3]|0?\\.9\\d*)$";
 
-  function buildNonAboutMissingVersionHeaderCase(
-    caseId: string,
-    title: string,
-    endpoint: EndpointKind,
-  ) {
+  function buildNonAboutMissingVersionHeaderCase(caseId: string, title: string, endpoint: EndpointKind) {
     return singleRequestCase({
       caseId,
       title,
@@ -14393,7 +15392,7 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
               expectedHeaderPatterns: [
                 {
                   key: "etag",
-                  pattern: "^(W/)?\".+\"$",
+                  pattern: '^(W/)?".+"$',
                 },
               ],
             },
@@ -14934,15 +15933,9 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
             },
           },
           {
-            request: buildVersionedRequest(
-              "DELETE",
-              options.endpoint,
-              deleteStalePreserveQuery,
-              undefined,
-              {
-                "If-Match": staleEtag,
-              },
-            ),
+            request: buildVersionedRequest("DELETE", options.endpoint, deleteStalePreserveQuery, undefined, {
+              "If-Match": staleEtag,
+            }),
             assertion: {
               status: 412,
             },
