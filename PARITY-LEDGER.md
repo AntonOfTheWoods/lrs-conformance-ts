@@ -5,14 +5,15 @@
 - Validation gate: `bun run check` is green.
 - Source-of-truth baseline: `/home/anton/dev/tmp/lrs-conformance-test-suite-orig`.
 - xAPI 2.0 upstream conformance count: 1435 tests in the original upstream batteries artifact.
-- xAPI 2.0 rewrite manifest size: 1210 proof cases.
-- xAPI 2.0 count gap versus upstream batteries total: 225.
+- xAPI 2.0 rewrite manifest size: 1226 proof cases.
+- xAPI 2.0 count gap versus upstream batteries total: 209.
 - Current top-level 2.0 suites: Statements, State Resource, Activity Profile Resource, Agent Profile Resource, Agents Resource, Activities Resource, About Resource, Communication.
 
 ## Current interpretation
 
 - The rewrite appears to have direct proof-slice trace coverage for every legacy `test/v2_0` suite owner, including Additional Data Types, Signed Statements, and Special Data Types And Rules.
-- That suite-owner closure is not yet enough to claim upstream parity. The original upstream battery still reports 1435 2.0 conformance tests, so the rewrite's 1210-case manifest should currently be treated as a lower-granularity proof surface, not full one-to-one upstream test parity.
+- That suite-owner closure is not yet enough to claim upstream parity. The original upstream battery still reports 1435 2.0 conformance tests, so the rewrite's 1226-case manifest should currently be treated as a lower-granularity proof surface, not full one-to-one upstream test parity.
+- Error Codes direct-trace tranche: added the executable upstream-original `H.Communication3.2-ErrorCodes.js` matrix for unrecognized statement query parameters and case-differing statement parameter names across PUT and GET, so the proof slice now directly traces the `400 Bad Request` leaves for `XAPI-00324` and `XAPI-00325`. The existing batch-rollback proof already covered `XAPI-00326`, and the remaining upstream refs in that file (`XAPI-00323`, `XAPI-00327`, `XAPI-00329`, and the held-out size-limit `XAPI-00328`) are currently audit-only rather than executable parity targets.
 - Statement Resource direct-trace tranche: added the next major upstream-original catch-up slice for `4.1.6.1-Statement-Resource.js`, including explicit `/statements` POST/PUT/GET endpoint leaves, positive PUT/POST/GET acceptance leaves, StatementResult-without-id lookup coverage, direct `statementId`/`voidedStatementId` processing leaves, explicit GET `Content-Type` coverage, format-absent exact retrieval, non-canonical Accept-Language preservation, split attachment JSON-fallback leaves, allowed `statementId`/`voidedStatementId` plus `format`/`attachments` combinations, and the repeated `X-Experience-API-Consistent-Through` header matrix. The full gate remains green after this expansion.
 - Reopened upstream resource tranche: added the first substantial upstream-original catch-up slice for `4.1.6.2-State-Resource.js`, `4.1.6.5-Agent-Profile-Resource.js`, and `4.1.6.6-Activity-Profile-Resource.js`, including missing required-parameter rejection cases, invalid agent-query rejection cases, State `registration` acceptance and validation, and shared document-resource query validation in the mock runtime.
 - Communication/resource direct-trace tranche: added the missing one-to-one upstream leaves for `4.1.4-Concurrency.js` that were still collapsed in the rewrite, including quoted ETag validation, stale-update non-mutation checks, POST `If-Match` acceptance and persistence checks, and explicit 409 conflict-message coverage across State, Activity Profile, and Agent Profile resources. The same tranche also added the remaining About/version-header endpoint matrix from `4.1.6.7-About-Resource.js`, explicit Agents/Activities endpoint-acceptance leaves, the `H.Communication3.3-Versioning.js` non-rewrite statement-shape check, and the explicit HEAD/GET-without-Content-Length leaves from `H.Communication1.1-HeadRequestImplementation.js`.
@@ -29,8 +30,8 @@
 
 ## Remaining xAPI 2.0 backlog
 
-- Upstream-baseline gap audit is open. We still need to explain and either close or explicitly justify the 225-test difference between the original upstream 2.0 conformance count and the rewrite's 1210 proof cases.
-- The dominant remaining hotspot has shifted further into the upstream-original communication tail, especially `H.Communication3.2-ErrorCodes.js` plus the remaining Statement Resource/retrieval one-to-one leaves that are still collapsed in the proof registry.
+- Upstream-baseline gap audit is open. We still need to explain and either close or explicitly justify the 209-test difference between the original upstream 2.0 conformance count and the rewrite's 1226 proof cases.
+- The dominant remaining hotspot is now the remaining Statement Resource/retrieval one-to-one tail that is still collapsed in the proof registry, plus any remaining upstream-original communication leaves beyond the executable Error Codes matrix.
 
 ## Audit-needed overlap
 

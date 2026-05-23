@@ -16233,6 +16233,195 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     ],
   });
 
+  const errorCodePutCaseVariantStatement = buildProofStatement(1221, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/error-code-case-diff-put",
+    },
+  ]);
+
+  const unrecognizedStatementQueryParamCase = singleRequestCase({
+    caseId: "v2.communication.error-codes.statements.unrecognized-query-parameter",
+    title: "The Statements Resource rejects GET requests that use an unrecognized query parameter",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00324",
+        section: "Communication 3.2.s2.b1",
+        title: "Requests with unrecognized parameters are rejected with 400 Bad Request",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "error-codes", "validation", "statements"],
+    capabilityFlags: ["communication", "validation", "query", "statements"],
+    legacyTraceSuiteFile: errorCodesLegacySuiteFile,
+    request: buildStatementCollectionRequest({
+      foo: "bar",
+    }),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice error codes unrecognized statement query parameter"],
+  });
+
+  const caseDifferingStatementGetParamVariants: Array<{
+    caseId: string;
+    title: string;
+    query: Record<string, string>;
+  }> = [
+    {
+      caseId: "v2.communication.error-codes.statements.case-differing.statement-id.get",
+      title: 'The Statements Resource rejects GET requests that use the case-differing "StatementId" parameter',
+      query: {
+        StatementId: buildProofUuid(1222),
+      },
+    },
+    {
+      caseId: "v2.communication.error-codes.statements.case-differing.voided-statement-id.get",
+      title: 'The Statements Resource rejects GET requests that use the case-differing "VoidedStatementId" parameter',
+      query: {
+        VoidedStatementId: buildProofUuid(1223),
+      },
+    },
+    {
+      caseId: "v2.communication.error-codes.statements.case-differing.agent",
+      title: 'The Statements Resource rejects GET requests that use the case-differing "Agent" parameter',
+      query: {
+        Agent: buildAgentQuery("mailto:error-codes-agent@example.test"),
+      },
+    },
+    {
+      caseId: "v2.communication.error-codes.statements.case-differing.verb",
+      title: 'The Statements Resource rejects GET requests that use the case-differing "Verb" parameter',
+      query: {
+        Verb: "http://adlnet.gov/expapi/verbs/attended",
+      },
+    },
+    {
+      caseId: "v2.communication.error-codes.statements.case-differing.activity",
+      title: 'The Statements Resource rejects GET requests that use the case-differing "Activity" parameter',
+      query: {
+        Activity: "https://example.test/xapi/activities/error-codes-activity",
+      },
+    },
+    {
+      caseId: "v2.communication.error-codes.statements.case-differing.registration",
+      title: 'The Statements Resource rejects GET requests that use the case-differing "Registration" parameter',
+      query: {
+        Registration: buildProofUuid(1224),
+      },
+    },
+    {
+      caseId: "v2.communication.error-codes.statements.case-differing.related-activities",
+      title: 'The Statements Resource rejects GET requests that use the case-differing "Related_Activities" parameter',
+      query: {
+        Related_Activities: "true",
+      },
+    },
+    {
+      caseId: "v2.communication.error-codes.statements.case-differing.related-agents",
+      title: 'The Statements Resource rejects GET requests that use the case-differing "Related_Agents" parameter',
+      query: {
+        Related_Agents: "true",
+      },
+    },
+    {
+      caseId: "v2.communication.error-codes.statements.case-differing.since",
+      title: 'The Statements Resource rejects GET requests that use the case-differing "Since" parameter',
+      query: {
+        Since: "2012-06-01T19:09:13.245Z",
+      },
+    },
+    {
+      caseId: "v2.communication.error-codes.statements.case-differing.until",
+      title: 'The Statements Resource rejects GET requests that use the case-differing "Until" parameter',
+      query: {
+        Until: "2012-06-01T19:09:13.245Z",
+      },
+    },
+    {
+      caseId: "v2.communication.error-codes.statements.case-differing.limit",
+      title: 'The Statements Resource rejects GET requests that use the case-differing "Limit" parameter',
+      query: {
+        Limit: "10",
+      },
+    },
+    {
+      caseId: "v2.communication.error-codes.statements.case-differing.format",
+      title: 'The Statements Resource rejects GET requests that use the case-differing "Format" parameter',
+      query: {
+        Format: "ids",
+      },
+    },
+    {
+      caseId: "v2.communication.error-codes.statements.case-differing.attachments",
+      title: 'The Statements Resource rejects GET requests that use the case-differing "Attachments" parameter',
+      query: {
+        Attachments: "true",
+      },
+    },
+    {
+      caseId: "v2.communication.error-codes.statements.case-differing.ascending",
+      title: 'The Statements Resource rejects GET requests that use the case-differing "Ascending" parameter',
+      query: {
+        Ascending: "true",
+      },
+    },
+  ];
+
+  const caseDifferingStatementGetParamCases = caseDifferingStatementGetParamVariants.map((variant) =>
+    singleRequestCase({
+      caseId: variant.caseId,
+      title: variant.title,
+      specVersion,
+      requirementRefs: [
+        {
+          id: "XAPI-00325",
+          section: "Communication 3.2.s3.b8",
+          title: "Requests with case-differing parameters are rejected with 400 Bad Request",
+        },
+      ],
+      tags: ["v2.0.0", "communication", "error-codes", "validation", "statements"],
+      capabilityFlags: ["communication", "validation", "query", "statements"],
+      legacyTraceSuiteFile: errorCodesLegacySuiteFile,
+      request: buildStatementCollectionRequest(variant.query),
+      assertion: {
+        status: 400,
+      },
+      notes: [`proof-slice error codes ${variant.caseId}`],
+    }),
+  );
+
+  const caseDifferingStatementIdPutCase = singleRequestCase({
+    caseId: "v2.communication.error-codes.statements.case-differing.statement-id.put",
+    title: 'The Statements Resource rejects PUT requests that use the case-differing "StatementId" parameter',
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00325",
+        section: "Communication 3.2.s3.b8",
+        title: "Requests with case-differing parameters are rejected with 400 Bad Request",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "error-codes", "validation", "statements"],
+    capabilityFlags: ["communication", "validation", "transport", "statements"],
+    legacyTraceSuiteFile: errorCodesLegacySuiteFile,
+    request: {
+      method: "PUT",
+      endpoint: "statements",
+      authMode: "basic",
+      headers: buildVersionedHeaders(),
+      query: {
+        StatementId: errorCodePutCaseVariantStatement.id,
+      },
+      body: buildStatementBody(errorCodePutCaseVariantStatement),
+    },
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice error codes case-differing StatementId PUT"],
+  });
+
   const headActivitiesCase = requestSequenceCase({
     caseId: "v2.communication.head.activities",
     title: "The Activities Resource responds to HEAD in the same way as GET but without a message body",
@@ -17280,6 +17469,18 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
           formDataFileUrlRejectedCase,
           formDataRawRejectedCase,
           extraMultipartSectionRejectedCase,
+        ],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.communication.error-codes",
+        title: "Error Codes",
+        specVersion,
+        tags: ["communication", "error-codes"],
+        children: [
+          unrecognizedStatementQueryParamCase,
+          caseDifferingStatementIdPutCase,
+          ...caseDifferingStatementGetParamCases,
         ],
       },
       {

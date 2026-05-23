@@ -15,7 +15,7 @@ import {
   createV20StateResourceProofSliceSuite,
 } from "../src/specs/v2_0/proof-slice";
 
-const expectedCaseCount = 1210;
+const expectedCaseCount = 1226;
 const expectedCaseIdAnchors = [
   "v2.statements.required-fields.missing-actor",
   "v2.statements.invalid-types.result-completion-string",
@@ -108,6 +108,9 @@ const expectedCaseIdAnchors = [
   "v2.communication.authentication.bad-basic-rejected",
   "v2.communication.encoding.utf8-roundtrip",
   "v2.communication.content-types.extra-multipart-section-rejected",
+  "v2.communication.error-codes.statements.unrecognized-query-parameter",
+  "v2.communication.error-codes.statements.case-differing.statement-id.put",
+  "v2.communication.error-codes.statements.case-differing.ascending",
   "v2.communication.concurrency.activities-state.etag-header",
   "v2.communication.concurrency.activities-state.etag-header-quoted",
   "v2.communication.concurrency.activities-profile.put-accepts-current-if-match",
@@ -355,7 +358,7 @@ describe("RegistryBuilder", () => {
     expect(batteries["2.0.0"]?.tests.children[4]?.children).toHaveLength(3);
     expect(batteries["2.0.0"]?.tests.children[5]?.children).toHaveLength(2);
     expect(batteries["2.0.0"]?.tests.children[6]?.children).toHaveLength(2);
-    expect(batteries["2.0.0"]?.tests.children[7]?.children).toHaveLength(7);
+    expect(batteries["2.0.0"]?.tests.children[7]?.children).toHaveLength(8);
     expect(batteries["1.0.3"]).toBeUndefined();
   });
 });
