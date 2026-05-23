@@ -13294,6 +13294,84 @@ export function createV20AgentsResourceProofSliceSuite(): SuiteDefinition {
     ],
   });
 
+  const endpointCase = singleRequestCase({
+    caseId: "v2.agents.resource.endpoint-exists",
+    title: "The Agents Resource exists at /agents",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00245",
+        section: "Communication 2.4",
+        title: "The Agents Resource exists at /agents",
+      },
+    ],
+    tags: ["v2.0.0", "agents", "resource", "basics"],
+    capabilityFlags: ["agents", "retrieval"],
+    legacyTraceSuiteFile: agentsResourceLegacySuiteFile,
+    request: buildAgentsGetRequest({
+      objectType: "Agent",
+      mbox: unknownAgentMbox,
+    }),
+    assertion: {
+      status: 200,
+    },
+    notes: ["proof-slice agents resource endpoint exists"],
+  });
+
+  const acceptsGetCase = singleRequestCase({
+    caseId: "v2.agents.resource.accepts-get",
+    title: "The Agents Resource accepts GET requests",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00236",
+        section: "Communication 2.4.s2",
+        title: "The Agents Resource accepts GET requests",
+      },
+    ],
+    tags: ["v2.0.0", "agents", "resource", "basics"],
+    capabilityFlags: ["agents", "retrieval"],
+    legacyTraceSuiteFile: agentsResourceLegacySuiteFile,
+    request: buildAgentsGetRequest({
+      objectType: "Agent",
+      mbox: unknownAgentMbox,
+    }),
+    assertion: {
+      status: 200,
+    },
+    notes: ["proof-slice agents resource accepts get"],
+  });
+
+  const objectTypePersonCase = singleRequestCase({
+    caseId: "v2.agents.resource.object-type-person",
+    title: 'The Agents Resource returns a Person objectType of "Person"',
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00237",
+        section: "Communication 2.4.s5.table1.row1",
+        title: 'A Person objectType property is the string "Person"',
+      },
+    ],
+    tags: ["v2.0.0", "agents", "resource", "person"],
+    capabilityFlags: ["agents", "retrieval", "person"],
+    legacyTraceSuiteFile: agentsResourceLegacySuiteFile,
+    request: buildAgentsGetRequest({
+      objectType: "Agent",
+      mbox: unknownAgentMbox,
+    }),
+    assertion: {
+      status: 200,
+      jsonPathEquals: [
+        {
+          path: ["objectType"],
+          equals: "Person",
+        },
+      ],
+    },
+    notes: ["proof-slice agents resource objectType person"],
+  });
+
   const missingAgentCase = singleRequestCase({
     caseId: "v2.agents.resource.missing-agent",
     title: "The Agents Resource rejects a GET request without the agent parameter",
@@ -13594,7 +13672,7 @@ export function createV20AgentsResourceProofSliceSuite(): SuiteDefinition {
         title: "Agents Basics",
         specVersion,
         tags: ["agents", "basics"],
-        children: [roundTripCase, missingAgentCase, invalidAgentCase],
+        children: [endpointCase, acceptsGetCase, roundTripCase, missingAgentCase, invalidAgentCase],
       },
       {
         type: "suite",
@@ -13602,7 +13680,7 @@ export function createV20AgentsResourceProofSliceSuite(): SuiteDefinition {
         title: "Agents Person Shape",
         specVersion,
         tags: ["agents", "person"],
-        children: [nameArrayCase, mboxCase, mboxSha1sumCase, openIdCase, accountCase],
+        children: [objectTypePersonCase, nameArrayCase, mboxCase, mboxSha1sumCase, openIdCase, accountCase],
       },
       {
         type: "suite",
@@ -13680,6 +13758,48 @@ export function createV20ActivitiesResourceProofSliceSuite(): SuiteDefinition {
     },
   ]);
 
+  const endpointCase = singleRequestCase({
+    caseId: "v2.activities.resource.endpoint-exists",
+    title: "The Activities Resource exists at /activities",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00252",
+        section: "Communication 2.5",
+        title: "The Activities Resource exists at /activities",
+      },
+    ],
+    tags: ["v2.0.0", "activities", "resource", "basics"],
+    capabilityFlags: ["activities", "retrieval"],
+    legacyTraceSuiteFile: activitiesResourceLegacySuiteFile,
+    request: buildActivitiesGetRequest(unknownActivityId),
+    assertion: {
+      status: 200,
+    },
+    notes: ["proof-slice activities resource endpoint exists"],
+  });
+
+  const acceptsGetCase = singleRequestCase({
+    caseId: "v2.activities.resource.accepts-get",
+    title: "The Activities Resource accepts GET requests",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00253",
+        section: "Communication 2.5",
+        title: "The Activities Resource accepts GET requests",
+      },
+    ],
+    tags: ["v2.0.0", "activities", "resource", "basics"],
+    capabilityFlags: ["activities", "retrieval"],
+    legacyTraceSuiteFile: activitiesResourceLegacySuiteFile,
+    request: buildActivitiesGetRequest(unknownActivityId),
+    assertion: {
+      status: 200,
+    },
+    notes: ["proof-slice activities resource accepts get"],
+  });
+
   const completeActivityCase = requestSequenceCase({
     caseId: "v2.activities.resource.complete-object",
     title: "The Activities Resource returns the complete Activity Object for a stored activityId",
@@ -13746,6 +13866,27 @@ export function createV20ActivitiesResourceProofSliceSuite(): SuiteDefinition {
       status: 400,
     },
     notes: ["proof-slice activities resource missing activityId"],
+  });
+
+  const invalidActivityIdCase = singleRequestCase({
+    caseId: "v2.activities.resource.invalid-activity-id",
+    title: "The Activities Resource rejects a GET request whose activityId parameter is not a valid IRI",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "LEGACY-ACTIVITY-RESOURCE-ACTIVITYID-FORMAT",
+        section: "Communication 2.5.s1.table1.row1",
+        title: "The Activities Resource rejects invalid activityId values",
+      },
+    ],
+    tags: ["v2.0.0", "activities", "resource", "validation"],
+    capabilityFlags: ["activities", "validation"],
+    legacyTraceSuiteFile: activitiesResourceLegacySuiteFile,
+    request: buildActivitiesGetRequest("true"),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice activities resource invalid activityId"],
   });
 
   const mergedDefinitionCase = requestSequenceCase({
@@ -13845,7 +13986,7 @@ export function createV20ActivitiesResourceProofSliceSuite(): SuiteDefinition {
         title: "Activities Basics",
         specVersion,
         tags: ["activities", "basics"],
-        children: [completeActivityCase, missingActivityIdCase],
+        children: [endpointCase, acceptsGetCase, completeActivityCase, missingActivityIdCase, invalidActivityIdCase],
       },
       {
         type: "suite",
@@ -13860,6 +14001,116 @@ export function createV20ActivitiesResourceProofSliceSuite(): SuiteDefinition {
 }
 
 export function createV20AboutResourceProofSliceSuite(): SuiteDefinition {
+  const nonAboutVersionHeaderPattern = "^(2\\.0\\.0|1\\.0\\.[1-3]|0?\\.9\\d*)$";
+
+  function buildNonAboutMissingVersionHeaderCase(
+    caseId: string,
+    title: string,
+    endpoint: EndpointKind,
+  ) {
+    return singleRequestCase({
+      caseId,
+      title,
+      specVersion,
+      requirementRefs: [
+        {
+          id: "XAPI-00321",
+          section: "Communication 2.8.s4.table1.row2",
+          title: "Resources other than About reject requests without X-Experience-API-Version",
+        },
+      ],
+      tags: ["v2.0.0", "about", "resource", "versioning"],
+      capabilityFlags: ["versioning", "validation"],
+      legacyTraceSuiteFile: aboutResourceLegacySuiteFile,
+      request: buildRequestWithoutVersionHeader("GET", endpoint, {}),
+      assertion: {
+        status: 400,
+        expectedHeaderPatterns: [
+          {
+            key: "X-Experience-API-Version",
+            pattern: nonAboutVersionHeaderPattern,
+          },
+        ],
+      },
+      notes: [`proof-slice about resource missing version header ${endpoint}`],
+    });
+  }
+
+  const aboutEndpointCase = singleRequestCase({
+    caseId: "v2.about.resource.endpoint-exists",
+    title: "The About Resource exists at /about",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00315",
+        section: "Communication 2.8",
+        title: "The About Resource exists at /about",
+      },
+    ],
+    tags: ["v2.0.0", "about", "resource", "basics"],
+    capabilityFlags: ["about", "retrieval"],
+    legacyTraceSuiteFile: aboutResourceLegacySuiteFile,
+    request: buildAboutGetRequest(),
+    assertion: {
+      status: 200,
+    },
+    notes: ["proof-slice about resource endpoint exists"],
+  });
+
+  const aboutVersionPropertyCase = singleRequestCase({
+    caseId: "v2.about.resource.version-property",
+    title: "The About Resource returns a version property on successful GET requests",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00319",
+        section: "Communication 2.8.s4",
+        title: "A successful About GET returns 200 OK and a version property",
+      },
+    ],
+    tags: ["v2.0.0", "about", "resource", "basics"],
+    capabilityFlags: ["about", "retrieval"],
+    legacyTraceSuiteFile: aboutResourceLegacySuiteFile,
+    request: buildAboutGetRequest(),
+    assertion: {
+      status: 200,
+      jsonPathEquals: [
+        {
+          path: ["version"],
+          equals: [specVersion],
+        },
+      ],
+    },
+    notes: ["proof-slice about resource version property"],
+  });
+
+  const aboutVersionArrayTypeCase = singleRequestCase({
+    caseId: "v2.about.resource.version-array-type",
+    title: "The About Resource returns the version property as an array of strings",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00318",
+        section: "Communication 2.8.s4.table1.row1",
+        title: "The About version property is an array of strings",
+      },
+    ],
+    tags: ["v2.0.0", "about", "resource", "basics"],
+    capabilityFlags: ["about", "retrieval"],
+    legacyTraceSuiteFile: aboutResourceLegacySuiteFile,
+    request: buildAboutGetRequest(),
+    assertion: {
+      status: 200,
+      jsonPathEquals: [
+        {
+          path: ["version"],
+          equals: [specVersion],
+        },
+      ],
+    },
+    notes: ["proof-slice about resource version array type"],
+  });
+
   const aboutGetCase = singleRequestCase({
     caseId: "v2.about.resource.version-array",
     title: "The About Resource returns a version array that includes 2.0.0",
@@ -13950,6 +14201,36 @@ export function createV20AboutResourceProofSliceSuite(): SuiteDefinition {
     notes: ["proof-slice version header required outside about"],
   });
 
+  const statementMissingVersionHeaderCase = buildNonAboutMissingVersionHeaderCase(
+    "v2.about.resource.non-about-missing-version-header.statements",
+    "The Statements Resource rejects GET requests without an X-Experience-API-Version header",
+    "statements",
+  );
+
+  const activitiesProfileMissingVersionHeaderCase = buildNonAboutMissingVersionHeaderCase(
+    "v2.about.resource.non-about-missing-version-header.activities-profile",
+    "The Activity Profile Resource rejects GET requests without an X-Experience-API-Version header",
+    "activities-profile",
+  );
+
+  const activitiesStateMissingVersionHeaderCase = buildNonAboutMissingVersionHeaderCase(
+    "v2.about.resource.non-about-missing-version-header.activities-state",
+    "The State Resource rejects GET requests without an X-Experience-API-Version header",
+    "activities-state",
+  );
+
+  const agentsMissingVersionHeaderCase = buildNonAboutMissingVersionHeaderCase(
+    "v2.about.resource.non-about-missing-version-header.agents",
+    "The Agents Resource rejects GET requests without an X-Experience-API-Version header",
+    "agents",
+  );
+
+  const agentsProfileMissingVersionHeaderCase = buildNonAboutMissingVersionHeaderCase(
+    "v2.about.resource.non-about-missing-version-header.agents-profile",
+    "The Agent Profile Resource rejects GET requests without an X-Experience-API-Version header",
+    "agents-profile",
+  );
+
   return {
     type: "suite",
     id: "v2.proof-slice.about",
@@ -13963,7 +14244,13 @@ export function createV20AboutResourceProofSliceSuite(): SuiteDefinition {
         title: "About Basics",
         specVersion,
         tags: ["about", "basics"],
-        children: [aboutGetCase, aboutWithoutVersionHeaderCase],
+        children: [
+          aboutEndpointCase,
+          aboutGetCase,
+          aboutVersionPropertyCase,
+          aboutVersionArrayTypeCase,
+          aboutWithoutVersionHeaderCase,
+        ],
       },
       {
         type: "suite",
@@ -13971,7 +14258,14 @@ export function createV20AboutResourceProofSliceSuite(): SuiteDefinition {
         title: "About Versioning",
         specVersion,
         tags: ["about", "versioning"],
-        children: [nonAboutRequiresVersionHeaderCase],
+        children: [
+          nonAboutRequiresVersionHeaderCase,
+          statementMissingVersionHeaderCase,
+          activitiesProfileMissingVersionHeaderCase,
+          activitiesStateMissingVersionHeaderCase,
+          agentsMissingVersionHeaderCase,
+          agentsProfileMissingVersionHeaderCase,
+        ],
       },
     ],
   };
@@ -13995,13 +14289,24 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
   const mergeBody = {
     proofMerge: true,
   } satisfies JsonObject;
+  const postReplacementBody = {
+    ...options.initialBody,
+    ...options.replacementBody,
+  } satisfies JsonObject;
 
   const etagQuery = options.buildQuery("etag");
+  const etagQuotedQuery = options.buildQuery("etag-quoted");
   const putStaleQuery = options.buildQuery("put-stale");
+  const putStalePreserveQuery = options.buildQuery("put-stale-preserve");
   const putCurrentQuery = options.buildQuery("put-current");
   const putMissingQuery = options.buildQuery("put-missing");
+  const putMissingMessageQuery = options.buildQuery("put-missing-message");
   const postStaleQuery = options.buildQuery("post-stale");
+  const postStalePreserveQuery = options.buildQuery("post-stale-preserve");
+  const postCurrentQuery = options.buildQuery("post-current");
+  const postCurrentModifiedQuery = options.buildQuery("post-current-modified");
   const deleteStaleQuery = options.buildQuery("delete-stale");
+  const deleteStalePreserveQuery = options.buildQuery("delete-stale-preserve");
   const deleteCurrentQuery = options.buildQuery("delete-current");
 
   return {
@@ -14057,6 +14362,45 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
         ],
       }),
       requestSequenceCase({
+        caseId: `${options.suiteId}.etag-header-quoted`,
+        title: `${options.title} GET responses enclose the ETag header in quotes`,
+        specVersion,
+        requirementRefs: [
+          {
+            id: "XAPI-00322",
+            section: "Communication 3.1",
+            title: "Document resource ETag values are enclosed in quotes",
+          },
+        ],
+        tags: baseTags,
+        capabilityFlags: ["communication", "concurrency", options.resourceTag],
+        legacyTraceSuiteFile: concurrencyLegacySuiteFile,
+        notes: [`proof-slice ${options.resourceTag} etag header quoted`],
+        steps: [
+          {
+            request: buildVersionedRequest("POST", options.endpoint, etagQuotedQuery, {
+              value: options.initialBody,
+              fixtureName: options.bodyFixtureName,
+            }),
+            assertion: {
+              status: 204,
+            },
+          },
+          {
+            request: buildVersionedRequest("GET", options.endpoint, etagQuotedQuery),
+            assertion: {
+              status: 200,
+              expectedHeaderPatterns: [
+                {
+                  key: "etag",
+                  pattern: "^(W/)?\".+\"$",
+                },
+              ],
+            },
+          },
+        ],
+      }),
+      requestSequenceCase({
         caseId: `${options.suiteId}.put-rejects-stale-if-match`,
         title: `${options.title} rejects PUT requests with a stale If-Match header`,
         specVersion,
@@ -14100,6 +14444,62 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
           },
           {
             request: buildVersionedRequest("GET", options.endpoint, putStaleQuery),
+            assertion: {
+              status: 200,
+              jsonPathEquals: [
+                {
+                  path: [],
+                  equals: options.initialBody,
+                },
+              ],
+            },
+          },
+        ],
+      }),
+      requestSequenceCase({
+        caseId: `${options.suiteId}.put-stale-preserves-document`,
+        title: `${options.title} leaves the existing document unchanged after a stale PUT If-Match`,
+        specVersion,
+        requirementRefs: [
+          {
+            id: "XAPI-00322",
+            section: "Communication 3.1",
+            title: "Document resources do not modify data when PUT If-Match is stale",
+          },
+        ],
+        tags: baseTags,
+        capabilityFlags: ["communication", "concurrency", options.resourceTag],
+        legacyTraceSuiteFile: concurrencyLegacySuiteFile,
+        notes: [`proof-slice ${options.resourceTag} put stale preserves document`],
+        steps: [
+          {
+            request: buildVersionedRequest("POST", options.endpoint, putStalePreserveQuery, {
+              value: options.initialBody,
+              fixtureName: options.bodyFixtureName,
+            }),
+            assertion: {
+              status: 204,
+            },
+          },
+          {
+            request: buildVersionedRequest(
+              "PUT",
+              options.endpoint,
+              putStalePreserveQuery,
+              {
+                value: options.replacementBody,
+                fixtureName: options.bodyFixtureName,
+              },
+              {
+                "If-Match": staleEtag,
+              },
+            ),
+            assertion: {
+              status: 412,
+            },
+          },
+          {
+            request: buildVersionedRequest("GET", options.endpoint, putStalePreserveQuery),
             assertion: {
               status: 200,
               jsonPathEquals: [
@@ -14217,6 +14617,43 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
         ],
       }),
       requestSequenceCase({
+        caseId: `${options.suiteId}.put-requires-if-match-error-message`,
+        title: `${options.title} explains that If-Match is required when PUT omits concurrency headers`,
+        specVersion,
+        requirementRefs: [
+          {
+            id: "XAPI-00322",
+            section: "Communication 3.1",
+            title: "Document resources explain missing If-Match conflicts for PUT",
+          },
+        ],
+        tags: baseTags,
+        capabilityFlags: ["communication", "concurrency", options.resourceTag],
+        legacyTraceSuiteFile: concurrencyLegacySuiteFile,
+        notes: [`proof-slice ${options.resourceTag} put requires if-match error message`],
+        steps: [
+          {
+            request: buildVersionedRequest("POST", options.endpoint, putMissingMessageQuery, {
+              value: options.initialBody,
+              fixtureName: options.bodyFixtureName,
+            }),
+            assertion: {
+              status: 204,
+            },
+          },
+          {
+            request: buildVersionedRequest("PUT", options.endpoint, putMissingMessageQuery, {
+              value: options.replacementBody,
+              fixtureName: options.bodyFixtureName,
+            }),
+            assertion: {
+              status: 409,
+              textContains: ["If-Match is required"],
+            },
+          },
+        ],
+      }),
+      requestSequenceCase({
         caseId: `${options.suiteId}.post-rejects-stale-if-match`,
         title: `${options.title} rejects POST merge requests with a stale If-Match header`,
         specVersion,
@@ -14272,6 +14709,159 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
         ],
       }),
       requestSequenceCase({
+        caseId: `${options.suiteId}.post-stale-preserves-document`,
+        title: `${options.title} leaves the existing document unchanged after a stale POST If-Match`,
+        specVersion,
+        requirementRefs: [
+          {
+            id: "XAPI-00322",
+            section: "Communication 3.1",
+            title: "Document resources do not modify data when POST If-Match is stale",
+          },
+        ],
+        tags: baseTags,
+        capabilityFlags: ["communication", "concurrency", options.resourceTag],
+        legacyTraceSuiteFile: concurrencyLegacySuiteFile,
+        notes: [`proof-slice ${options.resourceTag} post stale preserves document`],
+        steps: [
+          {
+            request: buildVersionedRequest("POST", options.endpoint, postStalePreserveQuery, {
+              value: options.initialBody,
+              fixtureName: options.bodyFixtureName,
+            }),
+            assertion: {
+              status: 204,
+            },
+          },
+          {
+            request: buildVersionedRequest(
+              "POST",
+              options.endpoint,
+              postStalePreserveQuery,
+              {
+                value: mergeBody,
+              },
+              {
+                "If-Match": staleEtag,
+              },
+            ),
+            assertion: {
+              status: 412,
+            },
+          },
+          {
+            request: buildVersionedRequest("GET", options.endpoint, postStalePreserveQuery),
+            assertion: {
+              status: 200,
+              jsonPathEquals: [
+                {
+                  path: [],
+                  equals: options.initialBody,
+                },
+              ],
+            },
+          },
+        ],
+      }),
+      requestSequenceCase({
+        caseId: `${options.suiteId}.post-accepts-current-if-match`,
+        title: `${options.title} accepts POST merge requests with the current If-Match header`,
+        specVersion,
+        requirementRefs: [
+          {
+            id: "XAPI-00322",
+            section: "Communication 3.1",
+            title: "Document resources accept current If-Match values for POST",
+          },
+        ],
+        tags: baseTags,
+        capabilityFlags: ["communication", "concurrency", options.resourceTag],
+        legacyTraceSuiteFile: concurrencyLegacySuiteFile,
+        notes: [`proof-slice ${options.resourceTag} post current if-match accepted`],
+        steps: [
+          {
+            request: buildVersionedRequest("POST", options.endpoint, postCurrentQuery, {
+              value: options.initialBody,
+              fixtureName: options.bodyFixtureName,
+            }),
+            assertion: {
+              status: 204,
+            },
+          },
+          {
+            request: buildVersionedRequest(
+              "POST",
+              options.endpoint,
+              postCurrentQuery,
+              {
+                value: postReplacementBody,
+              },
+              {
+                "If-Match": initialEtag,
+              },
+            ),
+            assertion: {
+              status: 204,
+            },
+          },
+        ],
+      }),
+      requestSequenceCase({
+        caseId: `${options.suiteId}.post-current-if-match-modifies`,
+        title: `${options.title} stores merged POST changes when the current If-Match header is supplied`,
+        specVersion,
+        requirementRefs: [
+          {
+            id: "XAPI-00322",
+            section: "Communication 3.1",
+            title: "Document resources update data when POST If-Match matches the current ETag",
+          },
+        ],
+        tags: baseTags,
+        capabilityFlags: ["communication", "concurrency", options.resourceTag],
+        legacyTraceSuiteFile: concurrencyLegacySuiteFile,
+        notes: [`proof-slice ${options.resourceTag} post current if-match modifies`],
+        steps: [
+          {
+            request: buildVersionedRequest("POST", options.endpoint, postCurrentModifiedQuery, {
+              value: options.initialBody,
+              fixtureName: options.bodyFixtureName,
+            }),
+            assertion: {
+              status: 204,
+            },
+          },
+          {
+            request: buildVersionedRequest(
+              "POST",
+              options.endpoint,
+              postCurrentModifiedQuery,
+              {
+                value: postReplacementBody,
+              },
+              {
+                "If-Match": initialEtag,
+              },
+            ),
+            assertion: {
+              status: 204,
+            },
+          },
+          {
+            request: buildVersionedRequest("GET", options.endpoint, postCurrentModifiedQuery),
+            assertion: {
+              status: 200,
+              jsonPathEquals: [
+                {
+                  path: [],
+                  equals: postReplacementBody,
+                },
+              ],
+            },
+          },
+        ],
+      }),
+      requestSequenceCase({
         caseId: `${options.suiteId}.delete-rejects-stale-if-match`,
         title: `${options.title} rejects DELETE requests with a stale If-Match header`,
         specVersion,
@@ -14306,6 +14896,59 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
           },
           {
             request: buildVersionedRequest("GET", options.endpoint, deleteStaleQuery),
+            assertion: {
+              status: 200,
+              jsonPathEquals: [
+                {
+                  path: [],
+                  equals: options.initialBody,
+                },
+              ],
+            },
+          },
+        ],
+      }),
+      requestSequenceCase({
+        caseId: `${options.suiteId}.delete-stale-preserves-document`,
+        title: `${options.title} leaves the existing document unchanged after a stale DELETE If-Match`,
+        specVersion,
+        requirementRefs: [
+          {
+            id: "XAPI-00322",
+            section: "Communication 3.1",
+            title: "Document resources do not delete data when DELETE If-Match is stale",
+          },
+        ],
+        tags: baseTags,
+        capabilityFlags: ["communication", "concurrency", options.resourceTag],
+        legacyTraceSuiteFile: concurrencyLegacySuiteFile,
+        notes: [`proof-slice ${options.resourceTag} delete stale preserves document`],
+        steps: [
+          {
+            request: buildVersionedRequest("POST", options.endpoint, deleteStalePreserveQuery, {
+              value: options.initialBody,
+              fixtureName: options.bodyFixtureName,
+            }),
+            assertion: {
+              status: 204,
+            },
+          },
+          {
+            request: buildVersionedRequest(
+              "DELETE",
+              options.endpoint,
+              deleteStalePreserveQuery,
+              undefined,
+              {
+                "If-Match": staleEtag,
+              },
+            ),
+            assertion: {
+              status: 412,
+            },
+          },
+          {
+            request: buildVersionedRequest("GET", options.endpoint, deleteStalePreserveQuery),
             assertion: {
               status: 200,
               jsonPathEquals: [
@@ -14828,6 +15471,49 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: ["proof-slice head statements"],
   });
 
+  const headWithoutContentLengthCase = singleRequestCase({
+    caseId: "v2.communication.head.no-content-length.head-statements",
+    title: "The Statements Resource accepts HEAD requests without a Content-Length header",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "LEGACY-HEAD-NO-CONTENT-LENGTH",
+        section: "Communication 1.1",
+        title: "An LRS accepts HEAD requests without Content-Length headers",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "head", "statements"],
+    capabilityFlags: ["communication", "head"],
+    legacyTraceSuiteFile: headRequestsLegacySuiteFile,
+    request: buildHeadRequest("statements", {}),
+    assertion: {
+      status: 200,
+      jsonPathEquals: headNoBodyExpectation,
+    },
+    notes: ["proof-slice head statements no content-length"],
+  });
+
+  const getWithoutContentLengthCase = singleRequestCase({
+    caseId: "v2.communication.head.no-content-length.get-statements",
+    title: "The Statements Resource accepts GET requests without a Content-Length header",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "LEGACY-GET-NO-CONTENT-LENGTH",
+        section: "Communication 1.1",
+        title: "An LRS accepts GET requests without Content-Length headers",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "head", "statements"],
+    capabilityFlags: ["communication", "head"],
+    legacyTraceSuiteFile: headRequestsLegacySuiteFile,
+    request: buildVersionedRequest("GET", "statements", {}),
+    assertion: {
+      status: 200,
+    },
+    notes: ["proof-slice get statements no content-length"],
+  });
+
   const versionHeaderStatement = buildProofStatement(262);
   const missingHeaderGetStatement = buildProofStatement(263);
   const missingHeaderPostStatement = buildProofStatement(264);
@@ -14835,6 +15521,13 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
   const invalidHeaderGetStatement = buildProofStatement(266);
   const invalidHeaderPostStatement = buildProofStatement(267);
   const invalidHeaderPutStatement = buildProofStatement(268);
+  const versioningShapePreservedStatement = buildProofStatement(985, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/versioning-shape-preserved",
+    },
+  ]);
 
   const versionHeaderResponseCase = requestSequenceCase({
     caseId: "v2.communication.versioning.response-header",
@@ -14866,6 +15559,51 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
             {
               key: "X-Experience-API-Version",
               equals: specVersion,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const versioningShapePreservedCase = requestSequenceCase({
+    caseId: "v2.communication.versioning.statement-shape-preserved",
+    title: "Statement retrieval preserves actor, verb, and object data without version-based rewrites",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00330",
+        section: "Communication 3.3.s3.b4",
+        title: "An LRS does not modify statement structure based on prior version formats",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "versioning"],
+    capabilityFlags: ["communication", "versioning", "retrieval"],
+    legacyTraceSuiteFile: versioningLegacySuiteFile,
+    notes: ["proof-slice versioning statement shape preserved"],
+    steps: [
+      {
+        request: buildStatementPostRequest(versioningShapePreservedStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementGetRequest(versioningShapePreservedStatement.id),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["actor"],
+              equals: versioningShapePreservedStatement.actor,
+            },
+            {
+              path: ["verb"],
+              equals: versioningShapePreservedStatement.verb,
+            },
+            {
+              path: ["object"],
+              equals: versioningShapePreservedStatement.object,
             },
           ],
         },
@@ -15498,6 +16236,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
           headAgentsCase,
           headAgentProfileCase,
           headStatementsCase,
+          headWithoutContentLengthCase,
+          getWithoutContentLengthCase,
         ],
       },
       {
@@ -15508,6 +16248,7 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
         tags: ["communication", "versioning"],
         children: [
           versionHeaderResponseCase,
+          versioningShapePreservedCase,
           missingGetHeaderCase,
           missingPostHeaderCase,
           missingPutHeaderCase,

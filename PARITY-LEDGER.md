@@ -5,15 +5,16 @@
 - Validation gate: `bun run check` is green.
 - Source-of-truth baseline: `/home/anton/dev/tmp/lrs-conformance-test-suite-orig`.
 - xAPI 2.0 upstream conformance count: 1435 tests in the original upstream batteries artifact.
-- xAPI 2.0 rewrite manifest size: 1129 proof cases.
-- xAPI 2.0 count gap versus upstream batteries total: 306.
+- xAPI 2.0 rewrite manifest size: 1167 proof cases.
+- xAPI 2.0 count gap versus upstream batteries total: 268.
 - Current top-level 2.0 suites: Statements, State Resource, Activity Profile Resource, Agent Profile Resource, Agents Resource, Activities Resource, About Resource, Communication.
 
 ## Current interpretation
 
 - The rewrite appears to have direct proof-slice trace coverage for every legacy `test/v2_0` suite owner, including Additional Data Types, Signed Statements, and Special Data Types And Rules.
-- That suite-owner closure is not yet enough to claim upstream parity. The original upstream battery still reports 1435 2.0 conformance tests, so the rewrite's 1129-case manifest should currently be treated as a lower-granularity proof surface, not full one-to-one upstream test parity.
+- That suite-owner closure is not yet enough to claim upstream parity. The original upstream battery still reports 1435 2.0 conformance tests, so the rewrite's 1167-case manifest should currently be treated as a lower-granularity proof surface, not full one-to-one upstream test parity.
 - Reopened upstream resource tranche: added the first substantial upstream-original catch-up slice for `4.1.6.2-State-Resource.js`, `4.1.6.5-Agent-Profile-Resource.js`, and `4.1.6.6-Activity-Profile-Resource.js`, including missing required-parameter rejection cases, invalid agent-query rejection cases, State `registration` acceptance and validation, and shared document-resource query validation in the mock runtime.
+- Communication/resource direct-trace tranche: added the missing one-to-one upstream leaves for `4.1.4-Concurrency.js` that were still collapsed in the rewrite, including quoted ETag validation, stale-update non-mutation checks, POST `If-Match` acceptance and persistence checks, and explicit 409 conflict-message coverage across State, Activity Profile, and Agent Profile resources. The same tranche also added the remaining About/version-header endpoint matrix from `4.1.6.7-About-Resource.js`, explicit Agents/Activities endpoint-acceptance leaves, the `H.Communication3.3-Versioning.js` non-rewrite statement-shape check, and the explicit HEAD/GET-without-Content-Length leaves from `H.Communication1.1-HeadRequestImplementation.js`.
 - Document-resource runtime parity: the shared mock document handler now rejects unrecognized or malformed query parameters for State/Profile resources, validates `activityId` IRIs and Agent query objects, treats State `registration` as part of the document scope, and returns `Last-Modified` on stored document retrievals.
 - Additional data and signed-statement parity: added direct legacy-trace coverage for IRI comparison fallback behavior, high-precision duration acceptance and roundtrip, signed duration comparison through hundredths precision, UTC-equivalent timestamp recall, signed statement multipart validation, allowed JWS algorithms, invalid JSON payload rejection, and signature-part presence checks.
 - Special data types parity: added direct legacy-trace PUT coverage for empty extension maps plus null, empty-string, and empty-object extension values across statement and substatement activity, result, and context placements; also pinned millisecond timestamp and stored precision on retrieval.
@@ -27,8 +28,8 @@
 
 ## Remaining xAPI 2.0 backlog
 
-- Upstream-baseline gap audit is open. We still need to explain and either close or explicitly justify the 306-test difference between the original upstream 2.0 conformance count and the rewrite's 1129 proof cases.
-- The dominant remaining hotspot is still communication/resource parity against the upstream original, especially the large Statement Resource surface, Concurrency, HEAD, Error Codes, and the remaining tail of document-resource behavior not yet represented one-for-one in the proof registry.
+- Upstream-baseline gap audit is open. We still need to explain and either close or explicitly justify the 268-test difference between the original upstream 2.0 conformance count and the rewrite's 1167 proof cases.
+- The dominant remaining hotspot is now the remaining upstream-original communication/resource tail beyond concurrency, especially the large Statement Resource surface, Error Codes, and the document/statement retrieval behaviors that are still not represented one-for-one in the proof registry.
 
 ## Audit-needed overlap
 
