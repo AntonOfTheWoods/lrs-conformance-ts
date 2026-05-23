@@ -11,7 +11,7 @@ import {
   createV20StateResourceProofSliceSuite,
 } from "../src/specs/v2_0/proof-slice";
 
-const expectedCaseCount = 133;
+const expectedCaseCount = 318;
 const expectedCaseIdAnchors = [
   "v2.statements.required-fields.missing-actor",
   "v2.statements.invalid-types.result-completion-string",
@@ -20,17 +20,25 @@ const expectedCaseIdAnchors = [
   "v2.statements.invalid-mbox-iri.actor-agent",
   "v2.statements.invalid-mbox-iri.substatement-context-team-group",
   "v2.statements.invalid-mbox-mailto.actor-agent",
+  "v2.statements.invalid-mbox-sha1sum.actor-agent",
   "v2.statements.invalid-openid.actor-agent",
   "v2.statements.account-home-page-missing.actor-agent",
   "v2.statements.account-home-page-invalid.substatement-context-team-group",
   "v2.statements.account-name-missing.actor-agent",
+  "v2.statements.agent-ifi-exclusivity.actor-agent-mbox-with-account",
+  "v2.statements.agent-ifi-exclusivity.substatement-context-instructor-agent-openid-with-mbox-sha1sum",
+  "v2.statements.group-ifi-exclusivity.actor-group-mbox-with-openid",
+  "v2.statements.group-ifi-exclusivity.substatement-context-team-group-account-with-mbox-sha1sum",
   "v2.statements.invalid-attachment-iri.file-url-no-scheme",
   "v2.statements.numeric-precision.score-roundtrip",
   "v2.statements.query-validation.invalid-registration",
   "v2.statements.query.statement-id-roundtrip",
-  "v2.activities-state.document-merge-rejects-non-object",
-  "v2.activities-profile.document-merge-rejects-non-object",
-  "v2.agents-profile.document-merge-rejects-non-object",
+  "v2.activities-state.document-merge-rejects-non-json-post",
+  "v2.activities-state.document-merge-rejects-existing-non-json",
+  "v2.activities-profile.document-merge-rejects-non-json-post",
+  "v2.activities-profile.document-merge-rejects-existing-non-json",
+  "v2.agents-profile.document-merge-rejects-non-json-post",
+  "v2.agents-profile.document-merge-rejects-existing-non-json",
 ];
 
 describe("RegistryBuilder", () => {

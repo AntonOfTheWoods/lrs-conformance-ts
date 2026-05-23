@@ -41,6 +41,8 @@ const agentProfileLegacySuiteFile =
 const activityProfileLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.1.6.6-Activity-Profile-Resource.js";
 const ifisLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/ifis.js";
+const agentsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/agents.js";
+const groupsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/groups.js";
 const accountObjectsLegacyConfigFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/accountobjects.js";
 
@@ -48,28 +50,48 @@ function buildVersionedRequest(
   method: HttpMethod,
   endpoint: EndpointKind,
   query: Record<string, string>,
-  body?: { value: unknown; fixtureName?: string },
+  body?:
+    | { kind?: "json"; value: unknown; fixtureName?: string; contentType?: string }
+    | { kind: "text"; value: string; fixtureName?: string; contentType?: string },
 ): HttpRequest {
+  const headers: Record<string, string> = {
+    "X-Experience-API-Version": specVersion,
+  };
+
+  if (body?.contentType) {
+    headers["content-type"] = body.contentType;
+  }
+
   return {
     method,
     endpoint,
     authMode: "basic",
-    headers: {
-      "X-Experience-API-Version": specVersion,
-    },
+    headers,
     query,
     body: body
-      ? {
-          kind: "json",
-          value: body.value,
-          sourceFixture: body.fixtureName
-            ? {
-                version: specVersion,
-                domain: "documents",
-                name: body.fixtureName,
-              }
-            : undefined,
-        }
+      ? body.kind === "text"
+        ? {
+            kind: "text",
+            value: body.value,
+            sourceFixture: body.fixtureName
+              ? {
+                  version: specVersion,
+                  domain: "documents",
+                  name: body.fixtureName,
+                }
+              : undefined,
+          }
+        : {
+            kind: "json",
+            value: body.value,
+            sourceFixture: body.fixtureName
+              ? {
+                  version: specVersion,
+                  domain: "documents",
+                  name: body.fixtureName,
+                }
+              : undefined,
+          }
       : undefined,
   };
 }
@@ -87,12 +109,15 @@ const validSinceTimestamp = "2020-01-01T00:00:00.000Z";
 const invalidSinceTimestamp = "not-a-timestamp";
 const validGroupMemberMbox = "mailto:proof-group-member@example.test";
 const validNestedAgentMbox = "mailto:proof-nested-agent@example.test";
+const validMboxSha1sum = "495395e777cd98da653df9615d09c0fd6bb2f8d4";
 const validAccountHomePage = "https://example.test/xapi/accounts/proof";
 const validAccountName = "proof-account";
 const invalidMailtoIri = "http://should.fail.com";
 const invalidMailtoEmail = "mailto:should.fail.com";
 const invalidOpenId = "ab=c://should.fail.com";
 const invalidAccountHomePage = "ab=c://should.fail.com";
+const nonJsonDocumentBody = "abcdefg";
+const existingNonJsonDocumentBody = "/ asdf / undefined";
 
 function buildVerbFixture(id: string, display: string): JsonObject {
   return {
@@ -139,6 +164,23 @@ function buildGroupWithOpenId(openid: string): JsonObject {
   return {
     objectType: "Group",
     openid,
+    name: "Proof Group",
+    member: [buildAgentWithMbox(validGroupMemberMbox)],
+  };
+}
+
+function buildAgentWithMboxSha1sum(mboxSha1sum: unknown): JsonObject {
+  return {
+    objectType: "Agent",
+    mbox_sha1sum: mboxSha1sum,
+    name: "Proof Agent",
+  };
+}
+
+function buildGroupWithMboxSha1sum(mboxSha1sum: unknown): JsonObject {
+  return {
+    objectType: "Group",
+    mbox_sha1sum: mboxSha1sum,
     name: "Proof Group",
     member: [buildAgentWithMbox(validGroupMemberMbox)],
   };
@@ -430,6 +472,47 @@ const actorLikePlacements: ActorLikePlacement[] = [
   },
 ];
 
+interface IfiSpec {
+  idToken: string;
+  label: string;
+  buildAgent(): JsonObject;
+  buildGroup(): JsonObject;
+}
+
+const ifiSpecs: IfiSpec[] = [
+  {
+    idToken: "mbox",
+    label: "mbox",
+    buildAgent: () => buildAgentWithMbox("mailto:proof-agent@example.test"),
+    buildGroup: () => buildGroupWithMbox("mailto:proof-group@example.test"),
+  },
+  {
+    idToken: "mbox-sha1sum",
+    label: "mbox_sha1sum",
+    buildAgent: () => buildAgentWithMboxSha1sum(validMboxSha1sum),
+    buildGroup: () => buildGroupWithMboxSha1sum(validMboxSha1sum),
+  },
+  {
+    idToken: "openid",
+    label: "openid",
+    buildAgent: () => buildAgentWithOpenId("https://openid.example.test/proof-agent"),
+    buildGroup: () => buildGroupWithOpenId("https://openid.example.test/proof-group"),
+  },
+  {
+    idToken: "account",
+    label: "account",
+    buildAgent: () => buildAgentWithAccount(buildAccount(validAccountHomePage, validAccountName)),
+    buildGroup: () => buildGroupWithAccount(buildAccount(validAccountHomePage, validAccountName)),
+  },
+];
+
+function mergeActorLikeValues(primary: JsonObject, secondary: JsonObject): JsonObject {
+  return {
+    ...primary,
+    ...secondary,
+  };
+}
+
 function buildRepeatedActorMutationVariants(options: {
   description: string;
   requirementRefs: RequirementRef[];
@@ -442,6 +525,26 @@ function buildRepeatedActorMutationVariants(options: {
     transforms: placement.buildTransforms(placement.kind === "agent" ? options.buildAgent() : options.buildGroup()),
     requirementRefs: options.requirementRefs,
   }));
+}
+
+function buildIfiExclusivityVariants(options: { placements: ActorLikePlacement[]; requirementRefs: RequirementRef[] }) {
+  return options.placements.flatMap((placement) =>
+    ifiSpecs.flatMap((primary) =>
+      ifiSpecs
+        .filter((secondary) => secondary.idToken !== primary.idToken)
+        .map((secondary) => ({
+          idSuffix: `${placement.idSuffix}-${primary.idToken}-with-${secondary.idToken}`,
+          title: `A Statement rejects ${placement.title} when ${primary.label} is used with ${secondary.label}`,
+          transforms: placement.buildTransforms(
+            mergeActorLikeValues(
+              placement.kind === "agent" ? primary.buildAgent() : primary.buildGroup(),
+              placement.kind === "agent" ? secondary.buildAgent() : secondary.buildGroup(),
+            ),
+          ),
+          requirementRefs: options.requirementRefs,
+        })),
+    ),
+  );
 }
 
 export function createV20ProofSliceSuite(): SuiteDefinition {
@@ -853,6 +956,27 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     }),
   });
 
+  const mboxSha1sumCases = statementMutationFamily({
+    familyId: "v2.statements.invalid-mbox-sha1sum",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "formatting", "ifi", "mbox-sha1sum"],
+    legacyTraceSuiteFile: ifisLegacyConfigFile,
+    variants: buildRepeatedActorMutationVariants({
+      description: "mbox_sha1sum is not a string",
+      requirementRefs: [
+        {
+          id: "XAPI-00039",
+          section: "Data 2.4.2.3.s3.table1.row2",
+          title: "mbox_sha1sum values must be strings",
+        },
+      ],
+      buildAgent: () => buildAgentWithMboxSha1sum({ key: "value" }),
+      buildGroup: () => buildGroupWithMboxSha1sum({ key: "value" }),
+    }),
+  });
+
   const openIdCases = statementMutationFamily({
     familyId: "v2.statements.invalid-openid",
     suiteTitle: "Statement Formatting",
@@ -990,6 +1114,44 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
         ],
       },
     ],
+  });
+
+  const agentIfiExclusivityCases = statementMutationFamily({
+    familyId: "v2.statements.agent-ifi-exclusivity",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "formatting", "ifi", "exclusivity", "agent"],
+    legacyTraceSuiteFile: agentsLegacyConfigFile,
+    variants: buildIfiExclusivityVariants({
+      placements: actorLikePlacements.filter((placement) => placement.kind === "agent"),
+      requirementRefs: [
+        {
+          id: "XAPI-00034",
+          section: "Data 2.4.2.1.s2.b2",
+          title: "Agents must use only one IFI",
+        },
+      ],
+    }),
+  });
+
+  const groupIfiExclusivityCases = statementMutationFamily({
+    familyId: "v2.statements.group-ifi-exclusivity",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "formatting", "ifi", "exclusivity", "group"],
+    legacyTraceSuiteFile: groupsLegacyConfigFile,
+    variants: buildIfiExclusivityVariants({
+      placements: actorLikePlacements.filter((placement) => placement.kind === "group"),
+      requirementRefs: [
+        {
+          id: "XAPI-00037",
+          section: "Data 2.4.2.2.s5.b1",
+          title: "Identified Groups must use only one IFI",
+        },
+      ],
+    }),
   });
 
   const min = 0.12123434;
@@ -1184,10 +1346,13 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
           ...iriSchemeCases,
           ...mboxIriCases,
           ...mboxMailtoCases,
+          ...mboxSha1sumCases,
           ...openIdCases,
           ...accountHomePageMissingCases,
           ...accountHomePageInvalidCases,
           ...accountNameMissingCases,
+          ...agentIfiExclusivityCases,
+          ...groupIfiExclusivityCases,
           ...attachmentIriCases,
           precisionCase,
         ],
@@ -1227,9 +1392,13 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
     activityId: "https://example.test/xapi/activities/state-proof-slice/merge",
     stateId: "proof-state-merge",
   });
-  const stateMergeRejectIdentity = buildActivityStateIdentityFixture({
-    activityId: "https://example.test/xapi/activities/state-proof-slice/merge-reject",
-    stateId: "proof-state-merge-reject",
+  const stateNonJsonPostRejectIdentity = buildActivityStateIdentityFixture({
+    activityId: "https://example.test/xapi/activities/state-proof-slice/merge-reject-post",
+    stateId: "proof-state-merge-reject-post",
+  });
+  const stateExistingNonJsonRejectIdentity = buildActivityStateIdentityFixture({
+    activityId: "https://example.test/xapi/activities/state-proof-slice/merge-reject-existing",
+    stateId: "proof-state-merge-reject-existing",
   });
   const stateDeleteIdentity = buildActivityStateIdentityFixture({
     activityId: "https://example.test/xapi/activities/state-proof-slice/delete",
@@ -1446,24 +1615,24 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
     ],
   });
 
-  const stateMergeRejectCase = requestSequenceCase({
-    caseId: "v2.activities-state.document-merge-rejects-non-object",
-    title: "The State Resource rejects a non-object POST merge and preserves the existing document",
+  const stateNonJsonPostRejectCase = requestSequenceCase({
+    caseId: "v2.activities-state.document-merge-rejects-non-json-post",
+    title: "The State Resource rejects a POST merge when the incoming document is not application/json",
     specVersion,
     requirementRefs: [
       {
         id: "XAPI-00229",
         section: "Communication 2.3.s3.table1.row3",
-        title: "State Resource rejects non-object JSON merge payloads without mutation",
+        title: "State Resource rejects non-JSON POST merges without mutation",
       },
     ],
     tags: ["v2.0.0", "activities-state", "document", "merge", "invalid"],
     capabilityFlags: ["document", "merge", "state", "invalid"],
     legacyTraceSuiteFile: stateResourceLegacySuiteFile,
-    notes: ["proof-slice activity state invalid merge payload"],
+    notes: ["proof-slice activity state non-json incoming merge rejection"],
     steps: [
       {
-        request: buildVersionedRequest("POST", "activities-state", stateMergeRejectIdentity, {
+        request: buildVersionedRequest("POST", "activities-state", stateNonJsonPostRejectIdentity, {
           value: {
             car: "Honda",
           },
@@ -1473,21 +1642,74 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
         },
       },
       {
-        request: buildVersionedRequest("POST", "activities-state", stateMergeRejectIdentity, {
-          value: "abcdefg",
+        request: buildVersionedRequest("POST", "activities-state", stateNonJsonPostRejectIdentity, {
+          kind: "text",
+          value: nonJsonDocumentBody,
+          contentType: "not/json",
         }),
         assertion: {
           status: 400,
         },
       },
       {
-        request: buildVersionedRequest("GET", "activities-state", stateMergeRejectIdentity),
+        request: buildVersionedRequest("GET", "activities-state", stateNonJsonPostRejectIdentity),
         assertion: {
           status: 200,
           jsonPathEquals: [
             {
               path: ["car"],
               equals: "Honda",
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const stateExistingNonJsonRejectCase = requestSequenceCase({
+    caseId: "v2.activities-state.document-merge-rejects-existing-non-json",
+    title: "The State Resource rejects a POST merge when the existing document is not application/json",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00229",
+        section: "Communication 2.3.s3.table1.row3",
+        title: "State Resource rejects merges against non-JSON stored documents",
+      },
+    ],
+    tags: ["v2.0.0", "activities-state", "document", "merge", "invalid"],
+    capabilityFlags: ["document", "merge", "state", "invalid"],
+    legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    notes: ["proof-slice activity state existing non-json merge rejection"],
+    steps: [
+      {
+        request: buildVersionedRequest("PUT", "activities-state", stateExistingNonJsonRejectIdentity, {
+          kind: "text",
+          value: existingNonJsonDocumentBody,
+          contentType: "application/octet-stream",
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("POST", "activities-state", stateExistingNonJsonRejectIdentity, {
+          value: {
+            car: "Honda",
+          },
+        }),
+        assertion: {
+          status: 400,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "activities-state", stateExistingNonJsonRejectIdentity),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: [],
+              equals: existingNonJsonDocumentBody,
             },
           ],
         },
@@ -1573,7 +1795,7 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
         title: "State Document Merge",
         specVersion,
         tags: ["merge"],
-        children: [stateMergeCase, stateMergeRejectCase],
+        children: [stateMergeCase, stateNonJsonPostRejectCase, stateExistingNonJsonRejectCase],
       },
       {
         type: "suite",
@@ -1602,9 +1824,13 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
     activityId: "https://example.test/xapi/activities/profile-proof-slice/merge",
     profileId: "proof-activity-profile-merge",
   });
-  const profileMergeRejectIdentity = buildActivityProfileIdentityFixture({
-    activityId: "https://example.test/xapi/activities/profile-proof-slice/merge-reject",
-    profileId: "proof-activity-profile-merge-reject",
+  const profileNonJsonPostRejectIdentity = buildActivityProfileIdentityFixture({
+    activityId: "https://example.test/xapi/activities/profile-proof-slice/merge-reject-post",
+    profileId: "proof-activity-profile-merge-reject-post",
+  });
+  const profileExistingNonJsonRejectIdentity = buildActivityProfileIdentityFixture({
+    activityId: "https://example.test/xapi/activities/profile-proof-slice/merge-reject-existing",
+    profileId: "proof-activity-profile-merge-reject-existing",
   });
   const profileDeleteIdentity = buildActivityProfileIdentityFixture({
     activityId: "https://example.test/xapi/activities/profile-proof-slice/delete",
@@ -1813,24 +2039,24 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
     ],
   });
 
-  const mergeRejectCase = requestSequenceCase({
-    caseId: "v2.activities-profile.document-merge-rejects-non-object",
-    title: "The Activity Profile Resource rejects a non-object POST merge and preserves the existing document",
+  const nonJsonPostRejectCase = requestSequenceCase({
+    caseId: "v2.activities-profile.document-merge-rejects-non-json-post",
+    title: "The Activity Profile Resource rejects a POST merge when the incoming document is not application/json",
     specVersion,
     requirementRefs: [
       {
         id: "XAPI-00313",
         section: "Communication 2.7.s3.table1.row3",
-        title: "Activity Profile rejects non-object JSON merge payloads without mutation",
+        title: "Activity Profile rejects non-JSON POST merges without mutation",
       },
     ],
     tags: ["v2.0.0", "activities-profile", "document", "merge", "invalid"],
     capabilityFlags: ["document", "merge", "activity-profile", "invalid"],
     legacyTraceSuiteFile: activityProfileLegacySuiteFile,
-    notes: ["proof-slice activity profile invalid merge payload"],
+    notes: ["proof-slice activity profile non-json incoming merge rejection"],
     steps: [
       {
-        request: buildVersionedRequest("POST", "activities-profile", profileMergeRejectIdentity, {
+        request: buildVersionedRequest("POST", "activities-profile", profileNonJsonPostRejectIdentity, {
           value: {
             car: "Honda",
           },
@@ -1840,21 +2066,74 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
         },
       },
       {
-        request: buildVersionedRequest("POST", "activities-profile", profileMergeRejectIdentity, {
-          value: "abcdefg",
+        request: buildVersionedRequest("POST", "activities-profile", profileNonJsonPostRejectIdentity, {
+          kind: "text",
+          value: nonJsonDocumentBody,
+          contentType: "application/octet-stream",
         }),
         assertion: {
           status: 400,
         },
       },
       {
-        request: buildVersionedRequest("GET", "activities-profile", profileMergeRejectIdentity),
+        request: buildVersionedRequest("GET", "activities-profile", profileNonJsonPostRejectIdentity),
         assertion: {
           status: 200,
           jsonPathEquals: [
             {
               path: ["car"],
               equals: "Honda",
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const existingNonJsonRejectCase = requestSequenceCase({
+    caseId: "v2.activities-profile.document-merge-rejects-existing-non-json",
+    title: "The Activity Profile Resource rejects a POST merge when the existing document is not application/json",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00313",
+        section: "Communication 2.7.s3.table1.row3",
+        title: "Activity Profile rejects merges against non-JSON stored documents",
+      },
+    ],
+    tags: ["v2.0.0", "activities-profile", "document", "merge", "invalid"],
+    capabilityFlags: ["document", "merge", "activity-profile", "invalid"],
+    legacyTraceSuiteFile: activityProfileLegacySuiteFile,
+    notes: ["proof-slice activity profile existing non-json merge rejection"],
+    steps: [
+      {
+        request: buildVersionedRequest("PUT", "activities-profile", profileExistingNonJsonRejectIdentity, {
+          kind: "text",
+          value: existingNonJsonDocumentBody,
+          contentType: "application/octet-stream",
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("POST", "activities-profile", profileExistingNonJsonRejectIdentity, {
+          value: {
+            car: "Honda",
+          },
+        }),
+        assertion: {
+          status: 400,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "activities-profile", profileExistingNonJsonRejectIdentity),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: [],
+              equals: existingNonJsonDocumentBody,
             },
           ],
         },
@@ -1940,7 +2219,7 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
         title: "Activity Profile Merge",
         specVersion,
         tags: ["merge"],
-        children: [mergeCase, mergeRejectCase],
+        children: [mergeCase, nonJsonPostRejectCase, existingNonJsonRejectCase],
       },
       {
         type: "suite",
@@ -1981,13 +2260,21 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
     }),
     profileId: "proof-agent-profile-merge",
   });
-  const profileMergeRejectIdentity = buildAgentProfileIdentityFixture({
+  const profileNonJsonPostRejectIdentity = buildAgentProfileIdentityFixture({
     agent: JSON.stringify({
       objectType: "Agent",
-      mbox: "mailto:agent-profile-merge-reject@example.test",
-      name: "Agent Profile Merge Reject",
+      mbox: "mailto:agent-profile-merge-reject-post@example.test",
+      name: "Agent Profile Merge Reject Post",
     }),
-    profileId: "proof-agent-profile-merge-reject",
+    profileId: "proof-agent-profile-merge-reject-post",
+  });
+  const profileExistingNonJsonRejectIdentity = buildAgentProfileIdentityFixture({
+    agent: JSON.stringify({
+      objectType: "Agent",
+      mbox: "mailto:agent-profile-merge-reject-existing@example.test",
+      name: "Agent Profile Merge Reject Existing",
+    }),
+    profileId: "proof-agent-profile-merge-reject-existing",
   });
   const profileDeleteIdentity = buildAgentProfileIdentityFixture({
     agent: JSON.stringify({
@@ -2200,24 +2487,24 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
     ],
   });
 
-  const mergeRejectCase = requestSequenceCase({
-    caseId: "v2.agents-profile.document-merge-rejects-non-object",
-    title: "The Agent Profile Resource rejects a non-object POST merge and preserves the existing document",
+  const nonJsonPostRejectCase = requestSequenceCase({
+    caseId: "v2.agents-profile.document-merge-rejects-non-json-post",
+    title: "The Agent Profile Resource rejects a POST merge when the incoming document is not application/json",
     specVersion,
     requirementRefs: [
       {
         id: "XAPI-00278",
         section: "Communication 2.3.s3.table1.row3",
-        title: "Agent Profile rejects non-object JSON merge payloads without mutation",
+        title: "Agent Profile rejects non-JSON POST merges without mutation",
       },
     ],
     tags: ["v2.0.0", "agents-profile", "document", "merge", "invalid"],
     capabilityFlags: ["document", "merge", "agent-profile", "invalid"],
     legacyTraceSuiteFile: agentProfileLegacySuiteFile,
-    notes: ["proof-slice agent profile invalid merge payload"],
+    notes: ["proof-slice agent profile non-json incoming merge rejection"],
     steps: [
       {
-        request: buildVersionedRequest("POST", "agents-profile", profileMergeRejectIdentity, {
+        request: buildVersionedRequest("POST", "agents-profile", profileNonJsonPostRejectIdentity, {
           value: {
             car: "Honda",
           },
@@ -2227,21 +2514,74 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
         },
       },
       {
-        request: buildVersionedRequest("POST", "agents-profile", profileMergeRejectIdentity, {
-          value: "abcdefg",
+        request: buildVersionedRequest("POST", "agents-profile", profileNonJsonPostRejectIdentity, {
+          kind: "text",
+          value: nonJsonDocumentBody,
+          contentType: "application/octet-stream",
         }),
         assertion: {
           status: 400,
         },
       },
       {
-        request: buildVersionedRequest("GET", "agents-profile", profileMergeRejectIdentity),
+        request: buildVersionedRequest("GET", "agents-profile", profileNonJsonPostRejectIdentity),
         assertion: {
           status: 200,
           jsonPathEquals: [
             {
               path: ["car"],
               equals: "Honda",
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const existingNonJsonRejectCase = requestSequenceCase({
+    caseId: "v2.agents-profile.document-merge-rejects-existing-non-json",
+    title: "The Agent Profile Resource rejects a POST merge when the existing document is not application/json",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00278",
+        section: "Communication 2.3.s3.table1.row3",
+        title: "Agent Profile rejects merges against non-JSON stored documents",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "merge", "invalid"],
+    capabilityFlags: ["document", "merge", "agent-profile", "invalid"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    notes: ["proof-slice agent profile existing non-json merge rejection"],
+    steps: [
+      {
+        request: buildVersionedRequest("PUT", "agents-profile", profileExistingNonJsonRejectIdentity, {
+          kind: "text",
+          value: existingNonJsonDocumentBody,
+          contentType: "application/octet-stream",
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profileExistingNonJsonRejectIdentity, {
+          value: {
+            car: "Honda",
+          },
+        }),
+        assertion: {
+          status: 400,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "agents-profile", profileExistingNonJsonRejectIdentity),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: [],
+              equals: existingNonJsonDocumentBody,
             },
           ],
         },
@@ -2327,7 +2667,7 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
         title: "Agent Profile Merge",
         specVersion,
         tags: ["merge"],
-        children: [mergeCase, mergeRejectCase],
+        children: [mergeCase, nonJsonPostRejectCase, existingNonJsonRejectCase],
       },
       {
         type: "suite",

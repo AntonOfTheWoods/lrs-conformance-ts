@@ -48,13 +48,22 @@ export const FixtureRefSchema = z
   .strict();
 export type FixtureRef = z.infer<typeof FixtureRefSchema>;
 
-export const RequestBodySchema = z
-  .object({
-    kind: z.literal("json"),
-    value: z.unknown(),
-    sourceFixture: FixtureRefSchema.optional(),
-  })
-  .strict();
+export const RequestBodySchema = z.discriminatedUnion("kind", [
+  z
+    .object({
+      kind: z.literal("json"),
+      value: z.unknown(),
+      sourceFixture: FixtureRefSchema.optional(),
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal("text"),
+      value: z.string(),
+      sourceFixture: FixtureRefSchema.optional(),
+    })
+    .strict(),
+]);
 export type RequestBody = z.infer<typeof RequestBodySchema>;
 
 export const HeaderExpectationSchema = z

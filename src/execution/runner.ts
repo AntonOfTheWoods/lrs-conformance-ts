@@ -176,8 +176,19 @@ async function executeHttpRequest(request: HttpRequest, options: RuntimeRunOptio
   };
 
   if (request.body) {
-    headers.set("content-type", "application/json");
-    init.body = JSON.stringify(request.body.value);
+    if (request.body.kind === "json") {
+      if (!headers.has("content-type")) {
+        headers.set("content-type", "application/json");
+      }
+
+      init.body = JSON.stringify(request.body.value);
+    } else {
+      if (!headers.has("content-type")) {
+        headers.set("content-type", "text/plain; charset=utf-8");
+      }
+
+      init.body = request.body.value;
+    }
   }
 
   const fetchImpl = options.fetchImpl ?? fetch;

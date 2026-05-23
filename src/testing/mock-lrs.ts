@@ -4,6 +4,7 @@ interface StoredDocument {
   id: string;
   contextKey: string;
   body: unknown;
+  mediaType: string;
   storedAt: number;
 }
 
@@ -19,9 +20,9 @@ export interface MockLrsHandle {
   stop(): void;
 }
 
-function createHeaders(version: string): Headers {
+function createHeaders(version: string, contentType = "application/json"): Headers {
   return new Headers({
-    "content-type": "application/json",
+    "content-type": contentType,
     "x-experience-api-version": version,
     "x-experience-api-consistent-through": new Date().toISOString(),
   });
@@ -77,6 +78,15 @@ function isValidTimestamp(value: string): boolean {
   return Number.isFinite(Date.parse(value));
 }
 
+function normalizeMediaType(value: string | null): string {
+  const mediaType = value?.split(";", 1)[0]?.trim().toLowerCase();
+  return mediaType && mediaType.length > 0 ? mediaType : "application/json";
+}
+
+function isJsonMediaType(value: string): boolean {
+  return value === "application/json" || value.endsWith("+json");
+}
+
 function isValidUrl(value: string): boolean {
   try {
     new URL(value);
@@ -121,9 +131,21 @@ function validateActorLike(value: unknown): string | undefined {
     return "actor-like value must be an object";
   }
 
+  const ifiCount = [value.mbox, value.mbox_sha1sum, value.openid, value.account].filter(
+    (candidate) => candidate !== undefined,
+  ).length;
+  if (ifiCount > 1) {
+    return "actor-like value must use only one IFI";
+  }
+
   const mbox = value.mbox;
   if (mbox !== undefined && (typeof mbox !== "string" || !isValidMailto(mbox))) {
     return "mbox must be a mailto IRI";
+  }
+
+  const mboxSha1sum = value.mbox_sha1sum;
+  if (mboxSha1sum !== undefined && typeof mboxSha1sum !== "string") {
+    return "mbox_sha1sum must be a string";
   }
 
   const openid = value.openid;
@@ -417,6 +439,46 @@ function deleteDocumentsByContext(store: Map<string, StoredDocument>, contextKey
   }
 }
 
+async function parseDocumentWriteBody(
+  request: Request,
+  version: string,
+): Promise<{ body: unknown; mediaType: string } | Response> {
+  const mediaType = normalizeMediaType(request.headers.get("content-type"));
+  const rawBody = await request.text();
+
+  if (!isJsonMediaType(mediaType)) {
+    return {
+      body: rawBody,
+      mediaType,
+    };
+  }
+
+  try {
+    return {
+      body: JSON.parse(rawBody),
+      mediaType,
+    };
+  } catch {
+    return new Response(JSON.stringify({ error: "invalid JSON body" }), {
+      status: 400,
+      headers: createHeaders(version),
+    });
+  }
+}
+
+function buildStoredDocumentResponse(document: StoredDocument, version: string): Response {
+  const body = isJsonMediaType(document.mediaType)
+    ? JSON.stringify(document.body)
+    : typeof document.body === "string"
+      ? document.body
+      : JSON.stringify(document.body ?? null);
+
+  return new Response(body, {
+    status: 200,
+    headers: createHeaders(version, document.mediaType),
+  });
+}
+
 async function handleDocumentResource(
   request: Request,
   url: URL,
@@ -447,12 +509,25 @@ async function handleDocumentResource(
       });
     }
 
-    const nextBody = await request.json();
+    const parsedBody = await parseDocumentWriteBody(request, version);
+    if (parsedBody instanceof Response) {
+      return parsedBody;
+    }
+
+    const { body: nextBody, mediaType: nextMediaType } = parsedBody;
     const documentKey = buildDocumentKey(contextKey, documentId);
     const existing = store.get(documentKey);
 
     let bodyToStore = nextBody;
+    let mediaTypeToStore = nextMediaType;
     if (request.method === "POST" && existing) {
+      if (!isJsonMediaType(existing.mediaType) || !isJsonMediaType(nextMediaType)) {
+        return new Response(JSON.stringify({ error: "document merge requires application/json documents" }), {
+          status: 400,
+          headers: createHeaders(version),
+        });
+      }
+
       if (!isJsonObject(existing.body) || !isJsonObject(nextBody)) {
         return new Response(JSON.stringify({ error: "document merge requires JSON objects" }), {
           status: 400,
@@ -464,12 +539,14 @@ async function handleDocumentResource(
         ...existing.body,
         ...nextBody,
       };
+      mediaTypeToStore = existing.mediaType;
     }
 
     store.set(documentKey, {
       id: documentId,
       contextKey,
       body: bodyToStore,
+      mediaType: mediaTypeToStore,
       storedAt: Date.now(),
     });
 
@@ -507,10 +584,7 @@ async function handleDocumentResource(
       });
     }
 
-    return new Response(JSON.stringify(document.body), {
-      status: 200,
-      headers: createHeaders(version),
-    });
+    return buildStoredDocumentResponse(document, version);
   }
 
   if (request.method === "DELETE") {
