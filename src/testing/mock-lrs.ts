@@ -43,6 +43,8 @@ const validBasicAuthorization = "Basic cHJvb2YtYmFzaWMtdXNlcjpwcm9vZi1iYXNpYy1wY
 const validBasicUserName = "proof-basic-user";
 const validBasicPassword = "proof-basic-password";
 const validOauthAuthorizationPrefix = "OAuth ";
+const signatureAttachmentUsageType = "http://adlnet.gov/expapi/attachments/signature";
+const allowedSignatureAlgorithms = new Set(["RS256", "RS384", "RS512"]);
 const versionHeaderExemptPaths = new Set(["/xapi/about"]);
 const versionedApiPaths = new Set([
   "/xapi/statements",
@@ -416,6 +418,55 @@ function isValidLanguageTag(value: string): boolean {
 
 function isValidIsoDuration(value: string): boolean {
   return /^P(?=.)(?:\d+W|(?:\d+Y)?(?:\d+M)?(?:\d+D)?(?:T(?=\d)(?:\d+H)?(?:\d+M)?(?:\d+(?:\.\d+)?S)?)?)$/i.test(value);
+}
+
+function decodeBase64UrlSegment(value: string): string | undefined {
+  try {
+    const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+    return Buffer.from(padded, "base64").toString("utf8");
+  } catch {
+    return undefined;
+  }
+}
+
+function truncateDurationToHundredths(value: string): string {
+  return value.replace(/(\d+\.\d{2})\d+(S)/g, "$1$2");
+}
+
+function normalizeSignedStatementComparisonValue(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map((child) => normalizeSignedStatementComparisonValue(child));
+  }
+
+  if (typeof value === "string" && isValidIsoDuration(value)) {
+    return truncateDurationToHundredths(value);
+  }
+
+  if (!isJsonObject(value)) {
+    return value;
+  }
+
+  const normalized: JsonObject = {};
+  for (const [key, child] of Object.entries(value)) {
+    if (key === "attachments") {
+      continue;
+    }
+
+    normalized[key] = normalizeSignedStatementComparisonValue(child);
+  }
+
+  return normalized;
+}
+
+function isAutoPopulatedAuthority(value: unknown): boolean {
+  return (
+    isJsonObject(value) &&
+    value.objectType === "Agent" &&
+    isJsonObject(value.account) &&
+    value.account.homePage === populatedAuthorityAccountHomePage &&
+    value.account.name === validBasicUserName
+  );
 }
 
 function validateLanguageMapValue(value: unknown, label: string): string | undefined {
@@ -1415,6 +1466,19 @@ function parseAgentQuery(value: string | null): JsonObject | undefined {
   }
 }
 
+function validateAgentQueryParameter(value: string | null): string | undefined {
+  if (!isValidAgentParameter(value)) {
+    return "agent must be a valid JSON Agent";
+  }
+
+  const agent = parseAgentQuery(value);
+  if (!agent || agent.objectType === "Group" || agent.member !== undefined) {
+    return "agent must be a valid JSON Agent";
+  }
+
+  return validateAgentLike(agent);
+}
+
 function isBooleanQueryValue(value: string | null): boolean {
   return value === "true" || value === "false";
 }
@@ -1905,16 +1969,7 @@ function validateAgentResourceQuery(url: URL): string | undefined {
     return "agent is required";
   }
 
-  if (!isValidAgentParameter(rawAgent)) {
-    return "agent must be a valid JSON Agent";
-  }
-
-  const agent = parseAgentQuery(rawAgent);
-  if (!agent || agent.objectType === "Group" || agent.member !== undefined) {
-    return "agent must be a valid JSON Agent";
-  }
-
-  return validateAgentLike(agent);
+  return validateAgentQueryParameter(rawAgent);
 }
 
 function validateActivityResourceQuery(url: URL): string | undefined {
@@ -1981,7 +2036,9 @@ function buildStoredStatement(
   }
 
   storedBody.stored = storedAt;
-  if (typeof storedBody.timestamp !== "string" || !isValidTimestamp(storedBody.timestamp)) {
+  if (typeof storedBody.timestamp === "string" && isValidTimestamp(storedBody.timestamp)) {
+    storedBody.timestamp = new Date(storedBody.timestamp).toISOString();
+  } else {
     storedBody.timestamp = storedAt;
   }
 
@@ -2369,23 +2426,84 @@ function matchesCollectionStatementQuery(statement: StoredStatement, url: URL): 
   return true;
 }
 
-function buildContextKey(url: URL, requiredParams: string[]): string | undefined {
+function buildContextKey(url: URL, contextParams: string[]): string {
   const values: string[] = [];
 
-  for (const name of requiredParams) {
+  for (const name of contextParams) {
     const value = url.searchParams.get(name);
     if (!value) {
-      return undefined;
-    }
-
-    if (name === "agent" && !isValidAgentParameter(value)) {
-      return undefined;
+      continue;
     }
 
     values.push(`${name}=${value}`);
   }
 
   return values.join("&");
+}
+
+function validateDocumentResourceQuery(
+  url: URL,
+  effectiveMethod: string,
+  options: {
+    requiredParams: string[];
+    idParam: string;
+    allowsSince?: boolean;
+    allowRegistration?: boolean;
+    validateActivityId?: boolean;
+    validateAgent?: boolean;
+  },
+): string | undefined {
+  const allowedParams = new Set<string>([...options.requiredParams, options.idParam]);
+
+  if (options.allowsSince && effectiveMethod === "GET") {
+    allowedParams.add("since");
+  }
+
+  if (options.allowRegistration) {
+    allowedParams.add("registration");
+  }
+
+  for (const name of url.searchParams.keys()) {
+    if (!allowedParams.has(name)) {
+      return `${name} is not a recognized parameter`;
+    }
+  }
+
+  for (const name of options.requiredParams) {
+    if (!url.searchParams.get(name)) {
+      return `${options.requiredParams.join(", ")} are required`;
+    }
+  }
+
+  const activityId = url.searchParams.get("activityId");
+  if (options.validateActivityId && activityId && !hasUriScheme(activityId)) {
+    return "activityId must be an IRI";
+  }
+
+  if (options.validateAgent) {
+    const agentError = validateAgentQueryParameter(url.searchParams.get("agent"));
+    if (agentError) {
+      return agentError;
+    }
+  }
+
+  const registration = url.searchParams.get("registration");
+  if (options.allowRegistration && registration !== null && !isUuid(registration)) {
+    return "registration must be a UUID";
+  }
+
+  const since = url.searchParams.get("since");
+  if (since !== null) {
+    if (!(options.allowsSince && effectiveMethod === "GET")) {
+      return "since is not a recognized parameter";
+    }
+
+    if (!isValidTimestamp(since)) {
+      return "since must be a timestamp";
+    }
+  }
+
+  return undefined;
 }
 
 function buildDocumentKey(contextKey: string, documentId: string): string {
@@ -2445,6 +2563,7 @@ function buildStoredDocumentResponse(document: StoredDocument, version: string):
     status: 200,
     headers: createHeaders(version, document.mediaType, {
       etag,
+      "last-modified": new Date(document.storedAt).toUTCString(),
     }),
   });
 }
@@ -2532,6 +2651,158 @@ function validateStatementAttachmentParts(
   return undefined;
 }
 
+function validateSignedStatementAttachments(
+  statements: JsonObject[],
+  attachmentParts: Map<string, StoredAttachmentPart>,
+  version: string,
+): Response | undefined {
+  for (const statement of statements) {
+    if (!Array.isArray(statement.attachments)) {
+      continue;
+    }
+
+    for (const attachment of statement.attachments) {
+      if (!isJsonObject(attachment) || attachment.usageType !== signatureAttachmentUsageType) {
+        continue;
+      }
+
+      if (attachment.contentType !== "application/octet-stream") {
+        return new Response(
+          JSON.stringify({ error: "signed statement attachments must use application/octet-stream" }),
+          {
+            status: 400,
+            headers: createHeaders(version),
+          },
+        );
+      }
+
+      if (typeof attachment.sha2 !== "string") {
+        return new Response(JSON.stringify({ error: "signed statement attachments must include a sha2 hash" }), {
+          status: 400,
+          headers: createHeaders(version),
+        });
+      }
+
+      const signaturePart = attachmentParts.get(attachment.sha2);
+      if (!signaturePart) {
+        continue;
+      }
+
+      const actualSha2 = createHash("sha256").update(signaturePart.body).digest("hex");
+      if (actualSha2 !== attachment.sha2) {
+        return new Response(
+          JSON.stringify({ error: "signed statement signature hash does not match attachment metadata" }),
+          {
+            status: 400,
+            headers: createHeaders(version),
+          },
+        );
+      }
+
+      const segments = signaturePart.body.split(".");
+      if (segments.length !== 3 || segments.some((segment) => segment.length === 0)) {
+        return new Response(
+          JSON.stringify({ error: "signed statement attachment must contain a JWS compact serialization" }),
+          {
+            status: 400,
+            headers: createHeaders(version),
+          },
+        );
+      }
+
+      const [headerSegment, payloadSegment] = segments;
+      if (!headerSegment || !payloadSegment) {
+        return new Response(
+          JSON.stringify({ error: "signed statement attachment must contain a JWS compact serialization" }),
+          {
+            status: 400,
+            headers: createHeaders(version),
+          },
+        );
+      }
+
+      const headerText = decodeBase64UrlSegment(headerSegment);
+      if (!headerText) {
+        return new Response(
+          JSON.stringify({ error: "signed statement attachment must contain a JWS compact serialization" }),
+          {
+            status: 400,
+            headers: createHeaders(version),
+          },
+        );
+      }
+
+      let header: unknown;
+      try {
+        header = JSON.parse(headerText);
+      } catch {
+        return new Response(
+          JSON.stringify({ error: "signed statement attachment must contain a JWS compact serialization" }),
+          {
+            status: 400,
+            headers: createHeaders(version),
+          },
+        );
+      }
+
+      if (!isJsonObject(header) || typeof header.alg !== "string" || !allowedSignatureAlgorithms.has(header.alg)) {
+        return new Response(
+          JSON.stringify({ error: "signed statement signature algorithm must be RS256, RS384, or RS512" }),
+          {
+            status: 400,
+            headers: createHeaders(version),
+          },
+        );
+      }
+
+      const payloadText = decodeBase64UrlSegment(payloadSegment);
+      if (!payloadText) {
+        return new Response(JSON.stringify({ error: "signed statement signature payload must be valid JSON" }), {
+          status: 400,
+          headers: createHeaders(version),
+        });
+      }
+
+      let payload: unknown;
+      try {
+        payload = JSON.parse(payloadText);
+      } catch {
+        return new Response(JSON.stringify({ error: "signed statement signature payload must be valid JSON" }), {
+          status: 400,
+          headers: createHeaders(version),
+        });
+      }
+
+      if (!isJsonObject(payload)) {
+        return new Response(JSON.stringify({ error: "signed statement signature payload must be valid JSON" }), {
+          status: 400,
+          headers: createHeaders(version),
+        });
+      }
+
+      const normalizedStatement = normalizeSignedStatementComparisonValue(statement);
+      const normalizedPayload = normalizeSignedStatementComparisonValue(payload);
+      if (
+        isJsonObject(normalizedStatement) &&
+        isJsonObject(normalizedPayload) &&
+        normalizedPayload.authority === undefined &&
+        isAutoPopulatedAuthority(normalizedStatement.authority)
+      ) {
+        delete normalizedStatement.authority;
+      }
+
+      if (JSON.stringify(normalizedStatement) !== JSON.stringify(normalizedPayload)) {
+        return new Response(JSON.stringify({ error: "signed statement signature payload must match the statement" }), {
+          status: 400,
+          headers: createHeaders(version),
+        });
+      }
+    }
+  }
+
+  return undefined;
+}
+
 async function handleDocumentResource(
   request: Request,
   url: URL,
@@ -2539,18 +2810,25 @@ async function handleDocumentResource(
   store: Map<string, StoredDocument>,
   options: {
     requiredParams: string[];
+    contextParams?: string[];
     idParam: string;
     allowCollectionDelete: boolean;
+    allowsSince?: boolean;
+    allowRegistration?: boolean;
+    validateActivityId?: boolean;
+    validateAgent?: boolean;
   },
 ): Promise<Response> {
   const effectiveMethod = request.method === "HEAD" ? "GET" : request.method;
-  const contextKey = buildContextKey(url, options.requiredParams);
-  if (!contextKey) {
-    return new Response(JSON.stringify({ error: `${options.requiredParams.join(", ")} are required` }), {
+  const queryError = validateDocumentResourceQuery(url, effectiveMethod, options);
+  if (queryError) {
+    return new Response(JSON.stringify({ error: queryError }), {
       status: 400,
       headers: createHeaders(version),
     });
   }
+
+  const contextKey = buildContextKey(url, options.contextParams ?? options.requiredParams);
 
   const documentId = url.searchParams.get(options.idParam);
   const since = url.searchParams.get("since");
@@ -2823,24 +3101,35 @@ export function startMockLrs(version = "2.0.0"): MockLrsHandle {
       if (url.pathname === "/xapi/activities/state") {
         return handleDocumentResource(request, url, version, stateDocuments, {
           requiredParams: ["activityId", "agent"],
+          contextParams: ["activityId", "agent", "registration"],
           idParam: "stateId",
           allowCollectionDelete: true,
+          allowsSince: true,
+          allowRegistration: true,
+          validateActivityId: true,
+          validateAgent: true,
         });
       }
 
       if (url.pathname === "/xapi/activities/profile") {
         return handleDocumentResource(request, url, version, activityProfileDocuments, {
           requiredParams: ["activityId"],
+          contextParams: ["activityId"],
           idParam: "profileId",
           allowCollectionDelete: false,
+          allowsSince: true,
+          validateActivityId: true,
         });
       }
 
       if (url.pathname === "/xapi/agents/profile") {
         return handleDocumentResource(request, url, version, agentProfileDocuments, {
           requiredParams: ["agent"],
+          contextParams: ["agent"],
           idParam: "profileId",
           allowCollectionDelete: false,
+          allowsSince: true,
+          validateAgent: true,
         });
       }
 
@@ -2869,6 +3158,15 @@ export function startMockLrs(version = "2.0.0"): MockLrsHandle {
         );
         if (attachmentValidationError) {
           return attachmentValidationError;
+        }
+
+        const signedStatementValidationError = validateSignedStatementAttachments(
+          preparedStatements,
+          payload.attachmentParts,
+          version,
+        );
+        if (signedStatementValidationError) {
+          return signedStatementValidationError;
         }
 
         commitStatements(preparedStatements, payload.attachmentParts, statements, voidedStatementIds);
@@ -2935,6 +3233,15 @@ export function startMockLrs(version = "2.0.0"): MockLrsHandle {
         const attachmentValidationError = validateStatementAttachmentParts([body], payload.attachmentParts, version);
         if (attachmentValidationError) {
           return attachmentValidationError;
+        }
+
+        const signedStatementValidationError = validateSignedStatementAttachments(
+          [body],
+          payload.attachmentParts,
+          version,
+        );
+        if (signedStatementValidationError) {
+          return signedStatementValidationError;
         }
 
         if (!statements.has(statementId)) {

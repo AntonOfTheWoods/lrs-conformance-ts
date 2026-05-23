@@ -15,7 +15,7 @@ import {
   createV20StateResourceProofSliceSuite,
 } from "../src/specs/v2_0/proof-slice";
 
-const expectedCaseCount = 1051;
+const expectedCaseCount = 1129;
 const expectedCaseIdAnchors = [
   "v2.statements.required-fields.missing-actor",
   "v2.statements.invalid-types.result-completion-string",
@@ -159,6 +159,18 @@ const expectedCaseIdAnchors = [
   "v2.statements.voiding.cannot-target-voiding-statement",
   "v2.statements.retrieval.statement-result-array",
   "v2.statements.retrieval.pagination.more-container",
+  "v2.statements.additional-data-types.iri-comparison",
+  "v2.statements.additional-data-types.signed-duration-comparison-truncates-hundredths",
+  "v2.statements.signed-statements.missing-signature-part",
+  "v2.statements.signed-statements.accepts-rs512",
+  "v2.statements.special-data-types.extensions.statement-activity.empty-extensions",
+  "v2.statements.special-data-types.extensions.substatement-context.null",
+  "v2.statements.special-data-types.timestamp-millisecond-precision",
+  "v2.activities-state.validation.missing-activityId.put",
+  "v2.activities-state.registration.get",
+  "v2.activities-profile.validation.missing-profileId.put",
+  "v2.agents-profile.validation.invalid-agent.post",
+  "v2.agents-profile.validation.missing-profileId.delete",
 ];
 
 describe("RegistryBuilder", () => {
@@ -312,15 +324,18 @@ describe("RegistryBuilder", () => {
       "Statement Query Validation",
       "Statement Query",
       "Statement Id Requirements",
+      "Additional Data Types",
+      "Signed Statements",
+      "Special Data Types And Rules",
     ]);
-    expect(batteries["2.0.0"]?.tests.children[0]?.children).toHaveLength(11);
+    expect(batteries["2.0.0"]?.tests.children[0]?.children).toHaveLength(14);
     expect(batteries["2.0.0"]?.tests.children[0]?.children[2]?.children).toHaveLength(13);
     expect(batteries["2.0.0"]?.tests.children[0]?.children[3]?.children).toHaveLength(4);
     expect(batteries["2.0.0"]?.tests.children[0]?.children[4]?.children).toHaveLength(22);
     expect(batteries["2.0.0"]?.tests.children[0]?.children[5]?.children).toHaveLength(3);
-    expect(batteries["2.0.0"]?.tests.children[1]?.children).toHaveLength(5);
-    expect(batteries["2.0.0"]?.tests.children[2]?.children).toHaveLength(5);
-    expect(batteries["2.0.0"]?.tests.children[3]?.children).toHaveLength(5);
+    expect(batteries["2.0.0"]?.tests.children[1]?.children).toHaveLength(7);
+    expect(batteries["2.0.0"]?.tests.children[2]?.children).toHaveLength(6);
+    expect(batteries["2.0.0"]?.tests.children[3]?.children).toHaveLength(6);
     expect(batteries["2.0.0"]?.tests.children[4]?.children).toHaveLength(3);
     expect(batteries["2.0.0"]?.tests.children[5]?.children).toHaveLength(2);
     expect(batteries["2.0.0"]?.tests.children[6]?.children).toHaveLength(2);

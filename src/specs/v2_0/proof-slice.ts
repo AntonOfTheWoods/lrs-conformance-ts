@@ -60,8 +60,14 @@ const timestampRequirementsLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.4.2-Timestamp-Requirements.js";
 const versionRequirementsLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.4.3-Version-Requirements.js";
+const additionalDataTypesLegacySuiteFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.7-Additional-Requirements-for-Data-Types.js";
 const retrievalOfStatementsLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/E.Data2.5-RetrievalofStatements.js";
+const signedStatementsLegacySuiteFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/E.Data2.6-SignedStatements.js";
+const specialDataTypesLegacySuiteFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/E.Data4.0-SpecialDataTypesAndRules.js";
 const statementResourceLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.1.6.1-Statement-Resource.js";
 const errorCodesLegacySuiteFile =
@@ -122,6 +128,8 @@ const subStatementsLegacyConfigFile =
 const proofUuidPrefix = "33333333-3333-4333-8333-";
 const multipartStatementRequestBoundary = "mock-proof-statement-request";
 const multipartStatementResponseContentType = "multipart/mixed; boundary=mock-xapi-statement-attachments";
+const signatureAttachmentUsageType = "http://adlnet.gov/expapi/attachments/signature";
+const signatureAttachmentContentType = "application/octet-stream";
 const isoTimestampHeaderPattern = "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$";
 const invalidUuidNumeric = 12345;
 const invalidUuidObject = { key: "should fail" };
@@ -190,6 +198,44 @@ function buildVersionedRequest(
           }
       : undefined,
   };
+}
+
+function omitQueryParam(query: Record<string, string>, key: string): Record<string, string> {
+  const nextQuery = { ...query };
+  delete nextQuery[key];
+  return nextQuery;
+}
+
+function buildDocumentResourceValidationCase(options: {
+  caseId: string;
+  title: string;
+  specVersion: typeof specVersion;
+  endpoint: EndpointKind;
+  method: HttpMethod;
+  query: Record<string, string>;
+  body?: Parameters<typeof buildVersionedRequest>[3];
+  requirementRefs: RequirementRef[];
+  tags: string[];
+  capabilityFlags: string[];
+  legacyTraceSuiteFile: string;
+  legacyTraceConfigFile?: string;
+  notes?: string[];
+}): CaseDefinition {
+  return singleRequestCase({
+    caseId: options.caseId,
+    title: options.title,
+    specVersion: options.specVersion,
+    requirementRefs: options.requirementRefs,
+    tags: options.tags,
+    capabilityFlags: options.capabilityFlags,
+    legacyTraceSuiteFile: options.legacyTraceSuiteFile,
+    legacyTraceConfigFile: options.legacyTraceConfigFile,
+    request: buildVersionedRequest(options.method, options.endpoint, options.query, options.body),
+    assertion: {
+      status: 400,
+    },
+    notes: options.notes ?? [],
+  });
 }
 
 function buildStatementBody(body: JsonObject): NonNullable<HttpRequest["body"]> {
@@ -392,6 +438,22 @@ interface MultipartStatementExtraPart {
   body: string;
 }
 
+interface SignedStatementAttachment {
+  metadata: JsonObject;
+  part: MultipartStatementAttachment;
+}
+
+interface SignedStatementRequestOptions {
+  algorithm?: string;
+  signaturePayload?: JsonObject | string;
+  signatureContentType?: string;
+  signatureUsageType?: string;
+  boundary?: string;
+  contentType?: string;
+  extraHeaders?: Record<string, string>;
+  extraParts?: MultipartStatementExtraPart[];
+}
+
 function buildMultipartStatementRequestBody(
   statement: JsonObject,
   attachments: MultipartStatementAttachment[],
@@ -445,6 +507,68 @@ function buildMultipartStatementPostRequest(
       contentType: options.contentType ?? `multipart/mixed; boundary=${boundary}`,
     },
     extraHeaders,
+  );
+}
+
+function buildMockJws(payload: JsonObject | string, algorithm = "RS256"): string {
+  const header = Buffer.from(JSON.stringify({ alg: algorithm }), "utf8").toString("base64url");
+  const payloadText = typeof payload === "string" ? payload : JSON.stringify(payload);
+  const encodedPayload = Buffer.from(payloadText, "utf8").toString("base64url");
+  const signature = Buffer.from(`proof-signature:${algorithm}`, "utf8").toString("base64url");
+  return `${header}.${encodedPayload}.${signature}`;
+}
+
+function buildSignedStatementAttachment(
+  signatureBody: string,
+  contentType = signatureAttachmentContentType,
+  usageType = signatureAttachmentUsageType,
+): SignedStatementAttachment {
+  const sha2 = createHash("sha256").update(signatureBody).digest("hex");
+
+  return {
+    metadata: {
+      usageType,
+      display: {
+        "en-US": "Signed by the Proof Slice",
+      },
+      description: {
+        "en-US": "Signed by the Proof Slice",
+      },
+      contentType,
+      length: signatureBody.length,
+      sha2,
+    },
+    part: {
+      contentType,
+      sha2,
+      body: signatureBody,
+    },
+  };
+}
+
+function buildSignedStatementPostRequest(
+  statement: JsonObject,
+  options: SignedStatementRequestOptions = {},
+): HttpRequest {
+  const signatureBody = buildMockJws(options.signaturePayload ?? statement, options.algorithm ?? "RS256");
+  const signatureAttachment = buildSignedStatementAttachment(
+    signatureBody,
+    options.signatureContentType ?? signatureAttachmentContentType,
+    options.signatureUsageType ?? signatureAttachmentUsageType,
+  );
+
+  return buildMultipartStatementPostRequest(
+    {
+      ...statement,
+      attachments: [signatureAttachment.metadata],
+    },
+    [signatureAttachment.part],
+    options.extraHeaders ?? {},
+    {
+      boundary: options.boundary,
+      contentType: options.contentType,
+      extraParts: options.extraParts,
+    },
   );
 }
 
@@ -9662,6 +9786,699 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     }),
   );
 
+  const additionalDataTypeIriRequirementRefs: RequirementRef[] = [
+    {
+      id: "LEGACY-DATATYPES-IRI-COMPARISON",
+      section: "Additional Requirements for Data Types - IRIs",
+      title: "IRIs are compared using simple string comparison or syntax-based normalization",
+    },
+  ];
+  const additionalDataTypeDurationRequirementRefs: RequirementRef[] = [
+    {
+      id: "LEGACY-DATATYPES-DURATION-PRECISION",
+      section: "Additional Requirements for Data Types - Duration",
+      title: "Durations with precision beyond 0.01 seconds are accepted and may be truncated without rounding",
+    },
+  ];
+  const additionalDataTypeTimestampRequirementRefs: RequirementRef[] = [
+    {
+      id: "LEGACY-DATATYPES-TIMESTAMP-UTC",
+      section: "Additional Requirements for Data Types - Timestamps",
+      title: "Retrieved timestamps preserve UTC equivalence",
+    },
+  ];
+  const signedStatementPresenceRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00115",
+      section: "Data 2.6.s4.b1",
+      title: "Signed statements use a JWS attachment with application/octet-stream and raw signature data",
+    },
+  ];
+  const signedStatementPayloadRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00116",
+      section: "Data 2.6.s4.b3",
+      title:
+        "The signed statement JWS payload is a valid JSON serialization of the statement before the signature is added",
+    },
+  ];
+  const signedStatementAlgorithmRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00117",
+      section: "Data 2.6.s4.b4",
+      title: 'The signed statement JWS algorithm is one of "RS256", "RS384", or "RS512"',
+    },
+  ];
+  const specialDataTypesExtensionRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00119",
+      section: "Data 4.1, XAPI-00119",
+      title: "Extensions may contain null, empty strings, and empty objects",
+    },
+  ];
+  const specialDataTypesTimestampRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00122",
+      section: "Data 4.5.s1.b3",
+      title: "Timestamps preserve precision to at least milliseconds when statements are recalled",
+    },
+  ];
+
+  const iriComparisonSlug = buildProofUuid(5000);
+  const iriComparisonSimple = `http://example.com/path/${iriComparisonSlug}`;
+  const iriComparisonNormalized = `http://example.com/path/../${iriComparisonSlug}`;
+  const iriComparisonStatement = buildProofStatement(5000, [
+    {
+      operation: "set",
+      path: ["object"],
+      value: buildActivityObjectFixture(iriComparisonNormalized),
+    },
+  ]);
+
+  const additionalIriComparisonCase = requestSequenceCase({
+    caseId: "v2.statements.additional-data-types.iri-comparison",
+    title: "The Activities Resource supports retrieval after statements store equivalent IRIs",
+    specVersion,
+    requirementRefs: additionalDataTypeIriRequirementRefs,
+    tags: ["v2.0.0", "statements", "additional-data-types", "iri"],
+    capabilityFlags: ["activities", "retrieval", "iri"],
+    legacyTraceSuiteFile: additionalDataTypesLegacySuiteFile,
+    notes: ["proof-slice additional data types iri comparison"],
+    steps: [
+      {
+        request: buildStatementPostRequest(iriComparisonStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildActivitiesGetRequest(iriComparisonSimple),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["id"],
+              equals: iriComparisonSimple,
+            },
+          ],
+        },
+      },
+      {
+        request: buildActivitiesGetRequest(iriComparisonNormalized),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["id"],
+              equals: iriComparisonNormalized,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const highPrecisionDuration = "P1DT12H36M0.12567S";
+  const highPrecisionDurationStatement = buildProofStatement(5001, [
+    {
+      operation: "set",
+      path: ["result"],
+      value: buildResultFixture({
+        duration: highPrecisionDuration,
+      }),
+    },
+  ]);
+
+  const additionalHighPrecisionDurationAcceptedCase = singleRequestCase({
+    caseId: "v2.statements.additional-data-types.duration-high-precision-accepted",
+    title: "The Statements resource accepts Durations with precision beyond 0.01 seconds",
+    specVersion,
+    requirementRefs: additionalDataTypeDurationRequirementRefs,
+    tags: ["v2.0.0", "statements", "additional-data-types", "duration"],
+    capabilityFlags: ["duration", "validation"],
+    legacyTraceSuiteFile: additionalDataTypesLegacySuiteFile,
+    request: buildStatementPostRequest(highPrecisionDurationStatement),
+    assertion: {
+      status: 200,
+    },
+    notes: ["proof-slice additional data types duration precision acceptance"],
+  });
+
+  const additionalHighPrecisionDurationRoundTripCase = requestSequenceCase({
+    caseId: "v2.statements.additional-data-types.duration-high-precision-roundtrip",
+    title: "The Statements resource returns stored high-precision Durations without rounding them upward",
+    specVersion,
+    requirementRefs: additionalDataTypeDurationRequirementRefs,
+    tags: ["v2.0.0", "statements", "additional-data-types", "duration", "retrieval"],
+    capabilityFlags: ["duration", "retrieval"],
+    legacyTraceSuiteFile: additionalDataTypesLegacySuiteFile,
+    notes: ["proof-slice additional data types duration precision roundtrip"],
+    steps: [
+      {
+        request: buildStatementPostRequest(highPrecisionDurationStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementGetRequest(highPrecisionDurationStatement.id),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["result", "duration"],
+              equals: highPrecisionDuration,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const signedDurationPayloadStatement = buildProofStatement(5002, [
+    {
+      operation: "set",
+      path: ["result"],
+      value: buildResultFixture({
+        duration: "P1DT12H36M0.12S",
+      }),
+    },
+  ]);
+  const signedDurationSubmittedStatement = buildProofStatement(5002, [
+    {
+      operation: "set",
+      path: ["result"],
+      value: buildResultFixture({
+        duration: "P1DT12H36M0.1237S",
+      }),
+    },
+  ]);
+
+  const additionalSignedDurationComparisonCase = singleRequestCase({
+    caseId: "v2.statements.additional-data-types.signed-duration-comparison-truncates-hundredths",
+    title: "The Statements resource compares signed statement Durations only through the hundredths place",
+    specVersion,
+    requirementRefs: additionalDataTypeDurationRequirementRefs,
+    tags: ["v2.0.0", "statements", "additional-data-types", "duration", "signed"],
+    capabilityFlags: ["duration", "signed"],
+    legacyTraceSuiteFile: additionalDataTypesLegacySuiteFile,
+    request: buildSignedStatementPostRequest(signedDurationSubmittedStatement, {
+      signaturePayload: signedDurationPayloadStatement,
+    }),
+    assertion: {
+      status: 200,
+    },
+    notes: ["proof-slice additional data types signed duration comparison"],
+  });
+
+  const utcTimestampOriginal = "2023-05-04T12:00:00-05:00";
+  const utcTimestampNormalized = "2023-05-04T17:00:00.000Z";
+  const utcTimestampStatement = buildProofStatement(5003, [
+    {
+      operation: "set",
+      path: ["timestamp"],
+      value: utcTimestampOriginal,
+    },
+  ]);
+
+  const additionalTimestampUtcCase = requestSequenceCase({
+    caseId: "v2.statements.additional-data-types.timestamp-utc-roundtrip",
+    title: "The Statements resource returns timestamps in UTC-equivalent form when recalled",
+    specVersion,
+    requirementRefs: additionalDataTypeTimestampRequirementRefs,
+    tags: ["v2.0.0", "statements", "additional-data-types", "timestamp"],
+    capabilityFlags: ["timestamp", "retrieval"],
+    legacyTraceSuiteFile: additionalDataTypesLegacySuiteFile,
+    notes: ["proof-slice additional data types timestamp utc equivalence"],
+    steps: [
+      {
+        request: buildStatementPostRequest(utcTimestampStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementGetRequest(utcTimestampStatement.id),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["timestamp"],
+              equals: utcTimestampNormalized,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const buildStatementPutAcceptanceCase = (options: {
+    caseId: string;
+    title: string;
+    requirementRefs: RequirementRef[];
+    tags: string[];
+    capabilityFlags: string[];
+    statement: JsonObject;
+    legacyTraceSuiteFile: string;
+    notes: string[];
+  }) => {
+    const statementId = options.statement.id;
+    if (typeof statementId !== "string") {
+      throw new Error("Statement PUT proof cases require a statement id");
+    }
+
+    return singleRequestCase({
+      caseId: options.caseId,
+      title: options.title,
+      specVersion,
+      requirementRefs: options.requirementRefs,
+      tags: options.tags,
+      capabilityFlags: options.capabilityFlags,
+      legacyTraceSuiteFile: options.legacyTraceSuiteFile,
+      request: buildStatementPutRequest(statementId, options.statement),
+      assertion: {
+        status: 204,
+      },
+      notes: options.notes,
+    });
+  };
+
+  interface ExtensionAcceptancePlacement {
+    idSuffix: string;
+    title: string;
+    buildStatement(sequence: number, extensions: JsonObject): JsonObject;
+  }
+
+  const extensionAcceptancePlacements: ExtensionAcceptancePlacement[] = [
+    {
+      idSuffix: "statement-activity",
+      title: "statement activity extensions",
+      buildStatement(sequence, extensions) {
+        return buildProofStatement(sequence, [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildActivityObjectFixture(`https://example.test/xapi/activities/special-data-types/${sequence}`, {
+              definition: buildActivityDefinitionFixture({
+                extensions,
+              }),
+            }),
+          },
+        ]);
+      },
+    },
+    {
+      idSuffix: "statement-result",
+      title: "statement result extensions",
+      buildStatement(sequence, extensions) {
+        return buildProofStatement(sequence, [
+          {
+            operation: "set",
+            path: ["result"],
+            value: buildResultFixture({
+              extensions,
+            }),
+          },
+        ]);
+      },
+    },
+    {
+      idSuffix: "statement-context",
+      title: "statement context extensions",
+      buildStatement(sequence, extensions) {
+        return buildProofStatement(sequence, [
+          {
+            operation: "set",
+            path: ["context"],
+            value: {
+              extensions,
+            },
+          },
+        ]);
+      },
+    },
+    {
+      idSuffix: "substatement-activity",
+      title: "statement substatement activity extensions",
+      buildStatement(sequence, extensions) {
+        return buildProofStatement(sequence, [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture({
+              object: buildActivityObjectFixture(
+                `https://example.test/xapi/activities/special-data-types/substatement/${sequence}`,
+                {
+                  definition: buildActivityDefinitionFixture({
+                    extensions,
+                  }),
+                },
+              ),
+            }),
+          },
+        ]);
+      },
+    },
+    {
+      idSuffix: "substatement-result",
+      title: "statement substatement result extensions",
+      buildStatement(sequence, extensions) {
+        return buildProofStatement(sequence, [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture({
+              result: buildResultFixture({
+                extensions,
+              }),
+            }),
+          },
+        ]);
+      },
+    },
+    {
+      idSuffix: "substatement-context",
+      title: "statement substatement context extensions",
+      buildStatement(sequence, extensions) {
+        return buildProofStatement(sequence, [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture({
+              context: {
+                extensions,
+              },
+            }),
+          },
+        ]);
+      },
+    },
+  ];
+
+  const extensionAcceptanceVariants = [
+    {
+      idSuffix: "empty-extensions",
+      label: "extensions can be empty object",
+      buildExtensions: () => ({}),
+    },
+    {
+      idSuffix: "empty-string",
+      label: "extension values can be empty string",
+      buildExtensions: () => ({
+        "http://example.com/ex": "",
+      }),
+    },
+    {
+      idSuffix: "null",
+      label: "extension values can be null",
+      buildExtensions: () => ({
+        "http://example.com/ex": null,
+      }),
+    },
+    {
+      idSuffix: "empty-object",
+      label: "extension values can be empty object",
+      buildExtensions: () => ({
+        "http://example.com/ex": {},
+      }),
+    },
+  ] as const;
+
+  let extensionAcceptanceSequence = 5100;
+  const specialExtensionAcceptanceCases = extensionAcceptancePlacements.flatMap((placement) =>
+    extensionAcceptanceVariants.map((variant) => {
+      const statement = placement.buildStatement(extensionAcceptanceSequence++, variant.buildExtensions());
+
+      return buildStatementPutAcceptanceCase({
+        caseId: `v2.statements.special-data-types.extensions.${placement.idSuffix}.${variant.idSuffix}`,
+        title: `The Statements resource accepts PUT when ${placement.title} ${variant.label}`,
+        requirementRefs: specialDataTypesExtensionRequirementRefs,
+        tags: ["v2.0.0", "statements", "special-data-types", "extensions", "put"],
+        capabilityFlags: ["extensions", "put", "special-data-types"],
+        statement,
+        legacyTraceSuiteFile: specialDataTypesLegacySuiteFile,
+        notes: [`proof-slice special data types ${placement.idSuffix} ${variant.idSuffix}`],
+      });
+    }),
+  );
+
+  const millisecondPrecisionOriginal = "2023-05-04T12:00:00.123456-05:00";
+  const millisecondPrecisionNormalized = "2023-05-04T17:00:00.123Z";
+  const timestampPrecisionStatement = buildProofStatement(5200, [
+    {
+      operation: "set",
+      path: ["timestamp"],
+      value: millisecondPrecisionOriginal,
+    },
+  ]);
+  const storedPrecisionStatement = buildProofStatement(5201, [
+    {
+      operation: "set",
+      path: ["timestamp"],
+      value: millisecondPrecisionOriginal,
+    },
+  ]);
+
+  const specialTimestampPrecisionCase = requestSequenceCase({
+    caseId: "v2.statements.special-data-types.timestamp-millisecond-precision",
+    title: "The Statements resource recalls timestamps with at least millisecond precision",
+    specVersion,
+    requirementRefs: specialDataTypesTimestampRequirementRefs,
+    tags: ["v2.0.0", "statements", "special-data-types", "timestamp"],
+    capabilityFlags: ["timestamp", "retrieval", "special-data-types"],
+    legacyTraceSuiteFile: specialDataTypesLegacySuiteFile,
+    notes: ["proof-slice special data types timestamp precision"],
+    steps: [
+      {
+        request: buildStatementPostRequest(timestampPrecisionStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementGetRequest(timestampPrecisionStatement.id),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["timestamp"],
+              equals: millisecondPrecisionNormalized,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const specialStoredPrecisionCase = requestSequenceCase({
+    caseId: "v2.statements.special-data-types.stored-millisecond-precision",
+    title: "The Statements resource recalls stored timestamps with at least millisecond precision",
+    specVersion,
+    requirementRefs: specialDataTypesTimestampRequirementRefs,
+    tags: ["v2.0.0", "statements", "special-data-types", "stored"],
+    capabilityFlags: ["stored", "retrieval", "special-data-types"],
+    legacyTraceSuiteFile: specialDataTypesLegacySuiteFile,
+    notes: ["proof-slice special data types stored precision"],
+    steps: [
+      {
+        request: buildStatementPostRequest(storedPrecisionStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementGetRequest(storedPrecisionStatement.id),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["stored"],
+              equals: millisecondPrecisionNormalized,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const missingSignaturePartStatement = buildProofStatement(5300, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/signed-missing-part",
+    },
+  ]);
+  const missingSignaturePartPayload = buildMockJws(missingSignaturePartStatement);
+  const missingSignatureAttachment = buildSignedStatementAttachment(missingSignaturePartPayload);
+
+  const signedMissingPartCase = singleRequestCase({
+    caseId: "v2.statements.signed-statements.missing-signature-part",
+    title: "The Statements resource rejects signed statement metadata when the signature part is missing",
+    specVersion,
+    requirementRefs: signedStatementPresenceRequirementRefs,
+    tags: ["v2.0.0", "statements", "signed-statements", "multipart"],
+    capabilityFlags: ["signed", "multipart", "validation"],
+    legacyTraceSuiteFile: signedStatementsLegacySuiteFile,
+    request: buildMultipartStatementPostRequest(
+      {
+        ...missingSignaturePartStatement,
+        attachments: [missingSignatureAttachment.metadata],
+      },
+      [],
+    ),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice signed statement missing signature part"],
+  });
+
+  const signedBadContentTypeStatement = buildProofStatement(5301, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/signed-bad-content-type",
+    },
+  ]);
+
+  const signedBadContentTypeCase = singleRequestCase({
+    caseId: "v2.statements.signed-statements.bad-content-type",
+    title:
+      "The Statements resource rejects signed statements whose signature attachment contentType is not application/octet-stream",
+    specVersion,
+    requirementRefs: signedStatementPresenceRequirementRefs,
+    tags: ["v2.0.0", "statements", "signed-statements", "multipart"],
+    capabilityFlags: ["signed", "multipart", "validation"],
+    legacyTraceSuiteFile: signedStatementsLegacySuiteFile,
+    request: buildSignedStatementPostRequest(signedBadContentTypeStatement, {
+      signatureContentType: "text/plain; charset=ascii",
+    }),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice signed statement bad content type"],
+  });
+
+  const signedInvalidPayloadStatement = buildProofStatement(5302, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/signed-invalid-payload",
+    },
+  ]);
+
+  const signedInvalidPayloadCase = singleRequestCase({
+    caseId: "v2.statements.signed-statements.invalid-payload-json",
+    title: "The Statements resource rejects signed statements whose JWS payload is not valid JSON",
+    specVersion,
+    requirementRefs: signedStatementPayloadRequirementRefs,
+    tags: ["v2.0.0", "statements", "signed-statements", "multipart"],
+    capabilityFlags: ["signed", "multipart", "validation"],
+    legacyTraceSuiteFile: signedStatementsLegacySuiteFile,
+    request: buildSignedStatementPostRequest(signedInvalidPayloadStatement, {
+      signaturePayload: '{"broken"',
+    }),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice signed statement invalid payload json"],
+  });
+
+  const signedRs256Statement = buildProofStatement(5303, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/signed-rs256",
+    },
+  ]);
+  const signedRs384Statement = buildProofStatement(5304, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/signed-rs384",
+    },
+  ]);
+  const signedRs512Statement = buildProofStatement(5305, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/signed-rs512",
+    },
+  ]);
+  const signedHs256Statement = buildProofStatement(5306, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/signed-hs256",
+    },
+  ]);
+
+  const signedRs256Case = singleRequestCase({
+    caseId: "v2.statements.signed-statements.accepts-rs256",
+    title: 'The Statements resource accepts signed statements that use the "RS256" algorithm',
+    specVersion,
+    requirementRefs: signedStatementAlgorithmRequirementRefs,
+    tags: ["v2.0.0", "statements", "signed-statements", "multipart"],
+    capabilityFlags: ["signed", "multipart"],
+    legacyTraceSuiteFile: signedStatementsLegacySuiteFile,
+    request: buildSignedStatementPostRequest(signedRs256Statement),
+    assertion: {
+      status: 200,
+    },
+    notes: ["proof-slice signed statement rs256"],
+  });
+
+  const signedRs384Case = singleRequestCase({
+    caseId: "v2.statements.signed-statements.accepts-rs384",
+    title: 'The Statements resource accepts signed statements that use the "RS384" algorithm',
+    specVersion,
+    requirementRefs: signedStatementAlgorithmRequirementRefs,
+    tags: ["v2.0.0", "statements", "signed-statements", "multipart"],
+    capabilityFlags: ["signed", "multipart"],
+    legacyTraceSuiteFile: signedStatementsLegacySuiteFile,
+    request: buildSignedStatementPostRequest(signedRs384Statement, {
+      algorithm: "RS384",
+    }),
+    assertion: {
+      status: 200,
+    },
+    notes: ["proof-slice signed statement rs384"],
+  });
+
+  const signedRs512Case = singleRequestCase({
+    caseId: "v2.statements.signed-statements.accepts-rs512",
+    title: 'The Statements resource accepts signed statements that use the "RS512" algorithm',
+    specVersion,
+    requirementRefs: signedStatementAlgorithmRequirementRefs,
+    tags: ["v2.0.0", "statements", "signed-statements", "multipart"],
+    capabilityFlags: ["signed", "multipart"],
+    legacyTraceSuiteFile: signedStatementsLegacySuiteFile,
+    request: buildSignedStatementPostRequest(signedRs512Statement, {
+      algorithm: "RS512",
+    }),
+    assertion: {
+      status: 200,
+    },
+    notes: ["proof-slice signed statement rs512"],
+  });
+
+  const signedHs256Case = singleRequestCase({
+    caseId: "v2.statements.signed-statements.rejects-hs256",
+    title:
+      'The Statements resource rejects signed statements that use an algorithm other than "RS256", "RS384", or "RS512"',
+    specVersion,
+    requirementRefs: signedStatementAlgorithmRequirementRefs,
+    tags: ["v2.0.0", "statements", "signed-statements", "multipart"],
+    capabilityFlags: ["signed", "multipart", "validation"],
+    legacyTraceSuiteFile: signedStatementsLegacySuiteFile,
+    request: buildSignedStatementPostRequest(signedHs256Statement, {
+      algorithm: "HS256",
+    }),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice signed statement hs256 rejection"],
+  });
+
   return {
     type: "suite",
     id: "v2.proof-slice.statements",
@@ -9990,6 +10807,44 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
           ...contextStatementUuidRfc4122Cases,
         ],
       },
+      {
+        type: "suite",
+        id: "v2.proof-slice.statements.additional-data-types",
+        title: "Additional Data Types",
+        specVersion,
+        tags: ["additional-data-types"],
+        children: [
+          additionalIriComparisonCase,
+          additionalHighPrecisionDurationAcceptedCase,
+          additionalHighPrecisionDurationRoundTripCase,
+          additionalSignedDurationComparisonCase,
+          additionalTimestampUtcCase,
+        ],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.statements.signed-statements",
+        title: "Signed Statements",
+        specVersion,
+        tags: ["signed-statements"],
+        children: [
+          signedMissingPartCase,
+          signedBadContentTypeCase,
+          signedInvalidPayloadCase,
+          signedRs256Case,
+          signedRs384Case,
+          signedRs512Case,
+          signedHs256Case,
+        ],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.statements.special-data-types",
+        title: "Special Data Types And Rules",
+        specVersion,
+        tags: ["special-data-types"],
+        children: [...specialExtensionAcceptanceCases, specialTimestampPrecisionCase, specialStoredPrecisionCase],
+      },
     ],
   };
 }
@@ -9997,6 +10852,10 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
 export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
   const stateDocument = buildActivityStateDocumentFixture();
   const stateIdentity = buildActivityStateIdentityFixture();
+  const stateValidationIdentity = buildActivityStateIdentityFixture({
+    activityId: "https://example.test/xapi/activities/state-proof-slice/validation",
+    stateId: "proof-state-validation",
+  });
   const stateListIdentity = buildActivityStateIdentityFixture({
     activityId: "https://example.test/xapi/activities/state-proof-slice/list",
     stateId: "proof-state-list",
@@ -10021,6 +10880,38 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
     activityId: "https://example.test/xapi/activities/state-proof-slice/delete",
     stateId: "proof-state-delete",
   });
+  const stateRegistrationPutIdentity = {
+    ...buildActivityStateIdentityFixture({
+      activityId: "https://example.test/xapi/activities/state-proof-slice/registration-put",
+      stateId: "proof-state-registration-put",
+    }),
+    registration: buildProofUuid(9800),
+  };
+  const stateRegistrationPostIdentity = {
+    ...buildActivityStateIdentityFixture({
+      activityId: "https://example.test/xapi/activities/state-proof-slice/registration-post",
+      stateId: "proof-state-registration-post",
+    }),
+    registration: buildProofUuid(9801),
+  };
+  const stateRegistrationGetIdentity = {
+    ...buildActivityStateIdentityFixture({
+      activityId: "https://example.test/xapi/activities/state-proof-slice/registration-get",
+      stateId: "proof-state-registration-get",
+    }),
+    registration: buildProofUuid(9802),
+  };
+  const stateRegistrationDeleteIdentity = {
+    ...buildActivityStateIdentityFixture({
+      activityId: "https://example.test/xapi/activities/state-proof-slice/registration-delete",
+      stateId: "proof-state-registration-delete",
+    }),
+    registration: buildProofUuid(9803),
+  };
+  const stateRequestBody = {
+    value: stateDocument,
+    fixtureName: "activity-state-default",
+  };
   const stateListQuery = {
     activityId: stateListIdentity.activityId,
     agent: stateListIdentity.agent,
@@ -10409,6 +11300,476 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
     ],
   });
 
+  const stateValidationCases = [
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-state.validation.missing-activityId.put",
+      title: "The State Resource rejects PUT without activityId",
+      specVersion,
+      endpoint: "activities-state",
+      method: "PUT",
+      query: omitQueryParam(stateValidationIdentity, "activityId"),
+      body: stateRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00210",
+          section: "Communication 2.3.s3.table1.row1",
+          title: "State Resource rejects PUT without activityId",
+        },
+      ],
+      tags: ["v2.0.0", "activities-state", "validation", "activityId"],
+      capabilityFlags: ["document", "state", "validation", "parameters"],
+      legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-state.validation.missing-activityId.post",
+      title: "The State Resource rejects POST without activityId",
+      specVersion,
+      endpoint: "activities-state",
+      method: "POST",
+      query: omitQueryParam(stateValidationIdentity, "activityId"),
+      body: stateRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00209",
+          section: "Communication 2.3.s3.table1.row1",
+          title: "State Resource rejects POST without activityId",
+        },
+      ],
+      tags: ["v2.0.0", "activities-state", "validation", "activityId"],
+      capabilityFlags: ["document", "state", "validation", "parameters"],
+      legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-state.validation.missing-activityId.get",
+      title: "The State Resource rejects GET without activityId",
+      specVersion,
+      endpoint: "activities-state",
+      method: "GET",
+      query: omitQueryParam(stateValidationIdentity, "activityId"),
+      requirementRefs: [
+        {
+          id: "XAPI-00208",
+          section: "Communication 2.3.s3.table1.row1",
+          title: "State Resource rejects GET without activityId",
+        },
+      ],
+      tags: ["v2.0.0", "activities-state", "validation", "activityId"],
+      capabilityFlags: ["document", "state", "validation", "parameters"],
+      legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-state.validation.missing-activityId.delete",
+      title: "The State Resource rejects DELETE without activityId",
+      specVersion,
+      endpoint: "activities-state",
+      method: "DELETE",
+      query: omitQueryParam(stateValidationIdentity, "activityId"),
+      requirementRefs: [
+        {
+          id: "XAPI-00207",
+          section: "Communication 2.3.s3.table1.row1",
+          title: "State Resource rejects DELETE without activityId",
+        },
+      ],
+      tags: ["v2.0.0", "activities-state", "validation", "activityId"],
+      capabilityFlags: ["document", "state", "validation", "parameters"],
+      legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-state.validation.missing-agent.put",
+      title: "The State Resource rejects PUT without agent",
+      specVersion,
+      endpoint: "activities-state",
+      method: "PUT",
+      query: omitQueryParam(stateValidationIdentity, "agent"),
+      body: stateRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00215",
+          section: "Communication 2.3.s3.table1.row2",
+          title: "State Resource rejects PUT without agent",
+        },
+      ],
+      tags: ["v2.0.0", "activities-state", "validation", "agent"],
+      capabilityFlags: ["document", "state", "validation", "parameters"],
+      legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-state.validation.invalid-agent.put",
+      title: "The State Resource rejects PUT with an invalid agent query value",
+      specVersion,
+      endpoint: "activities-state",
+      method: "PUT",
+      query: {
+        ...stateValidationIdentity,
+        agent: "true",
+      },
+      body: stateRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00199",
+          section: "Communication 2.3.s3.table1.row2",
+          title: "State Resource rejects PUT with a non-JSON agent parameter",
+        },
+      ],
+      tags: ["v2.0.0", "activities-state", "validation", "agent"],
+      capabilityFlags: ["document", "state", "validation", "parameters"],
+      legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-state.validation.missing-agent.post",
+      title: "The State Resource rejects POST without agent",
+      specVersion,
+      endpoint: "activities-state",
+      method: "POST",
+      query: omitQueryParam(stateValidationIdentity, "agent"),
+      body: stateRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00214",
+          section: "Communication 2.3.s3.table1.row2",
+          title: "State Resource rejects POST without agent",
+        },
+      ],
+      tags: ["v2.0.0", "activities-state", "validation", "agent"],
+      capabilityFlags: ["document", "state", "validation", "parameters"],
+      legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-state.validation.invalid-agent.post",
+      title: "The State Resource rejects POST with an invalid agent query value",
+      specVersion,
+      endpoint: "activities-state",
+      method: "POST",
+      query: {
+        ...stateValidationIdentity,
+        agent: "true",
+      },
+      body: stateRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00198",
+          section: "Communication 2.3.s3.table1.row2",
+          title: "State Resource rejects POST with a non-JSON agent parameter",
+        },
+      ],
+      tags: ["v2.0.0", "activities-state", "validation", "agent"],
+      capabilityFlags: ["document", "state", "validation", "parameters"],
+      legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-state.validation.missing-agent.get",
+      title: "The State Resource rejects GET without agent",
+      specVersion,
+      endpoint: "activities-state",
+      method: "GET",
+      query: omitQueryParam(stateValidationIdentity, "agent"),
+      requirementRefs: [
+        {
+          id: "XAPI-00213",
+          section: "Communication 2.3.s3.table1.row2",
+          title: "State Resource rejects GET without agent",
+        },
+      ],
+      tags: ["v2.0.0", "activities-state", "validation", "agent"],
+      capabilityFlags: ["document", "state", "validation", "parameters"],
+      legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-state.validation.invalid-agent.get",
+      title: "The State Resource rejects GET with an invalid agent query value",
+      specVersion,
+      endpoint: "activities-state",
+      method: "GET",
+      query: {
+        ...stateValidationIdentity,
+        agent: "true",
+      },
+      requirementRefs: [
+        {
+          id: "XAPI-00197",
+          section: "Communication 2.3.s3.table1.row2",
+          title: "State Resource rejects GET with a non-JSON agent parameter",
+        },
+      ],
+      tags: ["v2.0.0", "activities-state", "validation", "agent"],
+      capabilityFlags: ["document", "state", "validation", "parameters"],
+      legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-state.validation.missing-agent.delete",
+      title: "The State Resource rejects DELETE without agent",
+      specVersion,
+      endpoint: "activities-state",
+      method: "DELETE",
+      query: omitQueryParam(stateValidationIdentity, "agent"),
+      requirementRefs: [
+        {
+          id: "XAPI-00212",
+          section: "Communication 2.3.s3.table1.row2",
+          title: "State Resource rejects DELETE without agent",
+        },
+      ],
+      tags: ["v2.0.0", "activities-state", "validation", "agent"],
+      capabilityFlags: ["document", "state", "validation", "parameters"],
+      legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-state.validation.invalid-agent.delete",
+      title: "The State Resource rejects DELETE with an invalid agent query value",
+      specVersion,
+      endpoint: "activities-state",
+      method: "DELETE",
+      query: {
+        ...stateValidationIdentity,
+        agent: "true",
+      },
+      requirementRefs: [
+        {
+          id: "XAPI-00196",
+          section: "Communication 2.3.s3.table1.row2",
+          title: "State Resource rejects DELETE with a non-JSON agent parameter",
+        },
+      ],
+      tags: ["v2.0.0", "activities-state", "validation", "agent"],
+      capabilityFlags: ["document", "state", "validation", "parameters"],
+      legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-state.validation.invalid-registration.put",
+      title: "The State Resource rejects PUT with a non-UUID registration",
+      specVersion,
+      endpoint: "activities-state",
+      method: "PUT",
+      query: {
+        ...stateValidationIdentity,
+        registration: invalidLegacyString,
+      },
+      body: stateRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00203",
+          section: "Communication 2.3.s3.table1.row3",
+          title: "State Resource rejects PUT with a non-UUID registration",
+        },
+      ],
+      tags: ["v2.0.0", "activities-state", "validation", "registration"],
+      capabilityFlags: ["document", "state", "validation", "parameters"],
+      legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-state.validation.invalid-registration.post",
+      title: "The State Resource rejects POST with a non-UUID registration",
+      specVersion,
+      endpoint: "activities-state",
+      method: "POST",
+      query: {
+        ...stateValidationIdentity,
+        registration: invalidLegacyString,
+      },
+      body: stateRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00202",
+          section: "Communication 2.3.s3.table1.row3",
+          title: "State Resource rejects POST with a non-UUID registration",
+        },
+      ],
+      tags: ["v2.0.0", "activities-state", "validation", "registration"],
+      capabilityFlags: ["document", "state", "validation", "parameters"],
+      legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-state.validation.invalid-registration.get",
+      title: "The State Resource rejects GET with a non-UUID registration",
+      specVersion,
+      endpoint: "activities-state",
+      method: "GET",
+      query: {
+        ...stateValidationIdentity,
+        registration: invalidLegacyString,
+      },
+      requirementRefs: [
+        {
+          id: "XAPI-00201",
+          section: "Communication 2.3.s3.table1.row3",
+          title: "State Resource rejects GET with a non-UUID registration",
+        },
+      ],
+      tags: ["v2.0.0", "activities-state", "validation", "registration"],
+      capabilityFlags: ["document", "state", "validation", "parameters"],
+      legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-state.validation.invalid-registration.delete",
+      title: "The State Resource rejects DELETE with a non-UUID registration",
+      specVersion,
+      endpoint: "activities-state",
+      method: "DELETE",
+      query: {
+        ...stateValidationIdentity,
+        registration: invalidLegacyString,
+      },
+      requirementRefs: [
+        {
+          id: "XAPI-00200",
+          section: "Communication 2.3.s3.table1.row3",
+          title: "State Resource rejects DELETE with a non-UUID registration",
+        },
+      ],
+      tags: ["v2.0.0", "activities-state", "validation", "registration"],
+      capabilityFlags: ["document", "state", "validation", "parameters"],
+      legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-state.validation.missing-stateId.put",
+      title: "The State Resource rejects PUT without stateId",
+      specVersion,
+      endpoint: "activities-state",
+      method: "PUT",
+      query: omitQueryParam(stateValidationIdentity, "stateId"),
+      body: stateRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00206",
+          section: "Communication 2.3.s3.table1.row4",
+          title: "State Resource rejects PUT without stateId",
+        },
+      ],
+      tags: ["v2.0.0", "activities-state", "validation", "stateId"],
+      capabilityFlags: ["document", "state", "validation", "parameters"],
+      legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-state.validation.missing-stateId.post",
+      title: "The State Resource rejects POST without stateId",
+      specVersion,
+      endpoint: "activities-state",
+      method: "POST",
+      query: omitQueryParam(stateValidationIdentity, "stateId"),
+      body: stateRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00211",
+          section: "Communication 2.3.s3.table1.row4",
+          title: "State Resource rejects POST without stateId",
+        },
+      ],
+      tags: ["v2.0.0", "activities-state", "validation", "stateId"],
+      capabilityFlags: ["document", "state", "validation", "parameters"],
+      legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    }),
+  ];
+
+  const stateRegistrationCases = [
+    singleRequestCase({
+      caseId: "v2.activities-state.registration.put",
+      title: "The State Resource accepts PUT with a registration parameter",
+      specVersion,
+      requirementRefs: [
+        {
+          id: "XAPI-00218",
+          section: "Communication 2.3.s3.table1.row3",
+          title: "State Resource accepts PUT with registration",
+        },
+      ],
+      tags: ["v2.0.0", "activities-state", "registration"],
+      capabilityFlags: ["document", "state", "registration"],
+      legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+      request: buildVersionedRequest("PUT", "activities-state", stateRegistrationPutIdentity, stateRequestBody),
+      assertion: {
+        status: 204,
+      },
+      notes: ["proof-slice activity state registration PUT"],
+    }),
+    singleRequestCase({
+      caseId: "v2.activities-state.registration.post",
+      title: "The State Resource accepts POST with a registration parameter",
+      specVersion,
+      requirementRefs: [
+        {
+          id: "XAPI-00227",
+          section: "Communication 2.3.s3.table1.row3",
+          title: "State Resource accepts POST with registration",
+        },
+      ],
+      tags: ["v2.0.0", "activities-state", "registration"],
+      capabilityFlags: ["document", "state", "registration"],
+      legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+      request: buildVersionedRequest("POST", "activities-state", stateRegistrationPostIdentity, stateRequestBody),
+      assertion: {
+        status: 204,
+      },
+      notes: ["proof-slice activity state registration POST"],
+    }),
+    requestSequenceCase({
+      caseId: "v2.activities-state.registration.get",
+      title: "The State Resource can retrieve a document scoped by registration",
+      specVersion,
+      requirementRefs: [
+        {
+          id: "XAPI-00220",
+          section: "Communication 2.3.s3.table1.row3",
+          title: "State Resource accepts GET with registration",
+        },
+      ],
+      tags: ["v2.0.0", "activities-state", "registration"],
+      capabilityFlags: ["document", "state", "registration", "retrieval"],
+      legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+      notes: ["proof-slice activity state registration GET"],
+      steps: [
+        {
+          request: buildVersionedRequest("POST", "activities-state", stateRegistrationGetIdentity, stateRequestBody),
+          assertion: {
+            status: 204,
+          },
+        },
+        {
+          request: buildVersionedRequest("GET", "activities-state", stateRegistrationGetIdentity),
+          assertion: {
+            status: 200,
+            jsonPathEquals: [
+              {
+                path: ["bookmark"],
+                equals: stateDocument.bookmark,
+              },
+            ],
+          },
+        },
+      ],
+    }),
+    requestSequenceCase({
+      caseId: "v2.activities-state.registration.delete",
+      title: "The State Resource accepts DELETE with a registration parameter",
+      specVersion,
+      requirementRefs: [
+        {
+          id: "XAPI-00219",
+          section: "Communication 2.3.s3.table1.row3",
+          title: "State Resource accepts DELETE with registration",
+        },
+      ],
+      tags: ["v2.0.0", "activities-state", "registration"],
+      capabilityFlags: ["document", "state", "registration", "delete"],
+      legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+      notes: ["proof-slice activity state registration DELETE"],
+      steps: [
+        {
+          request: buildVersionedRequest("POST", "activities-state", stateRegistrationDeleteIdentity, stateRequestBody),
+          assertion: {
+            status: 204,
+          },
+        },
+        {
+          request: buildVersionedRequest("DELETE", "activities-state", stateRegistrationDeleteIdentity),
+          assertion: {
+            status: 204,
+          },
+        },
+      ],
+    }),
+  ];
+
   return {
     type: "suite",
     id: "v2.proof-slice.activities-state",
@@ -10456,6 +11817,22 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
         tags: ["delete"],
         children: [stateDeleteCase],
       },
+      {
+        type: "suite",
+        id: "v2.proof-slice.activities-state.validation",
+        title: "State Document Validation",
+        specVersion,
+        tags: ["validation"],
+        children: stateValidationCases,
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.activities-state.registration",
+        title: "State Document Registration",
+        specVersion,
+        tags: ["registration"],
+        children: stateRegistrationCases,
+      },
     ],
   };
 }
@@ -10463,6 +11840,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
 export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefinition {
   const profileDocument = buildActivityProfileDocumentFixture();
   const profileIdentity = buildActivityProfileIdentityFixture();
+  const profileValidationIdentity = buildActivityProfileIdentityFixture({
+    activityId: "https://example.test/xapi/activities/profile-proof-slice/validation",
+    profileId: "proof-activity-profile-validation",
+  });
   const profileListIdentity = buildActivityProfileIdentityFixture({
     activityId: "https://example.test/xapi/activities/profile-proof-slice/list",
     profileId: "proof-activity-profile-list",
@@ -10495,6 +11876,10 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
   };
   const profileDeleteListQuery = {
     activityId: profileDeleteIdentity.activityId,
+  };
+  const profileRequestBody = {
+    value: profileDocument,
+    fixtureName: "activity-profile-default",
   };
 
   const roundTripCase = documentRoundTripCase({
@@ -10866,6 +12251,139 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
     ],
   });
 
+  const validationCases = [
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-profile.validation.missing-activityId.put",
+      title: "The Activity Profile Resource rejects PUT without activityId",
+      specVersion,
+      endpoint: "activities-profile",
+      method: "PUT",
+      query: omitQueryParam(profileValidationIdentity, "activityId"),
+      body: profileRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00299",
+          section: "Communication 2.7.s3.table1.row1",
+          title: "Activity Profile rejects PUT without activityId",
+        },
+      ],
+      tags: ["v2.0.0", "activities-profile", "validation", "activityId"],
+      capabilityFlags: ["document", "activity-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: activityProfileLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-profile.validation.missing-activityId.post",
+      title: "The Activity Profile Resource rejects POST without activityId",
+      specVersion,
+      endpoint: "activities-profile",
+      method: "POST",
+      query: omitQueryParam(profileValidationIdentity, "activityId"),
+      body: profileRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00298",
+          section: "Communication 2.7.s3.table1.row1",
+          title: "Activity Profile rejects POST without activityId",
+        },
+      ],
+      tags: ["v2.0.0", "activities-profile", "validation", "activityId"],
+      capabilityFlags: ["document", "activity-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: activityProfileLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-profile.validation.missing-activityId.get",
+      title: "The Activity Profile Resource rejects GET without activityId",
+      specVersion,
+      endpoint: "activities-profile",
+      method: "GET",
+      query: omitQueryParam(profileValidationIdentity, "activityId"),
+      requirementRefs: [
+        {
+          id: "XAPI-00296",
+          section: "Communication 2.7.s3.table1.row1",
+          title: "Activity Profile rejects GET without activityId",
+        },
+      ],
+      tags: ["v2.0.0", "activities-profile", "validation", "activityId"],
+      capabilityFlags: ["document", "activity-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: activityProfileLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-profile.validation.missing-activityId.delete",
+      title: "The Activity Profile Resource rejects DELETE without activityId",
+      specVersion,
+      endpoint: "activities-profile",
+      method: "DELETE",
+      query: omitQueryParam(profileValidationIdentity, "activityId"),
+      requirementRefs: [
+        {
+          id: "XAPI-00297",
+          section: "Communication 2.7.s3.table1.row1",
+          title: "Activity Profile rejects DELETE without activityId",
+        },
+      ],
+      tags: ["v2.0.0", "activities-profile", "validation", "activityId"],
+      capabilityFlags: ["document", "activity-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: activityProfileLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-profile.validation.missing-profileId.put",
+      title: "The Activity Profile Resource rejects PUT without profileId",
+      specVersion,
+      endpoint: "activities-profile",
+      method: "PUT",
+      query: omitQueryParam(profileValidationIdentity, "profileId"),
+      body: profileRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00302",
+          section: "Communication 2.7.s3.table1.row2",
+          title: "Activity Profile rejects PUT without profileId",
+        },
+      ],
+      tags: ["v2.0.0", "activities-profile", "validation", "profileId"],
+      capabilityFlags: ["document", "activity-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: activityProfileLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-profile.validation.missing-profileId.post",
+      title: "The Activity Profile Resource rejects POST without profileId",
+      specVersion,
+      endpoint: "activities-profile",
+      method: "POST",
+      query: omitQueryParam(profileValidationIdentity, "profileId"),
+      body: profileRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00301",
+          section: "Communication 2.7.s3.table1.row2",
+          title: "Activity Profile rejects POST without profileId",
+        },
+      ],
+      tags: ["v2.0.0", "activities-profile", "validation", "profileId"],
+      capabilityFlags: ["document", "activity-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: activityProfileLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-profile.validation.missing-profileId.delete",
+      title: "The Activity Profile Resource rejects DELETE without profileId",
+      specVersion,
+      endpoint: "activities-profile",
+      method: "DELETE",
+      query: omitQueryParam(profileValidationIdentity, "profileId"),
+      requirementRefs: [
+        {
+          id: "XAPI-00300",
+          section: "Communication 2.7.s3.table1.row2",
+          title: "Activity Profile rejects DELETE without profileId",
+        },
+      ],
+      tags: ["v2.0.0", "activities-profile", "validation", "profileId"],
+      capabilityFlags: ["document", "activity-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: activityProfileLegacySuiteFile,
+    }),
+  ];
+
   return {
     type: "suite",
     id: "v2.proof-slice.activities-profile",
@@ -10913,6 +12431,14 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
         tags: ["delete"],
         children: [deleteCase],
       },
+      {
+        type: "suite",
+        id: "v2.proof-slice.activities-profile.validation",
+        title: "Activity Profile Validation",
+        specVersion,
+        tags: ["validation"],
+        children: validationCases,
+      },
     ],
   };
 }
@@ -10920,6 +12446,14 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
 export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition {
   const profileDocument = buildAgentProfileDocumentFixture();
   const profileIdentity = buildAgentProfileIdentityFixture();
+  const profileValidationIdentity = buildAgentProfileIdentityFixture({
+    agent: JSON.stringify({
+      objectType: "Agent",
+      mbox: "mailto:agent-profile-validation@example.test",
+      name: "Agent Profile Validation",
+    }),
+    profileId: "proof-agent-profile-validation",
+  });
   const profileListIdentity = buildAgentProfileIdentityFixture({
     agent: JSON.stringify({
       objectType: "Agent",
@@ -10976,6 +12510,10 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
   };
   const profileDeleteListQuery = {
     agent: profileDeleteIdentity.agent,
+  };
+  const profileRequestBody = {
+    value: profileDocument,
+    fixtureName: "agent-profile-default",
   };
 
   const roundTripCase = documentRoundTripCase({
@@ -11348,6 +12886,225 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
     ],
   });
 
+  const validationCases = [
+    buildDocumentResourceValidationCase({
+      caseId: "v2.agents-profile.validation.missing-agent.put",
+      title: "The Agent Profile Resource rejects PUT without agent",
+      specVersion,
+      endpoint: "agents-profile",
+      method: "PUT",
+      query: omitQueryParam(profileValidationIdentity, "agent"),
+      body: profileRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00264",
+          section: "Communication 2.6.s3.table1.row1",
+          title: "Agent Profile rejects PUT without agent",
+        },
+      ],
+      tags: ["v2.0.0", "agents-profile", "validation", "agent"],
+      capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.agents-profile.validation.invalid-agent.put",
+      title: "The Agent Profile Resource rejects PUT with an invalid agent query value",
+      specVersion,
+      endpoint: "agents-profile",
+      method: "PUT",
+      query: {
+        ...profileValidationIdentity,
+        agent: "true",
+      },
+      body: profileRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00257",
+          section: "Communication 2.6.s3.table1.row1",
+          title: "Agent Profile rejects PUT with a non-Agent query value",
+        },
+      ],
+      tags: ["v2.0.0", "agents-profile", "validation", "agent"],
+      capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.agents-profile.validation.missing-agent.post",
+      title: "The Agent Profile Resource rejects POST without agent",
+      specVersion,
+      endpoint: "agents-profile",
+      method: "POST",
+      query: omitQueryParam(profileValidationIdentity, "agent"),
+      body: profileRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00263",
+          section: "Communication 2.6.s3.table1.row1",
+          title: "Agent Profile rejects POST without agent",
+        },
+      ],
+      tags: ["v2.0.0", "agents-profile", "validation", "agent"],
+      capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.agents-profile.validation.invalid-agent.post",
+      title: "The Agent Profile Resource rejects POST with an invalid agent query value",
+      specVersion,
+      endpoint: "agents-profile",
+      method: "POST",
+      query: {
+        ...profileValidationIdentity,
+        agent: "true",
+      },
+      body: profileRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00256",
+          section: "Communication 2.6.s3.table1.row1",
+          title: "Agent Profile rejects POST with a non-Agent query value",
+        },
+      ],
+      tags: ["v2.0.0", "agents-profile", "validation", "agent"],
+      capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.agents-profile.validation.missing-agent.get",
+      title: "The Agent Profile Resource rejects GET without agent",
+      specVersion,
+      endpoint: "agents-profile",
+      method: "GET",
+      query: omitQueryParam(profileValidationIdentity, "agent"),
+      requirementRefs: [
+        {
+          id: "XAPI-00261",
+          section: "Communication 2.6.s4.table1.row1",
+          title: "Agent Profile rejects GET without agent",
+        },
+      ],
+      tags: ["v2.0.0", "agents-profile", "validation", "agent"],
+      capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.agents-profile.validation.invalid-agent.get",
+      title: "The Agent Profile Resource rejects GET with an invalid agent query value",
+      specVersion,
+      endpoint: "agents-profile",
+      method: "GET",
+      query: {
+        ...profileValidationIdentity,
+        agent: "true",
+      },
+      requirementRefs: [
+        {
+          id: "XAPI-00258",
+          section: "Communication 2.6.s4.table1.row1",
+          title: "Agent Profile rejects GET with a non-Agent query value",
+        },
+      ],
+      tags: ["v2.0.0", "agents-profile", "validation", "agent"],
+      capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.agents-profile.validation.missing-agent.delete",
+      title: "The Agent Profile Resource rejects DELETE without agent",
+      specVersion,
+      endpoint: "agents-profile",
+      method: "DELETE",
+      query: omitQueryParam(profileValidationIdentity, "agent"),
+      requirementRefs: [
+        {
+          id: "XAPI-00262",
+          section: "Communication 2.6.s3.table1.row1",
+          title: "Agent Profile rejects DELETE without agent",
+        },
+      ],
+      tags: ["v2.0.0", "agents-profile", "validation", "agent"],
+      capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.agents-profile.validation.invalid-agent.delete",
+      title: "The Agent Profile Resource rejects DELETE with an invalid agent query value",
+      specVersion,
+      endpoint: "agents-profile",
+      method: "DELETE",
+      query: {
+        ...profileValidationIdentity,
+        agent: "true",
+      },
+      requirementRefs: [
+        {
+          id: "XAPI-00255",
+          section: "Communication 2.6.s3.table1.row1",
+          title: "Agent Profile rejects DELETE with a non-Agent query value",
+        },
+      ],
+      tags: ["v2.0.0", "agents-profile", "validation", "agent"],
+      capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.agents-profile.validation.missing-profileId.put",
+      title: "The Agent Profile Resource rejects PUT without profileId",
+      specVersion,
+      endpoint: "agents-profile",
+      method: "PUT",
+      query: omitQueryParam(profileValidationIdentity, "profileId"),
+      body: profileRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00267",
+          section: "Communication 2.6.s3.table1.row2",
+          title: "Agent Profile rejects PUT without profileId",
+        },
+      ],
+      tags: ["v2.0.0", "agents-profile", "validation", "profileId"],
+      capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.agents-profile.validation.missing-profileId.post",
+      title: "The Agent Profile Resource rejects POST without profileId",
+      specVersion,
+      endpoint: "agents-profile",
+      method: "POST",
+      query: omitQueryParam(profileValidationIdentity, "profileId"),
+      body: profileRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00266",
+          section: "Communication 2.6.s3.table1.row2",
+          title: "Agent Profile rejects POST without profileId",
+        },
+      ],
+      tags: ["v2.0.0", "agents-profile", "validation", "profileId"],
+      capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.agents-profile.validation.missing-profileId.delete",
+      title: "The Agent Profile Resource rejects DELETE without profileId",
+      specVersion,
+      endpoint: "agents-profile",
+      method: "DELETE",
+      query: omitQueryParam(profileValidationIdentity, "profileId"),
+      requirementRefs: [
+        {
+          id: "XAPI-00265",
+          section: "Communication 2.6.s3.table1.row2",
+          title: "Agent Profile rejects DELETE without profileId",
+        },
+      ],
+      tags: ["v2.0.0", "agents-profile", "validation", "profileId"],
+      capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    }),
+  ];
+
   return {
     type: "suite",
     id: "v2.proof-slice.agents-profile",
@@ -11394,6 +13151,14 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
         specVersion,
         tags: ["delete"],
         children: [deleteCase],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.agents-profile.validation",
+        title: "Agent Profile Validation",
+        specVersion,
+        tags: ["validation"],
+        children: validationCases,
       },
     ],
   };
