@@ -5,8 +5,9 @@
 - Validation gate: `bun run check` is green.
 - Source-of-truth baseline: `/home/anton/dev/tmp/lrs-conformance-test-suite-orig`.
 - xAPI 2.0 upstream conformance count: 1435 tests in the original upstream batteries artifact.
-- xAPI 2.0 rewrite manifest size: 1328 proof cases.
-- xAPI 2.0 count gap versus upstream batteries total: 107.
+- xAPI 2.0 rewrite manifest size: 1337 proof cases.
+- xAPI 2.0 count gap versus upstream batteries total: 98.
+- xAPI 2.0 unique requirement-id gap inside `test/v2_0`: 25 upstream `XAPI-xxxxx` ids remain unreferenced by the proof slice after the latest audit reconciliation.
 - Current top-level 2.0 suites: Statements, State Resource, Activity Profile Resource, Agent Profile Resource, Agents Resource, Activities Resource, About Resource, Communication.
 
 ## Current interpretation
@@ -22,6 +23,9 @@
 - Document-resource runtime parity: the shared mock document handler now rejects unrecognized or malformed query parameters for State/Profile resources, validates `activityId` IRIs and Agent query objects, treats State `registration` as part of the document scope, and returns `Last-Modified` on stored document retrievals.
 - Additional data and signed-statement parity: added direct legacy-trace coverage for IRI comparison fallback behavior, high-precision duration acceptance and roundtrip, signed duration comparison through hundredths precision, UTC-equivalent timestamp recall, signed statement multipart validation, allowed JWS algorithms, invalid JSON payload rejection, and signature-part presence checks.
 - Special data types parity: added direct legacy-trace PUT coverage for empty extension maps plus null, empty-string, and empty-object extension values across statement and substatement activity, result, and context placements; also pinned millisecond timestamp and stored precision on retrieval.
+- Requirement-id reconciliation tranche: the proof slice now directly references a further set of upstream-original requirement ids that were previously only indirectly covered by existing cases, including `XAPI-00023`, `XAPI-00027`, `XAPI-00028`, `XAPI-00060`, `XAPI-00061`, `XAPI-00089`, `XAPI-00090`, `XAPI-00091`, `XAPI-00120`, `XAPI-00124`, `XAPI-00246`, `XAPI-00259`, `XAPI-00282`, `XAPI-00291`, and `XAPI-00316`.
+- Executable gap audit tranche: `test/v2-parity-audit.test.ts` now diffs all upstream-original `test/v2_0/**/*.js` `XAPI-xxxxx` ids against the proof-slice requirement refs and pins the remaining 34-id exception set. This converts the prior open-ended 2.0 reconciliation problem into an executable audited list.
+- Parameter-owner parity tranche: added 9 direct proof cases for the upstream Parameters-owned state/profile requirement ids (`XAPI-00224`, `XAPI-00225`, `XAPI-00226`, `XAPI-00228`, `XAPI-00276`, `XAPI-00277`, `XAPI-00305`, `XAPI-00306`, and `XAPI-00307`) and tightened the mock document-resource validator so serialized non-string `stateId` and `profileId` query values now reject with `400 Bad Request`.
 - Communication resource parity: added direct legacy-trace coverage for rejected-request rollback, duplicate-key overwrite semantics during document merges, and one-level-deep document merge behavior. Audited `H.Communication1.2-Headers.js` as empty in xAPI 2.0 and `H.Communication1.3-AlternateRequestSyntax.js` as an explicit no-op suite in xAPI 2.0, so both now drop out of the remaining-gap ledger without adding fake executable coverage.
 - Statement Lifecycle and Retrieval: added direct legacy-trace coverage for the remaining xAPI 2.0 voiding and retrieval suite owners, including voided lookup visibility, repeated voiding ignore semantics, rejection of voiding statements whose object is not a `StatementRef`, StatementResult array shape, empty `more` on exhausted results, and paginated `more` containers that can be followed to the next page.
 - Actor and Verb requirements: added direct legacy-trace coverage for actor `objectType` vocabulary and type validation, actor `name` typing, anonymous group `member` requirements and member type validation, verb `id` presence and IRI validation, and verb `display` language-map typing. Existing actor IFI and account families now trace back to the real `4.2.2.1-Actor-Requirements.js` suite instead of config-only files.
@@ -32,8 +36,15 @@
 
 ## Remaining xAPI 2.0 backlog
 
-- Upstream-baseline gap audit is open. We still need to explain and either close or explicitly justify the 107-test difference between the original upstream 2.0 conformance count and the rewrite's 1328 proof cases.
-- The prior dominant executable hotspot across State/Profile/HEAD/Content Types is closed. Remaining 2.0 work is now primarily reconciliation and audit against the upstream-original batteries count, plus any newly discovered executable leaves that fall out of that audit.
+- Upstream-baseline gap audit is open. We still need to explain and either close or explicitly justify the 98-test difference between the original upstream 2.0 conformance count and the rewrite's 1337 proof cases.
+- The prior dominant executable hotspot across State/Profile/HEAD/Content Types is closed. Remaining 2.0 work is now primarily reconciliation against the explicit 25-id audited exception set, plus any newly discovered executable leaves that fall out of that audit.
+
+## Unique Requirement-ID Audit
+
+- `test/v2-parity-audit.test.ts` now pins the remaining unreferenced upstream-original `XAPI-xxxxx` ids from `test/v2_0` to this exact audited set: `XAPI-00021`, `XAPI-00041`, `XAPI-00063`, `XAPI-00095`, `XAPI-00112`, `XAPI-00118`, `XAPI-00121`, `XAPI-00136`, `XAPI-00137`, `XAPI-00138`, `XAPI-00140`, `XAPI-00141`, `XAPI-00148`, `XAPI-00152`, `XAPI-00185`, `XAPI-00186`, `XAPI-00205`, `XAPI-00222`, `XAPI-00223`, `XAPI-00304`, `XAPI-00320`, `XAPI-00323`, `XAPI-00327`, `XAPI-00328`, and `XAPI-00329`.
+- Removed, nonexistent, stale, or bad upstream refs: `XAPI-00063`, `XAPI-00095`, `XAPI-00136`, `XAPI-00137`, `XAPI-00138`, `XAPI-00152`, and `XAPI-00320` are explicitly marked stale, removed, nonexistent, or bad in the upstream sources.
+- Duplicate, comment-only, untestable, or audit-only refs: `XAPI-00112`, `XAPI-00140`, `XAPI-00141`, `XAPI-00148`, `XAPI-00185`, `XAPI-00186`, `XAPI-00205`, `XAPI-00222`, `XAPI-00223`, `XAPI-00304`, `XAPI-00323`, `XAPI-00327`, `XAPI-00328`, and `XAPI-00329` are called out by upstream comments as duplicates, notes, untestable requirements, or held-out audit-only references rather than direct executable leaves.
+- Still-unattached config-backed ids: `XAPI-00021`, `XAPI-00041`, `XAPI-00118`, and `XAPI-00121` remain the main direct-ref reconciliation work inside `test/v2_0` after this tranche.
 
 ## Audit-needed overlap
 

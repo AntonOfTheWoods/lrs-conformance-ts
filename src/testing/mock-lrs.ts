@@ -2504,6 +2504,11 @@ function validateDocumentResourceQuery(
     return "activityId must be an IRI";
   }
 
+  const documentId = url.searchParams.get(options.idParam);
+  if (documentId !== null && isLegacySerializedNonStringQueryValue(documentId)) {
+    return `${options.idParam} must be a string`;
+  }
+
   if (options.validateAgent) {
     const agentError = validateAgentQueryParameter(url.searchParams.get("agent"));
     if (agentError) {
@@ -2528,6 +2533,14 @@ function validateDocumentResourceQuery(
   }
 
   return undefined;
+}
+
+function isLegacySerializedNonStringQueryValue(value: string): boolean {
+  try {
+    return typeof JSON.parse(value) !== "string";
+  } catch {
+    return false;
+  }
 }
 
 function buildDocumentKey(contextKey: string, documentId: string): string {

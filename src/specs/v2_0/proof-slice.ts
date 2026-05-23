@@ -36,7 +36,8 @@ import {
 const specVersion = "2.0.0" as const;
 const formattingLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/Data2.2-FormattingRequirements.js";
-const formattingLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/formatting.js";
+const formattingLegacyConfigFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/formatting.js";
 const actorRequirementsLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.1-Actor-Requirements.js";
 const verbRequirementsLegacySuiteFile =
@@ -86,7 +87,8 @@ const aboutResourceLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.7-About-Resource.js";
 const headRequestsLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/H.Communication1.1-HeadRequestImplementation.js";
-const contentTypesLegacySuiteFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.3-Content-Types.js";
+const contentTypesLegacySuiteFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.3-Content-Types.js";
 const concurrencyLegacySuiteFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.4-Concurrency.js";
 const encodingLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/H.Communication1.4-Encoding.js";
@@ -96,30 +98,36 @@ const authenticationLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/H.Communication4.0-Authentication.js";
 const documentResourcesLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/H.Communication2.2-DocumentResources.js";
+const parametersLegacySuiteFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/Parameters/testing.js";
 const ifisLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/ifis.js";
 const actorsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/actors.js";
 const agentsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/agents.js";
-const attachmentsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/attachments.js";
+const attachmentsLegacyConfigFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/attachments.js";
 const groupsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/groups.js";
 const verbsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/verbs.js";
 const voidingLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/voiding.js";
 const authoritiesLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Authority-Requirements.js";
-const authoritiesLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/authorities.js";
+const authoritiesLegacyConfigFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/authorities.js";
 const statementLifecycleLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.5-Statement-Voiding.js";
 const accountObjectsLegacyConfigFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/accountobjects.js";
-const activitiesLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/activities.js";
+const activitiesLegacyConfigFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/activities.js";
 const objectsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/objects.js";
 const resultsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/results.js";
 const durationsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/durations.js";
 const scoresLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/scores.js";
 const timestampPropertyLegacyConfigFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/timestamp_property.js";
-const timestampsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/timestamps.js";
+const timestampsLegacyConfigFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/timestamps.js";
 const uuidsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/uuids.js";
-const versionPropertyLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/version.js";
+const versionPropertyLegacyConfigFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/version.js";
 const statementRefsLegacyConfigFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/statementrefs.js";
 const subStatementsLegacyConfigFile =
@@ -144,6 +152,9 @@ const invalidNegativeZeroTimestampExtended = "2008-09-15T15:53:00.601-00:00";
 const validRfc3339Timestamp = "2008-09-15T15:53:00.601+00:00";
 const futureAcceptedTimestamp = "2031-05-23T12:00:00.000Z";
 const overwrittenStoredTimestamp = "2011-07-15T00:00:00.000Z";
+const invalidSerializedQueryNumeric = "1";
+const invalidSerializedQueryBoolean = "true";
+const invalidSerializedQueryObject = JSON.stringify({ key: "value" });
 
 function buildVersionedHeaders(extraHeaders: Record<string, string> = {}): Record<string, string> {
   return {
@@ -516,11 +527,16 @@ function buildMultipartStatementPostRequest(
 }
 
 function buildMalformedMultipartStatementRequest(body: string, contentType: string): HttpRequest {
-  return buildVersionedRequest("POST", "statements", {}, {
-    kind: "text",
-    value: body,
-    contentType,
-  });
+  return buildVersionedRequest(
+    "POST",
+    "statements",
+    {},
+    {
+      kind: "text",
+      value: body,
+      contentType,
+    },
+  );
 }
 
 function buildMockJws(payload: JsonObject | string, algorithm = "RS256"): string {
@@ -2113,6 +2129,11 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
             section: "Data 2.2.s4.b4",
             title: "Statements reject invalid formatted values",
           },
+          {
+            id: "XAPI-00028",
+            section: "Data 2.4.1",
+            title: 'A Statement rejects a non-string value in the "id" property',
+          },
         ],
       },
       {
@@ -2130,6 +2151,11 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
             id: "XAPI-00007",
             section: "Data 2.2.s4.b4",
             title: "Statements reject invalid formatted values",
+          },
+          {
+            id: "XAPI-00028",
+            section: "Data 2.4.1",
+            title: 'A Statement rejects a non-string value in the "id" property',
           },
         ],
       },
@@ -2149,6 +2175,11 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
             section: "Data 2.2.s4.b4",
             title: "Statements reject invalid formatted values",
           },
+          {
+            id: "XAPI-00027",
+            section: "Data 2.4.1",
+            title: 'A Statement rejects an invalid UUID in the "id" property',
+          },
         ],
       },
       {
@@ -2166,6 +2197,11 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
             id: "XAPI-00007",
             section: "Data 2.2.s4.b4",
             title: "Statements reject invalid formatted values",
+          },
+          {
+            id: "XAPI-00027",
+            section: "Data 2.4.1",
+            title: 'A Statement rejects an invalid UUID in the "id" property',
           },
         ],
       },
@@ -2197,6 +2233,11 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
             section: "Data 2.2.s4.b1.b8",
             title: "Statements reject IRIs without schemes",
           },
+          {
+            id: "XAPI-00060",
+            section: "Data 2.4.4.1.s2.table1.row3",
+            title: 'An Activity Definition "type" property is an IRI',
+          },
         ],
       },
       {
@@ -2214,6 +2255,11 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
             id: "XAPI-00011",
             section: "Data 2.2.s4.b1.b8",
             title: "Statements reject IRIs without schemes",
+          },
+          {
+            id: "XAPI-00061",
+            section: "Data 2.4.4.1.s2.table1.row4",
+            title: 'An Activity Definition "moreInfo" property is an IRI',
           },
         ],
       },
@@ -4159,6 +4205,11 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
             section: "Data 2.2.s4.b2",
             title: "Language values follow RFC 5646",
           },
+          {
+            id: "XAPI-00091",
+            section: "Data 2.4.6.s3.table1.row7",
+            title: 'A "language" property follows RFC 5646',
+          },
         ],
       },
       {
@@ -4300,6 +4351,11 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
             id: "XAPI-00013",
             section: "Data 2.2.s4.b2",
             title: "Language values follow RFC 5646",
+          },
+          {
+            id: "XAPI-00091",
+            section: "Data 2.4.6.s3.table1.row7",
+            title: 'A "language" property follows RFC 5646',
           },
         ],
       },
@@ -8738,6 +8794,11 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
       section: "Data 2.4.5.s2.table1.row4",
       title: "Result duration values are ISO 8601 durations",
     },
+    {
+      id: "XAPI-00124",
+      section: "Data 4.6.s1.b1",
+      title: "Duration values use the ISO 8601 duration format",
+    },
   ];
   const resultExtensionsRequirementRefs: RequirementRef[] = [
     {
@@ -10911,12 +10972,22 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
       section: "Data 2.4.6",
       title: "Context revision values are strings and only apply to Activity objects",
     },
+    {
+      id: "XAPI-00089",
+      section: "Data 2.4.6.s3.table1.row5",
+      title: 'A "revision" property is a String',
+    },
   ];
   const contextPlatformRequirementRefs: RequirementRef[] = [
     {
       id: "XAPI-00085",
       section: "Data 2.4.6",
       title: "Context platform values are strings and only apply to Activity objects",
+    },
+    {
+      id: "XAPI-00090",
+      section: "Data 2.4.6.s3.table1.row6",
+      title: 'A "platform" property is a String',
     },
   ];
   const contextStatementRequirementRefs: RequirementRef[] = [
@@ -11366,6 +11437,11 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
       id: "XAPI-00097",
       section: "Data 2.4.8.s3.b2",
       title: "LRS assigns the stored property when statements are received",
+    },
+    {
+      id: "XAPI-00023",
+      section: "Data 2.4.8.s2",
+      title: 'A "stored" property is a valid TimeStamp assigned by the LRS',
     },
   ];
 
@@ -12103,6 +12179,11 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
       id: "XAPI-00119",
       section: "Data 4.1, XAPI-00119",
       title: "Extensions may contain null, empty strings, and empty objects",
+    },
+    {
+      id: "XAPI-00120",
+      section: "Data 4.1.s2",
+      title: 'An Extension is defined as an Object of any "extensions" property',
     },
   ];
   const specialDataTypesTimestampRequirementRefs: RequirementRef[] = [
@@ -14510,6 +14591,92 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       capabilityFlags: ["document", "state", "validation", "parameters"],
       legacyTraceSuiteFile: stateResourceLegacySuiteFile,
     }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-state.validation.invalid-stateId.put",
+      title: "The State Resource rejects PUT when stateId is not a string",
+      specVersion,
+      endpoint: "activities-state",
+      method: "PUT",
+      query: {
+        ...stateValidationIdentity,
+        stateId: invalidSerializedQueryNumeric,
+      },
+      body: stateRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00228",
+          section: "Communication 2.3 table1 row1.a",
+          title: "State Resource rejects PUT when stateId is not a string",
+        },
+      ],
+      tags: ["v2.0.0", "activities-state", "validation", "stateId"],
+      capabilityFlags: ["document", "state", "validation", "parameters"],
+      legacyTraceSuiteFile: parametersLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-state.validation.invalid-stateId.post",
+      title: "The State Resource rejects POST when stateId is not a string",
+      specVersion,
+      endpoint: "activities-state",
+      method: "POST",
+      query: {
+        ...stateValidationIdentity,
+        stateId: invalidSerializedQueryBoolean,
+      },
+      body: stateRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00226",
+          section: "Communication 2.3 table1 row1.a",
+          title: "State Resource rejects POST when stateId is not a string",
+        },
+      ],
+      tags: ["v2.0.0", "activities-state", "validation", "stateId"],
+      capabilityFlags: ["document", "state", "validation", "parameters"],
+      legacyTraceSuiteFile: parametersLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-state.validation.invalid-stateId.get",
+      title: "The State Resource rejects GET when stateId is not a string",
+      specVersion,
+      endpoint: "activities-state",
+      method: "GET",
+      query: {
+        ...stateValidationIdentity,
+        stateId: invalidSerializedQueryObject,
+      },
+      requirementRefs: [
+        {
+          id: "XAPI-00225",
+          section: "Communication 2.3 table1 row1.a",
+          title: "State Resource rejects GET when stateId is not a string",
+        },
+      ],
+      tags: ["v2.0.0", "activities-state", "validation", "stateId"],
+      capabilityFlags: ["document", "state", "validation", "parameters"],
+      legacyTraceSuiteFile: parametersLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-state.validation.invalid-stateId.delete",
+      title: "The State Resource rejects DELETE when stateId is not a string",
+      specVersion,
+      endpoint: "activities-state",
+      method: "DELETE",
+      query: {
+        ...stateValidationIdentity,
+        stateId: invalidSerializedQueryNumeric,
+      },
+      requirementRefs: [
+        {
+          id: "XAPI-00224",
+          section: "Communication 2.3 table1 row1.a",
+          title: "State Resource rejects DELETE when stateId is not a string",
+        },
+      ],
+      tags: ["v2.0.0", "activities-state", "validation", "stateId"],
+      capabilityFlags: ["document", "state", "validation", "parameters"],
+      legacyTraceSuiteFile: parametersLegacySuiteFile,
+    }),
   ];
 
   const stateRegistrationCases = [
@@ -15117,6 +15284,11 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
         section: "Communication 2.7.s3",
         title: "Activity Profile DELETE removes the associated profile",
       },
+      {
+        id: "XAPI-00291",
+        section: "Communication 2.7",
+        title: "Activity Profile accepts DELETE requests",
+      },
     ],
     tags: ["v2.0.0", "activities-profile", "document", "delete"],
     capabilityFlags: ["document", "delete", "activity-profile"],
@@ -15660,6 +15832,71 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
       tags: ["v2.0.0", "activities-profile", "validation", "profileId"],
       capabilityFlags: ["document", "activity-profile", "validation", "parameters"],
       legacyTraceSuiteFile: activityProfileLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-profile.validation.invalid-profileId.put",
+      title: "The Activity Profile Resource rejects PUT when profileId is not a string",
+      specVersion,
+      endpoint: "activities-profile",
+      method: "PUT",
+      query: {
+        ...profileValidationIdentity,
+        profileId: invalidSerializedQueryBoolean,
+      },
+      body: profileRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00307",
+          section: "Communication 2.7.s3.table1.row2",
+          title: "Activity Profile rejects PUT when profileId is not a string",
+        },
+      ],
+      tags: ["v2.0.0", "activities-profile", "validation", "profileId"],
+      capabilityFlags: ["document", "activity-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: parametersLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-profile.validation.invalid-profileId.post",
+      title: "The Activity Profile Resource rejects POST when profileId is not a string",
+      specVersion,
+      endpoint: "activities-profile",
+      method: "POST",
+      query: {
+        ...profileValidationIdentity,
+        profileId: invalidSerializedQueryNumeric,
+      },
+      body: profileRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00306",
+          section: "Communication 2.7.s3.table1.row2",
+          title: "Activity Profile rejects POST when profileId is not a string",
+        },
+      ],
+      tags: ["v2.0.0", "activities-profile", "validation", "profileId"],
+      capabilityFlags: ["document", "activity-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: parametersLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.activities-profile.validation.invalid-profileId.delete",
+      title: "The Activity Profile Resource rejects DELETE when profileId is not a string",
+      specVersion,
+      endpoint: "activities-profile",
+      method: "DELETE",
+      query: {
+        ...profileValidationIdentity,
+        profileId: invalidSerializedQueryObject,
+      },
+      requirementRefs: [
+        {
+          id: "XAPI-00305",
+          section: "Communication 2.7.s4.table1.row2",
+          title: "Activity Profile rejects DELETE when profileId is not a string",
+        },
+      ],
+      tags: ["v2.0.0", "activities-profile", "validation", "profileId"],
+      capabilityFlags: ["document", "activity-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: parametersLegacySuiteFile,
     }),
   ];
 
@@ -16228,13 +16465,9 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
     tags: ["v2.0.0", "agents-profile", "document", "write"],
     capabilityFlags: ["document", "agent-profile", "write"],
     legacyTraceSuiteFile: agentProfileLegacySuiteFile,
-    request: buildVersionedRequest(
-      "PUT",
-      "agents-profile",
-      profilePutAcceptedIdentity,
-      profileRequestBody,
-      { "If-None-Match": "*" },
-    ),
+    request: buildVersionedRequest("PUT", "agents-profile", profilePutAcceptedIdentity, profileRequestBody, {
+      "If-None-Match": "*",
+    }),
     assertion: {
       status: 204,
     },
@@ -16278,6 +16511,16 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
         id: "XAPI-00274",
         section: "Communication 2.6.s2",
         title: "Agent Profile Resource accepts GET requests and returns the stored document",
+      },
+      {
+        id: "XAPI-00259",
+        section: "Communication 2.6",
+        title: "Agent Profile GET with a valid agent object returns 200 OK and profile content",
+      },
+      {
+        id: "XAPI-00282",
+        section: "Communication 2.2.s3.table2.row3.a, Communication 2.2.table2.row3.c",
+        title: 'The Agent Profile Resource exists at "base IRI"+"/agents/profile"',
       },
     ],
     tags: ["v2.0.0", "agents-profile", "document", "retrieval"],
@@ -16800,6 +17043,50 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
       capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
       legacyTraceSuiteFile: agentProfileLegacySuiteFile,
     }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.agents-profile.validation.invalid-profileId.put",
+      title: "The Agent Profile Resource rejects PUT when profileId is not a string",
+      specVersion,
+      endpoint: "agents-profile",
+      method: "PUT",
+      query: {
+        ...profileValidationIdentity,
+        profileId: invalidSerializedQueryObject,
+      },
+      body: profileRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00277",
+          section: "Communication 2.6 table3 row2.a",
+          title: "Agent Profile rejects PUT when profileId is not a string",
+        },
+      ],
+      tags: ["v2.0.0", "agents-profile", "validation", "profileId"],
+      capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: parametersLegacySuiteFile,
+    }),
+    buildDocumentResourceValidationCase({
+      caseId: "v2.agents-profile.validation.invalid-profileId.post",
+      title: "The Agent Profile Resource rejects POST when profileId is not a string",
+      specVersion,
+      endpoint: "agents-profile",
+      method: "POST",
+      query: {
+        ...profileValidationIdentity,
+        profileId: invalidSerializedQueryBoolean,
+      },
+      body: profileRequestBody,
+      requirementRefs: [
+        {
+          id: "XAPI-00276",
+          section: "Communication 2.6 table3 row2.a",
+          title: "Agent Profile rejects POST when profileId is not a string",
+        },
+      ],
+      tags: ["v2.0.0", "agents-profile", "validation", "profileId"],
+      capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
+      legacyTraceSuiteFile: parametersLegacySuiteFile,
+    }),
   ];
 
   return {
@@ -16979,6 +17266,11 @@ export function createV20AgentsResourceProofSliceSuite(): SuiteDefinition {
         id: "XAPI-00248",
         section: "Communication 2.4.s2.table1.row1",
         title: "The Agents Resource returns a Person Object for the queried Agent",
+      },
+      {
+        id: "XAPI-00246",
+        section: "Communication 2.4.s2.table1.row1",
+        title: "The Agents Resource endpoint accepts GET and returns a Person Object with array-valued attributes",
       },
     ],
     tags: ["v2.0.0", "agents", "resource", "roundtrip"],
@@ -17851,6 +18143,11 @@ export function createV20AboutResourceProofSliceSuite(): SuiteDefinition {
         id: "XAPI-00317",
         section: "Communication 2.8.s5.b1.b1",
         title: "The About version property contains 2.0.0",
+      },
+      {
+        id: "XAPI-00316",
+        section: "Communication 2.8.s5.b1.b1",
+        title: "The About version property only contains allowed version values and includes 2.0.0",
       },
     ],
     tags: ["v2.0.0", "about", "resource"],
@@ -20251,7 +20548,12 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "communication", "content-types"],
     capabilityFlags: ["communication", "content-types"],
     legacyTraceSuiteFile: contentTypesLegacySuiteFile,
-    request: buildMultipartStatementPostRequest(multipartNoAttachmentsStatement, [], {}, { boundary: contentTypeBoundary }),
+    request: buildMultipartStatementPostRequest(
+      multipartNoAttachmentsStatement,
+      [],
+      {},
+      { boundary: contentTypeBoundary },
+    ),
     assertion: {
       status: 200,
     },
@@ -20503,15 +20805,20 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "communication", "content-types", "validation"],
     capabilityFlags: ["communication", "content-types", "validation"],
     legacyTraceSuiteFile: contentTypesLegacySuiteFile,
-    request: buildMultipartStatementPostRequest(rawAttachmentStatement, [], {}, {
-      boundary: contentTypeBoundary,
-      extraParts: [
-        {
-          contentType: "text/plain",
-          body: rawAttachmentBody,
-        },
-      ],
-    }),
+    request: buildMultipartStatementPostRequest(
+      rawAttachmentStatement,
+      [],
+      {},
+      {
+        boundary: contentTypeBoundary,
+        extraParts: [
+          {
+            contentType: "text/plain",
+            body: rawAttachmentBody,
+          },
+        ],
+      },
+    ),
     assertion: {
       status: 400,
     },
@@ -20553,7 +20860,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
 
   const invalidTransferEncodingRejectedCase = singleRequestCase({
     caseId: "v2.communication.content-types.invalid-transfer-encoding-rejected",
-    title: "Statement POST rejects multipart or mixed requests whose attachment parts do not use binary transfer encoding",
+    title:
+      "Statement POST rejects multipart or mixed requests whose attachment parts do not use binary transfer encoding",
     specVersion,
     requirementRefs: [
       {
