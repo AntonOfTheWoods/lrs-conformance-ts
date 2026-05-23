@@ -421,6 +421,8 @@ function validateInteractionComponents(value: unknown, label: string): string | 
     return `${label} must be an array`;
   }
 
+  const seenIds = new Set<string>();
+
   for (const component of value) {
     if (!isJsonObject(component)) {
       return `${label} entries must be objects`;
@@ -434,6 +436,12 @@ function validateInteractionComponents(value: unknown, label: string): string | 
     if (typeof component.id !== "string" || component.id.length === 0) {
       return `${label} entry id must be a string`;
     }
+
+    if (seenIds.has(component.id)) {
+      return `${label} entry ids must be unique`;
+    }
+
+    seenIds.add(component.id);
 
     if (component.description !== undefined) {
       const descriptionError = validateLanguageMapValue(component.description, `${label} entry description`);
@@ -523,6 +531,22 @@ function normalizeContextActivitiesInValue(value: unknown): unknown {
   }
 
   return next;
+}
+
+function normalizeStatementObjectActivityTypes(value: JsonObject): void {
+  const object = value.object;
+  if (!isJsonObject(object)) {
+    return;
+  }
+
+  if (object.objectType === "SubStatement") {
+    normalizeStatementObjectActivityTypes(object);
+    return;
+  }
+
+  if (object.objectType === undefined && typeof object.id === "string") {
+    object.objectType = "Activity";
+  }
 }
 
 function isActivityObjectForContextConstraints(value: unknown): boolean {
@@ -1855,6 +1879,7 @@ function buildStoredStatement(
   attachmentParts: Map<string, StoredAttachmentPart> = new Map(),
 ): StoredStatement {
   const storedBody = normalizeContextActivitiesInValue(cloneValue(body)) as JsonObject;
+  normalizeStatementObjectActivityTypes(storedBody);
   const storedAt =
     typeof storedBody.timestamp === "string" && isValidTimestamp(storedBody.timestamp)
       ? new Date(storedBody.timestamp).toISOString()

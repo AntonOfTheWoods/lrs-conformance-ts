@@ -711,9 +711,17 @@ function buildVerbFixture(id: string, display: string): JsonObject {
   };
 }
 
-function buildActivityObjectFixture(id: string, overrides: Partial<JsonObject> = {}): JsonObject {
+function buildActivityObjectFixture(
+  id: string,
+  overrides: Partial<JsonObject> = {},
+  includeObjectType = true,
+): JsonObject {
   return {
-    objectType: "Activity",
+    ...(includeObjectType
+      ? {
+          objectType: "Activity",
+        }
+      : {}),
     id,
     ...overrides,
   };
@@ -928,6 +936,7 @@ function buildStatementRefFixture(id = buildProofUuid(960)): JsonObject {
 }
 
 type ContextActivityKind = "parent" | "grouping" | "category" | "other";
+type InteractionComponentField = "choices" | "scale" | "source" | "target" | "steps";
 
 interface ResultPlacement {
   idSuffix: string;
@@ -1037,6 +1046,84 @@ const activityObjectPlacements: ActivityObjectPlacement[] = [
         },
       ];
     },
+  },
+];
+
+interface InteractionComponentTarget {
+  idSuffix: string;
+  title: string;
+  field: InteractionComponentField;
+  interactionType: string;
+  correctResponsesPattern: string[];
+  components: JsonObject[];
+}
+
+const interactionComponentTargets: InteractionComponentTarget[] = [
+  {
+    idSuffix: "choice-choices",
+    title: 'choice "choices"',
+    field: "choices",
+    interactionType: "choice",
+    correctResponsesPattern: ["choice-a[,]choice-b"],
+    components: [
+      buildInteractionComponentFixture("choice-a", "Choice A"),
+      buildInteractionComponentFixture("choice-b", "Choice B"),
+    ],
+  },
+  {
+    idSuffix: "sequencing-choices",
+    title: 'sequencing "choices"',
+    field: "choices",
+    interactionType: "sequencing",
+    correctResponsesPattern: ["sequence-a[,]sequence-b"],
+    components: [
+      buildInteractionComponentFixture("sequence-a", "Sequence A"),
+      buildInteractionComponentFixture("sequence-b", "Sequence B"),
+    ],
+  },
+  {
+    idSuffix: "likert-scale",
+    title: 'likert "scale"',
+    field: "scale",
+    interactionType: "likert",
+    correctResponsesPattern: ["likert-1"],
+    components: [
+      buildInteractionComponentFixture("likert-0", "Likert zero"),
+      buildInteractionComponentFixture("likert-1", "Likert one"),
+    ],
+  },
+  {
+    idSuffix: "matching-source",
+    title: 'matching "source"',
+    field: "source",
+    interactionType: "matching",
+    correctResponsesPattern: ["source-a[.]target-a"],
+    components: [
+      buildInteractionComponentFixture("source-a", "Source A"),
+      buildInteractionComponentFixture("source-b", "Source B"),
+    ],
+  },
+  {
+    idSuffix: "matching-target",
+    title: 'matching "target"',
+    field: "target",
+    interactionType: "matching",
+    correctResponsesPattern: ["source-a[.]target-a"],
+    components: [
+      buildInteractionComponentFixture("target-a", "Target A"),
+      buildInteractionComponentFixture("target-b", "Target B"),
+    ],
+  },
+  {
+    idSuffix: "performance-steps",
+    title: 'performance "steps"',
+    field: "steps",
+    interactionType: "performance",
+    correctResponsesPattern: ["step-a[.]complete"],
+    components: [
+      buildInteractionComponentFixture("step-a", "Step A"),
+      buildInteractionComponentFixture("step-b", "Step B"),
+    ],
   },
 ];
 
@@ -1158,6 +1245,24 @@ function buildContextActivitiesRoundTripPath(placementId: string, kind: ContextA
   return placementId === "statement"
     ? ["context", "contextActivities", kind]
     : ["object", "context", "contextActivities", kind];
+}
+
+function buildActivityObjectRoundTripPath(placementId: string, propertyPath: string[]): string[] {
+  return placementId === "statement" ? ["object", ...propertyPath] : ["object", "object", ...propertyPath];
+}
+
+function buildActivityDefinitionWithInteractionField(options: {
+  field: InteractionComponentField;
+  interactionType: string;
+  correctResponsesPattern: string[];
+  value: unknown;
+}): JsonObject {
+  const definition = buildActivityDefinitionFixture({
+    interactionType: options.interactionType,
+    correctResponsesPattern: options.correctResponsesPattern,
+  });
+  definition[options.field] = options.value;
+  return definition;
 }
 
 interface ActorLikePlacement {
@@ -5046,6 +5151,114 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
       title: "Activity definition values are Objects",
     },
   ];
+  const activityObjectTypeGenerationRequirementRefs: RequirementRef[] = [
+    {
+      id: "DATA-2.4.4.s2.activity-objecttype-generation",
+      section: "Data 2.4.4.s2",
+      title: "LRSs generate an Activity objectType for statement objects when it is omitted",
+    },
+  ];
+  const activityDefinitionNameRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00056",
+      section: "Data 2.4.4.1.s2.table1.row1",
+      title: "Activity definition name values are Language Maps",
+    },
+  ];
+  const activityDefinitionDescriptionRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00059",
+      section: "Data 2.4.4.1.s2.table1.row2",
+      title: "Activity definition description values are Language Maps",
+    },
+  ];
+  const activityDefinitionExtensionsRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00057",
+      section: "Data 2.4.4.1.s2.table1.row5",
+      title: "Activity definition extensions values are Objects with IRI keys",
+    },
+  ];
+  const activityInteractionTypeValueRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00049",
+      section: "Data 2.4.4.1.s8.table1.row1",
+      title:
+        "Activity definition interactionType values are one of true-false, choice, fill-in, long-fill-in, matching, performance, sequencing, likert, numeric, or other",
+    },
+  ];
+  const activityCorrectResponsesPatternRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00050",
+      section: "Data 2.4.4.1.s8.table1.row2",
+      title: "Activity definition correctResponsesPattern values are arrays of strings",
+    },
+  ];
+  const activityInteractionComponentRequirementRefsByField: Record<InteractionComponentField, RequirementRef[]> = {
+    choices: [
+      {
+        id: "XAPI-00051",
+        section: "Data 2.4.4.1.s8.table1.row3",
+        title: "Activity definition choices values are arrays of Interaction Components",
+      },
+    ],
+    scale: [
+      {
+        id: "XAPI-00052",
+        section: "Data 2.4.4.1.s8.table1.row3",
+        title: "Activity definition scale values are arrays of Interaction Components",
+      },
+    ],
+    source: [
+      {
+        id: "XAPI-00053",
+        section: "Data 2.4.4.1.s8.table1.row3",
+        title: "Activity definition source values are arrays of Interaction Components",
+      },
+    ],
+    target: [
+      {
+        id: "XAPI-00054",
+        section: "Data 2.4.4.1.s8.table1.row3",
+        title: "Activity definition target values are arrays of Interaction Components",
+      },
+    ],
+    steps: [
+      {
+        id: "XAPI-00055",
+        section: "Data 2.4.4.1.s8.table1.row3",
+        title: "Activity definition steps values are arrays of Interaction Components",
+      },
+    ],
+  };
+  const interactionComponentObjectRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00058",
+      section: "Data 2.4.4.1.s14",
+      title: "Interaction Components are Objects",
+    },
+  ];
+  const interactionComponentIdRequirementRefs: RequirementRef[] = [
+    {
+      id: "DATA-2.4.4.1.s15.table1.row1",
+      section: "Data 2.4.4.1.s15.table1.row1",
+      title: "Interaction Components include string ids",
+    },
+  ];
+  const interactionComponentDescriptionRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00062",
+      section: "Data 2.4.4.1.s15.table1.row2",
+      title: "Interaction Component descriptions are Language Maps",
+    },
+  ];
+  const interactionComponentUniqueIdRequirementRefs: RequirementRef[] = [
+    {
+      id: "DATA-2.4.4.1.s16.b1",
+      section: "Data 2.4.4.1.s16.b1",
+      title: "Interaction Component ids are unique within their arrays",
+    },
+  ];
   const activityInteractionTypeRequirementRefs: RequirementRef[] = [
     {
       id: "XAPI-00064",
@@ -5734,6 +5947,720 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
       ),
       requirementRefs: activityDefinitionRequirementRefs,
     })),
+  });
+
+  const activityObjectTypeGeneratedCases = activityObjectPlacements.map((placement, index) =>
+    statementRoundTripCase({
+      caseId: `v2.statements.activity.object-type-generated.${placement.idSuffix}`,
+      title: `The Statements resource generates objectType Activity for ${placement.title} when it is omitted`,
+      specVersion,
+      queryParam: "statementId",
+      requirementRefs: activityObjectTypeGenerationRequirementRefs,
+      tags: ["v2.0.0", "statements", "activity", "object", "retrieval"],
+      capabilityFlags: ["query", "retrieval", "activity"],
+      legacyTraceSuiteFile: objectRequirementsLegacySuiteFile,
+      transforms: [
+        {
+          operation: "set",
+          path: ["id"],
+          value: buildProofUuid(1100 + index),
+        },
+        ...placement.buildTransforms(
+          buildActivityObjectFixture(
+            `https://example.test/xapi/activities/${placement.idSuffix}-generated-object-type`,
+            {},
+            false,
+          ),
+        ),
+      ],
+      queryJsonPathEquals: [
+        {
+          path: buildActivityObjectRoundTripPath(placement.idSuffix, ["objectType"]),
+          equals: "Activity",
+        },
+      ],
+      notes: ["proof-slice statement activity objectType generation"],
+    }),
+  );
+
+  const activityDefinitionNameTypeCases = statementMutationFamily({
+    familyId: "v2.statements.activity.definition-name-type",
+    suiteTitle: "Statement Activity Objects",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "activity", "definition", "name", "validation"],
+    legacyTraceSuiteFile: objectRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: activitiesLegacyConfigFile,
+    variants: activityObjectPlacements.flatMap((placement) => [
+      {
+        idSuffix: `${placement.idSuffix}-numeric`,
+        title: `A Statement rejects ${placement.title} when definition.name is numeric`,
+        transforms: placement.buildTransforms(
+          buildActivityObjectFixture(`https://example.test/xapi/activities/${placement.idSuffix}-name-numeric`, {
+            definition: buildActivityDefinitionFixture({
+              name: 12345,
+            }),
+          }),
+        ),
+        requirementRefs: activityDefinitionNameRequirementRefs,
+      },
+      {
+        idSuffix: `${placement.idSuffix}-string`,
+        title: `A Statement rejects ${placement.title} when definition.name is a string`,
+        transforms: placement.buildTransforms(
+          buildActivityObjectFixture(`https://example.test/xapi/activities/${placement.idSuffix}-name-string`, {
+            definition: buildActivityDefinitionFixture({
+              name: "not-a-language-map",
+            }),
+          }),
+        ),
+        requirementRefs: activityDefinitionNameRequirementRefs,
+      },
+    ]),
+  });
+
+  const activityDefinitionDescriptionTypeCases = statementMutationFamily({
+    familyId: "v2.statements.activity.definition-description-type",
+    suiteTitle: "Statement Activity Objects",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "activity", "definition", "description", "validation"],
+    legacyTraceSuiteFile: objectRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: activitiesLegacyConfigFile,
+    variants: activityObjectPlacements.flatMap((placement) => [
+      {
+        idSuffix: `${placement.idSuffix}-numeric`,
+        title: `A Statement rejects ${placement.title} when definition.description is numeric`,
+        transforms: placement.buildTransforms(
+          buildActivityObjectFixture(`https://example.test/xapi/activities/${placement.idSuffix}-description-numeric`, {
+            definition: buildActivityDefinitionFixture({
+              description: 12345,
+            }),
+          }),
+        ),
+        requirementRefs: activityDefinitionDescriptionRequirementRefs,
+      },
+      {
+        idSuffix: `${placement.idSuffix}-string`,
+        title: `A Statement rejects ${placement.title} when definition.description is a string`,
+        transforms: placement.buildTransforms(
+          buildActivityObjectFixture(`https://example.test/xapi/activities/${placement.idSuffix}-description-string`, {
+            definition: buildActivityDefinitionFixture({
+              description: "not-a-language-map",
+            }),
+          }),
+        ),
+        requirementRefs: activityDefinitionDescriptionRequirementRefs,
+      },
+    ]),
+  });
+
+  const scalarInteractionTypeAcceptanceVariants = [
+    {
+      idSuffix: "true-false",
+      label: '"true-false"',
+      definition: buildActivityDefinitionFixture({
+        interactionType: "true-false",
+        correctResponsesPattern: ["true"],
+      }),
+    },
+    {
+      idSuffix: "fill-in",
+      label: '"fill-in"',
+      definition: buildActivityDefinitionFixture({
+        interactionType: "fill-in",
+        correctResponsesPattern: ["proof fill in"],
+      }),
+    },
+    {
+      idSuffix: "long-fill-in",
+      label: '"long-fill-in"',
+      definition: buildActivityDefinitionFixture({
+        interactionType: "long-fill-in",
+        correctResponsesPattern: ["proof long fill in"],
+      }),
+    },
+    {
+      idSuffix: "numeric",
+      label: '"numeric"',
+      definition: buildActivityDefinitionFixture({
+        interactionType: "numeric",
+        correctResponsesPattern: ["4[:]"],
+      }),
+    },
+    {
+      idSuffix: "other",
+      label: '"other"',
+      definition: buildActivityDefinitionFixture({
+        interactionType: "other",
+        correctResponsesPattern: ["(35.937432,-86.868896)"],
+      }),
+    },
+  ] as const;
+
+  const activityInteractionTypeAcceptanceVariants = [
+    ...scalarInteractionTypeAcceptanceVariants,
+    {
+      idSuffix: "choice",
+      label: '"choice"',
+      definition: buildActivityDefinitionWithInteractionField({
+        field: "choices",
+        interactionType: "choice",
+        correctResponsesPattern: ["choice-a[,]choice-b"],
+        value: [
+          buildInteractionComponentFixture("choice-a", "Choice A"),
+          buildInteractionComponentFixture("choice-b", "Choice B"),
+        ],
+      }),
+    },
+    {
+      idSuffix: "matching",
+      label: '"matching"',
+      definition: buildActivityDefinitionFixture({
+        interactionType: "matching",
+        correctResponsesPattern: ["source-a[.]target-a"],
+        source: [
+          buildInteractionComponentFixture("source-a", "Source A"),
+          buildInteractionComponentFixture("source-b", "Source B"),
+        ],
+        target: [
+          buildInteractionComponentFixture("target-a", "Target A"),
+          buildInteractionComponentFixture("target-b", "Target B"),
+        ],
+      }),
+    },
+    {
+      idSuffix: "performance",
+      label: '"performance"',
+      definition: buildActivityDefinitionWithInteractionField({
+        field: "steps",
+        interactionType: "performance",
+        correctResponsesPattern: ["step-a[.]complete"],
+        value: [
+          buildInteractionComponentFixture("step-a", "Step A"),
+          buildInteractionComponentFixture("step-b", "Step B"),
+        ],
+      }),
+    },
+    {
+      idSuffix: "sequencing",
+      label: '"sequencing"',
+      definition: buildActivityDefinitionWithInteractionField({
+        field: "choices",
+        interactionType: "sequencing",
+        correctResponsesPattern: ["sequence-a[,]sequence-b"],
+        value: [
+          buildInteractionComponentFixture("sequence-a", "Sequence A"),
+          buildInteractionComponentFixture("sequence-b", "Sequence B"),
+        ],
+      }),
+    },
+    {
+      idSuffix: "likert",
+      label: '"likert"',
+      definition: buildActivityDefinitionWithInteractionField({
+        field: "scale",
+        interactionType: "likert",
+        correctResponsesPattern: ["likert-1"],
+        value: [
+          buildInteractionComponentFixture("likert-0", "Likert zero"),
+          buildInteractionComponentFixture("likert-1", "Likert one"),
+        ],
+      }),
+    },
+  ];
+
+  const activityInteractionTypeAcceptanceCases = statementMutationFamily({
+    familyId: "v2.statements.activity.interaction-type.acceptance",
+    suiteTitle: "Statement Activity Objects",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "activity", "definition", "interaction-type"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: objectRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: activitiesLegacyConfigFile,
+    variants: activityObjectPlacements.flatMap((placement) =>
+      activityInteractionTypeAcceptanceVariants.map((variant) => ({
+        idSuffix: `${placement.idSuffix}-${variant.idSuffix}`,
+        title: `A Statement accepts ${placement.title} when definition.interactionType uses ${variant.label}`,
+        transforms: placement.buildTransforms(
+          buildActivityObjectFixture(
+            `https://example.test/xapi/activities/${placement.idSuffix}-interaction-type-${variant.idSuffix}`,
+            {
+              definition: variant.definition,
+            },
+          ),
+        ),
+        requirementRefs: activityInteractionTypeValueRequirementRefs,
+      })),
+    ),
+  });
+
+  const invalidInteractionTypeVariants = [
+    {
+      idSuffix: "iri",
+      label: "an IRI",
+      value: invalidOpenId,
+    },
+    {
+      idSuffix: "numeric",
+      label: "a number",
+      value: 12345,
+    },
+    {
+      idSuffix: "object",
+      label: "an object",
+      value: {
+        invalid: true,
+      },
+    },
+    {
+      idSuffix: "string",
+      label: "an unsupported string",
+      value: "should error",
+    },
+  ] as const;
+
+  const activityInteractionTypeInvalidCases = statementMutationFamily({
+    familyId: "v2.statements.activity.interaction-type.invalid",
+    suiteTitle: "Statement Activity Objects",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "activity", "definition", "interaction-type", "validation"],
+    legacyTraceSuiteFile: objectRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: activitiesLegacyConfigFile,
+    variants: activityObjectPlacements.flatMap((placement) =>
+      invalidInteractionTypeVariants.map((variant) => ({
+        idSuffix: `${placement.idSuffix}-${variant.idSuffix}`,
+        title: `A Statement rejects ${placement.title} when definition.interactionType uses ${variant.label}`,
+        transforms: placement.buildTransforms(
+          buildActivityObjectFixture(
+            `https://example.test/xapi/activities/${placement.idSuffix}-invalid-interaction-type-${variant.idSuffix}`,
+            {
+              definition: buildActivityDefinitionFixture({
+                interactionType: variant.value,
+                correctResponsesPattern: ["proof-response"],
+              }),
+            },
+          ),
+        ),
+        requirementRefs: activityInteractionTypeValueRequirementRefs,
+      })),
+    ),
+  });
+
+  const activityCorrectResponsesPatternCases = statementMutationFamily({
+    familyId: "v2.statements.activity.correct-responses-pattern",
+    suiteTitle: "Statement Activity Objects",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "activity", "definition", "correct-responses-pattern"],
+    legacyTraceSuiteFile: objectRequirementsLegacySuiteFile,
+    variants: activityObjectPlacements.flatMap((placement) => [
+      {
+        idSuffix: `${placement.idSuffix}-valid`,
+        title: `A Statement accepts ${placement.title} when definition.correctResponsesPattern is an array of strings`,
+        transforms: placement.buildTransforms(
+          buildActivityObjectFixture(
+            `https://example.test/xapi/activities/${placement.idSuffix}-correct-responses-pattern-valid`,
+            {
+              definition: buildActivityDefinitionFixture({
+                interactionType: "other",
+                correctResponsesPattern: ["proof-response"],
+              }),
+            },
+          ),
+        ),
+        requirementRefs: activityCorrectResponsesPatternRequirementRefs,
+      },
+      {
+        idSuffix: `${placement.idSuffix}-object`,
+        title: `A Statement rejects ${placement.title} when definition.correctResponsesPattern is an object`,
+        transforms: placement.buildTransforms(
+          buildActivityObjectFixture(
+            `https://example.test/xapi/activities/${placement.idSuffix}-correct-responses-pattern-object`,
+            {
+              definition: buildActivityDefinitionFixture({
+                interactionType: "other",
+                correctResponsesPattern: {
+                  invalid: true,
+                },
+              }),
+            },
+          ),
+        ),
+        requirementRefs: activityCorrectResponsesPatternRequirementRefs,
+      },
+      {
+        idSuffix: `${placement.idSuffix}-array-object`,
+        title: `A Statement rejects ${placement.title} when definition.correctResponsesPattern contains objects`,
+        transforms: placement.buildTransforms(
+          buildActivityObjectFixture(
+            `https://example.test/xapi/activities/${placement.idSuffix}-correct-responses-pattern-array-object`,
+            {
+              definition: buildActivityDefinitionFixture({
+                interactionType: "other",
+                correctResponsesPattern: [
+                  {
+                    invalid: true,
+                  },
+                ],
+              }),
+            },
+          ),
+        ),
+        requirementRefs: activityCorrectResponsesPatternRequirementRefs,
+      },
+      {
+        idSuffix: `${placement.idSuffix}-array-number`,
+        title: `A Statement rejects ${placement.title} when definition.correctResponsesPattern contains numbers`,
+        transforms: placement.buildTransforms(
+          buildActivityObjectFixture(
+            `https://example.test/xapi/activities/${placement.idSuffix}-correct-responses-pattern-array-number`,
+            {
+              definition: buildActivityDefinitionFixture({
+                interactionType: "other",
+                correctResponsesPattern: [12345],
+              }),
+            },
+          ),
+        ),
+        requirementRefs: activityCorrectResponsesPatternRequirementRefs,
+      },
+    ]),
+    expectedStatus: 200,
+  }).map((testCase) =>
+    testCase.id.endsWith("-object") || testCase.id.endsWith("-array-object") || testCase.id.endsWith("-array-number")
+      ? {
+          ...testCase,
+          assertion: {
+            ...testCase.assertion,
+            status: 400,
+          },
+        }
+      : testCase,
+  );
+
+  const activityExtensionsTypeCases = statementMutationFamily({
+    familyId: "v2.statements.activity.extensions-type",
+    suiteTitle: "Statement Activity Objects",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "activity", "definition", "extensions", "validation"],
+    legacyTraceSuiteFile: objectRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: activitiesLegacyConfigFile,
+    variants: activityObjectPlacements.flatMap((placement) => [
+      {
+        idSuffix: `${placement.idSuffix}-string`,
+        title: `A Statement rejects ${placement.title} when definition.extensions is a string`,
+        transforms: placement.buildTransforms(
+          buildActivityObjectFixture(`https://example.test/xapi/activities/${placement.idSuffix}-extensions-string`, {
+            definition: buildActivityDefinitionFixture({
+              extensions: "not-an-object",
+            }),
+          }),
+        ),
+        requirementRefs: activityDefinitionExtensionsRequirementRefs,
+      },
+      {
+        idSuffix: `${placement.idSuffix}-invalid-key`,
+        title: `A Statement rejects ${placement.title} when definition.extensions uses a non-IRI key`,
+        transforms: placement.buildTransforms(
+          buildActivityObjectFixture(
+            `https://example.test/xapi/activities/${placement.idSuffix}-extensions-invalid-key`,
+            {
+              definition: buildActivityDefinitionFixture({
+                extensions: {
+                  id: "valid",
+                },
+              }),
+            },
+          ),
+        ),
+        requirementRefs: activityDefinitionExtensionsRequirementRefs,
+      },
+    ]),
+  });
+
+  const activityInteractionComponentAcceptanceCases = statementMutationFamily({
+    familyId: "v2.statements.activity.interaction-components.acceptance",
+    suiteTitle: "Statement Activity Objects",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "activity", "definition", "interaction-components"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: objectRequirementsLegacySuiteFile,
+    variants: activityObjectPlacements.flatMap((placement) =>
+      interactionComponentTargets.map((target) => ({
+        idSuffix: `${placement.idSuffix}-${target.idSuffix}`,
+        title: `A Statement accepts ${placement.title} when ${target.title} uses interaction components`,
+        transforms: placement.buildTransforms(
+          buildActivityObjectFixture(
+            `https://example.test/xapi/activities/${placement.idSuffix}-${target.idSuffix}-acceptance`,
+            {
+              definition: buildActivityDefinitionWithInteractionField({
+                field: target.field,
+                interactionType: target.interactionType,
+                correctResponsesPattern: target.correctResponsesPattern,
+                value: target.components,
+              }),
+            },
+          ),
+        ),
+        requirementRefs: activityInteractionComponentRequirementRefsByField[target.field],
+      })),
+    ),
+  });
+
+  const activityInteractionComponentNotArrayCases = statementMutationFamily({
+    familyId: "v2.statements.activity.interaction-components.not-array",
+    suiteTitle: "Statement Activity Objects",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "activity", "definition", "interaction-components", "validation"],
+    legacyTraceSuiteFile: objectRequirementsLegacySuiteFile,
+    variants: activityObjectPlacements.flatMap((placement) =>
+      interactionComponentTargets.map((target) => ({
+        idSuffix: `${placement.idSuffix}-${target.idSuffix}`,
+        title: `A Statement rejects ${placement.title} when ${target.title} is not an array`,
+        transforms: placement.buildTransforms(
+          buildActivityObjectFixture(
+            `https://example.test/xapi/activities/${placement.idSuffix}-${target.idSuffix}-not-array`,
+            {
+              definition: buildActivityDefinitionWithInteractionField({
+                field: target.field,
+                interactionType: target.interactionType,
+                correctResponsesPattern: target.correctResponsesPattern,
+                value: {
+                  invalid: true,
+                },
+              }),
+            },
+          ),
+        ),
+        requirementRefs: activityInteractionComponentRequirementRefsByField[target.field],
+      })),
+    ),
+  });
+
+  const activityInteractionComponentEntryNotObjectCases = statementMutationFamily({
+    familyId: "v2.statements.activity.interaction-components.entry-not-object",
+    suiteTitle: "Statement Activity Objects",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "activity", "definition", "interaction-components", "validation"],
+    legacyTraceSuiteFile: objectRequirementsLegacySuiteFile,
+    variants: activityObjectPlacements.flatMap((placement) =>
+      interactionComponentTargets.map((target) => ({
+        idSuffix: `${placement.idSuffix}-${target.idSuffix}`,
+        title: `A Statement rejects ${placement.title} when ${target.title} contains a non-object entry`,
+        transforms: placement.buildTransforms(
+          buildActivityObjectFixture(
+            `https://example.test/xapi/activities/${placement.idSuffix}-${target.idSuffix}-entry-not-object`,
+            {
+              definition: buildActivityDefinitionWithInteractionField({
+                field: target.field,
+                interactionType: target.interactionType,
+                correctResponsesPattern: target.correctResponsesPattern,
+                value: ["not-an-object"],
+              }),
+            },
+          ),
+        ),
+        requirementRefs: [
+          ...activityInteractionComponentRequirementRefsByField[target.field],
+          ...interactionComponentObjectRequirementRefs,
+        ],
+      })),
+    ),
+  });
+
+  const activityInteractionComponentIdMissingCases = statementMutationFamily({
+    familyId: "v2.statements.activity.interaction-components.id-missing",
+    suiteTitle: "Statement Activity Objects",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "activity", "definition", "interaction-components", "validation"],
+    legacyTraceSuiteFile: objectRequirementsLegacySuiteFile,
+    variants: activityObjectPlacements.flatMap((placement) =>
+      interactionComponentTargets.map((target) => ({
+        idSuffix: `${placement.idSuffix}-${target.idSuffix}`,
+        title: `A Statement rejects ${placement.title} when ${target.title} omits an interaction component id`,
+        transforms: placement.buildTransforms(
+          buildActivityObjectFixture(
+            `https://example.test/xapi/activities/${placement.idSuffix}-${target.idSuffix}-id-missing`,
+            {
+              definition: buildActivityDefinitionWithInteractionField({
+                field: target.field,
+                interactionType: target.interactionType,
+                correctResponsesPattern: target.correctResponsesPattern,
+                value: [
+                  {
+                    description: {
+                      "en-US": "Proof interaction component",
+                    },
+                  },
+                ],
+              }),
+            },
+          ),
+        ),
+        requirementRefs: [
+          ...activityInteractionComponentRequirementRefsByField[target.field],
+          ...interactionComponentIdRequirementRefs,
+        ],
+      })),
+    ),
+  });
+
+  const activityInteractionComponentIdInvalidCases = statementMutationFamily({
+    familyId: "v2.statements.activity.interaction-components.id-invalid",
+    suiteTitle: "Statement Activity Objects",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "activity", "definition", "interaction-components", "validation"],
+    legacyTraceSuiteFile: objectRequirementsLegacySuiteFile,
+    variants: activityObjectPlacements.flatMap((placement) =>
+      interactionComponentTargets.map((target) => ({
+        idSuffix: `${placement.idSuffix}-${target.idSuffix}`,
+        title: `A Statement rejects ${placement.title} when ${target.title} uses a non-string interaction component id`,
+        transforms: placement.buildTransforms(
+          buildActivityObjectFixture(
+            `https://example.test/xapi/activities/${placement.idSuffix}-${target.idSuffix}-id-invalid`,
+            {
+              definition: buildActivityDefinitionWithInteractionField({
+                field: target.field,
+                interactionType: target.interactionType,
+                correctResponsesPattern: target.correctResponsesPattern,
+                value: [
+                  {
+                    id: 12345,
+                    description: {
+                      "en-US": "Proof interaction component",
+                    },
+                  },
+                ],
+              }),
+            },
+          ),
+        ),
+        requirementRefs: [
+          ...activityInteractionComponentRequirementRefsByField[target.field],
+          ...interactionComponentIdRequirementRefs,
+        ],
+      })),
+    ),
+  });
+
+  const activityInteractionComponentDescriptionTypeCases = statementMutationFamily({
+    familyId: "v2.statements.activity.interaction-components.description-type",
+    suiteTitle: "Statement Activity Objects",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "activity", "definition", "interaction-components", "validation"],
+    legacyTraceSuiteFile: objectRequirementsLegacySuiteFile,
+    variants: activityObjectPlacements.flatMap((placement) =>
+      interactionComponentTargets.map((target) => ({
+        idSuffix: `${placement.idSuffix}-${target.idSuffix}`,
+        title: `A Statement rejects ${placement.title} when ${target.title} uses a non-object description`,
+        transforms: placement.buildTransforms(
+          buildActivityObjectFixture(
+            `https://example.test/xapi/activities/${placement.idSuffix}-${target.idSuffix}-description-type`,
+            {
+              definition: buildActivityDefinitionWithInteractionField({
+                field: target.field,
+                interactionType: target.interactionType,
+                correctResponsesPattern: target.correctResponsesPattern,
+                value: [
+                  {
+                    id: `${target.idSuffix}-description-type`,
+                    description: "not-a-language-map",
+                  },
+                ],
+              }),
+            },
+          ),
+        ),
+        requirementRefs: [
+          ...activityInteractionComponentRequirementRefsByField[target.field],
+          ...interactionComponentDescriptionRequirementRefs,
+        ],
+      })),
+    ),
+  });
+
+  const activityInteractionComponentDescriptionLanguageCases = statementMutationFamily({
+    familyId: "v2.statements.activity.interaction-components.description-language",
+    suiteTitle: "Statement Activity Objects",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "activity", "definition", "interaction-components", "validation"],
+    legacyTraceSuiteFile: objectRequirementsLegacySuiteFile,
+    variants: activityObjectPlacements.flatMap((placement) =>
+      interactionComponentTargets.map((target) => ({
+        idSuffix: `${placement.idSuffix}-${target.idSuffix}`,
+        title: `A Statement rejects ${placement.title} when ${target.title} uses an invalid description language key`,
+        transforms: placement.buildTransforms(
+          buildActivityObjectFixture(
+            `https://example.test/xapi/activities/${placement.idSuffix}-${target.idSuffix}-description-language`,
+            {
+              definition: buildActivityDefinitionWithInteractionField({
+                field: target.field,
+                interactionType: target.interactionType,
+                correctResponsesPattern: target.correctResponsesPattern,
+                value: [
+                  {
+                    id: `${target.idSuffix}-description-language`,
+                    description: {
+                      something: "invalid-language-key",
+                    },
+                  },
+                ],
+              }),
+            },
+          ),
+        ),
+        requirementRefs: [
+          ...activityInteractionComponentRequirementRefsByField[target.field],
+          ...interactionComponentDescriptionRequirementRefs,
+        ],
+      })),
+    ),
+  });
+
+  const activityInteractionComponentDuplicateIdCases = statementMutationFamily({
+    familyId: "v2.statements.activity.interaction-components.duplicate-ids",
+    suiteTitle: "Statement Activity Objects",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "activity", "definition", "interaction-components", "validation"],
+    legacyTraceSuiteFile: objectRequirementsLegacySuiteFile,
+    variants: activityObjectPlacements.flatMap((placement) =>
+      interactionComponentTargets.map((target) => ({
+        idSuffix: `${placement.idSuffix}-${target.idSuffix}`,
+        title: `A Statement rejects ${placement.title} when ${target.title} reuses an interaction component id`,
+        transforms: placement.buildTransforms(
+          buildActivityObjectFixture(
+            `https://example.test/xapi/activities/${placement.idSuffix}-${target.idSuffix}-duplicate-ids`,
+            {
+              definition: buildActivityDefinitionWithInteractionField({
+                field: target.field,
+                interactionType: target.interactionType,
+                correctResponsesPattern: target.correctResponsesPattern,
+                value: [
+                  buildInteractionComponentFixture(`${target.idSuffix}-duplicate`, "Duplicate A"),
+                  buildInteractionComponentFixture(`${target.idSuffix}-duplicate`, "Duplicate B"),
+                ],
+              }),
+            },
+          ),
+        ),
+        requirementRefs: [
+          ...activityInteractionComponentRequirementRefsByField[target.field],
+          ...interactionComponentUniqueIdRequirementRefs,
+        ],
+      })),
+    ),
   });
 
   const interactionCarrierVariants = [
@@ -6969,7 +7896,22 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
               ...objectTypeVocabularyCases,
               ...activityMissingIdCases,
               ...activityInvalidIdCases,
+              ...activityObjectTypeGeneratedCases,
               ...activityDefinitionTypeCases,
+              ...activityDefinitionNameTypeCases,
+              ...activityDefinitionDescriptionTypeCases,
+              ...activityInteractionTypeAcceptanceCases,
+              ...activityInteractionTypeInvalidCases,
+              ...activityCorrectResponsesPatternCases,
+              ...activityExtensionsTypeCases,
+              ...activityInteractionComponentAcceptanceCases,
+              ...activityInteractionComponentNotArrayCases,
+              ...activityInteractionComponentEntryNotObjectCases,
+              ...activityInteractionComponentIdMissingCases,
+              ...activityInteractionComponentIdInvalidCases,
+              ...activityInteractionComponentDescriptionTypeCases,
+              ...activityInteractionComponentDescriptionLanguageCases,
+              ...activityInteractionComponentDuplicateIdCases,
               ...activityInteractionTypeRequiredCases,
               ...objectActorTypeRequiredCases,
             ],

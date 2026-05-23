@@ -15,7 +15,7 @@ import {
   createV20StateResourceProofSliceSuite,
 } from "../src/specs/v2_0/proof-slice";
 
-const expectedCaseCount = 765;
+const expectedCaseCount = 911;
 const expectedCaseIdAnchors = [
   "v2.statements.required-fields.missing-actor",
   "v2.statements.invalid-types.result-completion-string",
@@ -106,8 +106,22 @@ const expectedCaseIdAnchors = [
   "v2.statements.result.duration-valid.substatement-weeks",
   "v2.statements.score.scaled-invalid.statement-above-one",
   "v2.statements.object-type-vocabulary.statement-agent",
+  "v2.statements.activity.object-type-generated.statement",
   "v2.statements.activity.missing-id.substatement",
   "v2.statements.activity.definition-type.statement",
+  "v2.statements.activity.definition-name-type.substatement-string",
+  "v2.statements.activity.interaction-type.acceptance.statement-matching",
+  "v2.statements.activity.interaction-type.invalid.substatement-object",
+  "v2.statements.activity.correct-responses-pattern.substatement-array-number",
+  "v2.statements.activity.extensions-type.statement-invalid-key",
+  "v2.statements.activity.interaction-components.acceptance.substatement-matching-target",
+  "v2.statements.activity.interaction-components.not-array.statement-choice-choices",
+  "v2.statements.activity.interaction-components.entry-not-object.substatement-performance-steps",
+  "v2.statements.activity.interaction-components.id-missing.statement-likert-scale",
+  "v2.statements.activity.interaction-components.id-invalid.substatement-matching-source",
+  "v2.statements.activity.interaction-components.description-type.statement-sequencing-choices",
+  "v2.statements.activity.interaction-components.description-language.substatement-matching-target",
+  "v2.statements.activity.interaction-components.duplicate-ids.statement-choice-choices",
   "v2.statements.activity.interaction-type-required.substatement-steps",
   "v2.statements.object-agent-group.requires-object-type.statement-group",
   "v2.statements.statement-ref.acceptance.substatement",
