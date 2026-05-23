@@ -280,8 +280,37 @@ function isFiniteNumber(value: unknown): boolean {
   return typeof value === "number" && Number.isFinite(value);
 }
 
+function normalizeTimestampForParse(value: string): string | undefined {
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}(?::?\d{2})?)$/.test(value)) {
+    return undefined;
+  }
+
+  if (/-00(?::?00)?$/.test(value)) {
+    return undefined;
+  }
+
+  if (/[+-]\d{4}$/.test(value)) {
+    return `${value.slice(0, -5)}${value.slice(-5, -2)}:${value.slice(-2)}`;
+  }
+
+  return value;
+}
+
 function isValidTimestamp(value: string): boolean {
-  return Number.isFinite(Date.parse(value));
+  const normalized = normalizeTimestampForParse(value);
+  return normalized !== undefined && Number.isFinite(Date.parse(normalized));
+}
+
+function isValidStatementVersion(value: string): boolean {
+  return /^1\.0(?:\.\d+)?$/.test(value) || value === "2.0.0";
+}
+
+function isValidMediaType(value: string): boolean {
+  return /^[!#$%&'*+.^_`|~0-9a-z-]+\/[!#$%&'*+.^_`|~0-9a-z-]+(?:\s*;.+)?$/i.test(value);
+}
+
+function isValidSha2(value: string): boolean {
+  return /^[0-9a-f]{64}$/i.test(value);
 }
 
 function normalizeMediaType(value: string | null): string {
@@ -1010,16 +1039,26 @@ function validateAttachments(value: unknown): string | undefined {
       return "attachment usageType must be an IRI";
     }
 
+    const displayError = validateLanguageMapValue(attachment.display, "attachment display");
+    if (displayError) {
+      return displayError;
+    }
+
+    if (typeof attachment.contentType !== "string" || !isValidMediaType(attachment.contentType)) {
+      return "attachment contentType must be an Internet Media Type";
+    }
+
+    if (!Number.isInteger(attachment.length) || (attachment.length as number) < 0) {
+      return "attachment length must be an integer";
+    }
+
+    if (typeof attachment.sha2 !== "string" || !isValidSha2(attachment.sha2)) {
+      return "attachment sha2 must be a SHA-2 hash string";
+    }
+
     const fileUrl = attachment.fileUrl;
     if (fileUrl !== undefined && (typeof fileUrl !== "string" || !hasUriScheme(fileUrl))) {
       return "attachment fileUrl must be an IRI";
-    }
-
-    if (attachment.display !== undefined) {
-      const displayError = validateLanguageMapValue(attachment.display, "attachment display");
-      if (displayError) {
-        return displayError;
-      }
     }
 
     if (attachment.description !== undefined) {
@@ -1173,6 +1212,22 @@ function validateStatementLike(
     }
   } else if (typeof statementId !== "string" || !isUuid(statementId)) {
     return "statement id must be a UUID";
+  }
+
+  if (value.timestamp !== undefined) {
+    if (typeof value.timestamp !== "string" || !isValidTimestamp(value.timestamp)) {
+      return `${options.isSubStatement ? "substatement" : "statement"} timestamp must be a timestamp`;
+    }
+  }
+
+  if (!options.isSubStatement) {
+    if (value.stored !== undefined && (typeof value.stored !== "string" || !isValidTimestamp(value.stored))) {
+      return "statement stored must be a timestamp";
+    }
+
+    if (value.version !== undefined && (typeof value.version !== "string" || !isValidStatementVersion(value.version))) {
+      return "statement version must be 1.0, 1.0.x, or 2.0.0";
+    }
   }
 
   const actorError = validateActorLike(value.actor);

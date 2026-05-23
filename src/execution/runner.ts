@@ -192,6 +192,19 @@ function assertJsonPathMatches(body: unknown, expectations: JsonPathExpectation[
   });
 }
 
+function assertJsonPathDoesNotMatch(body: unknown, expectations: JsonPathExpectation[]): string[] {
+  return (expectations ?? []).flatMap((expectation) => {
+    const actual = getValueAtPath(body, expectation.path);
+    if (!deepEqual(actual, expectation.equals)) {
+      return [];
+    }
+
+    return [
+      `Expected path ${expectation.path.join(".")} not to equal ${JSON.stringify(expectation.equals)} but received ${JSON.stringify(actual)}.`,
+    ];
+  });
+}
+
 function assertTextContains(body: unknown, expected: string[]): string[] {
   if ((expected ?? []).length === 0) {
     return [];
@@ -231,6 +244,7 @@ function assertRequestExpectation(response: Response, body: unknown, assertion: 
   errors.push(...assertHeaders(response, assertion.expectedHeaders));
   errors.push(...assertHeaderPatterns(response, assertion.expectedHeaderPatterns));
   errors.push(...assertJsonPathMatches(body, assertion.jsonPathEquals));
+  errors.push(...assertJsonPathDoesNotMatch(body, assertion.jsonPathNotEquals));
   errors.push(...assertTextContains(body, assertion.textContains));
 
   return errors;

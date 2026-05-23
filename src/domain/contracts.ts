@@ -96,6 +96,7 @@ export const RequestAssertionSchema = z
     expectedHeaders: z.array(HeaderExpectationSchema).default([]),
     expectedHeaderPatterns: z.array(HeaderPatternExpectationSchema).default([]),
     jsonPathEquals: z.array(JsonPathExpectationSchema).default([]),
+    jsonPathNotEquals: z.array(JsonPathExpectationSchema).default([]),
     textContains: z.array(z.string().min(1)).default([]),
   })
   .strict();
@@ -171,6 +172,7 @@ export const AssertionPlanSchema = z.discriminatedUnion("kind", [
       expectedHeaders: z.array(HeaderExpectationSchema).default([]),
       expectedHeaderPatterns: z.array(HeaderPatternExpectationSchema).default([]),
       jsonPathEquals: z.array(JsonPathExpectationSchema).default([]),
+      jsonPathNotEquals: z.array(JsonPathExpectationSchema).default([]),
       textContains: z.array(z.string().min(1)).default([]),
       notes: z.array(z.string()).default([]),
     })

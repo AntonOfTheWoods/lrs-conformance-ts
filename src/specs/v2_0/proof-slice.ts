@@ -46,8 +46,16 @@ const objectRequirementsLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.2.3-Object-Requirements.js";
 const resultRequirementsLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.2.4-Result-Requirements.js";
+const attachmentRequirementsLegacySuiteFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.2.6-Attachment-Requirements.js";
 const idRequirementsLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.4.2-ID-Requirements.js";
+const storedRequirementsLegacySuiteFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.4.2-Stored-Requirements.js";
+const timestampRequirementsLegacySuiteFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.4.2-Timestamp-Requirements.js";
+const versionRequirementsLegacySuiteFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.4.3-Version-Requirements.js";
 const statementResourceLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.1.6.1-Statement-Resource.js";
 const errorCodesLegacySuiteFile =
@@ -76,6 +84,7 @@ const authenticationLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/H.Communication4.0-Authentication.js";
 const ifisLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/ifis.js";
 const agentsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/agents.js";
+const attachmentsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/attachments.js";
 const groupsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/groups.js";
 const authoritiesLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.4.2-Authority-Requirements.js";
@@ -89,7 +98,11 @@ const objectsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/
 const resultsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/results.js";
 const durationsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/durations.js";
 const scoresLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/scores.js";
+const timestampPropertyLegacyConfigFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/timestamp_property.js";
+const timestampsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/timestamps.js";
 const uuidsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/uuids.js";
+const versionPropertyLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/version.js";
 const statementRefsLegacyConfigFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/statementrefs.js";
 const subStatementsLegacyConfigFile =
@@ -103,6 +116,14 @@ const invalidUuidNumeric = 12345;
 const invalidUuidObject = { key: "should fail" };
 const invalidUuidTooManyDigits = "AA97B177-9383-4934-8543-0F91A7A028368";
 const invalidUuidInvalidLetter = "MA97B177-9383-4934-8543-0F91A7A02836";
+const invalidLegacyDate = "01/011/2015";
+const invalidLegacyString = "should fail";
+const invalidNegativeZeroTimestamp = "2008-09-15T15:53:00.601-00";
+const invalidNegativeZeroTimestampCompact = "2008-09-15T15:53:00.601-0000";
+const invalidNegativeZeroTimestampExtended = "2008-09-15T15:53:00.601-00:00";
+const validRfc3339Timestamp = "2008-09-15T15:53:00.601+00:00";
+const futureAcceptedTimestamp = "2031-05-23T12:00:00.000Z";
+const overwrittenStoredTimestamp = "2011-07-15T00:00:00.000Z";
 
 function buildVersionedHeaders(extraHeaders: Record<string, string> = {}): Record<string, string> {
   return {
@@ -1009,6 +1030,43 @@ const statementRefPlacements: StatementRefPlacement[] = [
           path: ["object"],
           value: buildSubStatementFixture({
             object: statementRef,
+          }),
+        },
+      ];
+    },
+  },
+];
+
+interface TimestampPlacement {
+  idSuffix: string;
+  title: string;
+  buildTransforms(timestamp: string): FixtureTransform[];
+}
+
+const timestampPlacements: TimestampPlacement[] = [
+  {
+    idSuffix: "statement",
+    title: "a statement timestamp",
+    buildTransforms(timestamp) {
+      return [
+        {
+          operation: "set",
+          path: ["timestamp"],
+          value: timestamp,
+        },
+      ];
+    },
+  },
+  {
+    idSuffix: "substatement",
+    title: "a substatement timestamp",
+    buildTransforms(timestamp) {
+      return [
+        {
+          operation: "set",
+          path: ["object"],
+          value: buildSubStatementFixture({
+            timestamp,
           }),
         },
       ];
@@ -2172,6 +2230,391 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
             title: "Attachment fileUrl values must be IRIs",
           },
         ],
+      },
+    ],
+  });
+
+  const legacyAttachmentFixture = buildAttachmentFixture({
+    usageType: "http://example.com/attachment-usage/test",
+    display: {
+      "en-US": "A test attachment",
+    },
+    description: {
+      "en-US": "A test attachment (description)",
+    },
+    contentType: "text/plain; charset=ascii",
+    length: 27,
+    sha2: "495395e777cd98da653df9615d09c0fd6bb2f8d4788394cd53c56a3bfdcd848a",
+    fileUrl: "http://over.there.com/file.txt",
+  });
+  const attachmentArrayRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00025",
+      section: "Data 2.4.s1.table1.row11",
+      title: "Statement attachments are arrays of Attachment objects",
+    },
+  ];
+  const attachmentUsageTypeRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00107",
+      section: "Data 2.4.11.s2.table1.row1",
+      title: "Attachment usageType values are IRIs",
+    },
+  ];
+  const attachmentContentTypeRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00105",
+      section: "Data 2.4.11.s2.table1.row4",
+      title: "Attachment contentType values are Internet Media Types",
+    },
+  ];
+  const attachmentLengthRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00102",
+      section: "Data 2.4.11.s2.table1.row5",
+      title: "Attachment length values are integers",
+    },
+  ];
+  const attachmentSha2RequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00103",
+      section: "Data 2.4.11.s2.table1.row6",
+      title: "Attachment sha2 values are hash strings",
+    },
+  ];
+  const attachmentFileUrlRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00104",
+      section: "Data 2.4.11.s2.table1.row7",
+      title: "Attachment fileUrl values are IRIs when present",
+    },
+  ];
+  const attachmentLanguageMapRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00106",
+      section: "Data 2.4.11.s2.table1.row2",
+      title: "Attachment display and description values are language maps",
+    },
+  ];
+
+  const attachmentAcceptanceCases = statementMutationFamily({
+    familyId: "v2.statements.attachments.acceptance",
+    suiteTitle: "Statement Attachments",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "attachments", "acceptance"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: attachmentRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: attachmentsLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "array",
+        title: 'A Statement accepts the "attachments" property when it is an array of Attachment objects',
+        transforms: [
+          {
+            operation: "set",
+            path: ["attachments"],
+            value: [legacyAttachmentFixture],
+          },
+        ],
+        requirementRefs: attachmentArrayRequirementRefs,
+      },
+    ],
+  });
+
+  const attachmentArrayTypeCases = statementMutationFamily({
+    familyId: "v2.statements.attachments.not-array",
+    suiteTitle: "Statement Attachments",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "attachments", "validation"],
+    legacyTraceSuiteFile: attachmentRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: attachmentsLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "statement",
+        title: 'A Statement rejects the "attachments" property when it is not an array',
+        transforms: [
+          {
+            operation: "set",
+            path: ["attachments"],
+            value: legacyAttachmentFixture,
+          },
+        ],
+        requirementRefs: attachmentArrayRequirementRefs,
+      },
+    ],
+  });
+
+  const attachmentEntryObjectCases = statementMutationFamily({
+    familyId: "v2.statements.attachments.entry-not-object",
+    suiteTitle: "Statement Attachments",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "attachments", "validation"],
+    legacyTraceSuiteFile: attachmentRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: attachmentsLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "numeric",
+        title: "A Statement rejects attachments when an entry is numeric",
+        transforms: [
+          {
+            operation: "set",
+            path: ["attachments"],
+            value: [invalidUuidNumeric],
+          },
+        ],
+        requirementRefs: attachmentArrayRequirementRefs,
+      },
+      {
+        idSuffix: "string",
+        title: "A Statement rejects attachments when an entry is a string",
+        transforms: [
+          {
+            operation: "set",
+            path: ["attachments"],
+            value: [invalidLegacyString],
+          },
+        ],
+        requirementRefs: attachmentArrayRequirementRefs,
+      },
+    ],
+  });
+
+  const attachmentUsageTypeCases = statementMutationFamily({
+    familyId: "v2.statements.attachments.usage-type",
+    suiteTitle: "Statement Attachments",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "attachments", "validation"],
+    legacyTraceSuiteFile: attachmentRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: attachmentsLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "string",
+        title: "A Statement rejects an attachment when usageType is not an IRI",
+        transforms: [
+          {
+            operation: "set",
+            path: ["attachments"],
+            value: [
+              {
+                ...legacyAttachmentFixture,
+                usageType: invalidLegacyString,
+              },
+            ],
+          },
+        ],
+        requirementRefs: attachmentUsageTypeRequirementRefs,
+      },
+    ],
+  });
+
+  const attachmentContentTypeCases = statementMutationFamily({
+    familyId: "v2.statements.attachments.content-type",
+    suiteTitle: "Statement Attachments",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "attachments", "validation"],
+    legacyTraceSuiteFile: attachmentRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: attachmentsLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "numeric",
+        title: "A Statement rejects an attachment when contentType is numeric",
+        transforms: [
+          {
+            operation: "set",
+            path: ["attachments"],
+            value: [
+              {
+                ...legacyAttachmentFixture,
+                contentType: 999,
+              },
+            ],
+          },
+        ],
+        requirementRefs: attachmentContentTypeRequirementRefs,
+      },
+    ],
+  });
+
+  const attachmentLengthCases = statementMutationFamily({
+    familyId: "v2.statements.attachments.length",
+    suiteTitle: "Statement Attachments",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "attachments", "validation"],
+    legacyTraceSuiteFile: attachmentRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: attachmentsLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "string",
+        title: "A Statement rejects an attachment when length is not an integer",
+        transforms: [
+          {
+            operation: "set",
+            path: ["attachments"],
+            value: [
+              {
+                ...legacyAttachmentFixture,
+                length: invalidLegacyString,
+              },
+            ],
+          },
+        ],
+        requirementRefs: attachmentLengthRequirementRefs,
+      },
+    ],
+  });
+
+  const attachmentSha2Cases = statementMutationFamily({
+    familyId: "v2.statements.attachments.sha2",
+    suiteTitle: "Statement Attachments",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "attachments", "validation"],
+    legacyTraceSuiteFile: attachmentRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: attachmentsLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "numeric",
+        title: "A Statement rejects an attachment when sha2 is not a hash string",
+        transforms: [
+          {
+            operation: "set",
+            path: ["attachments"],
+            value: [
+              {
+                ...legacyAttachmentFixture,
+                sha2: invalidUuidNumeric,
+              },
+            ],
+          },
+        ],
+        requirementRefs: attachmentSha2RequirementRefs,
+      },
+    ],
+  });
+
+  const attachmentFileUrlCases = statementMutationFamily({
+    familyId: "v2.statements.attachments.file-url",
+    suiteTitle: "Statement Attachments",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "attachments", "validation"],
+    legacyTraceSuiteFile: attachmentRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: attachmentsLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "string",
+        title: "A Statement rejects an attachment when fileUrl is not an IRI",
+        transforms: [
+          {
+            operation: "set",
+            path: ["attachments"],
+            value: [
+              {
+                ...legacyAttachmentFixture,
+                fileUrl: invalidLegacyString,
+              },
+            ],
+          },
+        ],
+        requirementRefs: attachmentFileUrlRequirementRefs,
+      },
+    ],
+  });
+
+  const attachmentDisplayTypeCases = statementMutationFamily({
+    familyId: "v2.statements.attachments.display-type",
+    suiteTitle: "Statement Attachments",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "attachments", "validation"],
+    legacyTraceSuiteFile: attachmentRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: attachmentsLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "numeric",
+        title: "A Statement rejects an attachment when display is numeric",
+        transforms: [
+          {
+            operation: "set",
+            path: ["attachments"],
+            value: [
+              {
+                ...legacyAttachmentFixture,
+                display: invalidUuidNumeric,
+              },
+            ],
+          },
+        ],
+        requirementRefs: attachmentLanguageMapRequirementRefs,
+      },
+      {
+        idSuffix: "string",
+        title: "A Statement rejects an attachment when display is a string",
+        transforms: [
+          {
+            operation: "set",
+            path: ["attachments"],
+            value: [
+              {
+                ...legacyAttachmentFixture,
+                display: invalidLegacyString,
+              },
+            ],
+          },
+        ],
+        requirementRefs: attachmentLanguageMapRequirementRefs,
+      },
+    ],
+  });
+
+  const attachmentDescriptionTypeCases = statementMutationFamily({
+    familyId: "v2.statements.attachments.description-type",
+    suiteTitle: "Statement Attachments",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "attachments", "validation"],
+    legacyTraceSuiteFile: attachmentRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: attachmentsLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "numeric",
+        title: "A Statement rejects an attachment when description is numeric",
+        transforms: [
+          {
+            operation: "set",
+            path: ["attachments"],
+            value: [
+              {
+                ...legacyAttachmentFixture,
+                description: invalidUuidNumeric,
+              },
+            ],
+          },
+        ],
+        requirementRefs: attachmentLanguageMapRequirementRefs,
+      },
+      {
+        idSuffix: "string",
+        title: "A Statement rejects an attachment when description is a string",
+        transforms: [
+          {
+            operation: "set",
+            path: ["attachments"],
+            value: [
+              {
+                ...legacyAttachmentFixture,
+                description: "should error",
+              },
+            ],
+          },
+        ],
+        requirementRefs: attachmentLanguageMapRequirementRefs,
       },
     ],
   });
@@ -7702,6 +8145,346 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     ]),
   });
 
+  const timestampPropertyRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00022",
+      section: "Data 2.4.s1.table1.row7",
+      title: "Statement timestamps are timestamps",
+    },
+  ];
+  const timestampIsoRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00123",
+      section: "Data 4.5.s1.b1",
+      title: "Timestamps conform to ISO 8601",
+    },
+  ];
+  const versionRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00101",
+      section: "Data 2.4.10.s2.b1",
+      title: "Statement version values are restricted to accepted versions",
+    },
+  ];
+  const versionRetentionRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00332",
+      section: "Data 2.4.10",
+      title: "Retrieved statements retain the submitted version property",
+    },
+  ];
+  const storedOverwriteRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00097",
+      section: "Data 2.4.8.s3.b2",
+      title: "LRS assigns the stored property when statements are received",
+    },
+  ];
+
+  const timestampPropertyInvalidCases = statementMutationFamily({
+    familyId: "v2.statements.timestamp.invalid-format",
+    suiteTitle: "Statement Metadata",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "timestamp", "validation"],
+    legacyTraceSuiteFile: timestampRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: timestampPropertyLegacyConfigFile,
+    variants: timestampPlacements.flatMap((placement) => [
+      {
+        idSuffix: `${placement.idSuffix}-string`,
+        title: `A Statement rejects ${placement.title} when it is a non-timestamp string`,
+        transforms: placement.buildTransforms(invalidLegacyString),
+        requirementRefs: timestampPropertyRequirementRefs,
+      },
+      {
+        idSuffix: `${placement.idSuffix}-date`,
+        title: `A Statement rejects ${placement.title} when it is not a valid date`,
+        transforms: placement.buildTransforms(invalidLegacyDate),
+        requirementRefs: timestampPropertyRequirementRefs,
+      },
+    ]),
+  });
+
+  const timestampPropertyAcceptanceCases = statementMutationFamily({
+    familyId: "v2.statements.timestamp.acceptance",
+    suiteTitle: "Statement Metadata",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "timestamp", "acceptance"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: timestampRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: timestampPropertyLegacyConfigFile,
+    variants: timestampPlacements.map((placement) => ({
+      idSuffix: `${placement.idSuffix}-future`,
+      title: `A Statement accepts ${placement.title} when it is a future timestamp`,
+      transforms: placement.buildTransforms(futureAcceptedTimestamp),
+      requirementRefs: timestampPropertyRequirementRefs,
+    })),
+  });
+
+  const timestampIso8601Cases = statementMutationFamily({
+    familyId: "v2.statements.timestamp.iso8601",
+    suiteTitle: "Statement Metadata",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "timestamp", "iso8601"],
+    legacyTraceSuiteFile: timestampRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: timestampsLegacyConfigFile,
+    variants: timestampPlacements.flatMap((placement) => [
+      {
+        idSuffix: `${placement.idSuffix}-negative-zero`,
+        title: `A Statement rejects ${placement.title} when it uses a -00 offset`,
+        transforms: placement.buildTransforms(invalidNegativeZeroTimestamp),
+        requirementRefs: timestampIsoRequirementRefs,
+      },
+      {
+        idSuffix: `${placement.idSuffix}-negative-zero-compact`,
+        title: `A Statement rejects ${placement.title} when it uses a -0000 offset`,
+        transforms: placement.buildTransforms(invalidNegativeZeroTimestampCompact),
+        requirementRefs: timestampIsoRequirementRefs,
+      },
+      {
+        idSuffix: `${placement.idSuffix}-negative-zero-extended`,
+        title: `A Statement rejects ${placement.title} when it uses a -00:00 offset`,
+        transforms: placement.buildTransforms(invalidNegativeZeroTimestampExtended),
+        requirementRefs: timestampIsoRequirementRefs,
+      },
+    ]),
+  });
+
+  const timestampIso8601AcceptanceCases = statementMutationFamily({
+    familyId: "v2.statements.timestamp.iso8601-acceptance",
+    suiteTitle: "Statement Metadata",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "timestamp", "iso8601", "acceptance"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: timestampRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: timestampsLegacyConfigFile,
+    variants: timestampPlacements.map((placement) => ({
+      idSuffix: `${placement.idSuffix}-rfc3339`,
+      title: `A Statement accepts ${placement.title} when it is a valid RFC 3339 timestamp`,
+      transforms: placement.buildTransforms(validRfc3339Timestamp),
+      requirementRefs: timestampIsoRequirementRefs,
+    })),
+  });
+
+  const versionAcceptanceCases = statementMutationFamily({
+    familyId: "v2.statements.version.acceptance",
+    suiteTitle: "Statement Metadata",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "version", "acceptance"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: versionRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: versionPropertyLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "1-0",
+        title: "A Statement accepts version 1.0",
+        transforms: [
+          {
+            operation: "set",
+            path: ["version"],
+            value: "1.0",
+          },
+        ],
+        requirementRefs: versionRequirementRefs,
+      },
+      {
+        idSuffix: "1-0-9",
+        title: "A Statement accepts version 1.0.9",
+        transforms: [
+          {
+            operation: "set",
+            path: ["version"],
+            value: "1.0.9",
+          },
+        ],
+        requirementRefs: versionRequirementRefs,
+      },
+    ],
+  });
+
+  const versionInvalidCases = statementMutationFamily({
+    familyId: "v2.statements.version.invalid",
+    suiteTitle: "Statement Metadata",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "version", "validation"],
+    legacyTraceSuiteFile: versionRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: versionPropertyLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "string",
+        title: "A Statement rejects version strings outside the accepted version range",
+        transforms: [
+          {
+            operation: "set",
+            path: ["version"],
+            value: invalidLegacyString,
+          },
+        ],
+        requirementRefs: versionRequirementRefs,
+      },
+      {
+        idSuffix: "0-9-9",
+        title: "A Statement rejects version 0.9.9",
+        transforms: [
+          {
+            operation: "set",
+            path: ["version"],
+            value: "0.9.9",
+          },
+        ],
+        requirementRefs: versionRequirementRefs,
+      },
+      {
+        idSuffix: "1-1-0",
+        title: "A Statement rejects version 1.1.0",
+        transforms: [
+          {
+            operation: "set",
+            path: ["version"],
+            value: "1.1.0",
+          },
+        ],
+        requirementRefs: versionRequirementRefs,
+      },
+    ],
+  });
+
+  const versionRoundTripCase = statementRoundTripCase({
+    caseId: "v2.statements.version.retained-roundtrip",
+    title: "The Statements resource retains version when a statement is accepted and later retrieved",
+    specVersion,
+    queryParam: "statementId",
+    requirementRefs: versionRetentionRequirementRefs,
+    tags: ["v2.0.0", "statements", "version", "query", "retrieval"],
+    legacyTraceSuiteFile: versionRequirementsLegacySuiteFile,
+    transforms: [
+      {
+        operation: "set",
+        path: ["id"],
+        value: buildProofUuid(212),
+      },
+      {
+        operation: "set",
+        path: ["version"],
+        value: "2.0.0",
+      },
+      {
+        operation: "set",
+        path: ["verb", "id"],
+        value: "https://example.test/xapi/verbs/version-retained-roundtrip",
+      },
+    ],
+    queryJsonPathEquals: [
+      {
+        path: ["version"],
+        equals: "2.0.0",
+      },
+    ],
+    capabilityFlags: ["version", "query", "retrieval"],
+    notes: ["proof-slice statement version roundtrip"],
+  });
+
+  const storedPostOverwriteStatement = buildProofStatement(210, [
+    {
+      operation: "set",
+      path: ["stored"],
+      value: overwrittenStoredTimestamp,
+    },
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/stored-post-overwrite",
+    },
+  ]);
+  const storedPutOverwriteStatement = buildProofStatement(211, [
+    {
+      operation: "set",
+      path: ["stored"],
+      value: overwrittenStoredTimestamp,
+    },
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/stored-put-overwrite",
+    },
+  ]);
+
+  const storedPostOverwriteCase = requestSequenceCase({
+    caseId: "v2.statements.stored.post-overwrites-client-value",
+    title: "The Statements resource overwrites a submitted stored value on POST",
+    specVersion,
+    requirementRefs: storedOverwriteRequirementRefs,
+    tags: ["v2.0.0", "statements", "stored", "post", "retrieval"],
+    capabilityFlags: ["stored", "query", "retrieval"],
+    legacyTraceSuiteFile: storedRequirementsLegacySuiteFile,
+    notes: ["proof-slice stored property overwrite on POST"],
+    steps: [
+      {
+        request: buildStatementPostRequest(storedPostOverwriteStatement),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([storedPostOverwriteStatement.id]),
+        },
+      },
+      {
+        request: buildStatementGetRequest(storedPostOverwriteStatement.id),
+        assertion: {
+          status: 200,
+          jsonPathNotEquals: [
+            {
+              path: ["stored"],
+              equals: overwrittenStoredTimestamp,
+            },
+            {
+              path: ["stored"],
+              equals: undefined,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const storedPutOverwriteCase = requestSequenceCase({
+    caseId: "v2.statements.stored.put-overwrites-client-value",
+    title: "The Statements resource overwrites a submitted stored value on PUT",
+    specVersion,
+    requirementRefs: storedOverwriteRequirementRefs,
+    tags: ["v2.0.0", "statements", "stored", "put", "retrieval"],
+    capabilityFlags: ["stored", "query", "retrieval"],
+    legacyTraceSuiteFile: storedRequirementsLegacySuiteFile,
+    notes: ["proof-slice stored property overwrite on PUT"],
+    steps: [
+      {
+        request: buildStatementPutRequest(storedPutOverwriteStatement.id, storedPutOverwriteStatement),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildStatementGetRequest(storedPutOverwriteStatement.id),
+        assertion: {
+          status: 200,
+          jsonPathNotEquals: [
+            {
+              path: ["stored"],
+              equals: overwrittenStoredTimestamp,
+            },
+            {
+              path: ["stored"],
+              equals: undefined,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
   const generatedStatementIdRequirementRefs: RequirementRef[] = [
     {
       id: "XAPI-00026",
@@ -8142,6 +8925,25 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
       },
       {
         type: "suite",
+        id: "v2.proof-slice.statements.attachments",
+        title: "Statement Attachments",
+        specVersion,
+        tags: ["attachments"],
+        children: [
+          ...attachmentAcceptanceCases,
+          ...attachmentArrayTypeCases,
+          ...attachmentEntryObjectCases,
+          ...attachmentUsageTypeCases,
+          ...attachmentContentTypeCases,
+          ...attachmentLengthCases,
+          ...attachmentSha2Cases,
+          ...attachmentFileUrlCases,
+          ...attachmentDisplayTypeCases,
+          ...attachmentDescriptionTypeCases,
+        ],
+      },
+      {
+        type: "suite",
         id: "v2.proof-slice.statements.result-and-objects",
         title: "Statement Result And Object Requirements",
         specVersion,
@@ -8228,6 +9030,24 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
               ...subStatementNestedCase,
             ],
           },
+        ],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.statements.metadata",
+        title: "Statement Metadata",
+        specVersion,
+        tags: ["metadata"],
+        children: [
+          ...timestampPropertyInvalidCases,
+          ...timestampPropertyAcceptanceCases,
+          ...timestampIso8601Cases,
+          ...timestampIso8601AcceptanceCases,
+          ...versionAcceptanceCases,
+          ...versionInvalidCases,
+          versionRoundTripCase,
+          storedPostOverwriteCase,
+          storedPutOverwriteCase,
         ],
       },
       {

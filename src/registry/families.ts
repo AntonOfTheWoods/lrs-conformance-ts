@@ -114,6 +114,7 @@ interface RequestAssertionDefinition {
   expectedHeaders?: HeaderExpectation[];
   expectedHeaderPatterns?: HeaderPatternExpectation[];
   jsonPathEquals?: JsonPathExpectation[];
+  jsonPathNotEquals?: JsonPathExpectation[];
   textContains?: string[];
 }
 
@@ -168,6 +169,7 @@ function withAssertionDefaults(assertion: RequestAssertionDefinition): RequestAs
     expectedHeaders: assertion.expectedHeaders ?? [],
     expectedHeaderPatterns: assertion.expectedHeaderPatterns ?? [],
     jsonPathEquals: assertion.jsonPathEquals ?? [],
+    jsonPathNotEquals: assertion.jsonPathNotEquals ?? [],
     textContains: assertion.textContains ?? [],
   };
 }

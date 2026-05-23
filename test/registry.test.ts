@@ -15,7 +15,7 @@ import {
   createV20StateResourceProofSliceSuite,
 } from "../src/specs/v2_0/proof-slice";
 
-const expectedCaseCount = 947;
+const expectedCaseCount = 982;
 const expectedCaseIdAnchors = [
   "v2.statements.required-fields.missing-actor",
   "v2.statements.invalid-types.result-completion-string",
@@ -137,6 +137,13 @@ const expectedCaseIdAnchors = [
   "v2.statements.id.statement-ref.rfc4122.substatement-invalid-letter",
   "v2.statements.id.context-registration.string-form.substatement-numeric",
   "v2.statements.id.context-statement.rfc4122.statement-too-many-digits",
+  "v2.statements.attachments.acceptance.array",
+  "v2.statements.attachments.description-type.string",
+  "v2.statements.timestamp.invalid-format.statement-string",
+  "v2.statements.timestamp.iso8601-acceptance.substatement-rfc3339",
+  "v2.statements.version.invalid.1-1-0",
+  "v2.statements.version.retained-roundtrip",
+  "v2.statements.stored.post-overwrites-client-value",
 ];
 
 describe("RegistryBuilder", () => {
@@ -181,6 +188,7 @@ describe("RegistryBuilder", () => {
             expectedHeaders: [],
             expectedHeaderPatterns: [],
             jsonPathEquals: [],
+            jsonPathNotEquals: [],
             textContains: [],
             notes: [],
           },
@@ -218,6 +226,7 @@ describe("RegistryBuilder", () => {
             expectedHeaders: [],
             expectedHeaderPatterns: [],
             jsonPathEquals: [],
+            jsonPathNotEquals: [],
             textContains: [],
             notes: [],
           },
@@ -276,9 +285,24 @@ describe("RegistryBuilder", () => {
       "About Resource",
       "Communication",
     ]);
-    expect(batteries["2.0.0"]?.tests.children[0]?.children).toHaveLength(9);
-    expect(batteries["2.0.0"]?.tests.children[0]?.children[2]?.children).toHaveLength(4);
-    expect(batteries["2.0.0"]?.tests.children[0]?.children[3]?.children).toHaveLength(3);
+    expect(batteries["2.0.0"]?.tests.children[0]?.children.map((child) => child.text)).toEqual([
+      "Statement Formatting",
+      "Statement Authority",
+      "Statement Attachments",
+      "Statement Result And Object Requirements",
+      "Statement Metadata",
+      "Statement Context",
+      "Statement Transport",
+      "Statement Representation",
+      "Statement Query Validation",
+      "Statement Query",
+      "Statement Id Requirements",
+    ]);
+    expect(batteries["2.0.0"]?.tests.children[0]?.children).toHaveLength(11);
+    expect(batteries["2.0.0"]?.tests.children[0]?.children[2]?.children).toHaveLength(13);
+    expect(batteries["2.0.0"]?.tests.children[0]?.children[3]?.children).toHaveLength(4);
+    expect(batteries["2.0.0"]?.tests.children[0]?.children[4]?.children).toHaveLength(22);
+    expect(batteries["2.0.0"]?.tests.children[0]?.children[5]?.children).toHaveLength(3);
     expect(batteries["2.0.0"]?.tests.children[1]?.children).toHaveLength(5);
     expect(batteries["2.0.0"]?.tests.children[2]?.children).toHaveLength(5);
     expect(batteries["2.0.0"]?.tests.children[3]?.children).toHaveLength(5);
