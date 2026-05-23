@@ -11,7 +11,7 @@ import {
   createV20StateResourceProofSliceSuite,
 } from "../src/specs/v2_0/proof-slice";
 
-const expectedCaseCount = 318;
+const expectedCaseCount = 422;
 const expectedCaseIdAnchors = [
   "v2.statements.required-fields.missing-actor",
   "v2.statements.invalid-types.result-completion-string",
@@ -25,18 +25,29 @@ const expectedCaseIdAnchors = [
   "v2.statements.account-home-page-missing.actor-agent",
   "v2.statements.account-home-page-invalid.substatement-context-team-group",
   "v2.statements.account-name-missing.actor-agent",
+  "v2.statements.agent-ifi-acceptance.authority-agent-account",
+  "v2.statements.agent-ifi-required.actor-agent",
+  "v2.statements.group-ifi-or-member-required.actor-group",
+  "v2.statements.group-ifi-acceptance.actor-group-mbox",
+  "v2.statements.group-ifi-acceptance-no-member.substatement-context-team-group-account-no-member",
   "v2.statements.agent-ifi-exclusivity.actor-agent-mbox-with-account",
   "v2.statements.agent-ifi-exclusivity.substatement-context-instructor-agent-openid-with-mbox-sha1sum",
   "v2.statements.group-ifi-exclusivity.actor-group-mbox-with-openid",
   "v2.statements.group-ifi-exclusivity.substatement-context-team-group-account-with-mbox-sha1sum",
+  "v2.statements.authority-group-acceptance.anonymous-two-member",
+  "v2.statements.authority-group-rejection.identified-openid",
+  "v2.statements.authority-group-rejection.anonymous-three-member",
   "v2.statements.invalid-attachment-iri.file-url-no-scheme",
   "v2.statements.numeric-precision.score-roundtrip",
   "v2.statements.query-validation.invalid-registration",
   "v2.statements.query.statement-id-roundtrip",
+  "v2.activities-state.document-invalid-agent-query",
   "v2.activities-state.document-merge-rejects-non-json-post",
   "v2.activities-state.document-merge-rejects-existing-non-json",
+  "v2.activities-profile.document-invalid-json-post",
   "v2.activities-profile.document-merge-rejects-non-json-post",
   "v2.activities-profile.document-merge-rejects-existing-non-json",
+  "v2.agents-profile.document-invalid-agent-query",
   "v2.agents-profile.document-merge-rejects-non-json-post",
   "v2.agents-profile.document-merge-rejects-existing-non-json",
 ];
@@ -162,7 +173,7 @@ describe("RegistryBuilder", () => {
       "Activity Profile Resource",
       "Agent Profile Resource",
     ]);
-    expect(batteries["2.0.0"]?.tests.children[0]?.children).toHaveLength(3);
+    expect(batteries["2.0.0"]?.tests.children[0]?.children).toHaveLength(4);
     expect(batteries["2.0.0"]?.tests.children[1]?.children).toHaveLength(5);
     expect(batteries["2.0.0"]?.tests.children[2]?.children).toHaveLength(5);
     expect(batteries["2.0.0"]?.tests.children[3]?.children).toHaveLength(5);

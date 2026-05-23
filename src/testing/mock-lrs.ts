@@ -126,18 +126,12 @@ function validateAccount(value: unknown): string | undefined {
   return undefined;
 }
 
-function validateActorLike(value: unknown): string | undefined {
-  if (!isJsonObject(value)) {
-    return "actor-like value must be an object";
-  }
+function countIfis(value: JsonObject): number {
+  return [value.mbox, value.mbox_sha1sum, value.openid, value.account].filter((candidate) => candidate !== undefined)
+    .length;
+}
 
-  const ifiCount = [value.mbox, value.mbox_sha1sum, value.openid, value.account].filter(
-    (candidate) => candidate !== undefined,
-  ).length;
-  if (ifiCount > 1) {
-    return "actor-like value must use only one IFI";
-  }
-
+function validateIfiFormats(value: JsonObject): string | undefined {
   const mbox = value.mbox;
   if (mbox !== undefined && (typeof mbox !== "string" || !isValidMailto(mbox))) {
     return "mbox must be a mailto IRI";
@@ -162,6 +156,107 @@ function validateActorLike(value: unknown): string | undefined {
   }
 
   return undefined;
+}
+
+function validateAgentLike(value: JsonObject): string | undefined {
+  const ifiCount = countIfis(value);
+  if (ifiCount > 1) {
+    return "actor-like value must use only one IFI";
+  }
+
+  const ifiError = validateIfiFormats(value);
+  if (ifiError) {
+    return ifiError;
+  }
+
+  if (ifiCount === 0) {
+    return "actor-like value must include one IFI";
+  }
+
+  return undefined;
+}
+
+function validateGroupMembers(value: unknown): string | undefined {
+  if (!Array.isArray(value) || value.length === 0) {
+    return "group member must be a non-empty array of Agents";
+  }
+
+  for (const member of value) {
+    if (!isJsonObject(member)) {
+      return "group member must be a non-empty array of Agents";
+    }
+
+    if (member.objectType !== undefined && member.objectType !== "Agent") {
+      return "group member must be a non-empty array of Agents";
+    }
+
+    const memberError = validateAgentLike(member);
+    if (memberError) {
+      return memberError;
+    }
+  }
+
+  return undefined;
+}
+
+function validateGroupLike(value: JsonObject): string | undefined {
+  const ifiCount = countIfis(value);
+  if (ifiCount > 1) {
+    return "actor-like value must use only one IFI";
+  }
+
+  const ifiError = validateIfiFormats(value);
+  if (ifiError) {
+    return ifiError;
+  }
+
+  if (value.member !== undefined) {
+    const memberError = validateGroupMembers(value.member);
+    if (memberError) {
+      return memberError;
+    }
+  }
+
+  if (ifiCount === 0 && value.member === undefined) {
+    return "group must include an IFI or member";
+  }
+
+  return undefined;
+}
+
+function validateActorLike(value: unknown): string | undefined {
+  if (!isJsonObject(value)) {
+    return "actor-like value must be an object";
+  }
+
+  return value.objectType === "Group" || value.member !== undefined
+    ? validateGroupLike(value)
+    : validateAgentLike(value);
+}
+
+function validateAuthority(value: unknown): string | undefined {
+  if (!isJsonObject(value)) {
+    return "authority must be an object";
+  }
+
+  if (value.objectType === "Group" || value.member !== undefined) {
+    if (countIfis(value) > 0) {
+      return "authority group must be anonymous and contain exactly two Agents";
+    }
+
+    const memberError = validateGroupMembers(value.member);
+    if (memberError) {
+      return memberError;
+    }
+
+    if (!Array.isArray(value.member) || value.member.length !== 2) {
+      return "authority group must be anonymous and contain exactly two Agents";
+    }
+
+    return undefined;
+  }
+
+  return validateAgentLike(value);
 }
 
 function validateContext(value: unknown): string | undefined {
@@ -259,7 +354,7 @@ function validateStatementLike(value: JsonObject, requireId: boolean): string | 
   }
 
   if (value.authority !== undefined) {
-    const authorityError = validateActorLike(value.authority);
+    const authorityError = validateAuthority(value.authority);
     if (authorityError) {
       return authorityError;
     }

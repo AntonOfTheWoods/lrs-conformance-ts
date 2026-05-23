@@ -43,6 +43,9 @@ const activityProfileLegacySuiteFile =
 const ifisLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/ifis.js";
 const agentsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/agents.js";
 const groupsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/groups.js";
+const authoritiesLegacySuiteFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.4.2-Authority-Requirements.js";
+const authoritiesLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/authorities.js";
 const accountObjectsLegacyConfigFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/accountobjects.js";
 
@@ -112,12 +115,18 @@ const validNestedAgentMbox = "mailto:proof-nested-agent@example.test";
 const validMboxSha1sum = "495395e777cd98da653df9615d09c0fd6bb2f8d4";
 const validAccountHomePage = "https://example.test/xapi/accounts/proof";
 const validAccountName = "proof-account";
+const validAuthorityAccountHomePage = "http://example.com/xAPI/OAuth/Token";
+const validAuthorityAccountName = "oauth_consumer_x75db";
+const validAuthorityMemberMbox = "mailto:bob@example.com";
+const validAuthorityThirdMemberMbox = "mailto:james@example.com";
 const invalidMailtoIri = "http://should.fail.com";
 const invalidMailtoEmail = "mailto:should.fail.com";
 const invalidOpenId = "ab=c://should.fail.com";
 const invalidAccountHomePage = "ab=c://should.fail.com";
 const nonJsonDocumentBody = "abcdefg";
 const existingNonJsonDocumentBody = "/ asdf / undefined";
+const invalidAgentQuery = '{"objectType":"Agent"';
+const invalidJsonDocumentBody = '{"name":"Broken profile document"[';
 
 function buildVerbFixture(id: string, display: string): JsonObject {
   return {
@@ -143,12 +152,16 @@ function buildAgentWithMbox(mbox: string): JsonObject {
   };
 }
 
-function buildGroupWithMbox(mbox: string): JsonObject {
+function buildGroupWithMbox(mbox: string, includeMember = true): JsonObject {
   return {
     objectType: "Group",
     mbox,
     name: "Proof Group",
-    member: [buildAgentWithMbox(validGroupMemberMbox)],
+    ...(includeMember
+      ? {
+          member: [buildAgentWithMbox(validGroupMemberMbox)],
+        }
+      : {}),
   };
 }
 
@@ -160,12 +173,16 @@ function buildAgentWithOpenId(openid: string): JsonObject {
   };
 }
 
-function buildGroupWithOpenId(openid: string): JsonObject {
+function buildGroupWithOpenId(openid: string, includeMember = true): JsonObject {
   return {
     objectType: "Group",
     openid,
     name: "Proof Group",
-    member: [buildAgentWithMbox(validGroupMemberMbox)],
+    ...(includeMember
+      ? {
+          member: [buildAgentWithMbox(validGroupMemberMbox)],
+        }
+      : {}),
   };
 }
 
@@ -177,12 +194,16 @@ function buildAgentWithMboxSha1sum(mboxSha1sum: unknown): JsonObject {
   };
 }
 
-function buildGroupWithMboxSha1sum(mboxSha1sum: unknown): JsonObject {
+function buildGroupWithMboxSha1sum(mboxSha1sum: unknown, includeMember = true): JsonObject {
   return {
     objectType: "Group",
     mbox_sha1sum: mboxSha1sum,
     name: "Proof Group",
-    member: [buildAgentWithMbox(validGroupMemberMbox)],
+    ...(includeMember
+      ? {
+          member: [buildAgentWithMbox(validGroupMemberMbox)],
+        }
+      : {}),
   };
 }
 
@@ -208,12 +229,58 @@ function buildAgentWithAccount(account: JsonObject): JsonObject {
   };
 }
 
-function buildGroupWithAccount(account: JsonObject): JsonObject {
+function buildGroupWithAccount(account: JsonObject, includeMember = true): JsonObject {
   return {
     objectType: "Group",
     account,
     name: "Proof Group",
-    member: [buildAgentWithMbox(validGroupMemberMbox)],
+    ...(includeMember
+      ? {
+          member: [buildAgentWithMbox(validGroupMemberMbox)],
+        }
+      : {}),
+  };
+}
+
+function buildAgentWithoutIfi(): JsonObject {
+  return {
+    objectType: "Agent",
+    name: "Proof Agent",
+  };
+}
+
+function buildGroupWithoutIfiOrMember(): JsonObject {
+  return {
+    objectType: "Group",
+    name: "Proof Group",
+  };
+}
+
+function buildAuthorityAccountAgent(): JsonObject {
+  return {
+    account: buildAccount(validAuthorityAccountHomePage, validAuthorityAccountName),
+  };
+}
+
+function buildAuthorityMboxAgent(mbox = validAuthorityMemberMbox): JsonObject {
+  return {
+    mbox,
+  };
+}
+
+function buildAnonymousAuthorityGroup(
+  members: JsonObject[] = [buildAuthorityAccountAgent(), buildAuthorityMboxAgent()],
+): JsonObject {
+  return {
+    objectType: "Group",
+    member: members,
+  };
+}
+
+function buildIdentifiedAuthorityGroup(overrides: Partial<JsonObject>): JsonObject {
+  return {
+    ...buildAnonymousAuthorityGroup(),
+    ...overrides,
   };
 }
 
@@ -476,7 +543,7 @@ interface IfiSpec {
   idToken: string;
   label: string;
   buildAgent(): JsonObject;
-  buildGroup(): JsonObject;
+  buildGroup(includeMember?: boolean): JsonObject;
 }
 
 const ifiSpecs: IfiSpec[] = [
@@ -484,25 +551,27 @@ const ifiSpecs: IfiSpec[] = [
     idToken: "mbox",
     label: "mbox",
     buildAgent: () => buildAgentWithMbox("mailto:proof-agent@example.test"),
-    buildGroup: () => buildGroupWithMbox("mailto:proof-group@example.test"),
+    buildGroup: (includeMember = true) => buildGroupWithMbox("mailto:proof-group@example.test", includeMember),
   },
   {
     idToken: "mbox-sha1sum",
     label: "mbox_sha1sum",
     buildAgent: () => buildAgentWithMboxSha1sum(validMboxSha1sum),
-    buildGroup: () => buildGroupWithMboxSha1sum(validMboxSha1sum),
+    buildGroup: (includeMember = true) => buildGroupWithMboxSha1sum(validMboxSha1sum, includeMember),
   },
   {
     idToken: "openid",
     label: "openid",
     buildAgent: () => buildAgentWithOpenId("https://openid.example.test/proof-agent"),
-    buildGroup: () => buildGroupWithOpenId("https://openid.example.test/proof-group"),
+    buildGroup: (includeMember = true) =>
+      buildGroupWithOpenId("https://openid.example.test/proof-group", includeMember),
   },
   {
     idToken: "account",
     label: "account",
     buildAgent: () => buildAgentWithAccount(buildAccount(validAccountHomePage, validAccountName)),
-    buildGroup: () => buildGroupWithAccount(buildAccount(validAccountHomePage, validAccountName)),
+    buildGroup: (includeMember = true) =>
+      buildGroupWithAccount(buildAccount(validAccountHomePage, validAccountName), includeMember),
   },
 ];
 
@@ -545,6 +614,39 @@ function buildIfiExclusivityVariants(options: { placements: ActorLikePlacement[]
         })),
     ),
   );
+}
+
+function buildIfiAcceptanceVariants(options: {
+  placements: ActorLikePlacement[];
+  requirementRefs: RequirementRef[];
+  includeMember?: boolean;
+}) {
+  return options.placements.flatMap((placement) =>
+    ifiSpecs.map((ifi) => ({
+      idSuffix: `${placement.idSuffix}-${ifi.idToken}${options.includeMember === false ? "-no-member" : ""}`,
+      title: `A Statement accepts ${placement.title} when ${ifi.label} is the sole IFI${
+        options.includeMember === false ? " and no member is present" : ""
+      }`,
+      transforms: placement.buildTransforms(
+        placement.kind === "agent" ? ifi.buildAgent() : ifi.buildGroup(options.includeMember),
+      ),
+      requirementRefs: options.requirementRefs,
+    })),
+  );
+}
+
+function buildMissingIfiVariants(options: {
+  placements: ActorLikePlacement[];
+  requirementRefs: RequirementRef[];
+  buildValue(placement: ActorLikePlacement): JsonObject;
+  description: string;
+}) {
+  return options.placements.map((placement) => ({
+    idSuffix: placement.idSuffix,
+    title: `A Statement rejects ${placement.title} when ${options.description}`,
+    transforms: placement.buildTransforms(options.buildValue(placement)),
+    requirementRefs: options.requirementRefs,
+  }));
 }
 
 export function createV20ProofSliceSuite(): SuiteDefinition {
@@ -1154,6 +1256,294 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     }),
   });
 
+  const identifiedGroupPlacements = actorLikePlacements.filter(
+    (placement) => placement.kind === "group" && placement.idSuffix !== "authority-group",
+  );
+
+  const agentIfiRequiredCases = statementMutationFamily({
+    familyId: "v2.statements.agent-ifi-required",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "formatting", "ifi", "required", "agent"],
+    legacyTraceSuiteFile: agentsLegacyConfigFile,
+    variants: buildMissingIfiVariants({
+      placements: actorLikePlacements.filter((placement) => placement.kind === "agent"),
+      description: "no IFI is present",
+      buildValue: () => buildAgentWithoutIfi(),
+      requirementRefs: [
+        {
+          id: "XAPI-00034",
+          section: "Data 2.4.2.1.s2.b1",
+          title: "Agents must include exactly one IFI",
+        },
+      ],
+    }),
+  });
+
+  const groupIfiOrMemberRequiredCases = statementMutationFamily({
+    familyId: "v2.statements.group-ifi-or-member-required",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "formatting", "ifi", "required", "group"],
+    legacyTraceSuiteFile: groupsLegacyConfigFile,
+    variants: buildMissingIfiVariants({
+      placements: identifiedGroupPlacements,
+      description: "no IFI and no member are present",
+      buildValue: () => buildGroupWithoutIfiOrMember(),
+      requirementRefs: [
+        {
+          id: "XAPI-00037",
+          section: "Data 2.4.2.2.s2.table2.row1",
+          title: "Groups without members must include an IFI",
+        },
+      ],
+    }),
+  });
+
+  const groupIfiAcceptanceCases = statementMutationFamily({
+    familyId: "v2.statements.group-ifi-acceptance",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "formatting", "ifi", "acceptance", "group"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: groupsLegacyConfigFile,
+    variants: buildIfiAcceptanceVariants({
+      placements: identifiedGroupPlacements,
+      requirementRefs: [
+        {
+          id: "XAPI-00037",
+          section: "Data 2.4.2.2.s2.table2.row1",
+          title: "Identified Groups accept exactly one IFI",
+        },
+      ],
+    }),
+  });
+
+  const groupIfiAcceptanceNoMemberCases = statementMutationFamily({
+    familyId: "v2.statements.group-ifi-acceptance-no-member",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "formatting", "ifi", "acceptance", "group", "no-member"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: groupsLegacyConfigFile,
+    variants: buildIfiAcceptanceVariants({
+      placements: identifiedGroupPlacements,
+      includeMember: false,
+      requirementRefs: [
+        {
+          id: "XAPI-00037",
+          section: "Data 2.4.2.2.s2.table2.row4",
+          title: "Identified Groups accept a sole IFI without members",
+        },
+      ],
+    }),
+  });
+
+  const agentIfiAcceptanceCases = statementMutationFamily({
+    familyId: "v2.statements.agent-ifi-acceptance",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "formatting", "ifi", "acceptance", "agent"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: agentsLegacyConfigFile,
+    variants: buildIfiAcceptanceVariants({
+      placements: actorLikePlacements.filter((placement) => placement.kind === "agent"),
+      requirementRefs: [
+        {
+          id: "XAPI-00034",
+          section: "Data 2.4.2.1.s2.b1",
+          title: "Agents accept exactly one IFI",
+        },
+      ],
+    }),
+  });
+
+  const authorityGroupAcceptanceCases = statementMutationFamily({
+    familyId: "v2.statements.authority-group-acceptance",
+    suiteTitle: "Statement Authority",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "authority", "group", "acceptance"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: authoritiesLegacySuiteFile,
+    legacyTraceConfigFile: authoritiesLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "anonymous-two-member",
+        title: "A Statement accepts an authority anonymous group with exactly two members",
+        transforms: [
+          {
+            operation: "set",
+            path: ["authority"],
+            value: buildAnonymousAuthorityGroup(),
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00098",
+            section: "Data 2.4.9.s3.b1",
+            title: "Authority groups are anonymous groups with exactly two members",
+          },
+        ],
+      },
+    ],
+  });
+
+  const authorityGroupRejectionCases = statementMutationFamily({
+    familyId: "v2.statements.authority-group-rejection",
+    suiteTitle: "Statement Authority",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "authority", "group", "rejection"],
+    legacyTraceSuiteFile: authoritiesLegacySuiteFile,
+    legacyTraceConfigFile: authoritiesLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "identified-mbox",
+        title: "A Statement rejects an authority identified group that uses mbox",
+        transforms: [
+          {
+            operation: "set",
+            path: ["authority"],
+            value: buildIdentifiedAuthorityGroup({
+              mbox: "mailto:bob@example.com",
+            }),
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00024",
+            section: "Data 2.4.s1.table1.row9",
+            title: "Authority groups do not use identified group IFIs",
+          },
+        ],
+      },
+      {
+        idSuffix: "identified-mbox-sha1sum",
+        title: "A Statement rejects an authority identified group that uses mbox_sha1sum",
+        transforms: [
+          {
+            operation: "set",
+            path: ["authority"],
+            value: buildIdentifiedAuthorityGroup({
+              mbox_sha1sum: validMboxSha1sum,
+            }),
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00024",
+            section: "Data 2.4.s1.table1.row9",
+            title: "Authority groups do not use identified group IFIs",
+          },
+        ],
+      },
+      {
+        idSuffix: "identified-openid",
+        title: "A Statement rejects an authority identified group that uses openid",
+        transforms: [
+          {
+            operation: "set",
+            path: ["authority"],
+            value: buildIdentifiedAuthorityGroup({
+              openid: "http://openid.example.org/12345",
+            }),
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00024",
+            section: "Data 2.4.s1.table1.row9",
+            title: "Authority groups do not use identified group IFIs",
+          },
+        ],
+      },
+      {
+        idSuffix: "identified-account",
+        title: "A Statement rejects an authority identified group that uses account",
+        transforms: [
+          {
+            operation: "set",
+            path: ["authority"],
+            value: buildIdentifiedAuthorityGroup({
+              account: buildAccount(validAuthorityAccountHomePage, validAuthorityAccountName),
+            }),
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00024",
+            section: "Data 2.4.s1.table1.row9",
+            title: "Authority groups do not use identified group IFIs",
+          },
+        ],
+      },
+      {
+        idSuffix: "anonymous-no-member",
+        title: "A Statement rejects an authority anonymous group without two members",
+        transforms: [
+          {
+            operation: "set",
+            path: ["authority"],
+            value: buildGroupWithoutIfiOrMember(),
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00098",
+            section: "Data 2.4.9.s3.b1",
+            title: "Authority groups require exactly two members",
+          },
+        ],
+      },
+      {
+        idSuffix: "anonymous-one-member",
+        title: "A Statement rejects an authority anonymous group with one member",
+        transforms: [
+          {
+            operation: "set",
+            path: ["authority"],
+            value: buildAnonymousAuthorityGroup([buildAuthorityMboxAgent()]),
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00098",
+            section: "Data 2.4.9.s3.b1",
+            title: "Authority groups require exactly two members",
+          },
+        ],
+      },
+      {
+        idSuffix: "anonymous-three-member",
+        title: "A Statement rejects an authority anonymous group with three members",
+        transforms: [
+          {
+            operation: "set",
+            path: ["authority"],
+            value: buildAnonymousAuthorityGroup([
+              buildAuthorityAccountAgent(),
+              buildAuthorityMboxAgent(),
+              buildAuthorityMboxAgent(validAuthorityThirdMemberMbox),
+            ]),
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00098",
+            section: "Data 2.4.9.s3.b1",
+            title: "Authority groups require exactly two members",
+          },
+        ],
+      },
+    ],
+  });
+
   const min = 0.12123434;
   const raw = 12.125;
   const max = 45.45;
@@ -1351,11 +1741,24 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
           ...accountHomePageMissingCases,
           ...accountHomePageInvalidCases,
           ...accountNameMissingCases,
+          ...agentIfiAcceptanceCases,
+          ...agentIfiRequiredCases,
+          ...groupIfiOrMemberRequiredCases,
+          ...groupIfiAcceptanceCases,
+          ...groupIfiAcceptanceNoMemberCases,
           ...agentIfiExclusivityCases,
           ...groupIfiExclusivityCases,
           ...attachmentIriCases,
           precisionCase,
         ],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.statements.authority",
+        title: "Statement Authority",
+        specVersion,
+        tags: ["authority"],
+        children: [...authorityGroupAcceptanceCases, ...authorityGroupRejectionCases],
       },
       {
         type: "suite",
@@ -1558,6 +1961,40 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       status: 400,
     },
     notes: ["proof-slice activity state invalid since"],
+  });
+
+  const stateInvalidAgentQueryCase = singleRequestCase({
+    caseId: "v2.activities-state.document-invalid-agent-query",
+    title: "The State Resource rejects a POST request whose agent query value is not valid JSON",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00235",
+        section: "Communication 2.3",
+        title: "State Resource rejects invalid JSON agent query values",
+      },
+    ],
+    tags: ["v2.0.0", "activities-state", "document", "invalid", "agent-query"],
+    capabilityFlags: ["document", "state", "invalid", "agent-query"],
+    legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    request: buildVersionedRequest(
+      "POST",
+      "activities-state",
+      {
+        ...stateMergeIdentity,
+        stateId: `${stateMergeIdentity.stateId}-invalid-agent`,
+        agent: invalidAgentQuery,
+      },
+      {
+        value: {
+          car: "Honda",
+        },
+      },
+    ),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice activity state invalid agent query"],
   });
 
   const stateMergeCase = requestSequenceCase({
@@ -1787,7 +2224,7 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
         title: "State Document Since",
         specVersion,
         tags: ["list", "since"],
-        children: [stateSinceCase, stateInvalidSinceCase],
+        children: [stateSinceCase, stateInvalidSinceCase, stateInvalidAgentQueryCase],
       },
       {
         type: "suite",
@@ -1982,6 +2419,39 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
       status: 400,
     },
     notes: ["proof-slice activity profile invalid since"],
+  });
+
+  const invalidJsonPostCase = singleRequestCase({
+    caseId: "v2.activities-profile.document-invalid-json-post",
+    title: "The Activity Profile Resource rejects a POST request with an invalid JSON document body",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00314",
+        section: "Communication 2.7.s4.table1.row2",
+        title: "Activity Profile rejects invalid JSON document bodies",
+      },
+    ],
+    tags: ["v2.0.0", "activities-profile", "document", "invalid", "json"],
+    capabilityFlags: ["document", "activity-profile", "invalid", "json"],
+    legacyTraceSuiteFile: activityProfileLegacySuiteFile,
+    request: buildVersionedRequest(
+      "POST",
+      "activities-profile",
+      {
+        ...profileMergeIdentity,
+        profileId: `${profileMergeIdentity.profileId}-invalid-json`,
+      },
+      {
+        kind: "text",
+        value: invalidJsonDocumentBody,
+        contentType: "application/json",
+      },
+    ),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice activity profile invalid JSON document body"],
   });
 
   const mergeCase = requestSequenceCase({
@@ -2211,7 +2681,7 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
         title: "Activity Profile Since",
         specVersion,
         tags: ["list", "since"],
-        children: [sinceCase, invalidSinceCase],
+        children: [sinceCase, invalidSinceCase, invalidJsonPostCase],
       },
       {
         type: "suite",
@@ -2430,6 +2900,40 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
       status: 400,
     },
     notes: ["proof-slice agent profile invalid since"],
+  });
+
+  const invalidAgentQueryCase = singleRequestCase({
+    caseId: "v2.agents-profile.document-invalid-agent-query",
+    title: "The Agent Profile Resource rejects a POST request whose agent query value is not valid JSON",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00284",
+        section: "Communication 2.6",
+        title: "Agent Profile rejects invalid JSON agent query values",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "invalid", "agent-query"],
+    capabilityFlags: ["document", "agent-profile", "invalid", "agent-query"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    request: buildVersionedRequest(
+      "POST",
+      "agents-profile",
+      {
+        ...profileMergeIdentity,
+        profileId: `${profileMergeIdentity.profileId}-invalid-agent`,
+        agent: invalidAgentQuery,
+      },
+      {
+        value: {
+          car: "Honda",
+        },
+      },
+    ),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice agent profile invalid agent query"],
   });
 
   const mergeCase = requestSequenceCase({
@@ -2659,7 +3163,7 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
         title: "Agent Profile Since",
         specVersion,
         tags: ["list", "since"],
-        children: [sinceCase, invalidSinceCase],
+        children: [sinceCase, invalidSinceCase, invalidAgentQueryCase],
       },
       {
         type: "suite",
