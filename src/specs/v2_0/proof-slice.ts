@@ -36,6 +36,8 @@ const formattingLegacySuiteFile =
 const formattingLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/formatting.js";
 const statementResourceLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.1.6.1-Statement-Resource.js";
+const errorCodesLegacySuiteFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/H.Communication3.2-ErrorCodes.js";
 const stateResourceLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.1.6.2-State-Resource.js";
 const agentProfileLegacySuiteFile =
@@ -54,6 +56,9 @@ const accountObjectsLegacyConfigFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/accountobjects.js";
 
 const proofUuidPrefix = "33333333-3333-4333-8333-";
+const multipartStatementRequestBoundary = "mock-proof-statement-request";
+const multipartStatementResponseContentType = "multipart/mixed; boundary=mock-xapi-statement-attachments";
+const isoTimestampHeaderPattern = "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$";
 
 function buildVersionedHeaders(extraHeaders: Record<string, string> = {}): Record<string, string> {
   return {
@@ -123,6 +128,18 @@ function buildStatementBody(body: JsonObject): NonNullable<HttpRequest["body"]> 
   };
 }
 
+function buildStatementBatchBody(body: unknown[]): NonNullable<HttpRequest["body"]> {
+  return {
+    kind: "json",
+    value: body,
+    sourceFixture: {
+      version: specVersion,
+      domain: "statements",
+      name: "default",
+    },
+  };
+}
+
 function buildStatementPostRequest(body: JsonObject, extraHeaders: Record<string, string> = {}): HttpRequest {
   return {
     method: "POST",
@@ -131,6 +148,17 @@ function buildStatementPostRequest(body: JsonObject, extraHeaders: Record<string
     headers: buildVersionedHeaders(extraHeaders),
     query: {},
     body: buildStatementBody(body),
+  };
+}
+
+function buildStatementBatchPostRequest(body: unknown[], extraHeaders: Record<string, string> = {}): HttpRequest {
+  return {
+    method: "POST",
+    endpoint: "statements",
+    authMode: "basic",
+    headers: buildVersionedHeaders(extraHeaders),
+    query: {},
+    body: buildStatementBatchBody(body),
   };
 }
 
@@ -188,6 +216,50 @@ function buildStatementCollectionRequest(
   };
 }
 
+interface MultipartStatementAttachment {
+  contentType: string;
+  sha2: string;
+  body: string;
+}
+
+function buildMultipartStatementRequestBody(
+  statement: JsonObject,
+  attachments: MultipartStatementAttachment[],
+  boundary = multipartStatementRequestBoundary,
+): string {
+  let body = `--${boundary}\r\n`;
+  body += "Content-Type: application/json\r\n\r\n";
+  body += `${JSON.stringify(statement)}\r\n`;
+
+  for (const attachment of attachments) {
+    body += `--${boundary}\r\n`;
+    body += `Content-Type: ${attachment.contentType}\r\n`;
+    body += `X-Experience-API-Hash: ${attachment.sha2}\r\n\r\n`;
+    body += `${attachment.body}\r\n`;
+  }
+
+  body += `--${boundary}--\r\n`;
+  return body;
+}
+
+function buildMultipartStatementPostRequest(
+  statement: JsonObject,
+  attachments: MultipartStatementAttachment[],
+  extraHeaders: Record<string, string> = {},
+): HttpRequest {
+  return buildVersionedRequest(
+    "POST",
+    "statements",
+    {},
+    {
+      kind: "text",
+      value: buildMultipartStatementRequestBody(statement, attachments),
+      contentType: `multipart/mixed; boundary=${multipartStatementRequestBoundary}`,
+    },
+    extraHeaders,
+  );
+}
+
 function listEquals(expected: string[]) {
   return [
     {
@@ -202,7 +274,64 @@ function buildProofUuid(sequence: number): string {
 }
 
 function buildProofTimestamp(second: number): string {
-  return `2026-05-23T12:00:${second.toString().padStart(2, "0")}Z`;
+  return new Date(Date.UTC(2026, 4, 23, 12, 0, second)).toISOString();
+}
+
+function buildProofStoredTimestamp(second: number): string {
+  return new Date(buildProofTimestamp(second)).toISOString();
+}
+
+function buildFormatProofStatement(sequence: number, actorMbox: string): StatementFixture {
+  return buildProofStatement(sequence, [
+    {
+      operation: "set",
+      path: ["actor"],
+      value: {
+        objectType: "Agent",
+        mbox: actorMbox,
+        name: "Format Proof Agent",
+      },
+    },
+    {
+      operation: "set",
+      path: ["verb"],
+      value: {
+        id: "https://example.test/xapi/verbs/format-proof",
+        display: {
+          "en-US": "format-proof-us",
+          "en-GB": "format-proof-gb",
+        },
+      },
+    },
+    {
+      operation: "set",
+      path: ["object"],
+      value: {
+        objectType: "Activity",
+        id: "https://example.test/xapi/activities/format-proof",
+        definition: {
+          name: {
+            "en-US": "Format Proof US",
+            "en-GB": "Format Proof GB",
+          },
+          description: {
+            "en-US": "Format description US",
+            "en-GB": "Format description GB",
+          },
+          type: "https://example.test/xapi/activity-types/format-proof",
+        },
+      },
+    },
+  ]);
+}
+
+function buildMultipartAttachmentMetadata(attachment: MultipartStatementAttachment): JsonObject {
+  return buildAttachmentFixture({
+    contentType: attachment.contentType,
+    sha2: attachment.sha2,
+    length: attachment.body.length,
+    fileUrl: "https://example.test/files/proof-attachment.txt",
+  });
 }
 
 function buildProofStatement(sequence: number, transforms: FixtureTransform[] = []): StatementFixture {
@@ -2278,6 +2407,563 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     ],
   });
 
+  const batchSuccessStatementOne = buildProofStatement(220, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/batch-success-one",
+    },
+  ]);
+  const batchSuccessStatementTwo = buildProofStatement(221, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/batch-success-two",
+    },
+  ]);
+
+  const batchSuccessCase = singleRequestCase({
+    caseId: "v2.statements.transport.post-batch-success",
+    title: "The Statements resource accepts a valid POST batch and returns the submitted statement ids",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00146",
+        section: "Communication 2.1.2.s1",
+        title: "Successful Statement POST returns all submitted statement ids",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "transport", "batch"],
+    capabilityFlags: ["transport", "batch"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    request: buildStatementBatchPostRequest([batchSuccessStatementOne, batchSuccessStatementTwo]),
+    assertion: {
+      status: 200,
+      jsonPathEquals: [
+        {
+          path: [],
+          equals: [batchSuccessStatementOne.id, batchSuccessStatementTwo.id],
+        },
+      ],
+    },
+    notes: ["proof-slice statement batch success"],
+  });
+
+  const duplicateBatchStatement = buildProofStatement(222, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/batch-duplicate-original",
+    },
+  ]);
+  const duplicateBatchConflictingStatement = buildProofStatement(223, [
+    {
+      operation: "set",
+      path: ["id"],
+      value: duplicateBatchStatement.id,
+    },
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/batch-duplicate-conflict",
+    },
+  ]);
+
+  const duplicateBatchCase = singleRequestCase({
+    caseId: "v2.statements.transport.post-batch-rejects-duplicate-ids",
+    title: "The Statements resource rejects a POST batch that contains duplicate statement ids",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00326",
+        section: "Communication 3.2.s3.b9",
+        title: "Rejected Statement batches return 400 Bad Request",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "transport", "batch", "validation"],
+    capabilityFlags: ["transport", "batch", "validation"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    request: buildStatementBatchPostRequest([duplicateBatchStatement, duplicateBatchConflictingStatement]),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice statement batch duplicate-id rejection"],
+  });
+
+  const rollbackBatchValidStatement = buildProofStatement(224, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/batch-rollback-valid",
+    },
+  ]);
+  const rollbackBatchInvalidStatement = buildProofStatement(225, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "not-a-valid-iri",
+    },
+  ]);
+
+  const batchRollbackCase = requestSequenceCase({
+    caseId: "v2.statements.transport.post-batch-atomic-rollback",
+    title: "The Statements resource does not persist any statements from a rejected POST batch",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00326",
+        section: "Communication 3.2.s3.b9",
+        title: "Rejected Statement batches do not partially persist",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "transport", "batch", "rollback"],
+    capabilityFlags: ["transport", "batch", "validation"],
+    legacyTraceSuiteFile: errorCodesLegacySuiteFile,
+    notes: ["proof-slice statement batch rollback"],
+    steps: [
+      {
+        request: buildStatementBatchPostRequest([rollbackBatchValidStatement, rollbackBatchInvalidStatement]),
+        assertion: {
+          status: 400,
+        },
+      },
+      {
+        request: buildStatementGetRequest(rollbackBatchValidStatement.id),
+        assertion: {
+          status: 404,
+        },
+      },
+    ],
+  });
+
+  const exactFormatStatement = buildFormatProofStatement(226, "mailto:format-exact@example.test");
+  const canonicalFormatStatement = buildFormatProofStatement(227, "mailto:format-canonical@example.test");
+  const idsFormatStatement = buildFormatProofStatement(228, "mailto:format-ids@example.test");
+
+  const exactFormatCase = requestSequenceCase({
+    caseId: "v2.statements.representation.format-exact",
+    title: "The Statements resource returns exact statement representations when format is exact",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00170",
+        section: "Communication 2.1.3.s1.table1.row12",
+        title: "GET with format exact returns statement content exactly as submitted",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "representation", "format"],
+    capabilityFlags: ["query", "retrieval", "format"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    notes: ["proof-slice statement exact format"],
+    steps: [
+      {
+        request: buildStatementPostRequest(exactFormatStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementCollectionRequest({
+          statementId: exactFormatStatement.id,
+          format: "exact",
+        }),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["actor"],
+              equals: exactFormatStatement.actor,
+            },
+            {
+              path: ["verb", "display"],
+              equals: {
+                "en-US": "format-proof-us",
+                "en-GB": "format-proof-gb",
+              },
+            },
+            {
+              path: ["object", "definition", "name"],
+              equals: {
+                "en-US": "Format Proof US",
+                "en-GB": "Format Proof GB",
+              },
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const canonicalFormatCase = requestSequenceCase({
+    caseId: "v2.statements.representation.format-canonical-accept-language",
+    title: "The Statements resource applies Accept-Language when format is canonical",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00169",
+        section: "Communication 2.1.3.s1.table1.row12",
+        title: "GET with format canonical returns canonicalized statement values",
+      },
+      {
+        id: "XAPI-00172",
+        section: "Communication 2.1.3.s1.table1.row11",
+        title: "GET with format canonical applies Accept-Language",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "representation", "format", "canonical"],
+    capabilityFlags: ["query", "retrieval", "format"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    notes: ["proof-slice statement canonical format"],
+    steps: [
+      {
+        request: buildStatementPostRequest(canonicalFormatStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementCollectionRequest(
+          {
+            statementId: canonicalFormatStatement.id,
+            format: "canonical",
+          },
+          {
+            "Accept-Language": "en-GB",
+          },
+        ),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["verb", "display"],
+              equals: {
+                "en-GB": "format-proof-gb",
+              },
+            },
+            {
+              path: ["object", "definition", "name"],
+              equals: {
+                "en-GB": "Format Proof GB",
+              },
+            },
+            {
+              path: ["object", "definition", "description"],
+              equals: {
+                "en-GB": "Format description GB",
+              },
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const idsFormatCase = requestSequenceCase({
+    caseId: "v2.statements.representation.format-ids",
+    title: "The Statements resource returns identifier-only statement representations when format is ids",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00171",
+        section: "Communication 2.1.3.s1.table1.row12",
+        title: "GET with format ids returns only identifying statement data",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "representation", "format", "ids"],
+    capabilityFlags: ["query", "retrieval", "format"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    notes: ["proof-slice statement ids format"],
+    steps: [
+      {
+        request: buildStatementPostRequest(idsFormatStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementCollectionRequest({
+          statementId: idsFormatStatement.id,
+          format: "ids",
+        }),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["actor"],
+              equals: {
+                objectType: "Agent",
+                mbox: "mailto:format-ids@example.test",
+              },
+            },
+            {
+              path: ["verb"],
+              equals: {
+                id: "https://example.test/xapi/verbs/format-proof",
+              },
+            },
+            {
+              path: ["object"],
+              equals: {
+                id: "https://example.test/xapi/activities/format-proof",
+              },
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const multipartAttachment: MultipartStatementAttachment = {
+    contentType: "text/plain",
+    sha2: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    body: "here is a proof attachment",
+  };
+  const multipartAttachmentStatement = buildProofStatement(229, [
+    {
+      operation: "set",
+      path: ["attachments"],
+      value: [buildMultipartAttachmentMetadata(multipartAttachment)],
+    },
+  ]);
+  const multipartFallbackStatement = buildProofStatement(230, [
+    {
+      operation: "set",
+      path: ["attachments"],
+      value: [buildMultipartAttachmentMetadata(multipartAttachment)],
+    },
+  ]);
+
+  const attachmentsMultipartCase = requestSequenceCase({
+    caseId: "v2.statements.representation.attachments-multipart",
+    title: "The Statements resource returns multipart attachment data when attachments is true",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00167",
+        section: "Communication 2.1.3.s1.table1.row13",
+        title: "GET with attachments true returns multipart attachment data",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "representation", "attachments"],
+    capabilityFlags: ["query", "retrieval", "attachments"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    notes: ["proof-slice statement multipart attachments"],
+    steps: [
+      {
+        request: buildMultipartStatementPostRequest(multipartAttachmentStatement, [multipartAttachment]),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["id"],
+              equals: multipartAttachmentStatement.id,
+            },
+          ],
+        },
+      },
+      {
+        request: buildStatementCollectionRequest({
+          statementId: multipartAttachmentStatement.id,
+          attachments: "true",
+        }),
+        assertion: {
+          status: 200,
+          expectedHeaders: [
+            {
+              key: "content-type",
+              equals: multipartStatementResponseContentType,
+            },
+          ],
+          textContains: [multipartAttachmentStatement.id, multipartAttachment.sha2, multipartAttachment.body],
+        },
+      },
+    ],
+  });
+
+  const attachmentsJsonFallbackCase = requestSequenceCase({
+    caseId: "v2.statements.representation.attachments-json-fallback",
+    title: "The Statements resource falls back to application/json when attachments is absent or false",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00161",
+        section: "Communication 2.1.3.s1.b1",
+        title: "GET without attachments data returns application/json",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "representation", "attachments"],
+    capabilityFlags: ["query", "retrieval", "attachments"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    notes: ["proof-slice statement attachment json fallback"],
+    steps: [
+      {
+        request: buildMultipartStatementPostRequest(multipartFallbackStatement, [multipartAttachment]),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["id"],
+              equals: multipartFallbackStatement.id,
+            },
+          ],
+        },
+      },
+      {
+        request: buildStatementGetRequest(multipartFallbackStatement.id),
+        assertion: {
+          status: 200,
+          expectedHeaders: [
+            {
+              key: "content-type",
+              equals: "application/json",
+            },
+          ],
+          jsonPathEquals: [
+            {
+              path: ["id"],
+              equals: multipartFallbackStatement.id,
+            },
+          ],
+        },
+      },
+      {
+        request: buildStatementCollectionRequest({
+          statementId: multipartFallbackStatement.id,
+          attachments: "false",
+        }),
+        assertion: {
+          status: 200,
+          expectedHeaders: [
+            {
+              key: "content-type",
+              equals: "application/json",
+            },
+          ],
+          jsonPathEquals: [
+            {
+              path: ["id"],
+              equals: multipartFallbackStatement.id,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const lastModifiedStatement = buildProofStatement(231, [
+    {
+      operation: "set",
+      path: ["verb", "id"],
+      value: "https://example.test/xapi/verbs/header-last-modified",
+    },
+  ]);
+
+  const lastModifiedCase = requestSequenceCase({
+    caseId: "v2.statements.headers.last-modified-matches-stored",
+    title: "The Statements resource returns Last-Modified that matches the stored timestamp",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-01002",
+        section: "Communication 2.1.1",
+        title: "Statement GET Last-Modified matches the stored timestamp",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "headers"],
+    capabilityFlags: ["query", "retrieval", "headers"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    notes: ["proof-slice statement last-modified header"],
+    steps: [
+      {
+        request: buildStatementPostRequest(lastModifiedStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementGetRequest(lastModifiedStatement.id),
+        assertion: {
+          status: 200,
+          expectedHeaders: [
+            {
+              key: "last-modified",
+              equals: buildProofStoredTimestamp(231),
+            },
+          ],
+          jsonPathEquals: [
+            {
+              path: ["stored"],
+              equals: buildProofStoredTimestamp(231),
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const consistentThroughSuccessCase = singleRequestCase({
+    caseId: "v2.statements.headers.consistent-through-success",
+    title: "The Statements resource returns X-Experience-API-Consistent-Through on successful GET responses",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00153",
+        section: "Communication 2.1.3.s2.b5",
+        title: "GET returns X-Experience-API-Consistent-Through regardless of successful code",
+      },
+      {
+        id: "XAPI-00160",
+        section: "Communication 2.1.3.s2.b5",
+        title: "X-Experience-API-Consistent-Through is an ISO 8601 timestamp",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "headers"],
+    capabilityFlags: ["headers", "query"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    request: buildStatementCollectionRequest({
+      verb: "https://example.test/xapi/verbs/non-existent-consistent-through",
+    }),
+    assertion: {
+      status: 200,
+      expectedHeaderPatterns: [
+        {
+          key: "x-experience-api-consistent-through",
+          pattern: isoTimestampHeaderPattern,
+        },
+      ],
+    },
+    notes: ["proof-slice statement consistent-through success header"],
+  });
+
+  const consistentThroughErrorCase = singleRequestCase({
+    caseId: "v2.statements.headers.consistent-through-error",
+    title: "The Statements resource returns X-Experience-API-Consistent-Through on invalid GET responses",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00153",
+        section: "Communication 2.1.3.s2.b5",
+        title: "GET returns X-Experience-API-Consistent-Through regardless of returned code",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "headers", "validation"],
+    capabilityFlags: ["headers", "query", "validation"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    request: buildStatementCollectionRequest({
+      LIMIT: "1",
+    }),
+    assertion: {
+      status: 400,
+      expectedHeaderPatterns: [
+        {
+          key: "x-experience-api-consistent-through",
+          pattern: isoTimestampHeaderPattern,
+        },
+      ],
+    },
+    notes: ["proof-slice statement consistent-through error header"],
+  });
+
   const emptyResultCase = singleRequestCase({
     caseId: "v2.statements.query.empty-result",
     title: "The Statements resource returns 200 with an empty StatementResult when a collection query matches nothing",
@@ -2862,8 +3548,28 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
           putRoundTripCase,
           putRequiresStatementIdCase,
           putImmutableCase,
+          batchSuccessCase,
+          duplicateBatchCase,
+          batchRollbackCase,
           voidedStatementQueryCase,
           hiddenVoidedStatementCase,
+        ],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.statements.representation",
+        title: "Statement Representation",
+        specVersion,
+        tags: ["representation"],
+        children: [
+          exactFormatCase,
+          canonicalFormatCase,
+          idsFormatCase,
+          attachmentsMultipartCase,
+          attachmentsJsonFallbackCase,
+          lastModifiedCase,
+          consistentThroughSuccessCase,
+          consistentThroughErrorCase,
         ],
       },
       {

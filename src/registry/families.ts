@@ -2,6 +2,7 @@ import type {
   CaseDefinition,
   EndpointKind,
   HeaderExpectation,
+  HeaderPatternExpectation,
   HttpMethod,
   HttpRequest,
   JsonPathExpectation,
@@ -99,7 +100,9 @@ interface DocumentRoundTripCaseOptions extends LegacyTraceOptions {
 interface RequestAssertionDefinition {
   status: number;
   expectedHeaders?: HeaderExpectation[];
+  expectedHeaderPatterns?: HeaderPatternExpectation[];
   jsonPathEquals?: JsonPathExpectation[];
+  textContains?: string[];
 }
 
 interface SingleRequestCaseOptions extends LegacyTraceOptions {
@@ -151,7 +154,9 @@ function withAssertionDefaults(assertion: RequestAssertionDefinition): RequestAs
   return {
     status: assertion.status,
     expectedHeaders: assertion.expectedHeaders ?? [],
+    expectedHeaderPatterns: assertion.expectedHeaderPatterns ?? [],
     jsonPathEquals: assertion.jsonPathEquals ?? [],
+    textContains: assertion.textContains ?? [],
   };
 }
 
@@ -340,7 +345,9 @@ function buildSubmitAndQueryCase(
       submitStatus: options.submitStatus,
       queryStatus: options.queryStatus,
       expectedHeaders: versionHeaderExpectations(options.specVersion),
+      expectedHeaderPatterns: [],
       queryJsonPathEquals: options.queryJsonPathEquals,
+      queryTextContains: [],
       notes: options.notes,
     },
   };

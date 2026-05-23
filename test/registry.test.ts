@@ -11,7 +11,7 @@ import {
   createV20StateResourceProofSliceSuite,
 } from "../src/specs/v2_0/proof-slice";
 
-const expectedCaseCount = 460;
+const expectedCaseCount = 471;
 const expectedCaseIdAnchors = [
   "v2.statements.required-fields.missing-actor",
   "v2.statements.invalid-types.result-completion-string",
@@ -42,8 +42,19 @@ const expectedCaseIdAnchors = [
   "v2.statements.transport.put-roundtrip",
   "v2.statements.transport.put-requires-statement-id",
   "v2.statements.transport.put-is-immutable",
+  "v2.statements.transport.post-batch-success",
+  "v2.statements.transport.post-batch-rejects-duplicate-ids",
+  "v2.statements.transport.post-batch-atomic-rollback",
   "v2.statements.voiding.voided-statement-id-roundtrip",
   "v2.statements.voiding.statement-id-hides-voided",
+  "v2.statements.representation.format-exact",
+  "v2.statements.representation.format-canonical-accept-language",
+  "v2.statements.representation.format-ids",
+  "v2.statements.representation.attachments-multipart",
+  "v2.statements.representation.attachments-json-fallback",
+  "v2.statements.headers.last-modified-matches-stored",
+  "v2.statements.headers.consistent-through-success",
+  "v2.statements.headers.consistent-through-error",
   "v2.statements.invalid-attachment-iri.file-url-no-scheme",
   "v2.statements.numeric-precision.score-roundtrip",
   "v2.statements.query-validation.invalid-registration",
@@ -106,7 +117,9 @@ describe("RegistryBuilder", () => {
             kind: "single-request",
             status: 400,
             expectedHeaders: [],
+            expectedHeaderPatterns: [],
             jsonPathEquals: [],
+            textContains: [],
             notes: [],
           },
         },
@@ -141,7 +154,9 @@ describe("RegistryBuilder", () => {
             kind: "single-request",
             status: 400,
             expectedHeaders: [],
+            expectedHeaderPatterns: [],
             jsonPathEquals: [],
+            textContains: [],
             notes: [],
           },
         },
@@ -187,7 +202,7 @@ describe("RegistryBuilder", () => {
       "Activity Profile Resource",
       "Agent Profile Resource",
     ]);
-    expect(batteries["2.0.0"]?.tests.children[0]?.children).toHaveLength(5);
+    expect(batteries["2.0.0"]?.tests.children[0]?.children).toHaveLength(6);
     expect(batteries["2.0.0"]?.tests.children[1]?.children).toHaveLength(5);
     expect(batteries["2.0.0"]?.tests.children[2]?.children).toHaveLength(5);
     expect(batteries["2.0.0"]?.tests.children[3]?.children).toHaveLength(5);

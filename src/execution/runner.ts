@@ -7,6 +7,7 @@ import {
   type ExecutionEvent,
   type ExecutionPlan,
   type HeaderExpectation,
+  type HeaderPatternExpectation,
   type HttpRequest,
   type JsonPathExpectation,
   type JsonObject,
@@ -142,17 +143,21 @@ function aggregateStatus(children: Array<SuiteResult | CaseResult>): RunStatus {
 
 async function parseResponseBody(response: Response): Promise<unknown> {
   const contentType = response.headers.get("content-type") ?? "";
+  const text = await response.text();
 
-  if (contentType.includes("application/json")) {
-    return response.json();
+  if (text.length === 0) {
+    return undefined;
   }
 
-  const text = await response.text();
-  return text.length > 0 ? text : undefined;
+  if (contentType.includes("application/json")) {
+    return JSON.parse(text);
+  }
+
+  return text;
 }
 
 function assertHeaders(response: Response, expected: HeaderExpectation[]): string[] {
-  return expected.flatMap((header) => {
+  return (expected ?? []).flatMap((header) => {
     const actual = response.headers.get(header.key);
     if (actual === header.equals) {
       return [];
@@ -162,8 +167,21 @@ function assertHeaders(response: Response, expected: HeaderExpectation[]): strin
   });
 }
 
+function assertHeaderPatterns(response: Response, expected: HeaderPatternExpectation[]): string[] {
+  return (expected ?? []).flatMap((header) => {
+    const actual = response.headers.get(header.key);
+    if (actual !== null && new RegExp(header.pattern).test(actual)) {
+      return [];
+    }
+
+    return [
+      `Expected header ${header.key} to match /${header.pattern}/ but received ${actual ?? "<missing>"}.`,
+    ];
+  });
+}
+
 function assertJsonPathMatches(body: unknown, expectations: JsonPathExpectation[]): string[] {
-  return expectations.flatMap((expectation) => {
+  return (expectations ?? []).flatMap((expectation) => {
     const actual = getValueAtPath(body, expectation.path);
     if (deepEqual(actual, expectation.equals)) {
       return [];
@@ -175,6 +193,17 @@ function assertJsonPathMatches(body: unknown, expectations: JsonPathExpectation[
   });
 }
 
+function assertTextContains(body: unknown, expected: string[]): string[] {
+  if ((expected ?? []).length === 0) {
+    return [];
+  }
+
+  const text = typeof body === "string" ? body : body === undefined ? "" : JSON.stringify(body);
+  return expected.flatMap((fragment) =>
+    text.includes(fragment) ? [] : [`Expected response body to contain ${JSON.stringify(fragment)}.`],
+  );
+}
+
 function assertRequestExpectation(response: Response, body: unknown, assertion: RequestAssertion): string[] {
   const errors: string[] = [];
 
@@ -183,7 +212,9 @@ function assertRequestExpectation(response: Response, body: unknown, assertion: 
   }
 
   errors.push(...assertHeaders(response, assertion.expectedHeaders));
+  errors.push(...assertHeaderPatterns(response, assertion.expectedHeaderPatterns));
   errors.push(...assertJsonPathMatches(body, assertion.jsonPathEquals));
+  errors.push(...assertTextContains(body, assertion.textContains));
 
   return errors;
 }
@@ -295,7 +326,9 @@ async function runSubmitAndQueryCase(testCase: SubmitAndQueryCase, options: Runt
     }
 
     attemptErrors.push(...assertHeaders(queryResponse, testCase.assertion.expectedHeaders));
+    attemptErrors.push(...assertHeaderPatterns(queryResponse, testCase.assertion.expectedHeaderPatterns));
     attemptErrors.push(...assertJsonPathMatches(queryBody, testCase.assertion.queryJsonPathEquals));
+    attemptErrors.push(...assertTextContains(queryBody, testCase.assertion.queryTextContains));
 
     if (attemptErrors.length === 0) {
       return CaseResultSchema.parse({

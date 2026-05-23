@@ -74,6 +74,14 @@ export const HeaderExpectationSchema = z
   .strict();
 export type HeaderExpectation = z.infer<typeof HeaderExpectationSchema>;
 
+export const HeaderPatternExpectationSchema = z
+  .object({
+    key: z.string().min(1),
+    pattern: z.string().min(1),
+  })
+  .strict();
+export type HeaderPatternExpectation = z.infer<typeof HeaderPatternExpectationSchema>;
+
 export const JsonPathExpectationSchema = z
   .object({
     path: z.array(z.string().min(1)).min(0),
@@ -86,7 +94,9 @@ export const RequestAssertionSchema = z
   .object({
     status: z.number().int().min(100).max(599),
     expectedHeaders: z.array(HeaderExpectationSchema).default([]),
+    expectedHeaderPatterns: z.array(HeaderPatternExpectationSchema).default([]),
     jsonPathEquals: z.array(JsonPathExpectationSchema).default([]),
+    textContains: z.array(z.string().min(1)).default([]),
   })
   .strict();
 export type RequestAssertion = z.infer<typeof RequestAssertionSchema>;
@@ -142,7 +152,9 @@ export const AssertionPlanSchema = z.discriminatedUnion("kind", [
       kind: z.literal("single-request"),
       status: z.number().int().min(100).max(599),
       expectedHeaders: z.array(HeaderExpectationSchema).default([]),
+      expectedHeaderPatterns: z.array(HeaderPatternExpectationSchema).default([]),
       jsonPathEquals: z.array(JsonPathExpectationSchema).default([]),
+      textContains: z.array(z.string().min(1)).default([]),
       notes: z.array(z.string()).default([]),
     })
     .strict(),
@@ -152,7 +164,9 @@ export const AssertionPlanSchema = z.discriminatedUnion("kind", [
       submitStatus: z.number().int().min(100).max(599),
       queryStatus: z.number().int().min(100).max(599),
       expectedHeaders: z.array(HeaderExpectationSchema).default([]),
+      expectedHeaderPatterns: z.array(HeaderPatternExpectationSchema).default([]),
       queryJsonPathEquals: z.array(JsonPathExpectationSchema).default([]),
+      queryTextContains: z.array(z.string().min(1)).default([]),
       notes: z.array(z.string()).default([]),
     })
     .strict(),

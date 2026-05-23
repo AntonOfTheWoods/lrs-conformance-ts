@@ -8,16 +8,35 @@ interface StoredDocument {
   storedAt: number;
 }
 
+interface StoredAttachmentPart {
+  sha2: string;
+  contentType: string;
+  body: string;
+}
+
 interface StoredStatement {
   id: string;
   body: JsonObject;
   storedAt: string;
   storedAtMs: number;
   isVoiding: boolean;
+  attachmentParts: StoredAttachmentPart[];
+}
+
+interface ParsedMultipartPart {
+  headers: Record<string, string>;
+  body: string;
+}
+
+interface ParsedStatementWritePayload {
+  statements: unknown[];
+  responseKind: "single" | "batch";
+  attachmentParts: Map<string, StoredAttachmentPart>;
 }
 
 const populatedAuthorityAccountHomePage = "https://example.test/xapi/auth/basic";
 const voidingVerbId = "http://adlnet.gov/expapi/verbs/voided";
+const statementAttachmentResponseBoundary = "mock-xapi-statement-attachments";
 const statementQueryParameters = new Set([
   "statementId",
   "voidedStatementId",
@@ -125,6 +144,58 @@ function isJsonMediaType(value: string): boolean {
   return value === "application/json" || value.endsWith("+json");
 }
 
+function parseMultipartBoundary(contentType: string | null): string | undefined {
+  if (!contentType) {
+    return undefined;
+  }
+
+  const match = /boundary=(?:"([^"]+)"|([^;]+))/i.exec(contentType);
+  return match?.[1] ?? match?.[2]?.trim();
+}
+
+function parseMultipartHeaders(rawHeaders: string): Record<string, string> {
+  const headers: Record<string, string> = {};
+
+  for (const line of rawHeaders.split(/\r?\n/)) {
+    const separatorIndex = line.indexOf(":");
+    if (separatorIndex <= 0) {
+      continue;
+    }
+
+    const key = line.slice(0, separatorIndex).trim().toLowerCase();
+    const value = line.slice(separatorIndex + 1).trim();
+    headers[key] = value;
+  }
+
+  return headers;
+}
+
+function parseMultipartParts(body: string, boundary: string): ParsedMultipartPart[] {
+  const marker = `--${boundary}`;
+
+  return body.split(marker).flatMap((segment) => {
+    const trimmed = segment.replace(/^\r?\n/, "").replace(/\r?\n$/, "");
+    if (trimmed.length === 0 || trimmed === "--") {
+      return [];
+    }
+
+    const withoutClosingMarker = trimmed.endsWith("--") ? trimmed.slice(0, -2) : trimmed;
+    const normalized = withoutClosingMarker.replace(/^\r?\n/, "").replace(/\r?\n$/, "");
+    const separator = normalized.includes("\r\n\r\n") ? "\r\n\r\n" : "\n\n";
+    const separatorIndex = normalized.indexOf(separator);
+    if (separatorIndex < 0) {
+      return [];
+    }
+
+    return [
+      {
+        headers: parseMultipartHeaders(normalized.slice(0, separatorIndex)),
+        body: normalized.slice(separatorIndex + separator.length).replace(/\r?\n$/, ""),
+      },
+    ];
+  });
+}
+
 function isValidUrl(value: string): boolean {
   try {
     new URL(value);
@@ -136,6 +207,56 @@ function isValidUrl(value: string): boolean {
 
 function isValidMailto(value: string): boolean {
   return /^mailto:[^@\s]+@[^@\s]+\.[^@\s]+$/i.test(value);
+}
+
+function isLanguageMap(value: unknown): value is JsonObject {
+  return isJsonObject(value) && Object.keys(value).length > 0 && Object.values(value).every((entry) => typeof entry === "string");
+}
+
+function selectLanguageKey(value: JsonObject, acceptLanguage: string | null): string | undefined {
+  const keys = Object.keys(value);
+  if (keys.length === 0) {
+    return undefined;
+  }
+
+  if (!acceptLanguage) {
+    return keys[0];
+  }
+
+  const preferences = acceptLanguage
+    .split(",")
+    .map((entry) => entry.trim().split(";", 1)[0]?.trim().toLowerCase())
+    .filter((entry): entry is string => Boolean(entry));
+
+  for (const preference of preferences) {
+    const exact = keys.find((key) => key.toLowerCase() === preference);
+    if (exact) {
+      return exact;
+    }
+
+    const base = preference.split("-", 1)[0];
+    const partial = keys.find((key) => key.toLowerCase().split("-", 1)[0] === base);
+    if (partial) {
+      return partial;
+    }
+
+    if (preference === "*") {
+      return keys[0];
+    }
+  }
+
+  return keys[0];
+}
+
+function canonicalizeLanguageMap(value: JsonObject, acceptLanguage: string | null): JsonObject {
+  const key = selectLanguageKey(value, acceptLanguage);
+  if (!key) {
+    return {};
+  }
+
+  return {
+    [key]: value[key],
+  };
 }
 
 function validateVerb(value: unknown): string | undefined {
@@ -591,7 +712,7 @@ function isRecognizedStatementQueryParam(name: string): boolean {
   return statementQueryParameters.has(name);
 }
 
-function isActorLikeCandidate(value: unknown): value is JsonObject {
+function isActorLikeCandidate(value: unknown): boolean {
   return (
     isJsonObject(value) &&
     (value.objectType === "Agent" ||
@@ -674,6 +795,122 @@ function collectActivityIds(value: unknown, activityIds: Set<string>): void {
 
   for (const child of Object.values(value)) {
     collectActivityIds(child, activityIds);
+  }
+}
+
+function canonicalizeStatementValue(value: unknown, acceptLanguage: string | null): unknown {
+  if (Array.isArray(value)) {
+    return value.map((child) => canonicalizeStatementValue(child, acceptLanguage));
+  }
+
+  if (!isJsonObject(value)) {
+    return value;
+  }
+
+  const next: JsonObject = {};
+  for (const [key, child] of Object.entries(value)) {
+    if ((key === "display" || key === "name" || key === "description") && isLanguageMap(child)) {
+      next[key] = canonicalizeLanguageMap(child, acceptLanguage);
+      continue;
+    }
+
+    next[key] = canonicalizeStatementValue(child, acceptLanguage);
+  }
+
+  return next;
+}
+
+function formatActorLikeIds(value: JsonObject): JsonObject {
+  const next: JsonObject = {};
+
+  if (typeof value.objectType === "string") {
+    next.objectType = value.objectType;
+  }
+
+  if (typeof value.mbox === "string") {
+    next.mbox = value.mbox;
+  } else if (typeof value.mbox_sha1sum === "string") {
+    next.mbox_sha1sum = value.mbox_sha1sum;
+  } else if (typeof value.openid === "string") {
+    next.openid = value.openid;
+  } else if (
+    isJsonObject(value.account) &&
+    typeof value.account.homePage === "string" &&
+    typeof value.account.name === "string"
+  ) {
+    next.account = {
+      homePage: value.account.homePage,
+      name: value.account.name,
+    };
+  }
+
+  if (Array.isArray(value.member)) {
+    next.member = value.member.filter(isJsonObject).map((member) => formatActorLikeIds(member));
+  }
+
+  return next;
+}
+
+function formatStatementIdsValue(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map((child) => formatStatementIdsValue(child));
+  }
+
+  if (!isJsonObject(value)) {
+    return value;
+  }
+
+  if (value.objectType === "SubStatement") {
+    const next = cloneValue(value);
+    next.actor = formatStatementIdsValue(next.actor);
+    next.verb = formatStatementIdsValue(next.verb);
+    next.object = formatStatementIdsValue(next.object);
+    next.context = formatStatementIdsValue(next.context);
+    return next;
+  }
+
+  if (value.objectType === "StatementRef") {
+    return {
+      objectType: "StatementRef",
+      id: value.id,
+    };
+  }
+
+  if (isActorLikeCandidate(value)) {
+    return formatActorLikeIds(value);
+  }
+
+  if (typeof value.id === "string" && isJsonObject(value.display) && value.objectType === undefined) {
+    return {
+      id: value.id,
+    };
+  }
+
+  if ((value.objectType === "Activity" || value.definition !== undefined) && typeof value.id === "string") {
+    return {
+      id: value.id,
+    };
+  }
+
+  const next: JsonObject = {};
+  for (const [key, child] of Object.entries(value)) {
+    next[key] = formatStatementIdsValue(child);
+  }
+
+  return next;
+}
+
+function formatStatementBody(body: JsonObject, format: string | null, acceptLanguage: string | null): JsonObject {
+  switch (format) {
+    case null:
+    case "exact":
+      return cloneValue(body);
+    case "canonical":
+      return canonicalizeStatementValue(cloneValue(body), acceptLanguage) as JsonObject;
+    case "ids":
+      return formatStatementIdsValue(cloneValue(body)) as JsonObject;
+    default:
+      return cloneValue(body);
   }
 }
 
@@ -766,7 +1003,28 @@ function isVoidingStatement(statement: JsonObject): boolean {
   );
 }
 
-function buildStoredStatement(body: JsonObject): StoredStatement {
+function extractStoredAttachmentParts(
+  body: JsonObject,
+  attachmentParts: Map<string, StoredAttachmentPart>,
+): StoredAttachmentPart[] {
+  if (!Array.isArray(body.attachments)) {
+    return [];
+  }
+
+  return body.attachments.flatMap((attachment) => {
+    if (!isJsonObject(attachment) || typeof attachment.sha2 !== "string") {
+      return [];
+    }
+
+    const part = attachmentParts.get(attachment.sha2);
+    return part ? [part] : [];
+  });
+}
+
+function buildStoredStatement(
+  body: JsonObject,
+  attachmentParts: Map<string, StoredAttachmentPart> = new Map(),
+): StoredStatement {
   const storedBody = cloneValue(body);
   const storedAt =
     typeof storedBody.timestamp === "string" && isValidTimestamp(storedBody.timestamp)
@@ -789,6 +1047,7 @@ function buildStoredStatement(body: JsonObject): StoredStatement {
     storedAt,
     storedAtMs: Date.parse(storedAt),
     isVoiding: isVoidingStatement(storedBody),
+    attachmentParts: extractStoredAttachmentParts(storedBody, attachmentParts),
   };
 }
 
@@ -814,25 +1073,236 @@ function registerVoidingStatement(
   voidedStatementIds.add(target.id);
 }
 
-function buildStatementResponse(statement: StoredStatement, version: string): Response {
-  return new Response(JSON.stringify(statement.body), {
+function buildMultipartStatementResponse(
+  primaryBody: string,
+  attachments: StoredAttachmentPart[],
+  version: string,
+  extraHeaders: Record<string, string> = {},
+): Response {
+  let body = `--${statementAttachmentResponseBoundary}\r\n`;
+  body += "Content-Type: application/json\r\n\r\n";
+  body += `${primaryBody}\r\n`;
+
+  for (const attachment of attachments) {
+    body += `--${statementAttachmentResponseBoundary}\r\n`;
+    body += `Content-Type: ${attachment.contentType}\r\n`;
+    body += `X-Experience-API-Hash: ${attachment.sha2}\r\n\r\n`;
+    body += `${attachment.body}\r\n`;
+  }
+
+  body += `--${statementAttachmentResponseBoundary}--\r\n`;
+
+  return new Response(body, {
     status: 200,
-    headers: createHeaders(version, "application/json", {
-      "last-modified": statement.storedAt,
-    }),
+    headers: createHeaders(version, `multipart/mixed; boundary=${statementAttachmentResponseBoundary}`, extraHeaders),
   });
 }
 
-function buildStatementResultResponse(statements: StoredStatement[], version: string): Response {
-  return new Response(
-    JSON.stringify({
-      statements: statements.map((statement) => statement.body),
-    }),
-    {
-      status: 200,
-      headers: createHeaders(version),
-    },
+function buildStatementResponse(
+  statement: StoredStatement,
+  version: string,
+  options: {
+    format: string | null;
+    acceptLanguage: string | null;
+    includeAttachments: boolean;
+  },
+): Response {
+  const formatted = formatStatementBody(statement.body, options.format, options.acceptLanguage);
+  const extraHeaders = {
+    "last-modified": statement.storedAt,
+  };
+
+  if (options.includeAttachments && statement.attachmentParts.length > 0) {
+    return buildMultipartStatementResponse(JSON.stringify(formatted), statement.attachmentParts, version, extraHeaders);
+  }
+
+  return new Response(JSON.stringify(formatted), {
+    status: 200,
+    headers: createHeaders(version, "application/json", extraHeaders),
+  });
+}
+
+function buildStatementResultResponse(
+  statements: StoredStatement[],
+  version: string,
+  options: {
+    format: string | null;
+    acceptLanguage: string | null;
+    includeAttachments: boolean;
+  },
+): Response {
+  const formattedStatements = statements.map((statement) =>
+    formatStatementBody(statement.body, options.format, options.acceptLanguage),
   );
+
+  if (options.includeAttachments) {
+    const attachmentParts = new Map<string, StoredAttachmentPart>();
+    for (const statement of statements) {
+      for (const attachment of statement.attachmentParts) {
+        attachmentParts.set(attachment.sha2, attachment);
+      }
+    }
+
+    if (attachmentParts.size > 0) {
+      return buildMultipartStatementResponse(
+        JSON.stringify({ statements: formattedStatements }),
+        [...attachmentParts.values()],
+        version,
+      );
+    }
+  }
+
+  return new Response(JSON.stringify({ statements: formattedStatements }), {
+    status: 200,
+    headers: createHeaders(version),
+  });
+}
+
+function parseStatementPayload(
+  value: unknown,
+  version: string,
+  attachmentParts: Map<string, StoredAttachmentPart>,
+): ParsedStatementWritePayload | Response {
+  if (Array.isArray(value)) {
+    return {
+      statements: value,
+      responseKind: "batch",
+      attachmentParts,
+    };
+  }
+
+  if (isJsonObject(value)) {
+    return {
+      statements: [value],
+      responseKind: "single",
+      attachmentParts,
+    };
+  }
+
+  return new Response(JSON.stringify({ error: "statement payload must be a JSON object or array" }), {
+    status: 400,
+    headers: createHeaders(version),
+  });
+}
+
+async function parseStatementWritePayload(request: Request, version: string): Promise<ParsedStatementWritePayload | Response> {
+  const rawContentType = request.headers.get("content-type");
+  const boundary = parseMultipartBoundary(rawContentType);
+  const rawBody = await request.text();
+
+  if (!boundary) {
+    try {
+      return parseStatementPayload(JSON.parse(rawBody), version, new Map());
+    } catch {
+      return new Response(JSON.stringify({ error: "invalid JSON body" }), {
+        status: 400,
+        headers: createHeaders(version),
+      });
+    }
+  }
+
+  const parts = parseMultipartParts(rawBody, boundary);
+  if (parts.length === 0) {
+    return new Response(JSON.stringify({ error: "multipart statements require a JSON statement part" }), {
+      status: 400,
+      headers: createHeaders(version),
+    });
+  }
+
+  try {
+    const attachmentParts = new Map<string, StoredAttachmentPart>();
+    const statementPart = parts[0];
+    if (!statementPart) {
+      return new Response(JSON.stringify({ error: "multipart statements require a JSON statement part" }), {
+        status: 400,
+        headers: createHeaders(version),
+      });
+    }
+
+    const parsedStatement = JSON.parse(statementPart.body);
+
+    for (const part of parts.slice(1)) {
+      const sha2 = part.headers["x-experience-api-hash"];
+      if (!sha2) {
+        continue;
+      }
+
+      attachmentParts.set(sha2, {
+        sha2,
+        contentType: part.headers["content-type"] ?? "application/octet-stream",
+        body: part.body,
+      });
+    }
+
+    return parseStatementPayload(parsedStatement, version, attachmentParts);
+  } catch {
+    return new Response(JSON.stringify({ error: "invalid JSON body" }), {
+      status: 400,
+      headers: createHeaders(version),
+    });
+  }
+}
+
+function prepareStatementsForWrite(
+  payload: ParsedStatementWritePayload,
+  request: Request,
+  version: string,
+): JsonObject[] | Response {
+  const prepared: JsonObject[] = [];
+  const seenIds = new Set<string>();
+
+  for (const rawStatement of payload.statements) {
+    const statement = populateAuthorityFromRequest(rawStatement, request);
+    const validationError = validateStatementBody(statement);
+    if (validationError) {
+      return new Response(JSON.stringify({ error: validationError }), {
+        status: 400,
+        headers: createHeaders(version),
+      });
+    }
+
+    if (!isJsonObject(statement) || typeof statement.id !== "string") {
+      return new Response(JSON.stringify({ error: "statement id must be a UUID" }), {
+        status: 400,
+        headers: createHeaders(version),
+      });
+    }
+
+    if (seenIds.has(statement.id)) {
+      return new Response(JSON.stringify({ error: "statement batch contains duplicate ids" }), {
+        status: 400,
+        headers: createHeaders(version),
+      });
+    }
+
+    seenIds.add(statement.id);
+    prepared.push(statement);
+  }
+
+  return prepared;
+}
+
+function commitStatements(
+  nextStatements: JsonObject[],
+  attachmentParts: Map<string, StoredAttachmentPart>,
+  statements: Map<string, StoredStatement>,
+  voidedStatementIds: Set<string>,
+): void {
+  const newStatements: StoredStatement[] = [];
+
+  for (const statement of nextStatements) {
+    if (statements.has(statement.id as string)) {
+      continue;
+    }
+
+    const storedStatement = buildStoredStatement(statement, attachmentParts);
+    statements.set(storedStatement.id, storedStatement);
+    newStatements.push(storedStatement);
+  }
+
+  for (const statement of newStatements) {
+    registerVoidingStatement(statement, statements, voidedStatementIds);
+  }
 }
 
 function matchesAgentQuery(statement: StoredStatement, query: JsonObject, relatedAgents: boolean): boolean {
@@ -1169,33 +1639,26 @@ export function startMockLrs(version = "2.0.0"): MockLrsHandle {
       }
 
       if (request.method === "POST") {
-        const body = populateAuthorityFromRequest(await request.json(), request);
-        const validationError = validateStatementBody(body);
-        if (validationError) {
-          return new Response(JSON.stringify({ error: validationError }), {
-            status: 400,
+        const payload = await parseStatementWritePayload(request, version);
+        if (payload instanceof Response) {
+          return payload;
+        }
+
+        const preparedStatements = prepareStatementsForWrite(payload, request, version);
+        if (preparedStatements instanceof Response) {
+          return preparedStatements;
+        }
+
+        commitStatements(preparedStatements, payload.attachmentParts, statements, voidedStatementIds);
+
+        if (payload.responseKind === "batch") {
+          return new Response(JSON.stringify(preparedStatements.map((statement) => statement.id)), {
+            status: 200,
             headers: createHeaders(version),
           });
         }
 
-        if (!isJsonObject(body) || typeof body.id !== "string") {
-          return new Response(JSON.stringify({ error: "statement id must be a UUID" }), {
-            status: 400,
-            headers: createHeaders(version),
-          });
-        }
-
-        const statementId = body.id;
-        if (!statements.has(statementId)) {
-          const storedStatement = buildStoredStatement({
-            ...body,
-            id: statementId,
-          });
-          statements.set(statementId, storedStatement);
-          registerVoidingStatement(storedStatement, statements, voidedStatementIds);
-        }
-
-        return new Response(JSON.stringify({ id: statementId }), {
+        return new Response(JSON.stringify({ id: preparedStatements[0]?.id }), {
           status: 200,
           headers: createHeaders(version),
         });
@@ -1263,6 +1726,10 @@ export function startMockLrs(version = "2.0.0"): MockLrsHandle {
           });
         }
 
+        const format = url.searchParams.get("format");
+        const acceptLanguage = request.headers.get("accept-language");
+        const includeAttachments = readBooleanQueryValue(url.searchParams.get("attachments"));
+
         const statementId = url.searchParams.get("statementId");
         if (statementId) {
           if (voidedStatementIds.has(statementId)) {
@@ -1280,7 +1747,11 @@ export function startMockLrs(version = "2.0.0"): MockLrsHandle {
             });
           }
 
-          return buildStatementResponse(statement, version);
+          return buildStatementResponse(statement, version, {
+            format,
+            acceptLanguage,
+            includeAttachments,
+          });
         }
 
         const voidedStatementId = url.searchParams.get("voidedStatementId");
@@ -1300,7 +1771,11 @@ export function startMockLrs(version = "2.0.0"): MockLrsHandle {
             });
           }
 
-          return buildStatementResponse(statement, version);
+          return buildStatementResponse(statement, version, {
+            format,
+            acceptLanguage,
+            includeAttachments,
+          });
         }
 
         const ascending = readBooleanQueryValue(url.searchParams.get("ascending"));
@@ -1315,7 +1790,11 @@ export function startMockLrs(version = "2.0.0"): MockLrsHandle {
           resultStatements = resultStatements.slice(0, Number(limit));
         }
 
-        return buildStatementResultResponse(resultStatements, version);
+        return buildStatementResultResponse(resultStatements, version, {
+          format,
+          acceptLanguage,
+          includeAttachments,
+        });
       }
 
       return new Response(JSON.stringify({ error: "method not allowed" }), {
