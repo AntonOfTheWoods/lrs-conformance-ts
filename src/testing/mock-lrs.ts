@@ -8,6 +8,8 @@ interface StoredDocument {
   storedAt: number;
 }
 
+const populatedAuthorityAccountHomePage = "https://example.test/xapi/auth/basic";
+
 export interface RecordedRequest {
   method: string;
   path: string;
@@ -253,10 +255,59 @@ function validateAuthority(value: unknown): string | undefined {
       return "authority group must be anonymous and contain exactly two Agents";
     }
 
+    if (!value.member.some((member) => isJsonObject(member) && member.account !== undefined)) {
+      return "authority group must include an OAuth Agent";
+    }
+
     return undefined;
   }
 
   return validateAgentLike(value);
+}
+
+function parseBasicAuthUser(headerValue: string | null): string | undefined {
+  if (!headerValue) {
+    return undefined;
+  }
+
+  const [scheme, encoded] = headerValue.split(" ", 2);
+  if (!scheme || scheme.toLowerCase() !== "basic" || !encoded) {
+    return undefined;
+  }
+
+  try {
+    const decoded = Buffer.from(encoded, "base64").toString("utf8");
+    const separatorIndex = decoded.indexOf(":");
+    if (separatorIndex <= 0) {
+      return undefined;
+    }
+
+    return decoded.slice(0, separatorIndex);
+  } catch {
+    return undefined;
+  }
+}
+
+function populateAuthorityFromRequest(statement: unknown, request: Request): unknown {
+  if (!isJsonObject(statement) || statement.authority !== undefined) {
+    return statement;
+  }
+
+  const userName = parseBasicAuthUser(request.headers.get("authorization"));
+  if (!userName) {
+    return statement;
+  }
+
+  return {
+    ...statement,
+    authority: {
+      objectType: "Agent",
+      account: {
+        homePage: populatedAuthorityAccountHomePage,
+        name: userName,
+      },
+    },
+  } satisfies JsonObject;
 }
 
 function validateContext(value: unknown): string | undefined {
@@ -762,7 +813,7 @@ export function startMockLrs(version = "2.0.0"): MockLrsHandle {
       }
 
       if (request.method === "POST") {
-        const body = await request.json();
+        const body = populateAuthorityFromRequest(await request.json(), request);
         const validationError = validateStatementBody(body);
         if (validationError) {
           return new Response(JSON.stringify({ error: validationError }), {

@@ -11,7 +11,7 @@ import {
   createV20StateResourceProofSliceSuite,
 } from "../src/specs/v2_0/proof-slice";
 
-const expectedCaseCount = 422;
+const expectedCaseCount = 424;
 const expectedCaseIdAnchors = [
   "v2.statements.required-fields.missing-actor",
   "v2.statements.invalid-types.result-completion-string",
@@ -35,6 +35,8 @@ const expectedCaseIdAnchors = [
   "v2.statements.group-ifi-exclusivity.actor-group-mbox-with-openid",
   "v2.statements.group-ifi-exclusivity.substatement-context-team-group-account-with-mbox-sha1sum",
   "v2.statements.authority-group-acceptance.anonymous-two-member",
+  "v2.statements.authority-populates-when-missing",
+  "v2.statements.authority-group-rejection.non-oauth-members",
   "v2.statements.authority-group-rejection.identified-openid",
   "v2.statements.authority-group-rejection.anonymous-three-member",
   "v2.statements.invalid-attachment-iri.file-url-no-scheme",

@@ -15,7 +15,7 @@ import {
   buildAgentProfileDocumentFixture,
   buildAgentProfileIdentityFixture,
 } from "../../fixtures/v2_0/documents";
-import type { FixtureTransform } from "../../fixtures/v2_0/statements";
+import { buildStatementFixture, type FixtureTransform } from "../../fixtures/v2_0/statements";
 import { RegistryBuilder } from "../../registry/builder";
 import {
   documentRoundTripCase,
@@ -49,6 +49,13 @@ const authoritiesLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-su
 const accountObjectsLegacyConfigFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/accountobjects.js";
 
+function buildVersionedHeaders(extraHeaders: Record<string, string> = {}): Record<string, string> {
+  return {
+    "X-Experience-API-Version": specVersion,
+    ...extraHeaders,
+  };
+}
+
 function buildVersionedRequest(
   method: HttpMethod,
   endpoint: EndpointKind,
@@ -56,10 +63,9 @@ function buildVersionedRequest(
   body?:
     | { kind?: "json"; value: unknown; fixtureName?: string; contentType?: string }
     | { kind: "text"; value: string; fixtureName?: string; contentType?: string },
+  extraHeaders: Record<string, string> = {},
 ): HttpRequest {
-  const headers: Record<string, string> = {
-    "X-Experience-API-Version": specVersion,
-  };
+  const headers = buildVersionedHeaders(extraHeaders);
 
   if (body?.contentType) {
     headers["content-type"] = body.contentType;
@@ -99,6 +105,37 @@ function buildVersionedRequest(
   };
 }
 
+function buildStatementPostRequest(body: JsonObject, extraHeaders: Record<string, string> = {}): HttpRequest {
+  return {
+    method: "POST",
+    endpoint: "statements",
+    authMode: "basic",
+    headers: buildVersionedHeaders(extraHeaders),
+    query: {},
+    body: {
+      kind: "json",
+      value: body,
+      sourceFixture: {
+        version: specVersion,
+        domain: "statements",
+        name: "default",
+      },
+    },
+  };
+}
+
+function buildStatementGetRequest(statementId: string, extraHeaders: Record<string, string> = {}): HttpRequest {
+  return {
+    method: "GET",
+    endpoint: "statements",
+    authMode: "basic",
+    headers: buildVersionedHeaders(extraHeaders),
+    query: {
+      statementId,
+    },
+  };
+}
+
 function listEquals(expected: string[]) {
   return [
     {
@@ -119,6 +156,11 @@ const validAuthorityAccountHomePage = "http://example.com/xAPI/OAuth/Token";
 const validAuthorityAccountName = "oauth_consumer_x75db";
 const validAuthorityMemberMbox = "mailto:bob@example.com";
 const validAuthorityThirdMemberMbox = "mailto:james@example.com";
+const explicitNonOauthAuthorityMemberMbox = "mailto:agent-a@example.com";
+const explicitNonOauthAuthoritySecondMemberMbox = "mailto:agent-b@example.com";
+const populatedAuthorityAccountHomePage = "https://example.test/xapi/auth/basic";
+const populatedAuthorityUserName = "proof-basic-user";
+const populatedAuthorityAuthorization = "Basic cHJvb2YtYmFzaWMtdXNlcjpwcm9vZi1iYXNpYy1wYXNzd29yZA==";
 const invalidMailtoIri = "http://should.fail.com";
 const invalidMailtoEmail = "mailto:should.fail.com";
 const invalidOpenId = "ab=c://should.fail.com";
@@ -1394,6 +1436,105 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     ],
   });
 
+  const authorityPopulationStatement = buildStatementFixture([
+    {
+      operation: "set",
+      path: ["id"],
+      value: "22222222-2222-4222-8222-222222222222",
+    },
+  ]);
+
+  const authorityPopulationCase = requestSequenceCase({
+    caseId: "v2.statements.authority-populates-when-missing",
+    title: "The Statements resource populates authority from header information when authority is omitted",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00099",
+        section: "Data 2.4.9.s3.b4",
+        title: "Statements populate authority from header information",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "authority", "population"],
+    capabilityFlags: ["authority", "query", "retrieval"],
+    legacyTraceSuiteFile: authoritiesLegacySuiteFile,
+    notes: ["proof-slice statement authority population"],
+    steps: [
+      {
+        request: buildStatementPostRequest(authorityPopulationStatement, {
+          Authorization: populatedAuthorityAuthorization,
+        }),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["id"],
+              equals: authorityPopulationStatement.id,
+            },
+          ],
+        },
+      },
+      {
+        request: buildStatementGetRequest(authorityPopulationStatement.id),
+        assertion: {
+          status: 200,
+          expectedHeaders: [
+            {
+              key: "X-Experience-API-Version",
+              equals: specVersion,
+            },
+          ],
+          jsonPathEquals: [
+            {
+              path: ["authority", "objectType"],
+              equals: "Agent",
+            },
+            {
+              path: ["authority", "account", "homePage"],
+              equals: populatedAuthorityAccountHomePage,
+            },
+            {
+              path: ["authority", "account", "name"],
+              equals: populatedAuthorityUserName,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const authorityNonOauthMembersCase = singleRequestCase({
+    caseId: "v2.statements.authority-group-rejection.non-oauth-members",
+    title: "A Statement rejects an authority group composed only of non-OAuth Agents",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00100",
+        section: "Data 2.4.9.s3.b3",
+        title: "Authority groups reject non-O-Auth Agents",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "authority", "group", "rejection", "non-oauth"],
+    capabilityFlags: ["authority"],
+    legacyTraceSuiteFile: authoritiesLegacySuiteFile,
+    request: buildStatementPostRequest(
+      buildStatementFixture([
+        {
+          operation: "set",
+          path: ["authority"],
+          value: buildAnonymousAuthorityGroup([
+            buildAuthorityMboxAgent(explicitNonOauthAuthorityMemberMbox),
+            buildAuthorityMboxAgent(explicitNonOauthAuthoritySecondMemberMbox),
+          ]),
+        },
+      ]),
+    ),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice statement authority non-oauth rejection"],
+  });
+
   const authorityGroupRejectionCases = statementMutationFamily({
     familyId: "v2.statements.authority-group-rejection",
     suiteTitle: "Statement Authority",
@@ -1758,7 +1899,12 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
         title: "Statement Authority",
         specVersion,
         tags: ["authority"],
-        children: [...authorityGroupAcceptanceCases, ...authorityGroupRejectionCases],
+        children: [
+          ...authorityGroupAcceptanceCases,
+          authorityPopulationCase,
+          authorityNonOauthMembersCase,
+          ...authorityGroupRejectionCases,
+        ],
       },
       {
         type: "suite",
