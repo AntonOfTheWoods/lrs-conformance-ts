@@ -795,6 +795,14 @@ function validateIfiFormats(value: JsonObject): string | undefined {
   return undefined;
 }
 
+function validateActorLikeName(value: JsonObject): string | undefined {
+  if (value.name !== undefined && typeof value.name !== "string") {
+    return "actor-like name must be a string";
+  }
+
+  return undefined;
+}
+
 function validateAgentLike(value: JsonObject): string | undefined {
   if (value.objectType !== undefined && value.objectType !== "Agent") {
     return "agent objectType must be Agent";
@@ -803,6 +811,11 @@ function validateAgentLike(value: JsonObject): string | undefined {
   const keyError = validateAllowedKeys(value, agentKeys, "agent");
   if (keyError) {
     return keyError;
+  }
+
+  const nameError = validateActorLikeName(value);
+  if (nameError) {
+    return nameError;
   }
 
   const ifiCount = countIfis(value);
@@ -853,6 +866,11 @@ function validateGroupLike(value: JsonObject): string | undefined {
   const keyError = validateAllowedKeys(value, groupKeys, "group");
   if (keyError) {
     return keyError;
+  }
+
+  const nameError = validateActorLikeName(value);
+  if (nameError) {
+    return nameError;
   }
 
   const ifiCount = countIfis(value);

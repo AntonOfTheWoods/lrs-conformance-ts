@@ -15,7 +15,7 @@ import {
   createV20StateResourceProofSliceSuite,
 } from "../src/specs/v2_0/proof-slice";
 
-const expectedCaseCount = 982;
+const expectedCaseCount = 1042;
 const expectedCaseIdAnchors = [
   "v2.statements.required-fields.missing-actor",
   "v2.statements.invalid-types.result-completion-string",
@@ -144,6 +144,14 @@ const expectedCaseIdAnchors = [
   "v2.statements.version.invalid.1-1-0",
   "v2.statements.version.retained-roundtrip",
   "v2.statements.stored.post-overwrites-client-value",
+  "v2.statements.actor.object-type-vocabulary.actor-agent-agent",
+  "v2.statements.actor.object-type-type.substatement-context-instructor-agent-object",
+  "v2.statements.actor.name-type.authority-agent-numeric",
+  "v2.statements.group.member-required.context-team-group",
+  "v2.statements.group.member-type.substatement-context-team-group",
+  "v2.statements.verb.id-required.statement",
+  "v2.statements.verb.id-iri.substatement",
+  "v2.statements.verb.display-type.substatement-string",
 ];
 
 describe("RegistryBuilder", () => {

@@ -37,6 +37,10 @@ const specVersion = "2.0.0" as const;
 const formattingLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/Data2.2-FormattingRequirements.js";
 const formattingLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/formatting.js";
+const actorRequirementsLegacySuiteFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.2.1-Actor-Requirements.js";
+const verbRequirementsLegacySuiteFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.2.2-Verb-Requirements.js";
 const contextLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.2.5-Context-Requirements.js";
 const contextsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/contexts.js";
@@ -83,9 +87,11 @@ const versioningLegacySuiteFile =
 const authenticationLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/H.Communication4.0-Authentication.js";
 const ifisLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/ifis.js";
+const actorsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/actors.js";
 const agentsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/agents.js";
 const attachmentsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/attachments.js";
 const groupsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/groups.js";
+const verbsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/verbs.js";
 const authoritiesLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.4.2-Authority-Requirements.js";
 const authoritiesLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/authorities.js";
@@ -1555,6 +1561,46 @@ const actorLikePlacements: ActorLikePlacement[] = [
   },
 ];
 
+const agentActorPlacements = actorLikePlacements.filter((placement) => placement.kind === "agent");
+const groupActorPlacements = actorLikePlacements.filter((placement) => placement.kind === "group");
+
+interface VerbPlacement {
+  idSuffix: string;
+  title: string;
+  buildTransforms(verb: JsonObject): FixtureTransform[];
+}
+
+const verbPlacements: VerbPlacement[] = [
+  {
+    idSuffix: "statement",
+    title: "a statement verb",
+    buildTransforms(verb) {
+      return [
+        {
+          operation: "set",
+          path: ["verb"],
+          value: verb,
+        },
+      ];
+    },
+  },
+  {
+    idSuffix: "substatement",
+    title: "a substatement verb",
+    buildTransforms(verb) {
+      return [
+        {
+          operation: "set",
+          path: ["object"],
+          value: buildSubStatementFixture({
+            verb,
+          }),
+        },
+      ];
+    },
+  },
+];
+
 interface IfiSpec {
   idToken: string;
   label: string;
@@ -2038,7 +2084,8 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     specVersion,
     endpoint: "statements",
     tags: ["v2.0.0", "statements", "formatting", "ifi", "mbox"],
-    legacyTraceSuiteFile: ifisLegacyConfigFile,
+    legacyTraceSuiteFile: actorRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: ifisLegacyConfigFile,
     variants: buildRepeatedActorMutationVariants({
       description: "mbox is not a valid mailto IRI",
       requirementRefs: [
@@ -2059,7 +2106,8 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     specVersion,
     endpoint: "statements",
     tags: ["v2.0.0", "statements", "formatting", "ifi", "mbox"],
-    legacyTraceSuiteFile: ifisLegacyConfigFile,
+    legacyTraceSuiteFile: actorRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: ifisLegacyConfigFile,
     variants: buildRepeatedActorMutationVariants({
       description: "mbox is not a valid mailto email address",
       requirementRefs: [
@@ -2080,7 +2128,8 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     specVersion,
     endpoint: "statements",
     tags: ["v2.0.0", "statements", "formatting", "ifi", "mbox-sha1sum"],
-    legacyTraceSuiteFile: ifisLegacyConfigFile,
+    legacyTraceSuiteFile: actorRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: ifisLegacyConfigFile,
     variants: buildRepeatedActorMutationVariants({
       description: "mbox_sha1sum is not a string",
       requirementRefs: [
@@ -2101,7 +2150,8 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     specVersion,
     endpoint: "statements",
     tags: ["v2.0.0", "statements", "formatting", "ifi", "openid"],
-    legacyTraceSuiteFile: ifisLegacyConfigFile,
+    legacyTraceSuiteFile: actorRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: ifisLegacyConfigFile,
     variants: buildRepeatedActorMutationVariants({
       description: "openid is not a valid URI",
       requirementRefs: [
@@ -2122,7 +2172,8 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     specVersion,
     endpoint: "statements",
     tags: ["v2.0.0", "statements", "formatting", "ifi", "account"],
-    legacyTraceSuiteFile: accountObjectsLegacyConfigFile,
+    legacyTraceSuiteFile: actorRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: accountObjectsLegacyConfigFile,
     variants: buildRepeatedActorMutationVariants({
       description: "account.homePage is missing",
       requirementRefs: [
@@ -2143,7 +2194,8 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     specVersion,
     endpoint: "statements",
     tags: ["v2.0.0", "statements", "formatting", "ifi", "account"],
-    legacyTraceSuiteFile: accountObjectsLegacyConfigFile,
+    legacyTraceSuiteFile: actorRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: accountObjectsLegacyConfigFile,
     variants: buildRepeatedActorMutationVariants({
       description: "account.homePage is not a valid URI",
       requirementRefs: [
@@ -2164,7 +2216,8 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     specVersion,
     endpoint: "statements",
     tags: ["v2.0.0", "statements", "formatting", "account"],
-    legacyTraceSuiteFile: accountObjectsLegacyConfigFile,
+    legacyTraceSuiteFile: actorRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: accountObjectsLegacyConfigFile,
     variants: buildRepeatedActorMutationVariants({
       description: "account.name is missing",
       requirementRefs: [
@@ -2177,6 +2230,275 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
       buildAgent: () => buildAgentWithAccount(buildAccount(validAccountHomePage)),
       buildGroup: () => buildGroupWithAccount(buildAccount(validAccountHomePage)),
     }),
+  });
+
+  const actorObjectTypeVocabularyCases = statementMutationFamily({
+    familyId: "v2.statements.actor.object-type-vocabulary",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "actor", "object-type", "validation"],
+    legacyTraceSuiteFile: actorRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: actorsLegacyConfigFile,
+    variants: agentActorPlacements.flatMap((placement) => [
+      {
+        idSuffix: `${placement.idSuffix}-agent`,
+        title: `A Statement rejects ${placement.title} when objectType is not "Agent"`,
+        transforms: placement.buildTransforms({
+          ...buildAgentWithMbox("mailto:actor-object-type-agent@example.test"),
+          objectType: "agent",
+        }),
+        requirementRefs: [
+          {
+            id: "XAPI-00031",
+            section: "Data 2.4.2.1, Data 2.4.2.2",
+            title: 'Actor objectType values are "Agent" or "Group"',
+          },
+        ],
+      },
+      {
+        idSuffix: `${placement.idSuffix}-group`,
+        title: `A Statement rejects ${placement.title} when objectType is not "Group"`,
+        transforms: placement.buildTransforms({
+          ...buildAgentWithMbox("mailto:actor-object-type-group@example.test"),
+          objectType: "group",
+        }),
+        requirementRefs: [
+          {
+            id: "XAPI-00031",
+            section: "Data 2.4.2.1, Data 2.4.2.2",
+            title: 'Actor objectType values are "Agent" or "Group"',
+          },
+        ],
+      },
+    ]),
+  });
+
+  const agentObjectTypeTypeCases = statementMutationFamily({
+    familyId: "v2.statements.actor.object-type-type",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "actor", "object-type", "validation"],
+    legacyTraceSuiteFile: actorRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: agentsLegacyConfigFile,
+    variants: agentActorPlacements.flatMap((placement) => [
+      {
+        idSuffix: `${placement.idSuffix}-numeric`,
+        title: `A Statement rejects ${placement.title} when objectType is numeric`,
+        transforms: placement.buildTransforms({
+          ...buildAgentWithMbox("mailto:actor-object-type-numeric@example.test"),
+          objectType: 123,
+        }),
+        requirementRefs: [
+          {
+            id: "XAPI-00032",
+            section: "Data 2.4.2.1.s2.table1.row1",
+            title: "Agent objectType values are strings when present",
+          },
+        ],
+      },
+      {
+        idSuffix: `${placement.idSuffix}-object`,
+        title: `A Statement rejects ${placement.title} when objectType is an object`,
+        transforms: placement.buildTransforms({
+          ...buildAgentWithMbox("mailto:actor-object-type-object@example.test"),
+          objectType: {
+            invalid: true,
+          },
+        }),
+        requirementRefs: [
+          {
+            id: "XAPI-00032",
+            section: "Data 2.4.2.1.s2.table1.row1",
+            title: "Agent objectType values are strings when present",
+          },
+        ],
+      },
+    ]),
+  });
+
+  const agentNameTypeCases = statementMutationFamily({
+    familyId: "v2.statements.actor.name-type",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "actor", "name", "validation"],
+    legacyTraceSuiteFile: actorRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: agentsLegacyConfigFile,
+    variants: agentActorPlacements.flatMap((placement) => [
+      {
+        idSuffix: `${placement.idSuffix}-numeric`,
+        title: `A Statement rejects ${placement.title} when name is numeric`,
+        transforms: placement.buildTransforms({
+          ...buildAgentWithMbox("mailto:actor-name-numeric@example.test"),
+          name: 123,
+        }),
+        requirementRefs: [
+          {
+            id: "XAPI-00033",
+            section: "Data 2.4.2.1.s2.table1.row2",
+            title: "Agent name values are strings when present",
+          },
+        ],
+      },
+      {
+        idSuffix: `${placement.idSuffix}-object`,
+        title: `A Statement rejects ${placement.title} when name is an object`,
+        transforms: placement.buildTransforms({
+          ...buildAgentWithMbox("mailto:actor-name-object@example.test"),
+          name: {
+            invalid: true,
+          },
+        }),
+        requirementRefs: [
+          {
+            id: "XAPI-00033",
+            section: "Data 2.4.2.1.s2.table1.row2",
+            title: "Agent name values are strings when present",
+          },
+        ],
+      },
+    ]),
+  });
+
+  const groupAnonymousMemberRequiredCases = statementMutationFamily({
+    familyId: "v2.statements.group.member-required",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "group", "member", "validation"],
+    legacyTraceSuiteFile: actorRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: groupsLegacyConfigFile,
+    variants: groupActorPlacements.map((placement) => ({
+      idSuffix: placement.idSuffix,
+      title: `A Statement rejects ${placement.title} when an anonymous group omits member`,
+      transforms: placement.buildTransforms(buildGroupWithoutIfiOrMember()),
+      requirementRefs: [
+        {
+          id: "XAPI-00035",
+          section: "Data 2.4.2.2.s2.table1.row3",
+          title: "Anonymous Groups require a member property",
+        },
+      ],
+    })),
+  });
+
+  const groupMemberTypeCases = statementMutationFamily({
+    familyId: "v2.statements.group.member-type",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "group", "member", "validation"],
+    legacyTraceSuiteFile: actorRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: groupsLegacyConfigFile,
+    variants: groupActorPlacements.map((placement) => ({
+      idSuffix: placement.idSuffix,
+      title: `A Statement rejects ${placement.title} when member is not an array of Agents`,
+      transforms: placement.buildTransforms({
+        ...buildGroupWithoutIfiOrMember(),
+        member: buildAgentWithMbox("mailto:group-member-type@example.test"),
+      }),
+      requirementRefs: [
+        {
+          id: "XAPI-00036",
+          section: "Data 2.4.2.2.s2.table2.row3",
+          title: "Group member values are arrays of Agents",
+        },
+      ],
+    })),
+  });
+
+  const verbIdRequiredCases = statementMutationFamily({
+    familyId: "v2.statements.verb.id-required",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "verb", "validation"],
+    legacyTraceSuiteFile: verbRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: verbsLegacyConfigFile,
+    variants: verbPlacements.map((placement) => ({
+      idSuffix: placement.idSuffix,
+      title: `A Statement rejects ${placement.title} when id is missing`,
+      transforms: placement.buildTransforms({
+        display: {
+          "en-US": "completed",
+        },
+      }),
+      requirementRefs: [
+        {
+          id: "XAPI-00044",
+          section: "Data 2.4.3.s3.table1.row1",
+          title: "Verb objects require an id IRI",
+        },
+      ],
+    })),
+  });
+
+  const verbIdIriCases = statementMutationFamily({
+    familyId: "v2.statements.verb.id-iri",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "verb", "validation"],
+    legacyTraceSuiteFile: verbRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: verbsLegacyConfigFile,
+    variants: verbPlacements.map((placement) => ({
+      idSuffix: placement.idSuffix,
+      title: `A Statement rejects ${placement.title} when id is not an IRI`,
+      transforms: placement.buildTransforms({
+        ...buildVerbFixture(invalidOpenId, "completed"),
+      }),
+      requirementRefs: [
+        {
+          id: "XAPI-00044",
+          section: "Data 2.4.3.s3.table1.row1",
+          title: "Verb objects require an id IRI",
+        },
+      ],
+    })),
+  });
+
+  const verbDisplayTypeCases = statementMutationFamily({
+    familyId: "v2.statements.verb.display-type",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "verb", "display", "validation"],
+    legacyTraceSuiteFile: verbRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: verbsLegacyConfigFile,
+    variants: verbPlacements.flatMap((placement) => [
+      {
+        idSuffix: `${placement.idSuffix}-numeric`,
+        title: `A Statement rejects ${placement.title} when display is numeric`,
+        transforms: placement.buildTransforms({
+          ...buildVerbFixture("https://example.test/xapi/verbs/verb-display-type", "completed"),
+          display: 12345,
+        }),
+        requirementRefs: [
+          {
+            id: "XAPI-00045",
+            section: "Data 2.4.3.s3.table1.row2",
+            title: "Verb display values are language maps",
+          },
+        ],
+      },
+      {
+        idSuffix: `${placement.idSuffix}-string`,
+        title: `A Statement rejects ${placement.title} when display is a string`,
+        transforms: placement.buildTransforms({
+          ...buildVerbFixture("https://example.test/xapi/verbs/verb-display-type", "completed"),
+          display: "completed",
+        }),
+        requirementRefs: [
+          {
+            id: "XAPI-00045",
+            section: "Data 2.4.3.s3.table1.row2",
+            title: "Verb display values are language maps",
+          },
+        ],
+      },
+    ]),
   });
 
   const attachmentIriCases = statementMutationFamily({
@@ -2625,9 +2947,10 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     specVersion,
     endpoint: "statements",
     tags: ["v2.0.0", "statements", "formatting", "ifi", "exclusivity", "agent"],
-    legacyTraceSuiteFile: agentsLegacyConfigFile,
+    legacyTraceSuiteFile: actorRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: agentsLegacyConfigFile,
     variants: buildIfiExclusivityVariants({
-      placements: actorLikePlacements.filter((placement) => placement.kind === "agent"),
+      placements: agentActorPlacements,
       requirementRefs: [
         {
           id: "XAPI-00034",
@@ -2644,9 +2967,10 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     specVersion,
     endpoint: "statements",
     tags: ["v2.0.0", "statements", "formatting", "ifi", "exclusivity", "group"],
-    legacyTraceSuiteFile: groupsLegacyConfigFile,
+    legacyTraceSuiteFile: actorRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: groupsLegacyConfigFile,
     variants: buildIfiExclusivityVariants({
-      placements: actorLikePlacements.filter((placement) => placement.kind === "group"),
+      placements: groupActorPlacements,
       requirementRefs: [
         {
           id: "XAPI-00037",
@@ -2657,8 +2981,8 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     }),
   });
 
-  const identifiedGroupPlacements = actorLikePlacements.filter(
-    (placement) => placement.kind === "group" && placement.idSuffix !== "authority-group",
+  const identifiedGroupPlacements = groupActorPlacements.filter(
+    (placement) => placement.idSuffix !== "authority-group",
   );
 
   const agentIfiRequiredCases = statementMutationFamily({
@@ -2667,9 +2991,10 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     specVersion,
     endpoint: "statements",
     tags: ["v2.0.0", "statements", "formatting", "ifi", "required", "agent"],
-    legacyTraceSuiteFile: agentsLegacyConfigFile,
+    legacyTraceSuiteFile: actorRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: agentsLegacyConfigFile,
     variants: buildMissingIfiVariants({
-      placements: actorLikePlacements.filter((placement) => placement.kind === "agent"),
+      placements: agentActorPlacements,
       description: "no IFI is present",
       buildValue: () => buildAgentWithoutIfi(),
       requirementRefs: [
@@ -2688,7 +3013,8 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     specVersion,
     endpoint: "statements",
     tags: ["v2.0.0", "statements", "formatting", "ifi", "required", "group"],
-    legacyTraceSuiteFile: groupsLegacyConfigFile,
+    legacyTraceSuiteFile: actorRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: groupsLegacyConfigFile,
     variants: buildMissingIfiVariants({
       placements: identifiedGroupPlacements,
       description: "no IFI and no member are present",
@@ -2710,7 +3036,8 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     endpoint: "statements",
     tags: ["v2.0.0", "statements", "formatting", "ifi", "acceptance", "group"],
     expectedStatus: 200,
-    legacyTraceSuiteFile: groupsLegacyConfigFile,
+    legacyTraceSuiteFile: actorRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: groupsLegacyConfigFile,
     variants: buildIfiAcceptanceVariants({
       placements: identifiedGroupPlacements,
       requirementRefs: [
@@ -2730,7 +3057,8 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     endpoint: "statements",
     tags: ["v2.0.0", "statements", "formatting", "ifi", "acceptance", "group", "no-member"],
     expectedStatus: 200,
-    legacyTraceSuiteFile: groupsLegacyConfigFile,
+    legacyTraceSuiteFile: actorRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: groupsLegacyConfigFile,
     variants: buildIfiAcceptanceVariants({
       placements: identifiedGroupPlacements,
       includeMember: false,
@@ -2751,9 +3079,10 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     endpoint: "statements",
     tags: ["v2.0.0", "statements", "formatting", "ifi", "acceptance", "agent"],
     expectedStatus: 200,
-    legacyTraceSuiteFile: agentsLegacyConfigFile,
+    legacyTraceSuiteFile: actorRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: agentsLegacyConfigFile,
     variants: buildIfiAcceptanceVariants({
-      placements: actorLikePlacements.filter((placement) => placement.kind === "agent"),
+      placements: agentActorPlacements,
       requirementRefs: [
         {
           id: "XAPI-00034",
@@ -8893,6 +9222,14 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
           ...accountHomePageMissingCases,
           ...accountHomePageInvalidCases,
           ...accountNameMissingCases,
+          ...actorObjectTypeVocabularyCases,
+          ...agentObjectTypeTypeCases,
+          ...agentNameTypeCases,
+          ...groupAnonymousMemberRequiredCases,
+          ...groupMemberTypeCases,
+          ...verbIdRequiredCases,
+          ...verbIdIriCases,
+          ...verbDisplayTypeCases,
           ...agentIfiAcceptanceCases,
           ...agentIfiRequiredCases,
           ...groupIfiOrMemberRequiredCases,
