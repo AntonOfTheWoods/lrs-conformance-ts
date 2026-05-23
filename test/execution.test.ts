@@ -275,7 +275,7 @@ describe("runtime executor", () => {
       });
 
       expect(result.status).toBe("passed");
-      expect(result.root.children).toHaveLength(4);
+      expect(result.root.children).toHaveLength(7);
       expect(result.root.children.every((child) => child.status === "passed")).toBe(true);
 
       const methodCounts = countBy(mockLrs.requests, (request) => request.method);
@@ -287,9 +287,23 @@ describe("runtime executor", () => {
       expect(methodCounts.get("DELETE")).toBe(expected.methods.get("DELETE"));
       expect(methodCounts.get("PUT")).toBe(expected.methods.get("PUT"));
       expect(pathCounts.get("/xapi/statements")).toBe(expected.paths.get("/xapi/statements"));
+      expect(pathCounts.get("/xapi/about")).toBe(expected.paths.get("/xapi/about"));
+      expect(pathCounts.get("/xapi/activities")).toBe(expected.paths.get("/xapi/activities"));
       expect(pathCounts.get("/xapi/activities/state")).toBe(expected.paths.get("/xapi/activities/state"));
       expect(pathCounts.get("/xapi/activities/profile")).toBe(expected.paths.get("/xapi/activities/profile"));
+      expect(pathCounts.get("/xapi/agents")).toBe(expected.paths.get("/xapi/agents"));
       expect(pathCounts.get("/xapi/agents/profile")).toBe(expected.paths.get("/xapi/agents/profile"));
+      expect(mockLrs.requests.some((request) => request.method === "GET" && request.path === "/xapi/about")).toBe(true);
+      expect(
+        mockLrs.requests.some(
+          (request) => request.method === "GET" && request.path === "/xapi/activities" && "activityId" in request.query,
+        ),
+      ).toBe(true);
+      expect(
+        mockLrs.requests.some(
+          (request) => request.method === "GET" && request.path === "/xapi/agents" && "agent" in request.query,
+        ),
+      ).toBe(true);
       expect(
         mockLrs.requests.some(
           (request) =>

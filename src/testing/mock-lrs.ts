@@ -37,6 +37,15 @@ interface ParsedStatementWritePayload {
 const populatedAuthorityAccountHomePage = "https://example.test/xapi/auth/basic";
 const voidingVerbId = "http://adlnet.gov/expapi/verbs/voided";
 const statementAttachmentResponseBoundary = "mock-xapi-statement-attachments";
+const versionHeaderExemptPaths = new Set(["/xapi/about"]);
+const versionedApiPaths = new Set([
+  "/xapi/statements",
+  "/xapi/activities",
+  "/xapi/activities/profile",
+  "/xapi/activities/state",
+  "/xapi/agents",
+  "/xapi/agents/profile",
+]);
 const statementQueryParameters = new Set([
   "statementId",
   "voidedStatementId",
@@ -78,6 +87,21 @@ function createHeaders(
     "x-experience-api-version": version,
     "x-experience-api-consistent-through": new Date().toISOString(),
     ...extraHeaders,
+  });
+}
+
+function validateVersionHeader(request: Request, path: string, version: string): Response | undefined {
+  if (!versionedApiPaths.has(path) || versionHeaderExemptPaths.has(path)) {
+    return undefined;
+  }
+
+  if (request.headers.get("x-experience-api-version") === version) {
+    return undefined;
+  }
+
+  return new Response(JSON.stringify({ error: "X-Experience-API-Version header is required" }), {
+    status: 400,
+    headers: createHeaders(version),
   });
 }
 
@@ -210,7 +234,11 @@ function isValidMailto(value: string): boolean {
 }
 
 function isLanguageMap(value: unknown): value is JsonObject {
-  return isJsonObject(value) && Object.keys(value).length > 0 && Object.values(value).every((entry) => typeof entry === "string");
+  return (
+    isJsonObject(value) &&
+    Object.keys(value).length > 0 &&
+    Object.values(value).every((entry) => typeof entry === "string")
+  );
 }
 
 function selectLanguageKey(value: JsonObject, acceptLanguage: string | null): string | undefined {
@@ -798,6 +826,182 @@ function collectActivityIds(value: unknown, activityIds: Set<string>): void {
   }
 }
 
+function collectMatchingAgents(value: unknown, signature: string, matches: JsonObject[]): void {
+  if (Array.isArray(value)) {
+    for (const child of value) {
+      collectMatchingAgents(child, signature, matches);
+    }
+    return;
+  }
+
+  if (!isJsonObject(value)) {
+    return;
+  }
+
+  if (
+    isActorLikeCandidate(value) &&
+    getActorLikeSignature(value) === signature &&
+    value.objectType !== "Group" &&
+    value.member === undefined
+  ) {
+    matches.push(cloneValue(value));
+  }
+
+  for (const child of Object.values(value)) {
+    collectMatchingAgents(child, signature, matches);
+  }
+}
+
+function collectMatchingActivities(value: unknown, activityId: string, matches: JsonObject[]): void {
+  if (Array.isArray(value)) {
+    for (const child of value) {
+      collectMatchingActivities(child, activityId, matches);
+    }
+    return;
+  }
+
+  if (!isJsonObject(value)) {
+    return;
+  }
+
+  if (value.objectType === "Activity" && value.id === activityId) {
+    matches.push(cloneValue(value));
+  }
+
+  for (const child of Object.values(value)) {
+    collectMatchingActivities(child, activityId, matches);
+  }
+}
+
+function mergeJsonValues(left: unknown, right: unknown): unknown {
+  if (isJsonObject(left) && isJsonObject(right)) {
+    const merged = cloneValue(left);
+
+    for (const [key, value] of Object.entries(right)) {
+      merged[key] = key in merged ? mergeJsonValues(merged[key], value) : cloneValue(value);
+    }
+
+    return merged;
+  }
+
+  return cloneValue(right);
+}
+
+function appendUniqueString(target: string[], seen: Set<string>, value: unknown): void {
+  if (typeof value !== "string" || seen.has(value)) {
+    return;
+  }
+
+  seen.add(value);
+  target.push(value);
+}
+
+function buildAccountSignature(value: unknown): string | undefined {
+  if (!isJsonObject(value) || typeof value.homePage !== "string" || typeof value.name !== "string") {
+    return undefined;
+  }
+
+  return `${value.homePage}|${value.name}`;
+}
+
+function buildPersonObject(agent: JsonObject, statements: Map<string, StoredStatement>): JsonObject {
+  const signature = getActorLikeSignature(agent);
+  const matchedAgents: JsonObject[] = [];
+
+  if (signature) {
+    for (const statement of statements.values()) {
+      collectMatchingAgents(statement.body, signature, matchedAgents);
+    }
+  }
+
+  const sources = [agent, ...matchedAgents];
+  const person: JsonObject = {
+    objectType: "Person",
+  };
+  const names: string[] = [];
+  const mboxes: string[] = [];
+  const mboxSha1sums: string[] = [];
+  const openids: string[] = [];
+  const accounts: JsonObject[] = [];
+  const seenNames = new Set<string>();
+  const seenMboxes = new Set<string>();
+  const seenMboxSha1sums = new Set<string>();
+  const seenOpenIds = new Set<string>();
+  const seenAccounts = new Set<string>();
+
+  for (const source of sources) {
+    appendUniqueString(names, seenNames, source.name);
+    appendUniqueString(mboxes, seenMboxes, source.mbox);
+    appendUniqueString(mboxSha1sums, seenMboxSha1sums, source.mbox_sha1sum);
+    appendUniqueString(openids, seenOpenIds, source.openid);
+
+    const accountSignature = buildAccountSignature(source.account);
+    if (accountSignature && !seenAccounts.has(accountSignature) && isJsonObject(source.account)) {
+      seenAccounts.add(accountSignature);
+      accounts.push(cloneValue(source.account));
+    }
+  }
+
+  if (names.length > 0) {
+    person.name = names;
+  }
+
+  if (mboxes.length > 0) {
+    person.mbox = mboxes;
+  }
+
+  if (mboxSha1sums.length > 0) {
+    person.mbox_sha1sum = mboxSha1sums;
+  }
+
+  if (openids.length > 0) {
+    person.openid = openids;
+  }
+
+  if (accounts.length > 0) {
+    person.account = accounts;
+  }
+
+  return person;
+}
+
+function buildActivityObject(activityId: string, statements: Map<string, StoredStatement>): JsonObject {
+  const matchedActivities: JsonObject[] = [];
+
+  for (const statement of statements.values()) {
+    collectMatchingActivities(statement.body, activityId, matchedActivities);
+  }
+
+  if (matchedActivities.length === 0) {
+    return {
+      objectType: "Activity",
+      id: activityId,
+    };
+  }
+
+  const [firstActivity, ...restActivities] = matchedActivities;
+  if (!firstActivity) {
+    return {
+      objectType: "Activity",
+      id: activityId,
+    };
+  }
+
+  const merged = restActivities.reduce<unknown>((result, activity) => mergeJsonValues(result, activity), firstActivity);
+  if (!isJsonObject(merged)) {
+    return {
+      objectType: "Activity",
+      id: activityId,
+    };
+  }
+
+  return {
+    objectType: "Activity",
+    ...merged,
+    id: activityId,
+  };
+}
+
 function canonicalizeStatementValue(value: unknown, acceptLanguage: string | null): unknown {
   if (Array.isArray(value)) {
     return value.map((child) => canonicalizeStatementValue(child, acceptLanguage));
@@ -988,6 +1192,49 @@ function validateStatementQuery(url: URL): string | undefined {
   const format = url.searchParams.get("format");
   if (format !== null && !statementFormats.has(format)) {
     return "format must be exact, canonical, or ids";
+  }
+
+  return undefined;
+}
+
+function validateAgentResourceQuery(url: URL): string | undefined {
+  for (const name of url.searchParams.keys()) {
+    if (name !== "agent") {
+      return `${name} is not a recognized parameter`;
+    }
+  }
+
+  const rawAgent = url.searchParams.get("agent");
+  if (rawAgent === null) {
+    return "agent is required";
+  }
+
+  if (!isValidAgentParameter(rawAgent)) {
+    return "agent must be a valid JSON Agent";
+  }
+
+  const agent = parseAgentQuery(rawAgent);
+  if (!agent || agent.objectType === "Group" || agent.member !== undefined) {
+    return "agent must be a valid JSON Agent";
+  }
+
+  return validateAgentLike(agent);
+}
+
+function validateActivityResourceQuery(url: URL): string | undefined {
+  for (const name of url.searchParams.keys()) {
+    if (name !== "activityId") {
+      return `${name} is not a recognized parameter`;
+    }
+  }
+
+  const activityId = url.searchParams.get("activityId");
+  if (!activityId) {
+    return "activityId is required";
+  }
+
+  if (!hasUriScheme(activityId)) {
+    return "activityId must be an IRI";
   }
 
   return undefined;
@@ -1185,7 +1432,10 @@ function parseStatementPayload(
   });
 }
 
-async function parseStatementWritePayload(request: Request, version: string): Promise<ParsedStatementWritePayload | Response> {
+async function parseStatementWritePayload(
+  request: Request,
+  version: string,
+): Promise<ParsedStatementWritePayload | Response> {
   const rawContentType = request.headers.get("content-type");
   const boundary = parseMultipartBoundary(rawContentType);
   const rawBody = await request.text();
@@ -1587,6 +1837,90 @@ async function handleDocumentResource(
   });
 }
 
+function handleAboutResource(request: Request, version: string): Response {
+  if (request.method !== "GET") {
+    return new Response(JSON.stringify({ error: "method not allowed" }), {
+      status: 405,
+      headers: createHeaders(version),
+    });
+  }
+
+  return new Response(JSON.stringify({ version: [version] }), {
+    status: 200,
+    headers: createHeaders(version),
+  });
+}
+
+function handleAgentsResource(
+  request: Request,
+  url: URL,
+  version: string,
+  statements: Map<string, StoredStatement>,
+): Response {
+  if (request.method !== "GET") {
+    return new Response(JSON.stringify({ error: "method not allowed" }), {
+      status: 405,
+      headers: createHeaders(version),
+    });
+  }
+
+  const validationError = validateAgentResourceQuery(url);
+  if (validationError) {
+    return new Response(JSON.stringify({ error: validationError }), {
+      status: 400,
+      headers: createHeaders(version),
+    });
+  }
+
+  const agent = parseAgentQuery(url.searchParams.get("agent"));
+  if (!agent) {
+    return new Response(JSON.stringify({ error: "agent is required" }), {
+      status: 400,
+      headers: createHeaders(version),
+    });
+  }
+
+  return new Response(JSON.stringify(buildPersonObject(agent, statements)), {
+    status: 200,
+    headers: createHeaders(version),
+  });
+}
+
+function handleActivitiesResource(
+  request: Request,
+  url: URL,
+  version: string,
+  statements: Map<string, StoredStatement>,
+): Response {
+  if (request.method !== "GET") {
+    return new Response(JSON.stringify({ error: "method not allowed" }), {
+      status: 405,
+      headers: createHeaders(version),
+    });
+  }
+
+  const validationError = validateActivityResourceQuery(url);
+  if (validationError) {
+    return new Response(JSON.stringify({ error: validationError }), {
+      status: 400,
+      headers: createHeaders(version),
+    });
+  }
+
+  const activityId = url.searchParams.get("activityId");
+  if (!activityId) {
+    return new Response(JSON.stringify({ error: "activityId is required" }), {
+      status: 400,
+      headers: createHeaders(version),
+    });
+  }
+
+  return new Response(JSON.stringify(buildActivityObject(activityId, statements)), {
+    status: 200,
+    headers: createHeaders(version),
+  });
+}
+
 export function startMockLrs(version = "2.0.0"): MockLrsHandle {
   const requests: RecordedRequest[] = [];
   const statements = new Map<string, StoredStatement>();
@@ -1606,6 +1940,23 @@ export function startMockLrs(version = "2.0.0"): MockLrsHandle {
         path: url.pathname,
         query,
       });
+
+      const versionHeaderError = validateVersionHeader(request, url.pathname, version);
+      if (versionHeaderError) {
+        return versionHeaderError;
+      }
+
+      if (url.pathname === "/xapi/about") {
+        return handleAboutResource(request, version);
+      }
+
+      if (url.pathname === "/xapi/activities") {
+        return handleActivitiesResource(request, url, version, statements);
+      }
+
+      if (url.pathname === "/xapi/agents") {
+        return handleAgentsResource(request, url, version, statements);
+      }
 
       if (url.pathname === "/xapi/activities/state") {
         return handleDocumentResource(request, url, version, stateDocuments, {

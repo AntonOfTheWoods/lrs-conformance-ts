@@ -40,10 +40,16 @@ const errorCodesLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/H.Communication3.2-ErrorCodes.js";
 const stateResourceLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.1.6.2-State-Resource.js";
+const agentsResourceLegacySuiteFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.1.6.3-Agents-Resource.js";
+const activitiesResourceLegacySuiteFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.1.6.4-Activity-Resource.js";
 const agentProfileLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.1.6.5-Agent-Profile-Resource.js";
 const activityProfileLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.1.6.6-Activity-Profile-Resource.js";
+const aboutResourceLegacySuiteFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.1.6.7-About-Resource.js";
 const ifisLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/ifis.js";
 const agentsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/agents.js";
 const groupsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/groups.js";
@@ -214,6 +220,40 @@ function buildStatementCollectionRequest(
     headers: buildVersionedHeaders(extraHeaders),
     query,
   };
+}
+
+function buildUnversionedGetRequest(endpoint: EndpointKind, query: Record<string, string>): HttpRequest {
+  return {
+    method: "GET",
+    endpoint,
+    authMode: "basic",
+    headers: {},
+    query,
+  };
+}
+
+function buildAboutGetRequest(includeVersionHeader = true): HttpRequest {
+  return includeVersionHeader ? buildVersionedRequest("GET", "about", {}) : buildUnversionedGetRequest("about", {});
+}
+
+function buildAgentsGetRequest(agent: JsonObject | string, includeVersionHeader = true): HttpRequest {
+  const query = {
+    agent: typeof agent === "string" ? agent : JSON.stringify(agent),
+  };
+
+  return includeVersionHeader
+    ? buildVersionedRequest("GET", "agents", query)
+    : buildUnversionedGetRequest("agents", query);
+}
+
+function buildActivitiesGetRequest(activityId: string, includeVersionHeader = true): HttpRequest {
+  const query = {
+    activityId,
+  };
+
+  return includeVersionHeader
+    ? buildVersionedRequest("GET", "activities", query)
+    : buildUnversionedGetRequest("activities", query);
 }
 
 interface MultipartStatementAttachment {
@@ -5012,11 +5052,827 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
   };
 }
 
+export function createV20AgentsResourceProofSliceSuite(): SuiteDefinition {
+  const roundTripMbox = "mailto:agents-resource-roundtrip@example.test";
+  const nameMergeMbox = "mailto:agents-resource-name-merge@example.test";
+  const mboxResourceValue = "mailto:agents-resource-mbox@example.test";
+  const mboxSha1sumValue = "0123456789abcdef0123456789abcdef01234567";
+  const openIdValue = "https://example.test/agents/openid-resource";
+  const accountHomePage = "https://example.test/agents/account-homepage";
+  const accountName = "resource-account";
+  const unknownAgentMbox = "mailto:agents-resource-unknown@example.test";
+
+  const roundTripStatement = buildProofStatement(240, [
+    {
+      operation: "set",
+      path: ["actor"],
+      value: {
+        objectType: "Agent",
+        mbox: roundTripMbox,
+        name: "Roundtrip Agent",
+      },
+    },
+  ]);
+  const nameMergeStatementOne = buildProofStatement(241, [
+    {
+      operation: "set",
+      path: ["actor"],
+      value: {
+        objectType: "Agent",
+        mbox: nameMergeMbox,
+        name: "Alpha Name",
+      },
+    },
+  ]);
+  const nameMergeStatementTwo = buildProofStatement(242, [
+    {
+      operation: "set",
+      path: ["actor"],
+      value: {
+        objectType: "Agent",
+        mbox: nameMergeMbox,
+        name: "Beta Name",
+      },
+    },
+  ]);
+  const mboxStatement = buildProofStatement(243, [
+    {
+      operation: "set",
+      path: ["actor"],
+      value: {
+        objectType: "Agent",
+        mbox: mboxResourceValue,
+        name: "Mailbox Agent",
+      },
+    },
+  ]);
+  const mboxSha1sumStatement = buildProofStatement(244, [
+    {
+      operation: "set",
+      path: ["actor"],
+      value: buildAgentWithMboxSha1sum(mboxSha1sumValue),
+    },
+  ]);
+  const openIdStatement = buildProofStatement(245, [
+    {
+      operation: "set",
+      path: ["actor"],
+      value: buildAgentWithOpenId(openIdValue),
+    },
+  ]);
+  const accountStatement = buildProofStatement(246, [
+    {
+      operation: "set",
+      path: ["actor"],
+      value: buildAgentWithAccount(buildAccount(accountHomePage, accountName)),
+    },
+  ]);
+
+  const roundTripCase = requestSequenceCase({
+    caseId: "v2.agents.resource.roundtrip",
+    title: "The Agents Resource accepts GET requests and returns a Person Object for a stored Agent",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00245",
+        section: "Communication 2.4",
+        title: "The Agents Resource exists at /agents",
+      },
+      {
+        id: "XAPI-00236",
+        section: "Communication 2.4.s2",
+        title: "The Agents Resource accepts GET requests",
+      },
+      {
+        id: "XAPI-00248",
+        section: "Communication 2.4.s2.table1.row1",
+        title: "The Agents Resource returns a Person Object for the queried Agent",
+      },
+    ],
+    tags: ["v2.0.0", "agents", "resource", "roundtrip"],
+    capabilityFlags: ["agents", "retrieval"],
+    legacyTraceSuiteFile: agentsResourceLegacySuiteFile,
+    notes: ["proof-slice agents resource roundtrip"],
+    steps: [
+      {
+        request: buildStatementPostRequest(roundTripStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildAgentsGetRequest({
+          objectType: "Agent",
+          mbox: roundTripMbox,
+        }),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["objectType"],
+              equals: "Person",
+            },
+            {
+              path: ["mbox"],
+              equals: [roundTripMbox],
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const missingAgentCase = singleRequestCase({
+    caseId: "v2.agents.resource.missing-agent",
+    title: "The Agents Resource rejects a GET request without the agent parameter",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00243",
+        section: "Communication 2.4.s2.table1.row1",
+        title: "The Agents Resource rejects requests without agent",
+      },
+    ],
+    tags: ["v2.0.0", "agents", "resource", "validation"],
+    capabilityFlags: ["agents", "validation"],
+    legacyTraceSuiteFile: agentsResourceLegacySuiteFile,
+    request: buildVersionedRequest("GET", "agents", {}),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice agents resource missing agent"],
+  });
+
+  const invalidAgentCase = singleRequestCase({
+    caseId: "v2.agents.resource.invalid-agent",
+    title: "The Agents Resource rejects a GET request whose agent parameter is not a valid Agent",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00249",
+        section: "Communication 2.4",
+        title: "The Agents Resource rejects invalid agent query values",
+      },
+    ],
+    tags: ["v2.0.0", "agents", "resource", "validation"],
+    capabilityFlags: ["agents", "validation"],
+    legacyTraceSuiteFile: agentsResourceLegacySuiteFile,
+    request: buildAgentsGetRequest(invalidAgentQuery),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice agents resource invalid agent query"],
+  });
+
+  const nameArrayCase = requestSequenceCase({
+    caseId: "v2.agents.resource.name-array",
+    title: "The Agents Resource returns a Person name array merged from matching Agent data",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00238",
+        section: "Communication 2.4.s5.table1.row2",
+        title: "A Person name property is an array of strings",
+      },
+    ],
+    tags: ["v2.0.0", "agents", "resource", "person"],
+    capabilityFlags: ["agents", "retrieval", "person"],
+    legacyTraceSuiteFile: agentsResourceLegacySuiteFile,
+    notes: ["proof-slice agents resource name array"],
+    steps: [
+      {
+        request: buildStatementPostRequest(nameMergeStatementOne),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementPostRequest(nameMergeStatementTwo),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildAgentsGetRequest({
+          objectType: "Agent",
+          mbox: nameMergeMbox,
+        }),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["name"],
+              equals: ["Alpha Name", "Beta Name"],
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const mboxCase = requestSequenceCase({
+    caseId: "v2.agents.resource.mbox-array",
+    title: "The Agents Resource returns Person mbox values as a mailto IRI array",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00239",
+        section: "Communication 2.4.s5.table1.row3",
+        title: "A Person mbox property is an array of IRIs",
+      },
+      {
+        id: "XAPI-00244",
+        section: "Communication 2.4.s5.table1.row3",
+        title: "A Person mbox value has the form mailto:emailaddress",
+      },
+    ],
+    tags: ["v2.0.0", "agents", "resource", "person"],
+    capabilityFlags: ["agents", "retrieval", "person"],
+    legacyTraceSuiteFile: agentsResourceLegacySuiteFile,
+    notes: ["proof-slice agents resource mbox array"],
+    steps: [
+      {
+        request: buildStatementPostRequest(mboxStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildAgentsGetRequest({
+          objectType: "Agent",
+          mbox: mboxResourceValue,
+        }),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["mbox"],
+              equals: [mboxResourceValue],
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const mboxSha1sumCase = requestSequenceCase({
+    caseId: "v2.agents.resource.mbox-sha1sum-array",
+    title: "The Agents Resource returns Person mbox_sha1sum values as a string array",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00240",
+        section: "Communication 2.4.s5.table1.row4",
+        title: "A Person mbox_sha1sum property is an array of strings",
+      },
+    ],
+    tags: ["v2.0.0", "agents", "resource", "person"],
+    capabilityFlags: ["agents", "retrieval", "person"],
+    legacyTraceSuiteFile: agentsResourceLegacySuiteFile,
+    notes: ["proof-slice agents resource mbox_sha1sum array"],
+    steps: [
+      {
+        request: buildStatementPostRequest(mboxSha1sumStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildAgentsGetRequest({
+          objectType: "Agent",
+          mbox_sha1sum: mboxSha1sumValue,
+        }),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["mbox_sha1sum"],
+              equals: [mboxSha1sumValue],
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const openIdCase = requestSequenceCase({
+    caseId: "v2.agents.resource.openid-array",
+    title: "The Agents Resource returns Person openid values as a string array",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00241",
+        section: "Communication 2.4.s5.table1.row5",
+        title: "A Person openid property is an array of strings",
+      },
+    ],
+    tags: ["v2.0.0", "agents", "resource", "person"],
+    capabilityFlags: ["agents", "retrieval", "person"],
+    legacyTraceSuiteFile: agentsResourceLegacySuiteFile,
+    notes: ["proof-slice agents resource openid array"],
+    steps: [
+      {
+        request: buildStatementPostRequest(openIdStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildAgentsGetRequest({
+          objectType: "Agent",
+          openid: openIdValue,
+        }),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["openid"],
+              equals: [openIdValue],
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const accountCase = requestSequenceCase({
+    caseId: "v2.agents.resource.account-array",
+    title: "The Agents Resource returns Person account values as an array of Account objects",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00242",
+        section: "Communication 2.4.s5.table1.row6",
+        title: "A Person account property is an array of Account objects",
+      },
+    ],
+    tags: ["v2.0.0", "agents", "resource", "person"],
+    capabilityFlags: ["agents", "retrieval", "person"],
+    legacyTraceSuiteFile: agentsResourceLegacySuiteFile,
+    notes: ["proof-slice agents resource account array"],
+    steps: [
+      {
+        request: buildStatementPostRequest(accountStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildAgentsGetRequest({
+          objectType: "Agent",
+          account: buildAccount(accountHomePage, accountName),
+        }),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["account"],
+              equals: [buildAccount(accountHomePage, accountName)],
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const unknownAgentFallbackCase = singleRequestCase({
+    caseId: "v2.agents.resource.unknown-agent-fallback",
+    title: "The Agents Resource still returns a Person Object when no additional Agent data is known",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00247",
+        section: "Communication 2.4.s2.table1.row1",
+        title: "The Agents Resource still returns a Person when no additional data is known",
+      },
+    ],
+    tags: ["v2.0.0", "agents", "resource", "fallback"],
+    capabilityFlags: ["agents", "retrieval", "person"],
+    legacyTraceSuiteFile: agentsResourceLegacySuiteFile,
+    request: buildAgentsGetRequest({
+      objectType: "Agent",
+      mbox: unknownAgentMbox,
+    }),
+    assertion: {
+      status: 200,
+      jsonPathEquals: [
+        {
+          path: ["objectType"],
+          equals: "Person",
+        },
+        {
+          path: ["mbox"],
+          equals: [unknownAgentMbox],
+        },
+      ],
+    },
+    notes: ["proof-slice agents resource unknown agent fallback"],
+  });
+
+  return {
+    type: "suite",
+    id: "v2.proof-slice.agents",
+    title: "Agents Resource",
+    specVersion,
+    tags: ["proof-slice", "agents"],
+    children: [
+      {
+        type: "suite",
+        id: "v2.proof-slice.agents.basics",
+        title: "Agents Basics",
+        specVersion,
+        tags: ["agents", "basics"],
+        children: [roundTripCase, missingAgentCase, invalidAgentCase],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.agents.person-shape",
+        title: "Agents Person Shape",
+        specVersion,
+        tags: ["agents", "person"],
+        children: [nameArrayCase, mboxCase, mboxSha1sumCase, openIdCase, accountCase],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.agents.fallback",
+        title: "Agents Fallback",
+        specVersion,
+        tags: ["agents", "fallback"],
+        children: [unknownAgentFallbackCase],
+      },
+    ],
+  };
+}
+
+export function createV20ActivitiesResourceProofSliceSuite(): SuiteDefinition {
+  const completeActivityId = "https://example.test/xapi/activities/resource-complete";
+  const mergedActivityId = "https://example.test/xapi/activities/resource-merged";
+  const unknownActivityId = "https://example.test/xapi/activities/resource-unknown";
+
+  const completeActivityObject = {
+    objectType: "Activity",
+    id: completeActivityId,
+    definition: {
+      name: {
+        "en-US": "Complete Activity",
+      },
+      description: {
+        "en-US": "Complete activity description",
+      },
+      type: "https://example.test/xapi/activity-types/resource-complete",
+    },
+  } satisfies JsonObject;
+
+  const completeActivityStatement = buildProofStatement(247, [
+    {
+      operation: "set",
+      path: ["object"],
+      value: completeActivityObject,
+    },
+  ]);
+  const mergedActivityStatementOne = buildProofStatement(248, [
+    {
+      operation: "set",
+      path: ["object"],
+      value: {
+        objectType: "Activity",
+        id: mergedActivityId,
+        definition: {
+          name: {
+            "en-US": "Merged Activity",
+          },
+          description: {
+            "en-US": "Merged activity description",
+          },
+        },
+      },
+    },
+  ]);
+  const mergedActivityStatementTwo = buildProofStatement(249, [
+    {
+      operation: "set",
+      path: ["object"],
+      value: {
+        objectType: "Activity",
+        id: mergedActivityId,
+        definition: {
+          name: {
+            "fr-FR": "Activite Fusionnee",
+          },
+          description: {
+            "fr-FR": "Description fusionnee",
+          },
+          type: "https://example.test/xapi/activity-types/resource-merged",
+        },
+      },
+    },
+  ]);
+
+  const completeActivityCase = requestSequenceCase({
+    caseId: "v2.activities.resource.complete-object",
+    title: "The Activities Resource returns the complete Activity Object for a stored activityId",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00252",
+        section: "Communication 2.5",
+        title: "The Activities Resource exists at /activities",
+      },
+      {
+        id: "XAPI-00253",
+        section: "Communication 2.5",
+        title: "The Activities Resource accepts GET requests",
+      },
+      {
+        id: "XAPI-00251",
+        section: "Communication 2.5.s1",
+        title: "The Activities Resource returns the complete Activity Object",
+      },
+    ],
+    tags: ["v2.0.0", "activities", "resource", "roundtrip"],
+    capabilityFlags: ["activities", "retrieval"],
+    legacyTraceSuiteFile: activitiesResourceLegacySuiteFile,
+    notes: ["proof-slice activities resource complete object"],
+    steps: [
+      {
+        request: buildStatementPostRequest(completeActivityStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildActivitiesGetRequest(completeActivityId),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: [],
+              equals: completeActivityObject,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const missingActivityIdCase = singleRequestCase({
+    caseId: "v2.activities.resource.missing-activity-id",
+    title: "The Activities Resource rejects a GET request without activityId",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00250",
+        section: "Communication 2.5.s1.table1.row1",
+        title: "The Activities Resource rejects requests without activityId",
+      },
+    ],
+    tags: ["v2.0.0", "activities", "resource", "validation"],
+    capabilityFlags: ["activities", "validation"],
+    legacyTraceSuiteFile: activitiesResourceLegacySuiteFile,
+    request: buildVersionedRequest("GET", "activities", {}),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice activities resource missing activityId"],
+  });
+
+  const mergedDefinitionCase = requestSequenceCase({
+    caseId: "v2.activities.resource.definition-merge",
+    title: "The Activities Resource merges available definition data across statements with the same activityId",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00254",
+        section: "Communication 2.5.s1.table1.row1",
+        title: "The Activities Resource returns all available information for an activityId",
+      },
+    ],
+    tags: ["v2.0.0", "activities", "resource", "merge"],
+    capabilityFlags: ["activities", "retrieval", "merge"],
+    legacyTraceSuiteFile: activitiesResourceLegacySuiteFile,
+    notes: ["proof-slice activities resource definition merge"],
+    steps: [
+      {
+        request: buildStatementPostRequest(mergedActivityStatementOne),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementPostRequest(mergedActivityStatementTwo),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildActivitiesGetRequest(mergedActivityId),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["definition", "name"],
+              equals: {
+                "en-US": "Merged Activity",
+                "fr-FR": "Activite Fusionnee",
+              },
+            },
+            {
+              path: ["definition", "description"],
+              equals: {
+                "en-US": "Merged activity description",
+                "fr-FR": "Description fusionnee",
+              },
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const unknownActivityFallbackCase = singleRequestCase({
+    caseId: "v2.activities.resource.unknown-activity-fallback",
+    title: "The Activities Resource still returns an Activity Object when no canonical definition is known",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00251",
+        section: "Communication 2.5.s1",
+        title: "The Activities Resource returns an Activity Object for successful GET requests",
+      },
+    ],
+    tags: ["v2.0.0", "activities", "resource", "fallback"],
+    capabilityFlags: ["activities", "retrieval"],
+    legacyTraceSuiteFile: activitiesResourceLegacySuiteFile,
+    request: buildActivitiesGetRequest(unknownActivityId),
+    assertion: {
+      status: 200,
+      jsonPathEquals: [
+        {
+          path: ["objectType"],
+          equals: "Activity",
+        },
+        {
+          path: ["id"],
+          equals: unknownActivityId,
+        },
+      ],
+    },
+    notes: ["proof-slice activities resource unknown activity fallback"],
+  });
+
+  return {
+    type: "suite",
+    id: "v2.proof-slice.activities",
+    title: "Activities Resource",
+    specVersion,
+    tags: ["proof-slice", "activities"],
+    children: [
+      {
+        type: "suite",
+        id: "v2.proof-slice.activities.basics",
+        title: "Activities Basics",
+        specVersion,
+        tags: ["activities", "basics"],
+        children: [completeActivityCase, missingActivityIdCase],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.activities.definition",
+        title: "Activities Definition",
+        specVersion,
+        tags: ["activities", "definition"],
+        children: [mergedDefinitionCase, unknownActivityFallbackCase],
+      },
+    ],
+  };
+}
+
+export function createV20AboutResourceProofSliceSuite(): SuiteDefinition {
+  const aboutGetCase = singleRequestCase({
+    caseId: "v2.about.resource.version-array",
+    title: "The About Resource returns a version array that includes 2.0.0",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00315",
+        section: "Communication 2.8",
+        title: "The About Resource exists at /about",
+      },
+      {
+        id: "XAPI-00319",
+        section: "Communication 2.8.s4",
+        title: "A successful About GET returns 200 OK and a version property",
+      },
+      {
+        id: "XAPI-00318",
+        section: "Communication 2.8.s4.table1.row1",
+        title: "The About version property is an array of strings",
+      },
+      {
+        id: "XAPI-00317",
+        section: "Communication 2.8.s5.b1.b1",
+        title: "The About version property contains 2.0.0",
+      },
+    ],
+    tags: ["v2.0.0", "about", "resource"],
+    capabilityFlags: ["about", "retrieval"],
+    legacyTraceSuiteFile: aboutResourceLegacySuiteFile,
+    request: buildAboutGetRequest(),
+    assertion: {
+      status: 200,
+      jsonPathEquals: [
+        {
+          path: ["version"],
+          equals: [specVersion],
+        },
+      ],
+    },
+    notes: ["proof-slice about resource version array"],
+  });
+
+  const aboutWithoutVersionHeaderCase = singleRequestCase({
+    caseId: "v2.about.resource.version-header-exempt",
+    title: "The About Resource accepts GET requests without an X-Experience-API-Version header",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00321",
+        section: "Communication 2.8.s4.table1.row2",
+        title: "The About Resource is exempt from the X-Experience-API-Version request-header requirement",
+      },
+    ],
+    tags: ["v2.0.0", "about", "resource", "versioning"],
+    capabilityFlags: ["about", "retrieval", "versioning"],
+    legacyTraceSuiteFile: aboutResourceLegacySuiteFile,
+    request: buildAboutGetRequest(false),
+    assertion: {
+      status: 200,
+      jsonPathEquals: [
+        {
+          path: ["version"],
+          equals: [specVersion],
+        },
+      ],
+    },
+    notes: ["proof-slice about resource version header exemption"],
+  });
+
+  const nonAboutRequiresVersionHeaderCase = singleRequestCase({
+    caseId: "v2.about.resource.non-about-requires-version-header",
+    title: "Non-About resources reject requests that omit X-Experience-API-Version",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00321",
+        section: "Communication 2.8.s4.table1.row2",
+        title: "Resources other than About reject requests without X-Experience-API-Version",
+      },
+    ],
+    tags: ["v2.0.0", "about", "resource", "versioning"],
+    capabilityFlags: ["versioning", "validation"],
+    legacyTraceSuiteFile: aboutResourceLegacySuiteFile,
+    request: buildActivitiesGetRequest("https://example.test/xapi/activities/missing-version-header", false),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice version header required outside about"],
+  });
+
+  return {
+    type: "suite",
+    id: "v2.proof-slice.about",
+    title: "About Resource",
+    specVersion,
+    tags: ["proof-slice", "about"],
+    children: [
+      {
+        type: "suite",
+        id: "v2.proof-slice.about.basics",
+        title: "About Basics",
+        specVersion,
+        tags: ["about", "basics"],
+        children: [aboutGetCase, aboutWithoutVersionHeaderCase],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.about.versioning",
+        title: "About Versioning",
+        specVersion,
+        tags: ["about", "versioning"],
+        children: [nonAboutRequiresVersionHeaderCase],
+      },
+    ],
+  };
+}
+
 export function createProofSliceRegistry(): RegistryDefinition {
   const builder = new RegistryBuilder();
   builder.addSuite(specVersion, createV20ProofSliceSuite());
   builder.addSuite(specVersion, createV20StateResourceProofSliceSuite());
   builder.addSuite(specVersion, createV20ActivityProfileResourceProofSliceSuite());
   builder.addSuite(specVersion, createV20AgentProfileResourceProofSliceSuite());
+  builder.addSuite(specVersion, createV20AgentsResourceProofSliceSuite());
+  builder.addSuite(specVersion, createV20ActivitiesResourceProofSliceSuite());
+  builder.addSuite(specVersion, createV20AboutResourceProofSliceSuite());
   return builder.build();
 }

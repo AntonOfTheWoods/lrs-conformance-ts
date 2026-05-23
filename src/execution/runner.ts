@@ -174,9 +174,7 @@ function assertHeaderPatterns(response: Response, expected: HeaderPatternExpecta
       return [];
     }
 
-    return [
-      `Expected header ${header.key} to match /${header.pattern}/ but received ${actual ?? "<missing>"}.`,
-    ];
+    return [`Expected header ${header.key} to match /${header.pattern}/ but received ${actual ?? "<missing>"}.`];
   });
 }
 
