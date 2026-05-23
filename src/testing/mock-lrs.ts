@@ -2213,6 +2213,13 @@ async function parseStatementWritePayload(
       );
     }
 
+    if (!rawBody.startsWith(`--${boundary}`)) {
+      return new Response(JSON.stringify({ error: "multipart statements must begin with the boundary marker" }), {
+        status: 400,
+        headers: createHeaders(version),
+      });
+    }
+
     const parts = parseMultipartParts(rawBody, boundary);
     if (parts.length === 0) {
       return new Response(JSON.stringify({ error: "multipart statements require a JSON statement part" }), {
@@ -2231,12 +2238,29 @@ async function parseStatementWritePayload(
         });
       }
 
+      if (normalizeMediaType(statementPart.headers["content-type"] ?? null) !== "application/json") {
+        return new Response(JSON.stringify({ error: "multipart statement part must be application/json" }), {
+          status: 400,
+          headers: createHeaders(version),
+        });
+      }
+
       const parsedStatement = JSON.parse(statementPart.body);
 
       for (const part of parts.slice(1)) {
         const sha2 = part.headers["x-experience-api-hash"];
         if (!sha2) {
-          continue;
+          return new Response(JSON.stringify({ error: "attachment parts require X-Experience-API-Hash" }), {
+            status: 400,
+            headers: createHeaders(version),
+          });
+        }
+
+        if ((part.headers["content-transfer-encoding"] ?? "").toLowerCase() !== "binary") {
+          return new Response(JSON.stringify({ error: "attachment parts require Content-Transfer-Encoding: binary" }), {
+            status: 400,
+            headers: createHeaders(version),
+          });
         }
 
         attachmentParts.set(sha2, {
@@ -2883,12 +2907,14 @@ async function handleDocumentResource(
       mediaTypeToStore = existing.mediaType;
     }
 
+    const storedAt = Math.max(Date.now(), (existing?.storedAt ?? 0) + 1000);
+
     store.set(documentKey, {
       id: documentId,
       contextKey,
       body: bodyToStore,
       mediaType: mediaTypeToStore,
-      storedAt: Date.now(),
+      storedAt,
     });
 
     return new Response(null, {

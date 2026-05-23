@@ -15,7 +15,7 @@ import {
   createV20StateResourceProofSliceSuite,
 } from "../src/specs/v2_0/proof-slice";
 
-const expectedCaseCount = 1226;
+const expectedCaseCount = 1328;
 const expectedCaseIdAnchors = [
   "v2.statements.required-fields.missing-actor",
   "v2.statements.invalid-types.result-completion-string",
@@ -58,6 +58,7 @@ const expectedCaseIdAnchors = [
   "v2.statements.representation.format-absent-defaults-exact",
   "v2.statements.representation.format-canonical-accept-language",
   "v2.statements.representation.format-ids",
+  "v2.statements.representation.collection-format-canonical",
   "v2.statements.representation.attachments-multipart",
   "v2.statements.representation.attachments-json-fallback",
   "v2.statements.representation.content-type-header",
@@ -70,24 +71,32 @@ const expectedCaseIdAnchors = [
   "v2.statements.numeric-precision.score-roundtrip",
   "v2.statements.query-validation.invalid-registration",
   "v2.statements.query.collection-statement-result",
+  "v2.statements.query.statement-result.direct.base",
   "v2.statements.query.statement-id-roundtrip",
   "v2.statements.query.empty-result",
+  "v2.statements.query.accepts.attachments",
   "v2.statements.query.agent",
   "v2.statements.query.related-agents",
   "v2.statements.query.since",
   "v2.statements.query.limit",
+  "v2.statements.query.filtering.related-agents",
   "v2.statements.query.voided-statement-id-with-format-allowed",
+  "v2.statements.query.voided-targets-retained.base",
   "v2.statements.query.exclusive.statement-id.with-agent",
   "v2.statements.query.exclusive.voided-statement-id.with-limit",
+  "v2.statements.retrieval.direct.more-container-rules",
   "v2.activities-state.document-invalid-agent-query",
   "v2.activities-state.document-merge-rejects-non-json-post",
   "v2.activities-state.document-merge-rejects-existing-non-json",
+  "v2.activities-state.headers.last-modified-updates",
   "v2.activities-profile.document-invalid-json-post",
   "v2.activities-profile.document-merge-rejects-non-json-post",
   "v2.activities-profile.document-merge-rejects-existing-non-json",
+  "v2.activities-profile.headers.last-modified-updates",
   "v2.agents-profile.document-invalid-agent-query",
   "v2.agents-profile.document-merge-rejects-non-json-post",
   "v2.agents-profile.document-merge-rejects-existing-non-json",
+  "v2.agents-profile.headers.last-modified-updates",
   "v2.agents.resource.roundtrip",
   "v2.agents.resource.endpoint-exists",
   "v2.agents.resource.name-array",
@@ -100,6 +109,7 @@ const expectedCaseIdAnchors = [
   "v2.about.resource.non-about-missing-version-header.agents-profile",
   "v2.about.resource.non-about-requires-version-header",
   "v2.communication.head.activities",
+  "v2.communication.head.about.accepted",
   "v2.communication.head.no-content-length.head-statements",
   "v2.communication.head.statements",
   "v2.communication.versioning.response-header",
@@ -108,6 +118,7 @@ const expectedCaseIdAnchors = [
   "v2.communication.authentication.bad-basic-rejected",
   "v2.communication.encoding.utf8-roundtrip",
   "v2.communication.content-types.extra-multipart-section-rejected",
+  "v2.communication.content-types.invalid-transfer-encoding-rejected",
   "v2.communication.error-codes.statements.unrecognized-query-parameter",
   "v2.communication.error-codes.statements.case-differing.statement-id.put",
   "v2.communication.error-codes.statements.case-differing.ascending",
@@ -352,9 +363,9 @@ describe("RegistryBuilder", () => {
     expect(batteries["2.0.0"]?.tests.children[0]?.children[3]?.children).toHaveLength(4);
     expect(batteries["2.0.0"]?.tests.children[0]?.children[4]?.children).toHaveLength(22);
     expect(batteries["2.0.0"]?.tests.children[0]?.children[5]?.children).toHaveLength(3);
-    expect(batteries["2.0.0"]?.tests.children[1]?.children).toHaveLength(7);
-    expect(batteries["2.0.0"]?.tests.children[2]?.children).toHaveLength(6);
-    expect(batteries["2.0.0"]?.tests.children[3]?.children).toHaveLength(6);
+    expect(batteries["2.0.0"]?.tests.children[1]?.children).toHaveLength(9);
+    expect(batteries["2.0.0"]?.tests.children[2]?.children).toHaveLength(8);
+    expect(batteries["2.0.0"]?.tests.children[3]?.children).toHaveLength(8);
     expect(batteries["2.0.0"]?.tests.children[4]?.children).toHaveLength(3);
     expect(batteries["2.0.0"]?.tests.children[5]?.children).toHaveLength(2);
     expect(batteries["2.0.0"]?.tests.children[6]?.children).toHaveLength(2);

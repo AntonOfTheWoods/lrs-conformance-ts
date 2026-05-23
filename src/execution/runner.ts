@@ -6,6 +6,7 @@ import {
   type CaseResult,
   type ExecutionEvent,
   type ExecutionPlan,
+  type HeaderDateAfterStepExpectation,
   type HeaderExpectation,
   type HeaderPatternExpectation,
   type HttpRequest,
@@ -179,6 +180,44 @@ function assertHeaderPatterns(response: Response, expected: HeaderPatternExpecta
   });
 }
 
+function assertHeaderDatesAfterSteps(
+  response: Response,
+  previousResponses: Response[],
+  expected: HeaderDateAfterStepExpectation[],
+): string[] {
+  return (expected ?? []).flatMap((header) => {
+    const previousResponse = previousResponses[header.fromStep - 1];
+    if (!previousResponse) {
+      return [
+        `Expected step ${header.fromStep} to exist when comparing header ${header.key}, but only ${previousResponses.length} previous steps were recorded.`,
+      ];
+    }
+
+    const previousValue = previousResponse.headers.get(header.key);
+    const currentValue = response.headers.get(header.key);
+    const previousDate = previousValue === null ? Number.NaN : Date.parse(previousValue);
+    const currentDate = currentValue === null ? Number.NaN : Date.parse(currentValue);
+
+    if (Number.isNaN(previousDate)) {
+      return [
+        `Expected header ${header.key} from step ${header.fromStep} to contain a valid date but received ${previousValue ?? "<missing>"}.`,
+      ];
+    }
+
+    if (Number.isNaN(currentDate)) {
+      return [`Expected header ${header.key} to contain a valid date but received ${currentValue ?? "<missing>"}.`];
+    }
+
+    if (currentDate > previousDate) {
+      return [];
+    }
+
+    return [
+      `Expected header ${header.key}=${currentValue} to be later than step ${header.fromStep} value ${previousValue}.`,
+    ];
+  });
+}
+
 function assertJsonPathMatches(body: unknown, expectations: JsonPathExpectation[]): string[] {
   return (expectations ?? []).flatMap((expectation) => {
     const actual = getValueAtPath(body, expectation.path);
@@ -234,7 +273,12 @@ function assertCapturedJsonPathMatches(
   });
 }
 
-function assertRequestExpectation(response: Response, body: unknown, assertion: RequestAssertion): string[] {
+type BasicRequestAssertion = Pick<
+  RequestAssertion,
+  "status" | "expectedHeaders" | "expectedHeaderPatterns" | "jsonPathEquals" | "jsonPathNotEquals" | "textContains"
+>;
+
+function assertRequestExpectation(response: Response, body: unknown, assertion: BasicRequestAssertion): string[] {
   const errors: string[] = [];
 
   if (response.status !== assertion.status) {
@@ -424,6 +468,8 @@ async function runRequestSequenceCase(testCase: RequestSequenceCase, options: Ru
     });
   }
 
+  const previousResponses: Response[] = [];
+
   for (const [index, request] of testCase.execution.steps.entries()) {
     const response = await executeHttpRequest(request, options);
     const body = await parseResponseBody(response);
@@ -438,7 +484,10 @@ async function runRequestSequenceCase(testCase: RequestSequenceCase, options: Ru
       });
     }
 
-    const errors = assertRequestExpectation(response, body, assertion);
+    const errors = [
+      ...assertRequestExpectation(response, body, assertion),
+      ...assertHeaderDatesAfterSteps(response, previousResponses, assertion.expectedHeaderDateAfterStep),
+    ];
     if (errors.length > 0) {
       return CaseResultSchema.parse({
         id: testCase.id,
@@ -451,6 +500,8 @@ async function runRequestSequenceCase(testCase: RequestSequenceCase, options: Ru
         ],
       });
     }
+
+    previousResponses.push(response);
   }
 
   return CaseResultSchema.parse({

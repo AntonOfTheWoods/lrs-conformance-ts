@@ -35,95 +35,95 @@ import {
 
 const specVersion = "2.0.0" as const;
 const formattingLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/Data2.2-FormattingRequirements.js";
-const formattingLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/formatting.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/Data2.2-FormattingRequirements.js";
+const formattingLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/formatting.js";
 const actorRequirementsLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.2.1-Actor-Requirements.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.1-Actor-Requirements.js";
 const verbRequirementsLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.2.2-Verb-Requirements.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.2-Verb-Requirements.js";
 const contextLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.2.5-Context-Requirements.js";
-const contextsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/contexts.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.5-Context-Requirements.js";
+const contextsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/contexts.js";
 const contextActivitiesLegacyConfigFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/contextactivities.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/contextactivities.js";
 const objectRequirementsLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.2.3-Object-Requirements.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.3-Object-Requirements.js";
 const resultRequirementsLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.2.4-Result-Requirements.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.4-Result-Requirements.js";
 const attachmentRequirementsLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.2.6-Attachment-Requirements.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.6-Attachment-Requirements.js";
 const idRequirementsLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.4.2-ID-Requirements.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-ID-Requirements.js";
 const storedRequirementsLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.4.2-Stored-Requirements.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Stored-Requirements.js";
 const timestampRequirementsLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.4.2-Timestamp-Requirements.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Timestamp-Requirements.js";
 const versionRequirementsLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.4.3-Version-Requirements.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.3-Version-Requirements.js";
 const additionalDataTypesLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.7-Additional-Requirements-for-Data-Types.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.7-Additional-Requirements-for-Data-Types.js";
 const retrievalOfStatementsLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/E.Data2.5-RetrievalofStatements.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/E.Data2.5-RetrievalofStatements.js";
 const signedStatementsLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/E.Data2.6-SignedStatements.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/E.Data2.6-SignedStatements.js";
 const specialDataTypesLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/E.Data4.0-SpecialDataTypesAndRules.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/E.Data4.0-SpecialDataTypesAndRules.js";
 const statementResourceLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.1.6.1-Statement-Resource.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js";
 const errorCodesLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/H.Communication3.2-ErrorCodes.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/H.Communication3.2-ErrorCodes.js";
 const stateResourceLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.1.6.2-State-Resource.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.2-State-Resource.js";
 const agentsResourceLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.1.6.3-Agents-Resource.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.3-Agents-Resource.js";
 const activitiesResourceLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.1.6.4-Activity-Resource.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.4-Activity-Resource.js";
 const agentProfileLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.1.6.5-Agent-Profile-Resource.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.5-Agent-Profile-Resource.js";
 const activityProfileLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.1.6.6-Activity-Profile-Resource.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.6-Activity-Profile-Resource.js";
 const aboutResourceLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.1.6.7-About-Resource.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.7-About-Resource.js";
 const headRequestsLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/H.Communication1.1-HeadRequestImplementation.js";
-const contentTypesLegacySuiteFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.1.3-Content-Types.js";
-const concurrencyLegacySuiteFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.1.4-Concurrency.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/H.Communication1.1-HeadRequestImplementation.js";
+const contentTypesLegacySuiteFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.3-Content-Types.js";
+const concurrencyLegacySuiteFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.4-Concurrency.js";
 const encodingLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/H.Communication1.4-Encoding.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/H.Communication1.4-Encoding.js";
 const versioningLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/H.Communication3.3-Versioning.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/H.Communication3.3-Versioning.js";
 const authenticationLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/H.Communication4.0-Authentication.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/H.Communication4.0-Authentication.js";
 const documentResourcesLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/H.Communication2.2-DocumentResources.js";
-const ifisLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/ifis.js";
-const actorsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/actors.js";
-const agentsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/agents.js";
-const attachmentsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/attachments.js";
-const groupsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/groups.js";
-const verbsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/verbs.js";
-const voidingLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/voiding.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/H.Communication2.2-DocumentResources.js";
+const ifisLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/ifis.js";
+const actorsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/actors.js";
+const agentsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/agents.js";
+const attachmentsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/attachments.js";
+const groupsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/groups.js";
+const verbsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/verbs.js";
+const voidingLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/voiding.js";
 const authoritiesLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.4.2-Authority-Requirements.js";
-const authoritiesLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/authorities.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Authority-Requirements.js";
+const authoritiesLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/authorities.js";
 const statementLifecycleLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.5-Statement-Voiding.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.5-Statement-Voiding.js";
 const accountObjectsLegacyConfigFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/accountobjects.js";
-const activitiesLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/activities.js";
-const objectsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/objects.js";
-const resultsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/results.js";
-const durationsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/durations.js";
-const scoresLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/scores.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/accountobjects.js";
+const activitiesLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/activities.js";
+const objectsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/objects.js";
+const resultsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/results.js";
+const durationsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/durations.js";
+const scoresLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/scores.js";
 const timestampPropertyLegacyConfigFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/timestamp_property.js";
-const timestampsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/timestamps.js";
-const uuidsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/uuids.js";
-const versionPropertyLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/version.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/timestamp_property.js";
+const timestampsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/timestamps.js";
+const uuidsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/uuids.js";
+const versionPropertyLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/version.js";
 const statementRefsLegacyConfigFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/statementrefs.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/statementrefs.js";
 const subStatementsLegacyConfigFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/substatements.js";
+  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/substatements.js";
 
 const proofUuidPrefix = "33333333-3333-4333-8333-";
 const multipartStatementRequestBoundary = "mock-proof-statement-request";
@@ -131,6 +131,7 @@ const multipartStatementResponseContentType = "multipart/mixed; boundary=mock-xa
 const signatureAttachmentUsageType = "http://adlnet.gov/expapi/attachments/signature";
 const signatureAttachmentContentType = "application/octet-stream";
 const isoTimestampHeaderPattern = "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$";
+const rfc1123HeaderPattern = "^[A-Z][a-z]{2}, \\d{2} [A-Z][a-z]{2} \\d{4} \\d{2}:\\d{2}:\\d{2} GMT$";
 const invalidUuidNumeric = 12345;
 const invalidUuidObject = { key: "should fail" };
 const invalidUuidTooManyDigits = "AA97B177-9383-4934-8543-0F91A7A028368";
@@ -430,12 +431,14 @@ interface MultipartStatementAttachment {
   contentType: string;
   sha2: string;
   body: string;
+  contentTransferEncoding?: string;
 }
 
 interface MultipartStatementExtraPart {
   contentType: string;
   sha2?: string;
   body: string;
+  contentTransferEncoding?: string;
 }
 
 interface SignedStatementAttachment {
@@ -467,6 +470,7 @@ function buildMultipartStatementRequestBody(
   for (const attachment of attachments) {
     body += `--${boundary}\r\n`;
     body += `Content-Type: ${attachment.contentType}\r\n`;
+    body += `Content-Transfer-Encoding: ${attachment.contentTransferEncoding ?? "binary"}\r\n`;
     body += `X-Experience-API-Hash: ${attachment.sha2}\r\n\r\n`;
     body += `${attachment.body}\r\n`;
   }
@@ -474,6 +478,7 @@ function buildMultipartStatementRequestBody(
   for (const part of extraParts) {
     body += `--${boundary}\r\n`;
     body += `Content-Type: ${part.contentType}\r\n`;
+    body += `Content-Transfer-Encoding: ${part.contentTransferEncoding ?? "binary"}\r\n`;
     if (part.sha2) {
       body += `X-Experience-API-Hash: ${part.sha2}\r\n`;
     }
@@ -508,6 +513,14 @@ function buildMultipartStatementPostRequest(
     },
     extraHeaders,
   );
+}
+
+function buildMalformedMultipartStatementRequest(body: string, contentType: string): HttpRequest {
+  return buildVersionedRequest("POST", "statements", {}, {
+    kind: "text",
+    value: body,
+    contentType,
+  });
 }
 
 function buildMockJws(payload: JsonObject | string, algorithm = "RS256"): string {
@@ -737,6 +750,38 @@ function buildStatementCollectionQueryCase(options: StatementCollectionQueryCase
       },
     ],
   });
+}
+
+function buildStatementCollectionTextCase(options: {
+  caseId: string;
+  title: string;
+  requirementRefs: RequirementRef[];
+  tags: string[];
+  query: Record<string, string>;
+  legacyTraceSuiteFile: string;
+  notes?: string[];
+  capabilityFlags?: string[];
+  extraHeaders?: Record<string, string>;
+}): CaseDefinition {
+  return singleRequestCase({
+    caseId: options.caseId,
+    title: options.title,
+    specVersion,
+    requirementRefs: options.requirementRefs,
+    tags: options.tags,
+    capabilityFlags: options.capabilityFlags ?? ["query", "retrieval"],
+    legacyTraceSuiteFile: options.legacyTraceSuiteFile,
+    request: buildStatementCollectionRequest(options.query, options.extraHeaders),
+    assertion: {
+      status: 200,
+      textContains: ['"statements"'],
+    },
+    notes: options.notes ?? ["proof-slice statement collection direct trace"],
+  });
+}
+
+function buildQueryRecord(query: Record<string, string | undefined>): Record<string, string> {
+  return Object.fromEntries(Object.entries(query).filter(([, value]) => value !== undefined)) as Record<string, string>;
 }
 
 function buildStatementQueryExclusivityCases(options: {
@@ -6505,6 +6550,325 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     ],
   });
 
+  const retrievalDirectPropertiesCase = requestSequenceCase({
+    caseId: "v2.statements.retrieval.direct.statements-and-more-properties",
+    title: 'A paginated StatementResult includes both "statements" and "more" properties',
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00113",
+        section: "Data 2.5.s2.table1",
+        title: 'Paginated StatementResults include both "statements" and "more" properties',
+      },
+    ],
+    tags: ["v2.0.0", "statements", "retrieval", "pagination"],
+    capabilityFlags: ["query", "retrieval"],
+    legacyTraceSuiteFile: retrievalOfStatementsLegacySuiteFile,
+    notes: ["proof-slice retrieval direct properties"],
+    steps: [
+      {
+        request: buildStatementPostRequest(retrievalPagedOlderStatement),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([retrievalPagedOlderStatement.id]),
+        },
+      },
+      {
+        request: buildStatementPostRequest(retrievalPagedNewerStatement),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([retrievalPagedNewerStatement.id]),
+        },
+      },
+      {
+        request: buildStatementCollectionRequest({
+          verb: retrievalPagedVerbId,
+          limit: "1",
+        }),
+        assertion: {
+          status: 200,
+          jsonPathNotEquals: [
+            {
+              path: ["statements", "length"],
+              equals: undefined,
+            },
+            {
+              path: ["more"],
+              equals: undefined,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const retrievalDirectStatementsArrayCase = requestSequenceCase({
+    caseId: "v2.statements.retrieval.direct.statements-array-type",
+    title: 'A StatementResult exposes a "statements" property that is an array',
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00110",
+        section: "Data 2.5.s2.table1.row1",
+        title: 'The "statements" property is an array of Statements',
+      },
+    ],
+    tags: ["v2.0.0", "statements", "retrieval"],
+    capabilityFlags: ["query", "retrieval"],
+    legacyTraceSuiteFile: retrievalOfStatementsLegacySuiteFile,
+    notes: ["proof-slice retrieval direct statements array"],
+    steps: [
+      {
+        request: buildStatementPostRequest(retrievalArrayStatement),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([retrievalArrayStatement.id]),
+        },
+      },
+      {
+        request: buildStatementPostRequest(retrievalArraySubstatement),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([retrievalArraySubstatement.id]),
+        },
+      },
+      {
+        request: buildStatementCollectionRequest({
+          verb: retrievalArrayVerbId,
+        }),
+        assertion: {
+          status: 200,
+          jsonPathNotEquals: [
+            {
+              path: ["statements", "length"],
+              equals: undefined,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const retrievalDirectAdditionalPageCase = requestSequenceCase({
+    caseId: "v2.statements.retrieval.direct.additional-page-container",
+    title: "A paginated StatementResult creates a container for each additional page of results",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00114",
+        section: "Data 2.5.s2.table1.row1",
+        title: "Paginated StatementResults create a container for each additional page",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "retrieval", "pagination"],
+    capabilityFlags: ["query", "retrieval"],
+    legacyTraceSuiteFile: retrievalOfStatementsLegacySuiteFile,
+    notes: ["proof-slice retrieval direct additional page container"],
+    steps: [
+      {
+        request: buildStatementPostRequest(retrievalPagedOlderStatement),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([retrievalPagedOlderStatement.id]),
+        },
+      },
+      {
+        request: buildStatementPostRequest(retrievalPagedNewerStatement),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([retrievalPagedNewerStatement.id]),
+        },
+      },
+      {
+        request: buildStatementCollectionRequest({
+          verb: retrievalPagedVerbId,
+          limit: "1",
+        }),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["more"],
+              equals: retrievalPagedMorePath,
+            },
+          ],
+        },
+      },
+      {
+        request: buildStatementCollectionRequest({
+          verb: retrievalPagedVerbId,
+          limit: "1",
+          offset: "1",
+        }),
+        assertion: {
+          status: 200,
+          jsonPathNotEquals: [
+            {
+              path: ["statements", "length"],
+              equals: undefined,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const retrievalDirectMoreEmptyCase = singleRequestCase({
+    caseId: "v2.statements.retrieval.direct.more-empty-when-exhausted",
+    title: 'The "more" property is empty when the entire result set has been returned',
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00109",
+        section: "Data 2.5.s2.table1.row2",
+        title: 'The "more" property is empty or absent when all results have been returned',
+      },
+    ],
+    tags: ["v2.0.0", "statements", "retrieval"],
+    capabilityFlags: ["query", "retrieval"],
+    legacyTraceSuiteFile: retrievalOfStatementsLegacySuiteFile,
+    request: buildStatementCollectionRequest({
+      verb: "https://example.test/xapi/verbs/retrieval-empty-more",
+    }),
+    assertion: {
+      status: 200,
+      jsonPathEquals: [
+        {
+          path: ["more"],
+          equals: "",
+        },
+      ],
+    },
+    notes: ["proof-slice retrieval direct more empty"],
+  });
+
+  const retrievalDirectMoreRefersCase = requestSequenceCase({
+    caseId: "v2.statements.retrieval.direct.more-refers-next-page",
+    title: 'A non-empty "more" value refers to the next page of StatementResult results',
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00108",
+        section: "Data 2.5.s2.table1.row2",
+        title: 'A non-empty "more" IRL refers to the next page of results',
+      },
+    ],
+    tags: ["v2.0.0", "statements", "retrieval", "pagination"],
+    capabilityFlags: ["query", "retrieval"],
+    legacyTraceSuiteFile: retrievalOfStatementsLegacySuiteFile,
+    notes: ["proof-slice retrieval direct more refers next page"],
+    steps: [
+      {
+        request: buildStatementPostRequest(retrievalPagedOlderStatement),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([retrievalPagedOlderStatement.id]),
+        },
+      },
+      {
+        request: buildStatementPostRequest(retrievalPagedNewerStatement),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([retrievalPagedNewerStatement.id]),
+        },
+      },
+      {
+        request: buildStatementCollectionRequest({
+          verb: retrievalPagedVerbId,
+          limit: "1",
+        }),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["more"],
+              equals: retrievalPagedMorePath,
+            },
+          ],
+        },
+      },
+      {
+        request: buildStatementCollectionRequest({
+          verb: retrievalPagedVerbId,
+          limit: "1",
+          offset: "1",
+        }),
+        assertion: {
+          status: 200,
+          jsonPathEquals: buildStatementCollectionExpectations([retrievalPagedOlderStatement.id]),
+        },
+      },
+    ],
+  });
+
+  const retrievalDirectMoreContainerRulesCase = requestSequenceCase({
+    caseId: "v2.statements.retrieval.direct.more-container-rules",
+    title: 'A referenced "more" container follows the same StatementResult rules as the original GET',
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00111",
+        section: "Data 2.5.s2.table1.row2",
+        title: 'A referenced "more" container follows the same StatementResult rules as the original GET',
+      },
+    ],
+    tags: ["v2.0.0", "statements", "retrieval", "pagination"],
+    capabilityFlags: ["query", "retrieval"],
+    legacyTraceSuiteFile: retrievalOfStatementsLegacySuiteFile,
+    notes: ["proof-slice retrieval direct more container rules"],
+    steps: [
+      {
+        request: buildStatementPostRequest(retrievalPagedOlderStatement),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([retrievalPagedOlderStatement.id]),
+        },
+      },
+      {
+        request: buildStatementPostRequest(retrievalPagedNewerStatement),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([retrievalPagedNewerStatement.id]),
+        },
+      },
+      {
+        request: buildStatementCollectionRequest({
+          verb: retrievalPagedVerbId,
+          limit: "1",
+        }),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["more"],
+              equals: retrievalPagedMorePath,
+            },
+          ],
+        },
+      },
+      {
+        request: buildStatementCollectionRequest({
+          verb: retrievalPagedVerbId,
+          limit: "1",
+          offset: "1",
+        }),
+        assertion: {
+          status: 200,
+          jsonPathNotEquals: [
+            {
+              path: ["statements", "length"],
+              equals: undefined,
+            },
+            {
+              path: ["more"],
+              equals: undefined,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
   const exactAgentStatement = buildProofStatement(21, [
     {
       operation: "set",
@@ -6860,6 +7224,169 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     expectedStatementIds: [ascendingOlderStatement.id, ascendingNewerStatement.id],
     legacyTraceSuiteFile: statementResourceLegacySuiteFile,
   });
+
+  const filteringCriterionRequirementRef: RequirementRef = {
+    id: "XAPI-00164",
+    section: "Communication 2.1.3.s1",
+    title:
+      'The statements within the "statements" property correspond to the filtering criterion sent in the GET request',
+  };
+
+  const filteringCriterionVariants = [
+    {
+      caseId: "v2.statements.query.filtering.agent",
+      title: 'The Statements Resource returns only statements matching the "agent" filtering criterion',
+      tags: ["v2.0.0", "statements", "query", "filtering", "agent"],
+      setupStatements: [exactAgentStatement, exactAgentNoiseStatement],
+      query: {
+        agent: buildAgentQuery("mailto:query-agent-match@example.test"),
+      },
+      expectedStatementIds: [exactAgentStatement.id],
+      notes: ["proof-slice statement filtering criterion agent"],
+    },
+    {
+      caseId: "v2.statements.query.filtering.verb",
+      title: 'The Statements Resource returns only statements matching the "verb" filtering criterion',
+      tags: ["v2.0.0", "statements", "query", "filtering", "verb"],
+      setupStatements: [exactVerbStatement, exactVerbNoiseStatement],
+      query: {
+        verb: "https://example.test/xapi/verbs/query-verb-match",
+      },
+      expectedStatementIds: [exactVerbStatement.id],
+      notes: ["proof-slice statement filtering criterion verb"],
+    },
+    {
+      caseId: "v2.statements.query.filtering.activity",
+      title: 'The Statements Resource returns only statements matching the "activity" filtering criterion',
+      tags: ["v2.0.0", "statements", "query", "filtering", "activity"],
+      setupStatements: [exactActivityStatement, exactActivityNoiseStatement],
+      query: {
+        activity: "https://example.test/xapi/activities/query-activity-match",
+      },
+      expectedStatementIds: [exactActivityStatement.id],
+      notes: ["proof-slice statement filtering criterion activity"],
+    },
+    {
+      caseId: "v2.statements.query.filtering.registration",
+      title: 'The Statements Resource returns only statements matching the "registration" filtering criterion',
+      tags: ["v2.0.0", "statements", "query", "filtering", "registration"],
+      setupStatements: [exactRegistrationStatement, exactRegistrationNoiseStatement],
+      query: {
+        registration: exactRegistrationId,
+      },
+      expectedStatementIds: [exactRegistrationStatement.id],
+      notes: ["proof-slice statement filtering criterion registration"],
+    },
+    {
+      caseId: "v2.statements.query.filtering.related-activities",
+      title: 'The Statements Resource returns only statements matching the "related_activities" filtering criterion',
+      tags: ["v2.0.0", "statements", "query", "filtering", "related-activities"],
+      setupStatements: [relatedActivityStatement, relatedActivityNoiseStatement],
+      query: {
+        activity: relatedActivityId,
+        related_activities: "true",
+      },
+      expectedStatementIds: [relatedActivityStatement.id],
+      notes: ["proof-slice statement filtering criterion related activities"],
+    },
+    {
+      caseId: "v2.statements.query.filtering.related-agents",
+      title: 'The Statements Resource returns only statements matching the "related_agents" filtering criterion',
+      tags: ["v2.0.0", "statements", "query", "filtering", "related-agents"],
+      setupStatements: [relatedAgentStatement, relatedAgentNoiseStatement],
+      query: {
+        agent: buildAgentQuery(relatedAgentMbox),
+        related_agents: "true",
+      },
+      expectedStatementIds: [relatedAgentStatement.id],
+      notes: ["proof-slice statement filtering criterion related agents"],
+    },
+    {
+      caseId: "v2.statements.query.filtering.since",
+      title: 'The Statements Resource returns only statements matching the "since" filtering criterion',
+      tags: ["v2.0.0", "statements", "query", "filtering", "since"],
+      setupStatements: [sinceOlderStatement, sinceNewerStatement],
+      query: {
+        verb: sinceVerbId,
+        since: buildProofTimestamp(33),
+      },
+      expectedStatementIds: [sinceNewerStatement.id],
+      notes: ["proof-slice statement filtering criterion since"],
+    },
+    {
+      caseId: "v2.statements.query.filtering.until",
+      title: 'The Statements Resource returns only statements matching the "until" filtering criterion',
+      tags: ["v2.0.0", "statements", "query", "filtering", "until"],
+      setupStatements: [untilOlderStatement, untilNewerStatement],
+      query: {
+        verb: untilVerbId,
+        until: buildProofTimestamp(35),
+      },
+      expectedStatementIds: [untilOlderStatement.id],
+      notes: ["proof-slice statement filtering criterion until"],
+    },
+    {
+      caseId: "v2.statements.query.filtering.limit",
+      title:
+        'The Statements Resource returns only the number of statements requested by the "limit" filtering criterion',
+      tags: ["v2.0.0", "statements", "query", "filtering", "limit"],
+      setupStatements: [limitOlderStatement, limitNewerStatement],
+      query: {
+        verb: limitVerbId,
+        limit: "1",
+      },
+      expectedStatementIds: [limitNewerStatement.id],
+      notes: ["proof-slice statement filtering criterion limit"],
+    },
+    {
+      caseId: "v2.statements.query.filtering.ascending",
+      title:
+        'The Statements Resource returns statements in ascending stored order when using the "ascending" filtering criterion',
+      tags: ["v2.0.0", "statements", "query", "filtering", "ascending"],
+      setupStatements: [ascendingOlderStatement, ascendingNewerStatement],
+      query: {
+        verb: ascendingVerbId,
+        ascending: "true",
+      },
+      expectedStatementIds: [ascendingOlderStatement.id, ascendingNewerStatement.id],
+      notes: ["proof-slice statement filtering criterion ascending"],
+    },
+    {
+      caseId: "v2.statements.query.filtering.format",
+      title:
+        'The Statements Resource still applies the filtering criterion when GET requests include the "format" parameter',
+      tags: ["v2.0.0", "statements", "query", "filtering", "format"],
+      setupStatements: [exactVerbStatement, exactVerbNoiseStatement],
+      query: {
+        verb: "https://example.test/xapi/verbs/query-verb-match",
+        format: "ids",
+      },
+      expectedStatementIds: [exactVerbStatement.id],
+      notes: ["proof-slice statement filtering criterion format"],
+    },
+  ] satisfies Array<{
+    caseId: string;
+    title: string;
+    tags: string[];
+    setupStatements: StatementFixture[];
+    query: Record<string, string>;
+    expectedStatementIds: string[];
+    notes: string[];
+  }>;
+
+  const filteringCriterionCases = filteringCriterionVariants.map((variant) =>
+    buildStatementCollectionQueryCase({
+      caseId: variant.caseId,
+      title: variant.title,
+      requirementRefs: [filteringCriterionRequirementRef],
+      tags: variant.tags,
+      setupStatements: variant.setupStatements,
+      query: buildQueryRecord(variant.query),
+      expectedStatementIds: variant.expectedStatementIds,
+      legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+      notes: variant.notes,
+    }),
+  );
 
   const statementIdExclusivityCases = buildStatementQueryExclusivityCases({
     familyId: "v2.statements.query.exclusive.statement-id",
@@ -7419,6 +7946,766 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
         }),
         assertion: {
           status: 200,
+        },
+      },
+    ],
+  });
+
+  const statementResultRequirementRef: RequirementRef = {
+    id: "XAPI-00154",
+    section: "Communication 2.1.3.s1",
+    title: "GET without statementId or voidedStatementId returns a StatementResult",
+  };
+
+  const statementResultVariants = [
+    {
+      caseId: "v2.statements.query.statement-result.direct.base",
+      title:
+        'The Statements Resource returns a StatementResult for GET requests without "statementId" or "voidedStatementId"',
+      query: {},
+    },
+    {
+      caseId: "v2.statements.query.statement-result.direct.agent",
+      title: 'The Statements Resource returns a StatementResult for GET requests with "agent"',
+      query: {
+        agent: buildAgentQuery("mailto:statement-result-agent@example.test"),
+      },
+    },
+    {
+      caseId: "v2.statements.query.statement-result.direct.verb",
+      title: 'The Statements Resource returns a StatementResult for GET requests with "verb"',
+      query: {
+        verb: "https://example.test/xapi/verbs/statement-result-verb",
+      },
+    },
+    {
+      caseId: "v2.statements.query.statement-result.direct.activity",
+      title: 'The Statements Resource returns a StatementResult for GET requests with "activity"',
+      query: {
+        activity: "https://example.test/xapi/activities/statement-result-activity",
+      },
+    },
+    {
+      caseId: "v2.statements.query.statement-result.direct.registration",
+      title: 'The Statements Resource returns a StatementResult for GET requests with "registration"',
+      query: {
+        registration: buildProofUuid(1225),
+      },
+    },
+    {
+      caseId: "v2.statements.query.statement-result.direct.related-activities",
+      title: 'The Statements Resource returns a StatementResult for GET requests with "related_activities"',
+      query: {
+        activity: "https://example.test/xapi/activities/statement-result-related-activity",
+        related_activities: "true",
+      },
+    },
+    {
+      caseId: "v2.statements.query.statement-result.direct.related-agents",
+      title: 'The Statements Resource returns a StatementResult for GET requests with "related_agents"',
+      query: {
+        agent: buildAgentQuery("mailto:statement-result-related-agent@example.test"),
+        related_agents: "true",
+      },
+    },
+    {
+      caseId: "v2.statements.query.statement-result.direct.since",
+      title: 'The Statements Resource returns a StatementResult for GET requests with "since"',
+      query: {
+        since: buildProofTimestamp(24),
+      },
+    },
+    {
+      caseId: "v2.statements.query.statement-result.direct.until",
+      title: 'The Statements Resource returns a StatementResult for GET requests with "until"',
+      query: {
+        until: buildProofTimestamp(25),
+      },
+    },
+    {
+      caseId: "v2.statements.query.statement-result.direct.limit",
+      title: 'The Statements Resource returns a StatementResult for GET requests with "limit"',
+      query: {
+        limit: "1",
+      },
+    },
+    {
+      caseId: "v2.statements.query.statement-result.direct.ascending",
+      title: 'The Statements Resource returns a StatementResult for GET requests with "ascending"',
+      query: {
+        ascending: "true",
+      },
+    },
+    {
+      caseId: "v2.statements.query.statement-result.direct.format",
+      title: 'The Statements Resource returns a StatementResult for GET requests with "format"',
+      query: {
+        format: "ids",
+      },
+    },
+  ] satisfies Array<{
+    caseId: string;
+    title: string;
+    query: Record<string, string>;
+  }>;
+
+  const statementResultVariantCases = statementResultVariants.map((variant) =>
+    buildStatementCollectionTextCase({
+      caseId: variant.caseId,
+      title: variant.title,
+      requirementRefs: [statementResultRequirementRef],
+      tags: ["v2.0.0", "statements", "query", "statement-result"],
+      capabilityFlags: ["query", "retrieval"],
+      query: buildQueryRecord(variant.query),
+      legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+      notes: ["proof-slice statement result direct trace"],
+    }),
+  );
+
+  const statementQueryAcceptanceVariants = [
+    {
+      caseId: "v2.statements.query.accepts.agent",
+      title: 'The Statements Resource can process GET requests with "agent"',
+      query: {
+        agent: buildAgentQuery("mailto:query-accepts-agent@example.test"),
+      },
+      requirementRef: {
+        id: "XAPI-00181",
+        section: "Communication 2.1.3.s1.table1.row3",
+        title: "The Statements Resource can process GET requests with agent",
+      },
+    },
+    {
+      caseId: "v2.statements.query.accepts.verb",
+      title: 'The Statements Resource can process GET requests with "verb"',
+      query: {
+        verb: "https://example.test/xapi/verbs/query-accepts-verb",
+      },
+      requirementRef: {
+        id: "XAPI-00180",
+        section: "Communication 2.1.3.s1.table1.row4",
+        title: "The Statements Resource can process GET requests with verb",
+      },
+    },
+    {
+      caseId: "v2.statements.query.accepts.activity",
+      title: 'The Statements Resource can process GET requests with "activity"',
+      query: {
+        activity: "https://example.test/xapi/activities/query-accepts-activity",
+      },
+      requirementRef: {
+        id: "XAPI-00179",
+        section: "Communication 2.1.3.s1.table1.row5",
+        title: "The Statements Resource can process GET requests with activity",
+      },
+    },
+    {
+      caseId: "v2.statements.query.accepts.registration",
+      title: 'The Statements Resource can process GET requests with "registration"',
+      query: {
+        registration: buildProofUuid(1226),
+      },
+      requirementRef: {
+        id: "XAPI-00178",
+        section: "Communication 2.1.3.s1.table1.row6",
+        title: "The Statements Resource can process GET requests with registration",
+      },
+    },
+    {
+      caseId: "v2.statements.query.accepts.related-activities",
+      title: 'The Statements Resource can process GET requests with "related_activities"',
+      query: {
+        activity: "https://example.test/xapi/activities/query-accepts-related-activity",
+        related_activities: "true",
+      },
+      requirementRef: {
+        id: "XAPI-00177",
+        section: "Communication 2.1.3.s1.table1.row7",
+        title: "The Statements Resource can process GET requests with related_activities",
+      },
+    },
+    {
+      caseId: "v2.statements.query.accepts.related-agents",
+      title: 'The Statements Resource can process GET requests with "related_agents"',
+      query: {
+        agent: buildAgentQuery("mailto:query-accepts-related-agent@example.test"),
+        related_agents: "true",
+      },
+      requirementRef: {
+        id: "XAPI-00176",
+        section: "Communication 2.1.3.s1.table1.row8",
+        title: "The Statements Resource can process GET requests with related_agents",
+      },
+    },
+    {
+      caseId: "v2.statements.query.accepts.since",
+      title: 'The Statements Resource can process GET requests with "since"',
+      query: {
+        since: buildProofTimestamp(26),
+      },
+      requirementRef: {
+        id: "XAPI-00175",
+        section: "Communication 2.1.3.s1.table1.row9",
+        title: "The Statements Resource can process GET requests with since",
+      },
+    },
+    {
+      caseId: "v2.statements.query.accepts.until",
+      title: 'The Statements Resource can process GET requests with "until"',
+      query: {
+        until: buildProofTimestamp(27),
+      },
+      requirementRef: {
+        id: "XAPI-00174",
+        section: "Communication 2.1.3.s1.table1.row10",
+        title: "The Statements Resource can process GET requests with until",
+      },
+    },
+    {
+      caseId: "v2.statements.query.accepts.limit",
+      title: 'The Statements Resource can process GET requests with "limit"',
+      query: {
+        limit: "1",
+      },
+      requirementRef: {
+        id: "XAPI-00173",
+        section: "Communication 2.1.3.s1.table1.row11",
+        title: "The Statements Resource can process GET requests with limit",
+      },
+    },
+    {
+      caseId: "v2.statements.query.accepts.format",
+      title: 'The Statements Resource can process GET requests with "format"',
+      query: {
+        format: "ids",
+      },
+      requirementRef: {
+        id: "XAPI-00168",
+        section: "Communication 2.1.3.s1.table1.row12",
+        title: "The Statements Resource can process GET requests with format",
+      },
+    },
+    {
+      caseId: "v2.statements.query.accepts.attachments",
+      title: 'The Statements Resource can process GET requests with "attachments"',
+      query: {
+        attachments: "true",
+      },
+      requirementRef: {
+        id: "XAPI-00167",
+        section: "Communication 2.1.3.s1.table1.row13",
+        title: "The Statements Resource can process GET requests with attachments",
+      },
+    },
+    {
+      caseId: "v2.statements.query.accepts.ascending",
+      title: 'The Statements Resource can process GET requests with "ascending"',
+      query: {
+        ascending: "true",
+      },
+      requirementRef: {
+        id: "XAPI-00166",
+        section: "Communication 2.1.3.s1.table1.row14",
+        title: "The Statements Resource can process GET requests with ascending",
+      },
+    },
+  ] satisfies Array<{
+    caseId: string;
+    title: string;
+    query: Record<string, string>;
+    requirementRef: RequirementRef;
+  }>;
+
+  const statementQueryAcceptanceCases = statementQueryAcceptanceVariants.map((variant) =>
+    buildStatementCollectionTextCase({
+      caseId: variant.caseId,
+      title: variant.title,
+      requirementRefs: [variant.requirementRef],
+      tags: ["v2.0.0", "statements", "query", "acceptance"],
+      capabilityFlags: ["query", "retrieval"],
+      query: buildQueryRecord(variant.query),
+      legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+      notes: ["proof-slice statement query acceptance direct trace"],
+    }),
+  );
+
+  function buildVoidedTargetRetentionCase(options: {
+    caseId: string;
+    title: string;
+    sequenceBase: number;
+    query: (agentQuery: string) => Record<string, string>;
+    expectedStatementIds: string[];
+    notes: string[];
+  }): CaseDefinition {
+    const actorMbox = `mailto:voided-target-${options.sequenceBase}@example.test`;
+    const actor = buildAgentWithMbox(actorMbox);
+    const voidedStatement = buildProofStatement(options.sequenceBase, [
+      {
+        operation: "set",
+        path: ["actor"],
+        value: actor,
+      },
+      {
+        operation: "set",
+        path: ["verb", "id"],
+        value: `https://example.test/xapi/verbs/voided-target-${options.sequenceBase}`,
+      },
+    ]);
+    const voidingStatement = buildProofStatement(options.sequenceBase + 1, [
+      {
+        operation: "set",
+        path: ["actor"],
+        value: actor,
+      },
+      {
+        operation: "set",
+        path: ["verb"],
+        value: buildVerbFixture("http://adlnet.gov/expapi/verbs/voided", "voided"),
+      },
+      {
+        operation: "set",
+        path: ["object"],
+        value: {
+          objectType: "StatementRef",
+          id: voidedStatement.id,
+        },
+      },
+    ]);
+    const statementRefStatement = buildProofStatement(options.sequenceBase + 2, [
+      {
+        operation: "set",
+        path: ["actor"],
+        value: actor,
+      },
+      {
+        operation: "set",
+        path: ["verb", "id"],
+        value: `https://example.test/xapi/verbs/voided-target-ref-${options.sequenceBase}`,
+      },
+      {
+        operation: "set",
+        path: ["object"],
+        value: {
+          objectType: "StatementRef",
+          id: voidedStatement.id,
+        },
+      },
+    ]);
+    const agentQuery = buildAgentQuery(actorMbox);
+
+    return requestSequenceCase({
+      caseId: options.caseId,
+      title: options.title,
+      specVersion,
+      requirementRefs: [
+        {
+          id: "XAPI-00162",
+          section: "Communication 2.1.4.s1.b2",
+          title:
+            "Collection GETs return statements targeting a voided statement without returning the voided statement itself",
+        },
+      ],
+      tags: ["v2.0.0", "statements", "query", "voiding", "retrieval"],
+      capabilityFlags: ["query", "retrieval", "voiding"],
+      legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+      notes: options.notes,
+      steps: [
+        {
+          request: buildStatementPostRequest(voidedStatement),
+          assertion: {
+            status: 200,
+            jsonPathEquals: listEquals([voidedStatement.id]),
+          },
+        },
+        {
+          request: buildStatementPostRequest(voidingStatement),
+          assertion: {
+            status: 200,
+            jsonPathEquals: listEquals([voidingStatement.id]),
+          },
+        },
+        {
+          request: buildStatementPostRequest(statementRefStatement),
+          assertion: {
+            status: 200,
+            jsonPathEquals: listEquals([statementRefStatement.id]),
+          },
+        },
+        {
+          request: buildStatementCollectionRequest(options.query(agentQuery)),
+          assertion: {
+            status: 200,
+            jsonPathEquals: buildStatementCollectionExpectations(options.expectedStatementIds),
+          },
+        },
+      ],
+    });
+  }
+
+  const voidedTargetRetentionCases = [
+    buildVoidedTargetRetentionCase({
+      caseId: "v2.statements.query.voided-targets-retained.since",
+      title:
+        'The Statements Resource returns statements targeting a voided statement when using a qualifying "since" filter',
+      sequenceBase: 1240,
+      query: (agentQuery) => ({
+        agent: agentQuery,
+        since: buildProofTimestamp(1240),
+      }),
+      expectedStatementIds: [buildProofUuid(1242), buildProofUuid(1241)],
+      notes: ["proof-slice voided target retrieval since"],
+    }),
+    buildVoidedTargetRetentionCase({
+      caseId: "v2.statements.query.voided-targets-retained.until",
+      title:
+        'The Statements Resource returns statements targeting a voided statement when using a qualifying "until" filter',
+      sequenceBase: 1243,
+      query: (agentQuery) => ({
+        agent: agentQuery,
+        until: buildProofTimestamp(1245),
+      }),
+      expectedStatementIds: [buildProofUuid(1245), buildProofUuid(1244)],
+      notes: ["proof-slice voided target retrieval until"],
+    }),
+    buildVoidedTargetRetentionCase({
+      caseId: "v2.statements.query.voided-targets-retained.limit",
+      title:
+        "The Statements Resource returns only the newest statement targeting a voided statement when using a limiting filter",
+      sequenceBase: 1246,
+      query: (agentQuery) => ({
+        agent: agentQuery,
+        limit: "1",
+      }),
+      expectedStatementIds: [buildProofUuid(1248)],
+      notes: ["proof-slice voided target retrieval limit"],
+    }),
+    buildVoidedTargetRetentionCase({
+      caseId: "v2.statements.query.voided-targets-retained.base",
+      title:
+        "The Statements Resource returns statements targeting a voided statement even without additional range filters",
+      sequenceBase: 1249,
+      query: (agentQuery) => ({
+        agent: agentQuery,
+      }),
+      expectedStatementIds: [buildProofUuid(1251), buildProofUuid(1250)],
+      notes: ["proof-slice voided target retrieval base"],
+    }),
+  ];
+
+  const collectionFormatAbsentVerbId = "https://example.test/xapi/verbs/collection-format-absent";
+  const collectionFormatAbsentActivityId = "https://example.test/xapi/activities/collection-format-absent";
+  const collectionFormatAbsentStatement = buildFormatProofStatement(
+    1252,
+    "mailto:collection-format-absent@example.test",
+  );
+  collectionFormatAbsentStatement.verb.id = collectionFormatAbsentVerbId;
+  collectionFormatAbsentStatement.object.id = collectionFormatAbsentActivityId;
+
+  const collectionFormatCanonicalVerbId = "https://example.test/xapi/verbs/collection-format-canonical";
+  const collectionFormatCanonicalActivityId = "https://example.test/xapi/activities/collection-format-canonical";
+  const collectionFormatCanonicalStatement = buildFormatProofStatement(
+    1253,
+    "mailto:collection-format-canonical@example.test",
+  );
+  collectionFormatCanonicalStatement.verb.id = collectionFormatCanonicalVerbId;
+  collectionFormatCanonicalStatement.object.id = collectionFormatCanonicalActivityId;
+
+  const collectionFormatExactVerbId = "https://example.test/xapi/verbs/collection-format-exact";
+  const collectionFormatExactActivityId = "https://example.test/xapi/activities/collection-format-exact";
+  const collectionFormatExactStatement = buildFormatProofStatement(1254, "mailto:collection-format-exact@example.test");
+  collectionFormatExactStatement.verb.id = collectionFormatExactVerbId;
+  collectionFormatExactStatement.object.id = collectionFormatExactActivityId;
+
+  const collectionFormatIdsVerbId = "https://example.test/xapi/verbs/collection-format-ids";
+  const collectionFormatIdsActivityId = "https://example.test/xapi/activities/collection-format-ids";
+  const collectionFormatIdsStatement = buildFormatProofStatement(1255, "mailto:collection-format-ids@example.test");
+  collectionFormatIdsStatement.verb.id = collectionFormatIdsVerbId;
+  collectionFormatIdsStatement.object.id = collectionFormatIdsActivityId;
+
+  const collectionFormatAbsentCase = requestSequenceCase({
+    caseId: "v2.statements.representation.collection-format-absent",
+    title: "The Statements Resource returns exact collection data when format is absent",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00168",
+        section: "Communication 2.1.3.s1.table1.row12",
+        title: "Collection GET defaults to exact when format is absent",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "representation", "format"],
+    capabilityFlags: ["query", "retrieval", "format"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    notes: ["proof-slice collection format absent direct trace"],
+    steps: [
+      {
+        request: buildStatementPostRequest(collectionFormatAbsentStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementCollectionRequest({
+          verb: collectionFormatAbsentVerbId,
+        }),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            ...buildStatementCollectionExpectations([collectionFormatAbsentStatement.id]),
+            {
+              path: ["statements", "0", "verb", "display"],
+              equals: formatProofDisplay,
+            },
+            {
+              path: ["statements", "0", "object", "definition", "name"],
+              equals: formatProofName,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const collectionFormatCanonicalCase = requestSequenceCase({
+    caseId: "v2.statements.representation.collection-format-canonical",
+    title: "The Statements Resource returns canonical collection data when format is canonical",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00169",
+        section: "Communication 2.1.3.s1.table1.row12",
+        title: "Collection GET canonical format returns a single language per localized field",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "representation", "format"],
+    capabilityFlags: ["query", "retrieval", "format"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    notes: ["proof-slice collection format canonical direct trace"],
+    steps: [
+      {
+        request: buildStatementPostRequest(collectionFormatCanonicalStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementCollectionRequest(
+          {
+            verb: collectionFormatCanonicalVerbId,
+            format: "canonical",
+          },
+          {
+            "Accept-Language": "en-GB",
+          },
+        ),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            ...buildStatementCollectionExpectations([collectionFormatCanonicalStatement.id]),
+            {
+              path: ["statements", "0", "verb", "display"],
+              equals: {
+                "en-GB": "format-proof-gb",
+              },
+            },
+            {
+              path: ["statements", "0", "object", "definition", "name"],
+              equals: {
+                "en-GB": "Format Proof GB",
+              },
+            },
+            {
+              path: ["statements", "0", "object", "definition", "description"],
+              equals: {
+                "en-GB": "Format description GB",
+              },
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const collectionFormatExactCase = requestSequenceCase({
+    caseId: "v2.statements.representation.collection-format-exact",
+    title: "The Statements Resource returns exact collection data when format is exact",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00170",
+        section: "Communication 2.1.3.s1.table1.row12",
+        title: "Collection GET exact format preserves full localized values",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "representation", "format"],
+    capabilityFlags: ["query", "retrieval", "format"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    notes: ["proof-slice collection format exact direct trace"],
+    steps: [
+      {
+        request: buildStatementPostRequest(collectionFormatExactStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementCollectionRequest({
+          verb: collectionFormatExactVerbId,
+          format: "exact",
+        }),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            ...buildStatementCollectionExpectations([collectionFormatExactStatement.id]),
+            {
+              path: ["statements", "0", "verb", "display"],
+              equals: formatProofDisplay,
+            },
+            {
+              path: ["statements", "0", "object", "definition", "description"],
+              equals: formatProofDescription,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const collectionFormatIdsCase = requestSequenceCase({
+    caseId: "v2.statements.representation.collection-format-ids",
+    title: "The Statements Resource returns identifier-only collection data when format is ids",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00171",
+        section: "Communication 2.1.3.s1.table1.row12",
+        title: "Collection GET ids format returns identifier-only representations",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "representation", "format"],
+    capabilityFlags: ["query", "retrieval", "format"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    notes: ["proof-slice collection format ids direct trace"],
+    steps: [
+      {
+        request: buildStatementPostRequest(collectionFormatIdsStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementCollectionRequest({
+          verb: collectionFormatIdsVerbId,
+          format: "ids",
+        }),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            ...buildStatementCollectionExpectations([collectionFormatIdsStatement.id]),
+            {
+              path: ["statements", "0", "verb"],
+              equals: {
+                id: collectionFormatIdsVerbId,
+              },
+            },
+            {
+              path: ["statements", "0", "object", "id"],
+              equals: collectionFormatIdsActivityId,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const collectionCanonicalAcceptLanguageCase = requestSequenceCase({
+    caseId: "v2.statements.representation.collection-canonical-accept-language",
+    title: "The Statements Resource applies Accept-Language on collection GET requests when format is canonical",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00172",
+        section: "Communication 2.1.3.s1.table1.row11",
+        title: "Accept-Language affects collection retrieval when format is canonical",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "representation", "format", "accept-language"],
+    capabilityFlags: ["query", "retrieval", "format"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    notes: ["proof-slice collection canonical accept-language direct trace"],
+    steps: [
+      {
+        request: buildStatementPostRequest(collectionFormatCanonicalStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementCollectionRequest(
+          {
+            verb: collectionFormatCanonicalVerbId,
+            format: "canonical",
+          },
+          {
+            "Accept-Language": "en-GB",
+          },
+        ),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            ...buildStatementCollectionExpectations([collectionFormatCanonicalStatement.id]),
+            {
+              path: ["statements", "0", "verb", "display"],
+              equals: {
+                "en-GB": "format-proof-gb",
+              },
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const collectionAcceptLanguageWithoutFormatCase = requestSequenceCase({
+    caseId: "v2.statements.representation.collection-accept-language-without-format",
+    title: "The Statements Resource does not apply Accept-Language on collection GET requests when format is absent",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00172",
+        section: "Communication 2.1.3.s1.table1.row11",
+        title: "Accept-Language does not affect collection retrieval when format is absent",
+      },
+    ],
+    tags: ["v2.0.0", "statements", "representation", "format", "accept-language"],
+    capabilityFlags: ["query", "retrieval", "format"],
+    legacyTraceSuiteFile: statementResourceLegacySuiteFile,
+    notes: ["proof-slice collection accept-language without format direct trace"],
+    steps: [
+      {
+        request: buildStatementPostRequest(collectionFormatAbsentStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementCollectionRequest(
+          {
+            verb: collectionFormatAbsentVerbId,
+          },
+          {
+            "Accept-Language": "en-GB",
+          },
+        ),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            ...buildStatementCollectionExpectations([collectionFormatAbsentStatement.id]),
+            {
+              path: ["statements", "0", "verb", "display"],
+              equals: formatProofDisplay,
+            },
+          ],
         },
       },
     ],
@@ -11739,6 +13026,12 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
           exactFormatCase,
           canonicalFormatCase,
           idsFormatCase,
+          collectionFormatAbsentCase,
+          collectionFormatCanonicalCase,
+          collectionFormatExactCase,
+          collectionFormatIdsCase,
+          collectionCanonicalAcceptLanguageCase,
+          collectionAcceptLanguageWithoutFormatCase,
           attachmentsMultipartCase,
           attachmentsJsonFallbackCase,
           attachmentsMissingJsonCase,
@@ -11769,13 +13062,21 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
           statementEndpointGetCase,
           statementGetAcceptedCase,
           statementResultCollectionCase,
+          ...statementResultVariantCases,
           retrievalStatementsArrayCase,
           retrievalPaginationCase,
+          retrievalDirectPropertiesCase,
+          retrievalDirectStatementsArrayCase,
+          retrievalDirectAdditionalPageCase,
+          retrievalDirectMoreEmptyCase,
+          retrievalDirectMoreRefersCase,
+          retrievalDirectMoreContainerRulesCase,
           statementIdAcceptedCase,
           statementIdReturnedCase,
           voidedStatementIdAcceptedCase,
           queryCase,
           emptyResultCase,
+          ...statementQueryAcceptanceCases,
           agentQueryCase,
           verbQueryCase,
           activityQueryCase,
@@ -11786,10 +13087,12 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
           untilQueryCase,
           limitQueryCase,
           ascendingQueryCase,
+          ...filteringCriterionCases,
           statementIdFormatAllowedCase,
           statementIdAttachmentsAllowedCase,
           voidedStatementIdFormatAllowedCase,
           voidedStatementIdAttachmentsAllowedCase,
+          ...voidedTargetRetentionCases,
           ...statementIdExclusivityCases,
           ...voidedStatementIdExclusivityCases,
         ],
@@ -11926,6 +13229,36 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
   const stateDeleteQuery = {
     activityId: stateDeleteIdentity.activityId,
     agent: stateDeleteIdentity.agent,
+  };
+  function buildStateTraceIdentity(idSuffix: string) {
+    return buildActivityStateIdentityFixture({
+      activityId: `https://example.test/xapi/activities/state-proof-slice/${idSuffix}`,
+      stateId: `proof-state-${idSuffix}`,
+    });
+  }
+
+  const stateEndpointIdentity = buildStateTraceIdentity("endpoint");
+  const statePutAcceptedIdentity = buildStateTraceIdentity("put-accepted");
+  const statePostAcceptedIdentity = buildStateTraceIdentity("post-accepted");
+  const stateGetAcceptedIdentity = buildStateTraceIdentity("get-accepted");
+  const stateGetByStateIdIdentity = buildStateTraceIdentity("get-by-state-id");
+  const stateSinceAcceptedIdentity = buildStateTraceIdentity("since-accepted");
+  const statePostAsPutIdentity = buildStateTraceIdentity("post-as-put");
+  const stateNonJsonTypeRejectIdentity = buildStateTraceIdentity("merge-reject-type");
+  const stateInvalidJsonMergeRejectIdentity = buildStateTraceIdentity("merge-reject-invalid-json");
+  const stateDeleteAcceptedIdentity = buildStateTraceIdentity("delete-accepted");
+  const stateDeleteByStateIdIdentity = buildStateTraceIdentity("delete-by-state-id");
+  const stateDeleteStateIdAcceptedIdentity = buildStateTraceIdentity("delete-state-id-accepted");
+  const stateLastModifiedIdentity = buildStateTraceIdentity("last-modified");
+  const updatedStateDocument = {
+    bookmark: "chapter-9",
+    progress: {
+      attempts: 9,
+      complete: false,
+    },
+    context: {
+      location: "lab-9",
+    },
   };
 
   const stateRoundTripCase = documentRoundTripCase({
@@ -12298,6 +13631,521 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
         assertion: {
           status: 200,
           jsonPathEquals: listEquals([]),
+        },
+      },
+    ],
+  });
+
+  const stateEndpointCase = singleRequestCase({
+    caseId: "v2.activities-state.endpoint",
+    title: 'The State Resource is available at "base IRI"+"/activities/state"',
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00230",
+        section: "Communication 2.2.s3.table1.row1",
+        title: 'State Resource is available at "base IRI"+"/activities/state"',
+      },
+    ],
+    tags: ["v2.0.0", "activities-state", "document", "endpoint"],
+    capabilityFlags: ["document", "state", "endpoint"],
+    legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    request: buildVersionedRequest("POST", "activities-state", stateEndpointIdentity, stateRequestBody),
+    assertion: {
+      status: 204,
+    },
+    notes: ["proof-slice activity state endpoint"],
+  });
+
+  const statePutAcceptedCase = singleRequestCase({
+    caseId: "v2.activities-state.accepts.put",
+    title: "The State Resource accepts PUT requests with 204 No Content",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00190",
+        section: "Communication 2.3",
+        title: "State Resource accepts PUT requests with 204 No Content",
+      },
+    ],
+    tags: ["v2.0.0", "activities-state", "document", "write"],
+    capabilityFlags: ["document", "state", "write"],
+    legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    request: buildVersionedRequest("PUT", "activities-state", statePutAcceptedIdentity, stateRequestBody),
+    assertion: {
+      status: 204,
+    },
+    notes: ["proof-slice activity state put accepted"],
+  });
+
+  const statePostAcceptedCase = singleRequestCase({
+    caseId: "v2.activities-state.accepts.post",
+    title: "The State Resource accepts POST requests with 204 No Content",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00189",
+        section: "Communication 2.3",
+        title: "State Resource accepts POST requests with 204 No Content",
+      },
+      {
+        id: "XAPI-00231",
+        section: "Communication 2.3",
+        title: "State Resource accepts POST requests",
+      },
+    ],
+    tags: ["v2.0.0", "activities-state", "document", "write"],
+    capabilityFlags: ["document", "state", "write"],
+    legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    request: buildVersionedRequest("POST", "activities-state", statePostAcceptedIdentity, stateRequestBody),
+    assertion: {
+      status: 204,
+    },
+    notes: ["proof-slice activity state post accepted"],
+  });
+
+  const stateGetAcceptedCase = documentRoundTripCase({
+    caseId: "v2.activities-state.accepts.get",
+    title: "The State Resource accepts GET requests and returns the stored document",
+    specVersion,
+    endpoint: "activities-state",
+    submitMethod: "POST",
+    requirementRefs: [
+      {
+        id: "XAPI-00188",
+        section: "Communication 2.3",
+        title: "State Resource accepts GET requests and returns the stored document",
+      },
+    ],
+    tags: ["v2.0.0", "activities-state", "document", "retrieval"],
+    legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    query: stateGetAcceptedIdentity,
+    body: stateDocument,
+    bodyFixtureName: "activity-state-default",
+    queryJsonPathEquals: [
+      {
+        path: ["bookmark"],
+        equals: stateDocument.bookmark,
+      },
+      {
+        path: ["progress", "attempts"],
+        equals: stateDocument.progress.attempts,
+      },
+      {
+        path: ["progress", "complete"],
+        equals: stateDocument.progress.complete,
+      },
+      {
+        path: ["context", "location"],
+        equals: stateDocument.context.location,
+      },
+    ],
+    capabilityFlags: ["document", "retrieval", "state"],
+    notes: ["proof-slice activity state get accepted"],
+  });
+
+  const stateGetByStateIdCase = documentRoundTripCase({
+    caseId: "v2.activities-state.accepts.get-with-state-id",
+    title: "The State Resource can process GET requests with stateId",
+    specVersion,
+    endpoint: "activities-state",
+    submitMethod: "POST",
+    requirementRefs: [
+      {
+        id: "XAPI-00217",
+        section: "Communication 2.3.s3.table1.row4",
+        title: "State Resource can process GET requests with stateId",
+      },
+    ],
+    tags: ["v2.0.0", "activities-state", "document", "retrieval", "stateId"],
+    legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    query: stateGetByStateIdIdentity,
+    body: stateDocument,
+    bodyFixtureName: "activity-state-default",
+    queryJsonPathEquals: [
+      {
+        path: ["bookmark"],
+        equals: stateDocument.bookmark,
+      },
+      {
+        path: ["progress", "attempts"],
+        equals: stateDocument.progress.attempts,
+      },
+      {
+        path: ["progress", "complete"],
+        equals: stateDocument.progress.complete,
+      },
+      {
+        path: ["context", "location"],
+        equals: stateDocument.context.location,
+      },
+    ],
+    capabilityFlags: ["document", "retrieval", "state", "stateId"],
+    notes: ["proof-slice activity state get with stateId accepted"],
+  });
+
+  const stateSinceAcceptedCase = requestSequenceCase({
+    caseId: "v2.activities-state.document-list-since-accepted",
+    title: "The State Resource can process GET requests with the since parameter",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00221",
+        section: "Communication 2.3.s4.table1.row4",
+        title: "State Resource can process GET requests with since",
+      },
+    ],
+    tags: ["v2.0.0", "activities-state", "document", "list", "since"],
+    capabilityFlags: ["document", "list", "state", "since"],
+    legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    notes: ["proof-slice activity state since accepted"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "activities-state", stateSinceAcceptedIdentity, stateRequestBody),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "activities-state", {
+          activityId: stateSinceAcceptedIdentity.activityId,
+          agent: stateSinceAcceptedIdentity.agent,
+          since: validSinceTimestamp,
+        }),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([stateSinceAcceptedIdentity.stateId]),
+        },
+      },
+    ],
+  });
+
+  const statePostAsPutCase = requestSequenceCase({
+    caseId: "v2.activities-state.document-post-as-put",
+    title: "The State Resource treats POST as PUT when no document exists",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00233",
+        section: "Communication 2.2.s7",
+        title: "State Resource treats POST as PUT when no document exists",
+      },
+    ],
+    tags: ["v2.0.0", "activities-state", "document", "merge", "write"],
+    capabilityFlags: ["document", "state", "write"],
+    legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    notes: ["proof-slice activity state post as put"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "activities-state", statePostAsPutIdentity, stateRequestBody),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "activities-state", statePostAsPutIdentity),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["bookmark"],
+              equals: stateDocument.bookmark,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const stateNonJsonTypeRejectCase = requestSequenceCase({
+    caseId: "v2.activities-state.document-merge-rejects-non-json-type",
+    title: "The State Resource rejects POST merges when either document type is not application or json",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00232",
+        section: "Communication 2.2.s8.b1",
+        title: "State Resource rejects POST merges when either document type is not application or json",
+      },
+    ],
+    tags: ["v2.0.0", "activities-state", "document", "merge", "invalid"],
+    capabilityFlags: ["document", "merge", "state", "invalid"],
+    legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    notes: ["proof-slice activity state non-json type merge rejection"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "activities-state", stateNonJsonTypeRejectIdentity, {
+          value: {
+            car: "Honda",
+          },
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("POST", "activities-state", stateNonJsonTypeRejectIdentity, {
+          kind: "text",
+          value: nonJsonDocumentBody,
+          contentType: "not/json",
+        }),
+        assertion: {
+          status: 400,
+        },
+      },
+    ],
+  });
+
+  const stateInvalidJsonMergeRejectCase = requestSequenceCase({
+    caseId: "v2.activities-state.document-merge-rejects-invalid-json-body",
+    title: "The State Resource rejects POST merges when the incoming JSON document body is invalid",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00229",
+        section: "Communication 2.3.s3.table1.row3",
+        title: "State Resource rejects invalid JSON POST merges without mutation",
+      },
+    ],
+    tags: ["v2.0.0", "activities-state", "document", "merge", "invalid", "json"],
+    capabilityFlags: ["document", "merge", "state", "invalid", "json"],
+    legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    notes: ["proof-slice activity state invalid JSON merge rejection"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "activities-state", stateInvalidJsonMergeRejectIdentity, {
+          value: {
+            car: "Honda",
+          },
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("POST", "activities-state", stateInvalidJsonMergeRejectIdentity, {
+          kind: "text",
+          value: invalidJsonDocumentBody,
+          contentType: "application/json",
+        }),
+        assertion: {
+          status: 400,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "activities-state", stateInvalidJsonMergeRejectIdentity),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["car"],
+              equals: "Honda",
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const stateDeleteAcceptedCase = requestSequenceCase({
+    caseId: "v2.activities-state.accepts.delete",
+    title: "The State Resource accepts DELETE requests with stateId",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00187",
+        section: "Communication 2.3",
+        title: "State Resource accepts DELETE requests with 204 No Content",
+      },
+    ],
+    tags: ["v2.0.0", "activities-state", "document", "delete"],
+    capabilityFlags: ["document", "delete", "state"],
+    legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    notes: ["proof-slice activity state delete accepted"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "activities-state", stateDeleteAcceptedIdentity, stateRequestBody),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("DELETE", "activities-state", stateDeleteAcceptedIdentity),
+        assertion: {
+          status: 204,
+        },
+      },
+    ],
+  });
+
+  const stateDeleteByStateIdCase = requestSequenceCase({
+    caseId: "v2.activities-state.delete-by-state-id",
+    title: "The State Resource deletes a stored document when DELETE includes stateId",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00191",
+        section: "Communication 2.3.s3",
+        title: "State Resource deletes a stored document when DELETE includes stateId",
+      },
+    ],
+    tags: ["v2.0.0", "activities-state", "document", "delete", "stateId"],
+    capabilityFlags: ["document", "delete", "state", "stateId"],
+    legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    notes: ["proof-slice activity state delete by stateId"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "activities-state", stateDeleteByStateIdIdentity, stateRequestBody),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("DELETE", "activities-state", stateDeleteByStateIdIdentity),
+        assertion: {
+          status: 204,
+        },
+      },
+    ],
+  });
+
+  const stateDeleteStateIdAcceptedCase = requestSequenceCase({
+    caseId: "v2.activities-state.accepts.delete-with-state-id",
+    title: "The State Resource can process DELETE requests with stateId",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00216",
+        section: "Communication 2.3.s3.table1.row4",
+        title: "State Resource can process DELETE requests with stateId",
+      },
+    ],
+    tags: ["v2.0.0", "activities-state", "document", "delete", "stateId"],
+    capabilityFlags: ["document", "delete", "state", "stateId"],
+    legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    notes: ["proof-slice activity state delete with stateId accepted"],
+    steps: [
+      {
+        request: buildVersionedRequest(
+          "POST",
+          "activities-state",
+          stateDeleteStateIdAcceptedIdentity,
+          stateRequestBody,
+        ),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("DELETE", "activities-state", stateDeleteStateIdAcceptedIdentity),
+        assertion: {
+          status: 204,
+        },
+      },
+    ],
+  });
+
+  const stateLastModifiedExistsCase = requestSequenceCase({
+    caseId: "v2.activities-state.headers.last-modified-present",
+    title: "The State Resource includes a Last-Modified header on successful GET responses",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "LEGACY-STATE-LAST-MODIFIED-PRESENT",
+        section: "Communication 2.3",
+        title: "State Resource GET responses include Last-Modified",
+      },
+    ],
+    tags: ["v2.0.0", "activities-state", "document", "headers"],
+    capabilityFlags: ["document", "headers", "state"],
+    legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    notes: ["proof-slice activity state last-modified present"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "activities-state", stateLastModifiedIdentity, stateRequestBody),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "activities-state", stateLastModifiedIdentity),
+        assertion: {
+          status: 200,
+          expectedHeaderPatterns: [
+            {
+              key: "last-modified",
+              pattern: rfc1123HeaderPattern,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const stateLastModifiedUpdatesCase = requestSequenceCase({
+    caseId: "v2.activities-state.headers.last-modified-updates",
+    title: "The State Resource updates Last-Modified when the stored document changes",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "LEGACY-STATE-LAST-MODIFIED-UPDATES",
+        section: "Communication 2.3",
+        title: "State Resource updates Last-Modified when the stored document changes",
+      },
+    ],
+    tags: ["v2.0.0", "activities-state", "document", "headers"],
+    capabilityFlags: ["document", "headers", "state"],
+    legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    notes: ["proof-slice activity state last-modified updates"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "activities-state", stateLastModifiedIdentity, stateRequestBody),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "activities-state", stateLastModifiedIdentity),
+        assertion: {
+          status: 200,
+          expectedHeaderPatterns: [
+            {
+              key: "last-modified",
+              pattern: rfc1123HeaderPattern,
+            },
+          ],
+        },
+      },
+      {
+        request: buildVersionedRequest("POST", "activities-state", stateLastModifiedIdentity, {
+          value: updatedStateDocument,
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "activities-state", stateLastModifiedIdentity),
+        assertion: {
+          status: 200,
+          expectedHeaderPatterns: [
+            {
+              key: "last-modified",
+              pattern: rfc1123HeaderPattern,
+            },
+          ],
+          expectedHeaderDateAfterStep: [
+            {
+              key: "last-modified",
+              fromStep: 2,
+            },
+          ],
+          jsonPathEquals: [
+            {
+              path: ["bookmark"],
+              equals: updatedStateDocument.bookmark,
+            },
+          ],
         },
       },
     ],
@@ -12782,11 +14630,19 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
     children: [
       {
         type: "suite",
+        id: "v2.proof-slice.activities-state.acceptance",
+        title: "State Document Acceptance",
+        specVersion,
+        tags: ["acceptance"],
+        children: [stateEndpointCase, statePutAcceptedCase, statePostAcceptedCase, stateGetAcceptedCase],
+      },
+      {
+        type: "suite",
         id: "v2.proof-slice.activities-state.roundtrip",
         title: "State Document Roundtrip",
         specVersion,
         tags: ["roundtrip"],
-        children: [stateRoundTripCase],
+        children: [stateRoundTripCase, stateGetByStateIdCase],
       },
       {
         type: "suite",
@@ -12802,7 +14658,7 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
         title: "State Document Since",
         specVersion,
         tags: ["list", "since"],
-        children: [stateSinceCase, stateInvalidSinceCase, stateInvalidAgentQueryCase],
+        children: [stateSinceCase, stateSinceAcceptedCase, stateInvalidSinceCase, stateInvalidAgentQueryCase],
       },
       {
         type: "suite",
@@ -12810,7 +14666,14 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
         title: "State Document Merge",
         specVersion,
         tags: ["merge"],
-        children: [stateMergeCase, stateNonJsonPostRejectCase, stateExistingNonJsonRejectCase],
+        children: [
+          stateMergeCase,
+          statePostAsPutCase,
+          stateNonJsonPostRejectCase,
+          stateNonJsonTypeRejectCase,
+          stateExistingNonJsonRejectCase,
+          stateInvalidJsonMergeRejectCase,
+        ],
       },
       {
         type: "suite",
@@ -12818,7 +14681,15 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
         title: "State Document Deletion",
         specVersion,
         tags: ["delete"],
-        children: [stateDeleteCase],
+        children: [stateDeleteAcceptedCase, stateDeleteByStateIdCase, stateDeleteStateIdAcceptedCase, stateDeleteCase],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.activities-state.headers",
+        title: "State Document Headers",
+        specVersion,
+        tags: ["headers"],
+        children: [stateLastModifiedExistsCase, stateLastModifiedUpdatesCase],
       },
       {
         type: "suite",
@@ -12883,6 +14754,29 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
   const profileRequestBody = {
     value: profileDocument,
     fixtureName: "activity-profile-default",
+  };
+  function buildActivityProfileTraceIdentity(idSuffix: string) {
+    return buildActivityProfileIdentityFixture({
+      activityId: `https://example.test/xapi/activities/profile-proof-slice/${idSuffix}`,
+      profileId: `proof-activity-profile-${idSuffix}`,
+    });
+  }
+
+  const profileEndpointIdentity = buildActivityProfileTraceIdentity("endpoint");
+  const profilePutAcceptedIdentity = buildActivityProfileTraceIdentity("put-accepted");
+  const profilePostAcceptedIdentity = buildActivityProfileTraceIdentity("post-accepted");
+  const profileGetAcceptedIdentity = buildActivityProfileTraceIdentity("get-accepted");
+  const profileSinceAcceptedIdentity = buildActivityProfileTraceIdentity("since-accepted");
+  const profilePostAsPutIdentity = buildActivityProfileTraceIdentity("post-as-put");
+  const profileNonJsonTypeRejectIdentity = buildActivityProfileTraceIdentity("merge-reject-type");
+  const profileInvalidJsonMergeRejectIdentity = buildActivityProfileTraceIdentity("merge-reject-invalid-json");
+  const profileLastModifiedIdentity = buildActivityProfileTraceIdentity("last-modified");
+  const updatedProfileDocument = {
+    summary: "Updated activity profile summary",
+    metadata: {
+      audience: "team-leads",
+      level: "advanced",
+    },
   };
 
   const roundTripCase = documentRoundTripCase({
@@ -13254,6 +15148,388 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
     ],
   });
 
+  const endpointCase = singleRequestCase({
+    caseId: "v2.activities-profile.endpoint",
+    title: 'The Activity Profile Resource is available at "base IRI"+"/activities/profile"',
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00311",
+        section: "Communication 2.2.s3.table1.row2",
+        title: 'Activity Profile Resource is available at "base IRI"+"/activities/profile"',
+      },
+    ],
+    tags: ["v2.0.0", "activities-profile", "document", "endpoint"],
+    capabilityFlags: ["document", "activity-profile", "endpoint"],
+    legacyTraceSuiteFile: activityProfileLegacySuiteFile,
+    request: buildVersionedRequest("POST", "activities-profile", profileEndpointIdentity, profileRequestBody),
+    assertion: {
+      status: 204,
+    },
+    notes: ["proof-slice activity profile endpoint"],
+  });
+
+  const putAcceptedCase = singleRequestCase({
+    caseId: "v2.activities-profile.accepts.put",
+    title: "The Activity Profile Resource accepts PUT requests with 204 No Content",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00287",
+        section: "Communication 2.7",
+        title: "Activity Profile Resource accepts PUT requests with 204 No Content",
+      },
+      {
+        id: "XAPI-00293",
+        section: "Communication 2.7",
+        title: "Activity Profile Resource accepts PUT requests",
+      },
+    ],
+    tags: ["v2.0.0", "activities-profile", "document", "write"],
+    capabilityFlags: ["document", "activity-profile", "write"],
+    legacyTraceSuiteFile: activityProfileLegacySuiteFile,
+    request: buildVersionedRequest("PUT", "activities-profile", profilePutAcceptedIdentity, profileRequestBody),
+    assertion: {
+      status: 204,
+    },
+    notes: ["proof-slice activity profile put accepted"],
+  });
+
+  const postAcceptedCase = singleRequestCase({
+    caseId: "v2.activities-profile.accepts.post",
+    title: "The Activity Profile Resource accepts POST requests with 204 No Content",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00286",
+        section: "Communication 2.7",
+        title: "Activity Profile Resource accepts POST requests with 204 No Content",
+      },
+      {
+        id: "XAPI-00292",
+        section: "Communication 2.7",
+        title: "Activity Profile Resource accepts POST requests",
+      },
+      {
+        id: "XAPI-00312",
+        section: "Communication 2.7",
+        title: "Activity Profile Resource accepts POST requests",
+      },
+    ],
+    tags: ["v2.0.0", "activities-profile", "document", "write"],
+    capabilityFlags: ["document", "activity-profile", "write"],
+    legacyTraceSuiteFile: activityProfileLegacySuiteFile,
+    request: buildVersionedRequest("POST", "activities-profile", profilePostAcceptedIdentity, profileRequestBody),
+    assertion: {
+      status: 204,
+    },
+    notes: ["proof-slice activity profile post accepted"],
+  });
+
+  const getAcceptedCase = documentRoundTripCase({
+    caseId: "v2.activities-profile.accepts.get",
+    title: "The Activity Profile Resource accepts GET requests and returns the stored document",
+    specVersion,
+    endpoint: "activities-profile",
+    submitMethod: "POST",
+    requirementRefs: [
+      {
+        id: "XAPI-00290",
+        section: "Communication 2.7",
+        title: "Activity Profile Resource accepts GET requests and returns the stored document",
+      },
+    ],
+    tags: ["v2.0.0", "activities-profile", "document", "retrieval"],
+    legacyTraceSuiteFile: activityProfileLegacySuiteFile,
+    query: profileGetAcceptedIdentity,
+    body: profileDocument,
+    bodyFixtureName: "activity-profile-default",
+    queryJsonPathEquals: [
+      {
+        path: ["summary"],
+        equals: profileDocument.summary,
+      },
+      {
+        path: ["metadata", "audience"],
+        equals: profileDocument.metadata.audience,
+      },
+      {
+        path: ["metadata", "level"],
+        equals: profileDocument.metadata.level,
+      },
+    ],
+    capabilityFlags: ["document", "retrieval", "activity-profile"],
+    notes: ["proof-slice activity profile get accepted"],
+  });
+
+  const sinceAcceptedCase = requestSequenceCase({
+    caseId: "v2.activities-profile.document-list-since-accepted",
+    title: "The Activity Profile Resource can process GET requests with the since parameter",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00303",
+        section: "Communication 2.7.s4.table1.row2",
+        title: "Activity Profile Resource can process GET requests with since",
+      },
+    ],
+    tags: ["v2.0.0", "activities-profile", "document", "list", "since"],
+    capabilityFlags: ["document", "list", "activity-profile", "since"],
+    legacyTraceSuiteFile: activityProfileLegacySuiteFile,
+    notes: ["proof-slice activity profile since accepted"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "activities-profile", profileSinceAcceptedIdentity, profileRequestBody),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "activities-profile", {
+          activityId: profileSinceAcceptedIdentity.activityId,
+          since: validSinceTimestamp,
+        }),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([profileSinceAcceptedIdentity.profileId]),
+        },
+      },
+    ],
+  });
+
+  const postAsPutCase = requestSequenceCase({
+    caseId: "v2.activities-profile.document-post-as-put",
+    title: "The Activity Profile Resource treats POST as PUT when no document exists",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00310",
+        section: "Communication 2.2.s7",
+        title: "Activity Profile Resource treats POST as PUT when no document exists",
+      },
+    ],
+    tags: ["v2.0.0", "activities-profile", "document", "merge", "write"],
+    capabilityFlags: ["document", "activity-profile", "write"],
+    legacyTraceSuiteFile: activityProfileLegacySuiteFile,
+    notes: ["proof-slice activity profile post as put"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "activities-profile", profilePostAsPutIdentity, profileRequestBody),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "activities-profile", profilePostAsPutIdentity),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["summary"],
+              equals: profileDocument.summary,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const nonJsonTypeRejectCase = requestSequenceCase({
+    caseId: "v2.activities-profile.document-merge-rejects-non-json-type",
+    title: "The Activity Profile Resource rejects POST merges when either document type is not application or json",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00309",
+        section: "Communication 2.2.s8.b1",
+        title: "Activity Profile Resource rejects POST merges when either document type is not application or json",
+      },
+    ],
+    tags: ["v2.0.0", "activities-profile", "document", "merge", "invalid"],
+    capabilityFlags: ["document", "merge", "activity-profile", "invalid"],
+    legacyTraceSuiteFile: activityProfileLegacySuiteFile,
+    notes: ["proof-slice activity profile non-json type merge rejection"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "activities-profile", profileNonJsonTypeRejectIdentity, {
+          value: {
+            car: "Honda",
+          },
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("POST", "activities-profile", profileNonJsonTypeRejectIdentity, {
+          kind: "text",
+          value: nonJsonDocumentBody,
+          contentType: "application/octet-stream",
+        }),
+        assertion: {
+          status: 400,
+        },
+      },
+    ],
+  });
+
+  const invalidJsonMergeRejectCase = requestSequenceCase({
+    caseId: "v2.activities-profile.document-merge-rejects-invalid-json-body",
+    title: "The Activity Profile Resource rejects POST merges when the incoming JSON document body is invalid",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00313",
+        section: "Communication 2.7.s3.table1.row3",
+        title: "Activity Profile Resource rejects invalid JSON POST merges without mutation",
+      },
+    ],
+    tags: ["v2.0.0", "activities-profile", "document", "merge", "invalid", "json"],
+    capabilityFlags: ["document", "merge", "activity-profile", "invalid", "json"],
+    legacyTraceSuiteFile: activityProfileLegacySuiteFile,
+    notes: ["proof-slice activity profile invalid JSON merge rejection"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "activities-profile", profileInvalidJsonMergeRejectIdentity, {
+          value: {
+            car: "Honda",
+          },
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("POST", "activities-profile", profileInvalidJsonMergeRejectIdentity, {
+          kind: "text",
+          value: invalidJsonDocumentBody,
+          contentType: "application/json",
+        }),
+        assertion: {
+          status: 400,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "activities-profile", profileInvalidJsonMergeRejectIdentity),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["car"],
+              equals: "Honda",
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const lastModifiedExistsCase = requestSequenceCase({
+    caseId: "v2.activities-profile.headers.last-modified-present",
+    title: "The Activity Profile Resource includes a Last-Modified header on successful GET responses",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "LEGACY-ACTIVITY-PROFILE-LAST-MODIFIED-PRESENT",
+        section: "Communication 2.7",
+        title: "Activity Profile Resource GET responses include Last-Modified",
+      },
+    ],
+    tags: ["v2.0.0", "activities-profile", "document", "headers"],
+    capabilityFlags: ["document", "headers", "activity-profile"],
+    legacyTraceSuiteFile: activityProfileLegacySuiteFile,
+    notes: ["proof-slice activity profile last-modified present"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "activities-profile", profileLastModifiedIdentity, profileRequestBody),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "activities-profile", profileLastModifiedIdentity),
+        assertion: {
+          status: 200,
+          expectedHeaderPatterns: [
+            {
+              key: "last-modified",
+              pattern: rfc1123HeaderPattern,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const lastModifiedUpdatesCase = requestSequenceCase({
+    caseId: "v2.activities-profile.headers.last-modified-updates",
+    title: "The Activity Profile Resource updates Last-Modified when the stored document changes",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "LEGACY-ACTIVITY-PROFILE-LAST-MODIFIED-UPDATES",
+        section: "Communication 2.7",
+        title: "Activity Profile Resource updates Last-Modified when the stored document changes",
+      },
+    ],
+    tags: ["v2.0.0", "activities-profile", "document", "headers"],
+    capabilityFlags: ["document", "headers", "activity-profile"],
+    legacyTraceSuiteFile: activityProfileLegacySuiteFile,
+    notes: ["proof-slice activity profile last-modified updates"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "activities-profile", profileLastModifiedIdentity, profileRequestBody),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "activities-profile", profileLastModifiedIdentity),
+        assertion: {
+          status: 200,
+          expectedHeaderPatterns: [
+            {
+              key: "last-modified",
+              pattern: rfc1123HeaderPattern,
+            },
+          ],
+        },
+      },
+      {
+        request: buildVersionedRequest("POST", "activities-profile", profileLastModifiedIdentity, {
+          value: updatedProfileDocument,
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "activities-profile", profileLastModifiedIdentity),
+        assertion: {
+          status: 200,
+          expectedHeaderPatterns: [
+            {
+              key: "last-modified",
+              pattern: rfc1123HeaderPattern,
+            },
+          ],
+          expectedHeaderDateAfterStep: [
+            {
+              key: "last-modified",
+              fromStep: 2,
+            },
+          ],
+          jsonPathEquals: [
+            {
+              path: ["summary"],
+              equals: updatedProfileDocument.summary,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
   const validationCases = [
     buildDocumentResourceValidationCase({
       caseId: "v2.activities-profile.validation.missing-activityId.put",
@@ -13396,6 +15672,14 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
     children: [
       {
         type: "suite",
+        id: "v2.proof-slice.activities-profile.acceptance",
+        title: "Activity Profile Acceptance",
+        specVersion,
+        tags: ["acceptance"],
+        children: [endpointCase, putAcceptedCase, postAcceptedCase, getAcceptedCase],
+      },
+      {
+        type: "suite",
         id: "v2.proof-slice.activities-profile.roundtrip",
         title: "Activity Profile Roundtrip",
         specVersion,
@@ -13416,7 +15700,7 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
         title: "Activity Profile Since",
         specVersion,
         tags: ["list", "since"],
-        children: [sinceCase, invalidSinceCase, invalidJsonPostCase],
+        children: [sinceCase, sinceAcceptedCase, invalidSinceCase, invalidJsonPostCase],
       },
       {
         type: "suite",
@@ -13424,7 +15708,14 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
         title: "Activity Profile Merge",
         specVersion,
         tags: ["merge"],
-        children: [mergeCase, nonJsonPostRejectCase, existingNonJsonRejectCase],
+        children: [
+          mergeCase,
+          postAsPutCase,
+          nonJsonTypeRejectCase,
+          nonJsonPostRejectCase,
+          existingNonJsonRejectCase,
+          invalidJsonMergeRejectCase,
+        ],
       },
       {
         type: "suite",
@@ -13433,6 +15724,14 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
         specVersion,
         tags: ["delete"],
         children: [deleteCase],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.activities-profile.headers",
+        title: "Activity Profile Headers",
+        specVersion,
+        tags: ["headers"],
+        children: [lastModifiedExistsCase, lastModifiedUpdatesCase],
       },
       {
         type: "suite",
@@ -13517,6 +15816,32 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
   const profileRequestBody = {
     value: profileDocument,
     fixtureName: "agent-profile-default",
+  };
+  function buildAgentProfileTraceIdentity(idSuffix: string) {
+    return buildAgentProfileIdentityFixture({
+      agent: JSON.stringify({
+        objectType: "Agent",
+        mbox: `mailto:agent-profile-${idSuffix}@example.test`,
+        name: `Agent Profile ${idSuffix}`,
+      }),
+      profileId: `proof-agent-profile-${idSuffix}`,
+    });
+  }
+
+  const profilePutAcceptedIdentity = buildAgentProfileTraceIdentity("put-accepted");
+  const profilePostAcceptedIdentity = buildAgentProfileTraceIdentity("post-accepted");
+  const profileGetAcceptedIdentity = buildAgentProfileTraceIdentity("get-accepted");
+  const profileSinceAcceptedIdentity = buildAgentProfileTraceIdentity("since-accepted");
+  const profilePostAsPutIdentity = buildAgentProfileTraceIdentity("post-as-put");
+  const profileLegacyNonJsonRejectIdentity = buildAgentProfileTraceIdentity("merge-reject-legacy-non-json");
+  const profileInvalidJsonMergeRejectIdentity = buildAgentProfileTraceIdentity("merge-reject-invalid-json");
+  const profileLastModifiedIdentity = buildAgentProfileTraceIdentity("last-modified");
+  const updatedAgentProfileDocument = {
+    preference: "digest-only",
+    notifications: {
+      email: false,
+      digest: "weekly",
+    },
   };
 
   const roundTripCase = documentRoundTripCase({
@@ -13889,6 +16214,375 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
     ],
   });
 
+  const putAcceptedCase = singleRequestCase({
+    caseId: "v2.agents-profile.accepts.put",
+    title: "The Agent Profile Resource accepts PUT requests with 204 No Content",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00273",
+        section: "Communication 2.6.s3",
+        title: "Agent Profile Resource accepts PUT requests with 204 No Content",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "write"],
+    capabilityFlags: ["document", "agent-profile", "write"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    request: buildVersionedRequest(
+      "PUT",
+      "agents-profile",
+      profilePutAcceptedIdentity,
+      profileRequestBody,
+      { "If-None-Match": "*" },
+    ),
+    assertion: {
+      status: 204,
+    },
+    notes: ["proof-slice agent profile put accepted"],
+  });
+
+  const postAcceptedCase = singleRequestCase({
+    caseId: "v2.agents-profile.accepts.post",
+    title: "The Agent Profile Resource accepts POST requests with 204 No Content",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00272",
+        section: "Communication 2.6.s3",
+        title: "Agent Profile Resource accepts POST requests with 204 No Content",
+      },
+      {
+        id: "XAPI-00283",
+        section: "Communication 2.6.s3",
+        title: "Agent Profile Resource accepts POST requests",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "write"],
+    capabilityFlags: ["document", "agent-profile", "write"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    request: buildVersionedRequest("POST", "agents-profile", profilePostAcceptedIdentity, profileRequestBody),
+    assertion: {
+      status: 204,
+    },
+    notes: ["proof-slice agent profile post accepted"],
+  });
+
+  const getAcceptedCase = documentRoundTripCase({
+    caseId: "v2.agents-profile.accepts.get",
+    title: "The Agent Profile Resource accepts GET requests and returns the stored document",
+    specVersion,
+    endpoint: "agents-profile",
+    submitMethod: "POST",
+    requirementRefs: [
+      {
+        id: "XAPI-00274",
+        section: "Communication 2.6.s2",
+        title: "Agent Profile Resource accepts GET requests and returns the stored document",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "retrieval"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    query: profileGetAcceptedIdentity,
+    body: profileDocument,
+    bodyFixtureName: "agent-profile-default",
+    queryJsonPathEquals: [
+      {
+        path: ["preference"],
+        equals: profileDocument.preference,
+      },
+      {
+        path: ["notifications", "email"],
+        equals: profileDocument.notifications.email,
+      },
+      {
+        path: ["notifications", "digest"],
+        equals: profileDocument.notifications.digest,
+      },
+    ],
+    capabilityFlags: ["document", "retrieval", "agent-profile"],
+    notes: ["proof-slice agent profile get accepted"],
+  });
+
+  const sinceAcceptedCase = requestSequenceCase({
+    caseId: "v2.agents-profile.document-list-since-accepted",
+    title: "The Agent Profile Resource can process GET requests with the since parameter",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00268",
+        section: "Communication 2.6.s4.table1.row2",
+        title: "Agent Profile Resource can process GET requests with since",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "list", "since"],
+    capabilityFlags: ["document", "list", "agent-profile", "since"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    notes: ["proof-slice agent profile since accepted"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profileSinceAcceptedIdentity, profileRequestBody),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "agents-profile", {
+          agent: profileSinceAcceptedIdentity.agent,
+          since: validSinceTimestamp,
+        }),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([profileSinceAcceptedIdentity.profileId]),
+        },
+      },
+    ],
+  });
+
+  const postAsPutCase = requestSequenceCase({
+    caseId: "v2.agents-profile.document-post-as-put",
+    title: "The Agent Profile Resource treats POST as PUT when no document exists",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00280",
+        section: "Communication 2.2.s7",
+        title: "Agent Profile Resource treats POST as PUT when no document exists",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "merge", "write"],
+    capabilityFlags: ["document", "agent-profile", "write"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    notes: ["proof-slice agent profile post as put"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profilePostAsPutIdentity, profileRequestBody),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "agents-profile", profilePostAsPutIdentity),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["preference"],
+              equals: profileDocument.preference,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const legacyNonJsonRejectCase = requestSequenceCase({
+    caseId: "v2.agents-profile.document-merge-rejects-legacy-non-json-post",
+    title: "The Agent Profile Resource rejects legacy non-JSON POST merges without mutation",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00281",
+        section: "Communication 2.6",
+        title: "Agent Profile Resource rejects legacy non-JSON POST merges without mutation",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "merge", "invalid"],
+    capabilityFlags: ["document", "merge", "agent-profile", "invalid"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    notes: ["proof-slice agent profile legacy non-json merge rejection"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profileLegacyNonJsonRejectIdentity, {
+          value: {
+            car: "Honda",
+          },
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profileLegacyNonJsonRejectIdentity, {
+          kind: "text",
+          value: nonJsonDocumentBody,
+          contentType: "not/json",
+        }),
+        assertion: {
+          status: 400,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "agents-profile", profileLegacyNonJsonRejectIdentity),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["car"],
+              equals: "Honda",
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const invalidJsonMergeRejectCase = requestSequenceCase({
+    caseId: "v2.agents-profile.document-merge-rejects-invalid-json-body",
+    title: "The Agent Profile Resource rejects POST merges when the incoming JSON document body is invalid",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00278",
+        section: "Communication 2.3.s3.table1.row3",
+        title: "Agent Profile Resource rejects invalid JSON POST merges without mutation",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "merge", "invalid", "json"],
+    capabilityFlags: ["document", "merge", "agent-profile", "invalid", "json"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    notes: ["proof-slice agent profile invalid JSON merge rejection"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profileInvalidJsonMergeRejectIdentity, {
+          value: {
+            car: "Honda",
+          },
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profileInvalidJsonMergeRejectIdentity, {
+          kind: "text",
+          value: invalidJsonDocumentBody,
+          contentType: "application/json",
+        }),
+        assertion: {
+          status: 400,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "agents-profile", profileInvalidJsonMergeRejectIdentity),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["car"],
+              equals: "Honda",
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const lastModifiedExistsCase = requestSequenceCase({
+    caseId: "v2.agents-profile.headers.last-modified-present",
+    title: "The Agent Profile Resource includes a Last-Modified header on successful GET responses",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "LEGACY-AGENT-PROFILE-LAST-MODIFIED-PRESENT",
+        section: "Communication 2.6",
+        title: "Agent Profile Resource GET responses include Last-Modified",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "headers"],
+    capabilityFlags: ["document", "headers", "agent-profile"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    notes: ["proof-slice agent profile last-modified present"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profileLastModifiedIdentity, profileRequestBody),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "agents-profile", profileLastModifiedIdentity),
+        assertion: {
+          status: 200,
+          expectedHeaderPatterns: [
+            {
+              key: "last-modified",
+              pattern: rfc1123HeaderPattern,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const lastModifiedUpdatesCase = requestSequenceCase({
+    caseId: "v2.agents-profile.headers.last-modified-updates",
+    title: "The Agent Profile Resource updates Last-Modified when the stored document changes",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "LEGACY-AGENT-PROFILE-LAST-MODIFIED-UPDATES",
+        section: "Communication 2.6",
+        title: "Agent Profile Resource updates Last-Modified when the stored document changes",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "headers"],
+    capabilityFlags: ["document", "headers", "agent-profile"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    notes: ["proof-slice agent profile last-modified updates"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profileLastModifiedIdentity, profileRequestBody),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "agents-profile", profileLastModifiedIdentity),
+        assertion: {
+          status: 200,
+          expectedHeaderPatterns: [
+            {
+              key: "last-modified",
+              pattern: rfc1123HeaderPattern,
+            },
+          ],
+        },
+      },
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profileLastModifiedIdentity, {
+          value: updatedAgentProfileDocument,
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "agents-profile", profileLastModifiedIdentity),
+        assertion: {
+          status: 200,
+          expectedHeaderPatterns: [
+            {
+              key: "last-modified",
+              pattern: rfc1123HeaderPattern,
+            },
+          ],
+          expectedHeaderDateAfterStep: [
+            {
+              key: "last-modified",
+              fromStep: 2,
+            },
+          ],
+          jsonPathEquals: [
+            {
+              path: ["preference"],
+              equals: updatedAgentProfileDocument.preference,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
   const validationCases = [
     buildDocumentResourceValidationCase({
       caseId: "v2.agents-profile.validation.missing-agent.put",
@@ -14117,6 +16811,14 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
     children: [
       {
         type: "suite",
+        id: "v2.proof-slice.agents-profile.acceptance",
+        title: "Agent Profile Acceptance",
+        specVersion,
+        tags: ["acceptance"],
+        children: [putAcceptedCase, postAcceptedCase, getAcceptedCase],
+      },
+      {
+        type: "suite",
         id: "v2.proof-slice.agents-profile.roundtrip",
         title: "Agent Profile Roundtrip",
         specVersion,
@@ -14137,7 +16839,7 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
         title: "Agent Profile Since",
         specVersion,
         tags: ["list", "since"],
-        children: [sinceCase, invalidSinceCase, invalidAgentQueryCase],
+        children: [sinceCase, sinceAcceptedCase, invalidSinceCase, invalidAgentQueryCase],
       },
       {
         type: "suite",
@@ -14145,7 +16847,14 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
         title: "Agent Profile Merge",
         specVersion,
         tags: ["merge"],
-        children: [mergeCase, nonJsonPostRejectCase, existingNonJsonRejectCase],
+        children: [
+          mergeCase,
+          postAsPutCase,
+          nonJsonPostRejectCase,
+          legacyNonJsonRejectCase,
+          existingNonJsonRejectCase,
+          invalidJsonMergeRejectCase,
+        ],
       },
       {
         type: "suite",
@@ -14154,6 +16863,14 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
         specVersion,
         tags: ["delete"],
         children: [deleteCase],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.agents-profile.headers",
+        title: "Agent Profile Headers",
+        specVersion,
+        tags: ["headers"],
+        children: [lastModifiedExistsCase, lastModifiedUpdatesCase],
       },
       {
         type: "suite",
@@ -16696,6 +19413,244 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: ["proof-slice get statements no content-length"],
   });
 
+  const headAboutAcceptedCase = singleRequestCase({
+    caseId: "v2.communication.head.about.accepted",
+    title: "The About Resource accepts HEAD requests",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "LEGACY-HEAD-ABOUT-ACCEPTED",
+        section: "Communication 1.1",
+        title: "The About Resource accepts HEAD requests",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "head", "about"],
+    capabilityFlags: ["communication", "head", "about"],
+    legacyTraceSuiteFile: headRequestsLegacySuiteFile,
+    request: buildHeadRequest("about", {}),
+    assertion: {
+      status: 200,
+    },
+    notes: ["proof-slice head about accepted"],
+  });
+
+  const headAboutNoBodyCase = singleRequestCase({
+    caseId: "v2.communication.head.about.no-body",
+    title: "The About Resource responds to HEAD without a message body",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "LEGACY-HEAD-ABOUT-NO-BODY",
+        section: "Communication 1.1.s3.b1",
+        title: "The About Resource responds to HEAD without a message body",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "head", "about"],
+    capabilityFlags: ["communication", "head", "about"],
+    legacyTraceSuiteFile: headRequestsLegacySuiteFile,
+    request: buildHeadRequest("about", {}),
+    assertion: {
+      status: 200,
+      jsonPathEquals: headNoBodyExpectation,
+    },
+    notes: ["proof-slice head about no body"],
+  });
+
+  const headActivitiesAcceptedCase = requestSequenceCase({
+    caseId: "v2.communication.head.activities.accepted",
+    title: "The Activities Resource accepts HEAD requests",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00126",
+        section: "Communication 1.1",
+        title: "The Activities Resource accepts HEAD requests",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "head", "activities"],
+    capabilityFlags: ["communication", "head", "activities"],
+    legacyTraceSuiteFile: headRequestsLegacySuiteFile,
+    notes: ["proof-slice head activities accepted"],
+    steps: [
+      {
+        request: buildStatementPostRequest(headActivityStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildHeadRequest("activities", {
+          activityId: headActivityId,
+        }),
+        assertion: {
+          status: 200,
+          expectedHeaders: [
+            {
+              key: "X-Experience-API-Version",
+              equals: specVersion,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const headActivityProfileAcceptedCase = requestSequenceCase({
+    caseId: "v2.communication.head.activities-profile.accepted",
+    title: "The Activity Profile Resource accepts HEAD requests",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00126",
+        section: "Communication 1.1",
+        title: "The Activity Profile Resource accepts HEAD requests",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "head", "activities-profile"],
+    capabilityFlags: ["communication", "head", "activities-profile"],
+    legacyTraceSuiteFile: headRequestsLegacySuiteFile,
+    notes: ["proof-slice head activities profile accepted"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "activities-profile", headActivityProfileIdentity, {
+          value: buildActivityProfileDocumentFixture(),
+          fixtureName: "activity-profile-default",
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildHeadRequest("activities-profile", headActivityProfileIdentity),
+        assertion: {
+          status: 200,
+        },
+      },
+    ],
+  });
+
+  const headStateAcceptedCase = requestSequenceCase({
+    caseId: "v2.communication.head.activities-state.accepted",
+    title: "The State Resource accepts HEAD requests",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00126",
+        section: "Communication 1.1",
+        title: "The State Resource accepts HEAD requests",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "head", "activities-state"],
+    capabilityFlags: ["communication", "head", "activities-state"],
+    legacyTraceSuiteFile: headRequestsLegacySuiteFile,
+    notes: ["proof-slice head activities state accepted"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "activities-state", headStateIdentity, {
+          value: buildActivityStateDocumentFixture(),
+          fixtureName: "activity-state-default",
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildHeadRequest("activities-state", headStateIdentity),
+        assertion: {
+          status: 200,
+        },
+      },
+    ],
+  });
+
+  const headAgentsAcceptedCase = requestSequenceCase({
+    caseId: "v2.communication.head.agents.accepted",
+    title: "The Agents Resource accepts HEAD requests",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00126",
+        section: "Communication 1.1",
+        title: "The Agents Resource accepts HEAD requests",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "head", "agents"],
+    capabilityFlags: ["communication", "head", "agents"],
+    legacyTraceSuiteFile: headRequestsLegacySuiteFile,
+    notes: ["proof-slice head agents accepted"],
+    steps: [
+      {
+        request: buildStatementPostRequest(headAgentStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildHeadRequest("agents", {
+          agent: buildAgentQuery(headAgentMbox),
+        }),
+        assertion: {
+          status: 200,
+        },
+      },
+    ],
+  });
+
+  const headAgentProfileAcceptedCase = requestSequenceCase({
+    caseId: "v2.communication.head.agents-profile.accepted",
+    title: "The Agent Profile Resource accepts HEAD requests",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00126",
+        section: "Communication 1.1",
+        title: "The Agent Profile Resource accepts HEAD requests",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "head", "agents-profile"],
+    capabilityFlags: ["communication", "head", "agents-profile"],
+    legacyTraceSuiteFile: headRequestsLegacySuiteFile,
+    notes: ["proof-slice head agents profile accepted"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "agents-profile", headAgentProfileIdentity, {
+          value: buildAgentProfileDocumentFixture(),
+          fixtureName: "agent-profile-default",
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildHeadRequest("agents-profile", headAgentProfileIdentity),
+        assertion: {
+          status: 200,
+        },
+      },
+    ],
+  });
+
+  const headStatementsAcceptedCase = singleRequestCase({
+    caseId: "v2.communication.head.statements.accepted",
+    title: "The Statements Resource accepts HEAD requests",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00126",
+        section: "Communication 1.1",
+        title: "The Statements Resource accepts HEAD requests",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "head", "statements"],
+    capabilityFlags: ["communication", "head", "statements"],
+    legacyTraceSuiteFile: headRequestsLegacySuiteFile,
+    request: buildHeadRequest("statements", {}),
+    assertion: {
+      status: 200,
+    },
+    notes: ["proof-slice head statements accepted"],
+  });
+
   const versionHeaderStatement = buildProofStatement(262);
   const missingHeaderGetStatement = buildProofStatement(263);
   const missingHeaderPostStatement = buildProofStatement(264);
@@ -17104,6 +20059,18 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
       ],
     },
   ]);
+  const duplicateJsonFileUrlAttachmentStatement = buildProofStatement(275, [
+    {
+      operation: "set",
+      path: ["attachments"],
+      value: [
+        buildAttachmentFixture({
+          fileUrl: "https://example.test/files/content-type-proof-repeat.txt",
+        }),
+      ],
+    },
+  ]);
+  const multipartNoAttachmentsStatement = buildProofStatement(276);
   const rawAttachmentStatement = buildProofStatement(274, [
     {
       operation: "set",
@@ -17118,6 +20085,53 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
       ],
     },
   ]);
+  const rawAttachmentPart: MultipartStatementAttachment = {
+    contentType: "text/plain",
+    sha2: rawAttachmentSha,
+    body: rawAttachmentBody,
+  };
+  const rawMultipartContentType = `multipart/mixed; boundary=${contentTypeBoundary}`;
+  const validRawMultipartBody = buildMultipartStatementRequestBody(
+    rawAttachmentStatement,
+    [rawAttachmentPart],
+    contentTypeBoundary,
+  );
+  const missingInitialBoundaryMultipartBody =
+    `Content-Type: application/json\r\n\r\n${JSON.stringify(rawAttachmentStatement)}\r\n` +
+    `--${contentTypeBoundary}\r\n` +
+    `Content-Type: text/plain\r\n` +
+    `Content-Transfer-Encoding: binary\r\n` +
+    `X-Experience-API-Hash: ${rawAttachmentSha}\r\n\r\n` +
+    `${rawAttachmentBody}\r\n` +
+    `--${contentTypeBoundary}--\r\n`;
+  const missingBoundaryBetweenPartsBody =
+    `--${contentTypeBoundary}\r\n` +
+    `Content-Type: application/json\r\n\r\n${JSON.stringify(rawAttachmentStatement)}\r\n` +
+    `Content-Type: text/plain\r\n` +
+    `Content-Transfer-Encoding: binary\r\n` +
+    `X-Experience-API-Hash: ${rawAttachmentSha}\r\n\r\n` +
+    `${rawAttachmentBody}\r\n` +
+    `--${contentTypeBoundary}--\r\n`;
+  const firstPartNotJsonMultipartBody =
+    `--${contentTypeBoundary}\r\n` +
+    `Content-Type: text/plain\r\n\r\n${JSON.stringify(rawAttachmentStatement)}\r\n` +
+    `--${contentTypeBoundary}\r\n` +
+    `Content-Type: text/plain\r\n` +
+    `Content-Transfer-Encoding: binary\r\n` +
+    `X-Experience-API-Hash: ${rawAttachmentSha}\r\n\r\n` +
+    `${rawAttachmentBody}\r\n` +
+    `--${contentTypeBoundary}--\r\n`;
+  const splitStatementsAcrossPartsBody =
+    `--${contentTypeBoundary}\r\n` +
+    `Content-Type: application/json\r\n\r\n${JSON.stringify(rawAttachmentStatement)}\r\n` +
+    `--${contentTypeBoundary}\r\n` +
+    `Content-Type: application/json\r\n\r\n${JSON.stringify(rawAttachmentStatement)}\r\n` +
+    `--${contentTypeBoundary}\r\n` +
+    `Content-Type: text/plain\r\n` +
+    `Content-Transfer-Encoding: binary\r\n` +
+    `X-Experience-API-Hash: ${rawAttachmentSha}\r\n\r\n` +
+    `${rawAttachmentBody}\r\n` +
+    `--${contentTypeBoundary}--\r\n`;
 
   const jsonFileUrlContentTypeCase = singleRequestCase({
     caseId: "v2.communication.content-types.json-file-url",
@@ -17200,6 +20214,48 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
       status: 200,
     },
     notes: ["proof-slice content types multipart raw attachment"],
+  });
+
+  const duplicateJsonFileUrlContentTypeCase = singleRequestCase({
+    caseId: "v2.communication.content-types.json-file-url-repeat",
+    title: "Statement POST also accepts application/json for repeated fileUrl attachment coverage",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00127",
+        section: "Communication 1.5.1",
+        title: "Statement writes accept application/json for fileUrl attachments",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "content-types"],
+    capabilityFlags: ["communication", "content-types"],
+    legacyTraceSuiteFile: contentTypesLegacySuiteFile,
+    request: buildStatementPostRequest(duplicateJsonFileUrlAttachmentStatement),
+    assertion: {
+      status: 200,
+    },
+    notes: ["proof-slice content types json fileUrl repeat"],
+  });
+
+  const multipartWithoutAttachmentsContentTypeCase = singleRequestCase({
+    caseId: "v2.communication.content-types.multipart-without-attachments",
+    title: "Statement POST accepts multipart or mixed requests that contain no attachments",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00127",
+        section: "Communication 1.5.1",
+        title: "Statement writes accept multipart or mixed requests without attachments",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "content-types"],
+    capabilityFlags: ["communication", "content-types"],
+    legacyTraceSuiteFile: contentTypesLegacySuiteFile,
+    request: buildMultipartStatementPostRequest(multipartNoAttachmentsStatement, [], {}, { boundary: contentTypeBoundary }),
+    assertion: {
+      status: 200,
+    },
+    notes: ["proof-slice content types multipart without attachments"],
   });
 
   const jsonRawAttachmentRejectedCase = singleRequestCase({
@@ -17328,6 +20384,206 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: ["proof-slice content types extra multipart section rejected"],
   });
 
+  const missingInitialBoundaryRejectedCase = singleRequestCase({
+    caseId: "v2.communication.content-types.missing-initial-boundary-rejected",
+    title: "Statement POST rejects multipart or mixed requests whose body omits the initial boundary",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00131",
+        section: "Communication 1.5.2.s2.b2",
+        title: "Statement writes reject multipart bodies that omit the boundary marker",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "content-types", "validation"],
+    capabilityFlags: ["communication", "content-types", "validation"],
+    legacyTraceSuiteFile: contentTypesLegacySuiteFile,
+    request: buildMalformedMultipartStatementRequest(missingInitialBoundaryMultipartBody, rawMultipartContentType),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice content types missing initial boundary rejected"],
+  });
+
+  const missingBoundaryBetweenPartsRejectedCase = singleRequestCase({
+    caseId: "v2.communication.content-types.missing-boundary-between-parts-rejected",
+    title: "Statement POST rejects multipart or mixed requests that omit a boundary before a later part",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00130",
+        section: "Communication 1.5.2.s2.b2",
+        title: "Statement writes reject multipart bodies that omit boundaries between parts",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "content-types", "validation"],
+    capabilityFlags: ["communication", "content-types", "validation"],
+    legacyTraceSuiteFile: contentTypesLegacySuiteFile,
+    request: buildMalformedMultipartStatementRequest(missingBoundaryBetweenPartsBody, rawMultipartContentType),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice content types missing boundary between parts rejected"],
+  });
+
+  const missingBoundaryHeaderRejectedCase = singleRequestCase({
+    caseId: "v2.communication.content-types.missing-boundary-header-rejected",
+    title: "Statement POST rejects multipart or mixed requests whose Content-Type omits the boundary parameter",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00130",
+        section: "Communication 1.5.2.s2.b2",
+        title: "Statement writes reject multipart headers that omit the boundary parameter",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "content-types", "validation"],
+    capabilityFlags: ["communication", "content-types", "validation"],
+    legacyTraceSuiteFile: contentTypesLegacySuiteFile,
+    request: buildMalformedMultipartStatementRequest(validRawMultipartBody, "multipart/mixed;"),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice content types missing boundary header rejected"],
+  });
+
+  const firstPartNotJsonRejectedCase = singleRequestCase({
+    caseId: "v2.communication.content-types.first-part-not-json-rejected",
+    title: "Statement POST rejects multipart or mixed requests whose first part is not application/json",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00134",
+        section: "Communication 1.5.2.s2.b2.b1",
+        title: "Statement writes reject multipart requests whose first part is not application/json",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "content-types", "validation"],
+    capabilityFlags: ["communication", "content-types", "validation"],
+    legacyTraceSuiteFile: contentTypesLegacySuiteFile,
+    request: buildMalformedMultipartStatementRequest(firstPartNotJsonMultipartBody, rawMultipartContentType),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice content types first part not json rejected"],
+  });
+
+  const splitStatementsAcrossPartsRejectedCase = singleRequestCase({
+    caseId: "v2.communication.content-types.split-statements-across-parts-rejected",
+    title: "Statement POST rejects multipart or mixed requests that split statements across multiple parts",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00133",
+        section: "Communication 1.5.2.s2.b2.b1",
+        title: "Statement writes reject multipart requests that split statements across parts",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "content-types", "validation"],
+    capabilityFlags: ["communication", "content-types", "validation"],
+    legacyTraceSuiteFile: contentTypesLegacySuiteFile,
+    request: buildMalformedMultipartStatementRequest(splitStatementsAcrossPartsBody, rawMultipartContentType),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice content types split statements across parts rejected"],
+  });
+
+  const missingAttachmentHashRejectedCase = singleRequestCase({
+    caseId: "v2.communication.content-types.missing-attachment-hash-rejected",
+    title: "Statement POST rejects multipart or mixed requests whose attachment parts omit X-Experience-API-Hash",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00132",
+        section: "Communication 1.5.2.s2.b2.b3",
+        title: "Statement writes reject attachment parts that omit X-Experience-API-Hash",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "content-types", "validation"],
+    capabilityFlags: ["communication", "content-types", "validation"],
+    legacyTraceSuiteFile: contentTypesLegacySuiteFile,
+    request: buildMultipartStatementPostRequest(rawAttachmentStatement, [], {}, {
+      boundary: contentTypeBoundary,
+      extraParts: [
+        {
+          contentType: "text/plain",
+          body: rawAttachmentBody,
+        },
+      ],
+    }),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice content types missing attachment hash rejected"],
+  });
+
+  const mismatchedAttachmentHashRejectedCase = singleRequestCase({
+    caseId: "v2.communication.content-types.mismatched-attachment-hash-rejected",
+    title: "Statement POST rejects multipart or mixed requests whose attachment hash does not match a statement sha2",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00132",
+        section: "Communication 1.5.2.s2.b2.b3",
+        title: "Statement writes reject attachment parts whose hash does not match a statement sha2",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "content-types", "validation"],
+    capabilityFlags: ["communication", "content-types", "validation"],
+    legacyTraceSuiteFile: contentTypesLegacySuiteFile,
+    request: buildMultipartStatementPostRequest(
+      rawAttachmentStatement,
+      [
+        {
+          ...rawAttachmentPart,
+          sha2: extraAttachmentSha,
+        },
+      ],
+      {},
+      {
+        boundary: contentTypeBoundary,
+      },
+    ),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice content types mismatched attachment hash rejected"],
+  });
+
+  const invalidTransferEncodingRejectedCase = singleRequestCase({
+    caseId: "v2.communication.content-types.invalid-transfer-encoding-rejected",
+    title: "Statement POST rejects multipart or mixed requests whose attachment parts do not use binary transfer encoding",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00135",
+        section: "Communication 1.5.2",
+        title: "Statement writes reject attachment parts that do not use binary transfer encoding",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "content-types", "validation"],
+    capabilityFlags: ["communication", "content-types", "validation"],
+    legacyTraceSuiteFile: contentTypesLegacySuiteFile,
+    request: buildMultipartStatementPostRequest(
+      rawAttachmentStatement,
+      [
+        {
+          ...rawAttachmentPart,
+          contentTransferEncoding: "base64",
+        },
+      ],
+      {},
+      {
+        boundary: contentTypeBoundary,
+      },
+    ),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice content types invalid transfer encoding rejected"],
+  });
+
   const stateConcurrencySuite = buildDocumentConcurrencyResourceSuite({
     suiteId: "v2.communication.concurrency.activities-state",
     title: "State Resource Concurrency",
@@ -17412,11 +20668,19 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
         specVersion,
         tags: ["communication", "head"],
         children: [
+          headAboutAcceptedCase,
+          headAboutNoBodyCase,
+          headActivitiesAcceptedCase,
           headActivitiesCase,
+          headActivityProfileAcceptedCase,
           headActivityProfileCase,
+          headStateAcceptedCase,
           headStateCase,
+          headAgentsAcceptedCase,
           headAgentsCase,
+          headAgentProfileAcceptedCase,
           headAgentProfileCase,
+          headStatementsAcceptedCase,
           headStatementsCase,
           headWithoutContentLengthCase,
           getWithoutContentLengthCase,
@@ -17463,12 +20727,22 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
         tags: ["communication", "content-types"],
         children: [
           jsonFileUrlContentTypeCase,
+          duplicateJsonFileUrlContentTypeCase,
           multipartFileUrlContentTypeCase,
+          multipartWithoutAttachmentsContentTypeCase,
           multipartRawAttachmentContentTypeCase,
           jsonRawAttachmentRejectedCase,
           formDataFileUrlRejectedCase,
           formDataRawRejectedCase,
           extraMultipartSectionRejectedCase,
+          missingInitialBoundaryRejectedCase,
+          missingBoundaryBetweenPartsRejectedCase,
+          missingBoundaryHeaderRejectedCase,
+          firstPartNotJsonRejectedCase,
+          splitStatementsAcrossPartsRejectedCase,
+          missingAttachmentHashRejectedCase,
+          mismatchedAttachmentHashRejectedCase,
+          invalidTransferEncodingRejectedCase,
         ],
       },
       {

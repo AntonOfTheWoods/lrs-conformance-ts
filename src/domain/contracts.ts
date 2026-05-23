@@ -82,6 +82,14 @@ export const HeaderPatternExpectationSchema = z
   .strict();
 export type HeaderPatternExpectation = z.infer<typeof HeaderPatternExpectationSchema>;
 
+export const HeaderDateAfterStepExpectationSchema = z
+  .object({
+    key: z.string().min(1),
+    fromStep: z.number().int().positive(),
+  })
+  .strict();
+export type HeaderDateAfterStepExpectation = z.infer<typeof HeaderDateAfterStepExpectationSchema>;
+
 export const JsonPathExpectationSchema = z
   .object({
     path: z.array(z.string().min(1)).min(0),
@@ -95,6 +103,7 @@ export const RequestAssertionSchema = z
     status: z.number().int().min(100).max(599),
     expectedHeaders: z.array(HeaderExpectationSchema).default([]),
     expectedHeaderPatterns: z.array(HeaderPatternExpectationSchema).default([]),
+    expectedHeaderDateAfterStep: z.array(HeaderDateAfterStepExpectationSchema).default([]),
     jsonPathEquals: z.array(JsonPathExpectationSchema).default([]),
     jsonPathNotEquals: z.array(JsonPathExpectationSchema).default([]),
     textContains: z.array(z.string().min(1)).default([]),

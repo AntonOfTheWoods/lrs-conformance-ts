@@ -1,6 +1,7 @@
 import type {
   CaseDefinition,
   EndpointKind,
+  HeaderDateAfterStepExpectation,
   HeaderExpectation,
   HeaderPatternExpectation,
   HttpMethod,
@@ -14,6 +15,8 @@ import type {
 import { buildStatementFixture, type FixtureTransform, type StatementFixture } from "../fixtures/v2_0/statements";
 
 const versionHeaderKey = "X-Experience-API-Version";
+
+type BasicRequestAssertion = Omit<RequestAssertion, "expectedHeaderDateAfterStep">;
 
 interface LegacyTraceOptions {
   legacyTraceSuiteFile: string;
@@ -113,6 +116,7 @@ interface RequestAssertionDefinition {
   status: number;
   expectedHeaders?: HeaderExpectation[];
   expectedHeaderPatterns?: HeaderPatternExpectation[];
+  expectedHeaderDateAfterStep?: HeaderDateAfterStepExpectation[];
   jsonPathEquals?: JsonPathExpectation[];
   jsonPathNotEquals?: JsonPathExpectation[];
   textContains?: string[];
@@ -163,7 +167,7 @@ interface StatementQueryValidationFamilyOptions extends LegacyTraceOptions {
   variants: StatementQueryValidationVariant[];
 }
 
-function withAssertionDefaults(assertion: RequestAssertionDefinition): RequestAssertion {
+function withAssertionDefaults(assertion: RequestAssertionDefinition): BasicRequestAssertion {
   return {
     status: assertion.status,
     expectedHeaders: assertion.expectedHeaders ?? [],
@@ -171,6 +175,13 @@ function withAssertionDefaults(assertion: RequestAssertionDefinition): RequestAs
     jsonPathEquals: assertion.jsonPathEquals ?? [],
     jsonPathNotEquals: assertion.jsonPathNotEquals ?? [],
     textContains: assertion.textContains ?? [],
+  };
+}
+
+function withSequenceAssertionDefaults(assertion: RequestAssertionDefinition): RequestAssertion {
+  return {
+    ...withAssertionDefaults(assertion),
+    expectedHeaderDateAfterStep: assertion.expectedHeaderDateAfterStep ?? [],
   };
 }
 
@@ -240,7 +251,7 @@ export function requestSequenceCase(options: RequestSequenceCaseOptions): CaseDe
     },
     assertion: {
       kind: "request-sequence",
-      steps: options.steps.map((step) => withAssertionDefaults(step.assertion)),
+      steps: options.steps.map((step) => withSequenceAssertionDefaults(step.assertion)),
       notes: options.notes ?? [],
     },
   };
