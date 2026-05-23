@@ -1,5 +1,29 @@
-import type { AssertionPlan, CaseDefinition, EndpointKind, RequirementRef, SpecVersion } from "../domain/contracts";
-import { buildStatementFixture, type FixtureTransform } from "../fixtures/v2_0/statements";
+import type {
+  AssertionPlan,
+  CaseDefinition,
+  EndpointKind,
+  HttpMethod,
+  JsonPathExpectation,
+  PollingPlan,
+  RequirementRef,
+  SpecVersion,
+} from "../domain/contracts";
+import { buildStatementFixture, type FixtureTransform, type StatementFixture } from "../fixtures/v2_0/statements";
+
+const versionHeaderKey = "X-Experience-API-Version";
+
+interface LegacyTraceOptions {
+  legacyTraceSuiteFile: string;
+  legacyTraceConfigFile?: string;
+}
+
+interface StatementMutationVariant {
+  idSuffix: string;
+  title: string;
+  transforms: FixtureTransform[];
+  requirementRefs: RequirementRef[];
+  capabilityFlags?: string[];
+}
 
 interface RequiredFieldVariant {
   idSuffix: string;
@@ -8,24 +32,65 @@ interface RequiredFieldVariant {
   requirementRefs: RequirementRef[];
 }
 
-interface RequiredFieldFamilyOptions {
+interface StatementMutationFamilyOptions extends LegacyTraceOptions {
   familyId: string;
   suiteTitle: string;
   specVersion: SpecVersion;
   endpoint: EndpointKind;
   tags: string[];
-  legacyTraceSuiteFile: string;
+  expectedStatus?: number;
+  variants: StatementMutationVariant[];
+}
+
+interface RequiredFieldFamilyOptions extends LegacyTraceOptions {
+  familyId: string;
+  suiteTitle: string;
+  specVersion: SpecVersion;
+  endpoint: EndpointKind;
+  tags: string[];
   variants: RequiredFieldVariant[];
 }
 
-interface QueryRetrievalFamilyOptions {
+interface QueryRetrievalFamilyOptions extends LegacyTraceOptions {
   caseId: string;
   title: string;
   specVersion: SpecVersion;
   queryParam: string;
   requirementRefs: RequirementRef[];
   tags: string[];
-  legacyTraceSuiteFile: string;
+}
+
+interface StatementRoundTripCaseOptions extends LegacyTraceOptions {
+  caseId: string;
+  title: string;
+  specVersion: SpecVersion;
+  queryParam: string;
+  requirementRefs: RequirementRef[];
+  tags: string[];
+  transforms?: FixtureTransform[];
+  queryJsonPathEquals: JsonPathExpectation[] | ((statement: StatementFixture) => JsonPathExpectation[]);
+  capabilityFlags?: string[];
+  notes?: string[];
+  polling?: PollingPlan;
+}
+
+interface DocumentRoundTripCaseOptions extends LegacyTraceOptions {
+  caseId: string;
+  title: string;
+  specVersion: SpecVersion;
+  endpoint: EndpointKind;
+  submitMethod: Extract<HttpMethod, "POST" | "PUT">;
+  requirementRefs: RequirementRef[];
+  tags: string[];
+  query: Record<string, string>;
+  body: unknown;
+  queryJsonPathEquals: JsonPathExpectation[];
+  capabilityFlags?: string[];
+  notes?: string[];
+  polling?: PollingPlan;
+  submitStatus?: number;
+  queryStatus?: number;
+  bodyFixtureName?: string;
 }
 
 function singleRequestAssertion(status: number, notes: string[] = []): AssertionPlan {
@@ -38,79 +103,68 @@ function singleRequestAssertion(status: number, notes: string[] = []): Assertion
   };
 }
 
-export function requiredFieldFamily(options: RequiredFieldFamilyOptions): CaseDefinition[] {
-  return options.variants.map((variant) => {
-    const transforms: FixtureTransform[] = [
-      {
-        operation: "remove",
-        path: variant.missingPath,
-      },
-    ];
-
-    return {
-      type: "case",
-      id: `${options.familyId}.${variant.idSuffix}`,
-      title: variant.title,
-      specVersion: options.specVersion,
-      requirementRefs: variant.requirementRefs,
-      tags: options.tags,
-      capabilityFlags: [],
-      legacyTrace: {
-        suiteFile: options.legacyTraceSuiteFile,
-      },
-      execution: {
-        kind: "single-request",
-        request: {
-          method: "POST",
-          endpoint: options.endpoint,
-          authMode: "basic",
-          headers: {
-            "X-Experience-API-Version": options.specVersion,
-          },
-          query: {},
-          body: {
-            kind: "json",
-            value: buildStatementFixture(transforms),
-            sourceFixture: {
-              version: options.specVersion,
-              domain: "statements",
-              name: "default",
-            },
-          },
-        },
-      },
-      assertion: singleRequestAssertion(400, [options.suiteTitle]),
-    };
-  });
+function versionHeaders(specVersion: SpecVersion): Record<string, string> {
+  return {
+    [versionHeaderKey]: specVersion,
+  };
 }
 
-export function queryRetrievalFamily(options: QueryRetrievalFamilyOptions): CaseDefinition {
-  const statement = buildStatementFixture();
+function versionHeaderExpectations(specVersion: SpecVersion): Array<{ key: string; equals: string }> {
+  return [
+    {
+      key: versionHeaderKey,
+      equals: specVersion,
+    },
+  ];
+}
+
+function buildLegacyTrace(options: LegacyTraceOptions): CaseDefinition["legacyTrace"] {
+  if (!options.legacyTraceConfigFile) {
+    return {
+      suiteFile: options.legacyTraceSuiteFile,
+    };
+  }
 
   return {
+    suiteFile: options.legacyTraceSuiteFile,
+    configFile: options.legacyTraceConfigFile,
+  };
+}
+
+function buildStatementSingleRequestCase(
+  options: {
+    id: string;
+    title: string;
+    specVersion: SpecVersion;
+    endpoint: EndpointKind;
+    requirementRefs: RequirementRef[];
+    tags: string[];
+    capabilityFlags: string[];
+    transforms: FixtureTransform[];
+    status: number;
+    notes: string[];
+  } & LegacyTraceOptions,
+): CaseDefinition {
+  return {
     type: "case",
-    id: options.caseId,
+    id: options.id,
     title: options.title,
     specVersion: options.specVersion,
     requirementRefs: options.requirementRefs,
     tags: options.tags,
-    capabilityFlags: ["query", "retrieval"],
-    legacyTrace: {
-      suiteFile: options.legacyTraceSuiteFile,
-    },
+    capabilityFlags: options.capabilityFlags,
+    legacyTrace: buildLegacyTrace(options),
     execution: {
-      kind: "submit-and-query",
-      submit: {
+      kind: "single-request",
+      request: {
         method: "POST",
-        endpoint: "statements",
+        endpoint: options.endpoint,
         authMode: "basic",
-        headers: {
-          "X-Experience-API-Version": options.specVersion,
-        },
+        headers: versionHeaders(options.specVersion),
         query: {},
         body: {
           kind: "json",
-          value: statement,
+          value: buildStatementFixture(options.transforms),
           sourceFixture: {
             version: options.specVersion,
             domain: "statements",
@@ -118,40 +172,211 @@ export function queryRetrievalFamily(options: QueryRetrievalFamilyOptions): Case
           },
         },
       },
+    },
+    assertion: singleRequestAssertion(options.status, options.notes),
+  };
+}
+
+function buildSubmitAndQueryCase(
+  options: {
+    caseId: string;
+    title: string;
+    specVersion: SpecVersion;
+    endpoint: EndpointKind;
+    submitMethod: Extract<HttpMethod, "POST" | "PUT">;
+    submitQuery: Record<string, string>;
+    submitBody: unknown;
+    query: Record<string, string>;
+    requirementRefs: RequirementRef[];
+    tags: string[];
+    capabilityFlags: string[];
+    queryJsonPathEquals: JsonPathExpectation[];
+    notes: string[];
+    polling?: PollingPlan;
+    submitStatus: number;
+    queryStatus: number;
+    submitBodySource?: {
+      domain: string;
+      name: string;
+    };
+  } & LegacyTraceOptions,
+): CaseDefinition {
+  return {
+    type: "case",
+    id: options.caseId,
+    title: options.title,
+    specVersion: options.specVersion,
+    requirementRefs: options.requirementRefs,
+    tags: options.tags,
+    capabilityFlags: options.capabilityFlags,
+    legacyTrace: buildLegacyTrace(options),
+    execution: {
+      kind: "submit-and-query",
+      submit: {
+        method: options.submitMethod,
+        endpoint: options.endpoint,
+        authMode: "basic",
+        headers: versionHeaders(options.specVersion),
+        query: options.submitQuery,
+        body: {
+          kind: "json",
+          value: options.submitBody,
+          sourceFixture: options.submitBodySource
+            ? {
+                version: options.specVersion,
+                domain: options.submitBodySource.domain,
+                name: options.submitBodySource.name,
+              }
+            : undefined,
+        },
+      },
       query: {
         method: "GET",
-        endpoint: "statements",
+        endpoint: options.endpoint,
         authMode: "basic",
-        headers: {
-          "X-Experience-API-Version": options.specVersion,
-        },
-        query: {
-          [options.queryParam]: statement.id,
-        },
+        headers: versionHeaders(options.specVersion),
+        query: options.query,
       },
-      polling: {
-        strategy: "consistent-through",
-        maxAttempts: 5,
-        intervalMs: 250,
-      },
+      polling: options.polling,
     },
     assertion: {
       kind: "submit-and-query",
-      submitStatus: 200,
-      queryStatus: 200,
-      expectedHeaders: [
-        {
-          key: "X-Experience-API-Version",
-          equals: options.specVersion,
-        },
-      ],
-      queryJsonPathEquals: [
-        {
-          path: ["id"],
-          equals: statement.id,
-        },
-      ],
-      notes: ["proof-slice query retrieval"],
+      submitStatus: options.submitStatus,
+      queryStatus: options.queryStatus,
+      expectedHeaders: versionHeaderExpectations(options.specVersion),
+      queryJsonPathEquals: options.queryJsonPathEquals,
+      notes: options.notes,
     },
   };
+}
+
+export function statementMutationFamily(options: StatementMutationFamilyOptions): CaseDefinition[] {
+  return options.variants.map((variant) =>
+    buildStatementSingleRequestCase({
+      id: `${options.familyId}.${variant.idSuffix}`,
+      title: variant.title,
+      specVersion: options.specVersion,
+      endpoint: options.endpoint,
+      requirementRefs: variant.requirementRefs,
+      tags: options.tags,
+      capabilityFlags: variant.capabilityFlags ?? [],
+      legacyTraceSuiteFile: options.legacyTraceSuiteFile,
+      legacyTraceConfigFile: options.legacyTraceConfigFile,
+      transforms: variant.transforms,
+      status: options.expectedStatus ?? 400,
+      notes: [options.suiteTitle],
+    }),
+  );
+}
+
+export function requiredFieldFamily(options: RequiredFieldFamilyOptions): CaseDefinition[] {
+  return statementMutationFamily({
+    familyId: options.familyId,
+    suiteTitle: options.suiteTitle,
+    specVersion: options.specVersion,
+    endpoint: options.endpoint,
+    tags: options.tags,
+    legacyTraceSuiteFile: options.legacyTraceSuiteFile,
+    legacyTraceConfigFile: options.legacyTraceConfigFile,
+    variants: options.variants.map((variant) => ({
+      idSuffix: variant.idSuffix,
+      title: variant.title,
+      requirementRefs: variant.requirementRefs,
+      transforms: [
+        {
+          operation: "remove",
+          path: variant.missingPath,
+        },
+      ],
+    })),
+  });
+}
+
+export function statementRoundTripCase(options: StatementRoundTripCaseOptions): CaseDefinition {
+  const statement = buildStatementFixture(options.transforms ?? []);
+  const expectations =
+    typeof options.queryJsonPathEquals === "function"
+      ? options.queryJsonPathEquals(statement)
+      : options.queryJsonPathEquals;
+
+  return buildSubmitAndQueryCase({
+    caseId: options.caseId,
+    title: options.title,
+    specVersion: options.specVersion,
+    endpoint: "statements",
+    submitMethod: "POST",
+    submitQuery: {},
+    submitBody: statement,
+    submitBodySource: {
+      domain: "statements",
+      name: "default",
+    },
+    query: {
+      [options.queryParam]: statement.id,
+    },
+    requirementRefs: options.requirementRefs,
+    tags: options.tags,
+    capabilityFlags: options.capabilityFlags ?? ["query", "retrieval"],
+    legacyTraceSuiteFile: options.legacyTraceSuiteFile,
+    legacyTraceConfigFile: options.legacyTraceConfigFile,
+    queryJsonPathEquals: expectations,
+    notes: options.notes ?? ["proof-slice statement roundtrip"],
+    polling: options.polling ?? {
+      strategy: "consistent-through",
+      maxAttempts: 5,
+      intervalMs: 250,
+    },
+    submitStatus: 200,
+    queryStatus: 200,
+  });
+}
+
+export function documentRoundTripCase(options: DocumentRoundTripCaseOptions): CaseDefinition {
+  return buildSubmitAndQueryCase({
+    caseId: options.caseId,
+    title: options.title,
+    specVersion: options.specVersion,
+    endpoint: options.endpoint,
+    submitMethod: options.submitMethod,
+    submitQuery: options.query,
+    submitBody: options.body,
+    submitBodySource: options.bodyFixtureName
+      ? {
+          domain: "documents",
+          name: options.bodyFixtureName,
+        }
+      : undefined,
+    query: options.query,
+    requirementRefs: options.requirementRefs,
+    tags: options.tags,
+    capabilityFlags: options.capabilityFlags ?? ["document", "retrieval"],
+    legacyTraceSuiteFile: options.legacyTraceSuiteFile,
+    legacyTraceConfigFile: options.legacyTraceConfigFile,
+    queryJsonPathEquals: options.queryJsonPathEquals,
+    notes: options.notes ?? ["proof-slice document roundtrip"],
+    polling: options.polling,
+    submitStatus: options.submitStatus ?? 204,
+    queryStatus: options.queryStatus ?? 200,
+  });
+}
+
+export function queryRetrievalFamily(options: QueryRetrievalFamilyOptions): CaseDefinition {
+  return statementRoundTripCase({
+    caseId: options.caseId,
+    title: options.title,
+    specVersion: options.specVersion,
+    queryParam: options.queryParam,
+    requirementRefs: options.requirementRefs,
+    tags: options.tags,
+    legacyTraceSuiteFile: options.legacyTraceSuiteFile,
+    legacyTraceConfigFile: options.legacyTraceConfigFile,
+    queryJsonPathEquals: (statement) => [
+      {
+        path: ["id"],
+        equals: statement.id,
+      },
+    ],
+    capabilityFlags: ["query", "retrieval"],
+    notes: ["proof-slice query retrieval"],
+  });
 }

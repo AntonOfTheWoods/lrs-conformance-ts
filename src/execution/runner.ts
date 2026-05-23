@@ -126,10 +126,7 @@ function assertHeaders(response: Response, expected: HeaderExpectation[]): strin
   });
 }
 
-function assertJsonPathMatches(
-  body: unknown,
-  expectations: JsonPathExpectation[],
-): string[] {
+function assertJsonPathMatches(body: unknown, expectations: JsonPathExpectation[]): string[] {
   return expectations.flatMap((expectation) => {
     const actual = getValueAtPath(body, expectation.path);
     if (deepEqual(actual, expectation.equals)) {
@@ -163,10 +160,7 @@ async function executeHttpRequest(request: HttpRequest, options: RuntimeRunOptio
   return fetchImpl(url, init);
 }
 
-async function runSingleRequestCase(
-  testCase: SingleRequestCase,
-  options: RuntimeRunOptions,
-): Promise<CaseResult> {
+async function runSingleRequestCase(testCase: SingleRequestCase, options: RuntimeRunOptions): Promise<CaseResult> {
   const response = await executeHttpRequest(testCase.execution.request, options);
   const body = await parseResponseBody(response);
   const errors: string[] = [];
@@ -186,16 +180,15 @@ async function runSingleRequestCase(
   });
 }
 
-async function runSubmitAndQueryCase(
-  testCase: SubmitAndQueryCase,
-  options: RuntimeRunOptions,
-): Promise<CaseResult> {
+async function runSubmitAndQueryCase(testCase: SubmitAndQueryCase, options: RuntimeRunOptions): Promise<CaseResult> {
   const submitResponse = await executeHttpRequest(testCase.execution.submit, options);
   const submitBody = await parseResponseBody(submitResponse);
   const submitErrors: string[] = [];
 
   if (submitResponse.status !== testCase.assertion.submitStatus) {
-    submitErrors.push(`Expected submit status ${testCase.assertion.submitStatus} but received ${submitResponse.status}.`);
+    submitErrors.push(
+      `Expected submit status ${testCase.assertion.submitStatus} but received ${submitResponse.status}.`,
+    );
   }
 
   if (submitErrors.length > 0) {
@@ -217,7 +210,9 @@ async function runSubmitAndQueryCase(
     const attemptErrors: string[] = [];
 
     if (queryResponse.status !== testCase.assertion.queryStatus) {
-      attemptErrors.push(`Expected query status ${testCase.assertion.queryStatus} but received ${queryResponse.status}.`);
+      attemptErrors.push(
+        `Expected query status ${testCase.assertion.queryStatus} but received ${queryResponse.status}.`,
+      );
     }
 
     attemptErrors.push(...assertHeaders(queryResponse, testCase.assertion.expectedHeaders));
@@ -264,23 +259,24 @@ async function runCase(
     options,
   );
 
-  const result = testCase.execution.kind === "single-request"
-    ? isSingleRequestCase(testCase)
-      ? await runSingleRequestCase(testCase, options)
-      : CaseResultSchema.parse({
-          id: testCase.id,
-          title: testCase.title,
-          status: "failed",
-          log: ["Execution and assertion kinds did not align for a single-request case."],
-        })
-    : isSubmitAndQueryCase(testCase)
-      ? await runSubmitAndQueryCase(testCase, options)
-      : CaseResultSchema.parse({
-          id: testCase.id,
-          title: testCase.title,
-          status: "failed",
-          log: ["Execution and assertion kinds did not align for a submit-and-query case."],
-        });
+  const result =
+    testCase.execution.kind === "single-request"
+      ? isSingleRequestCase(testCase)
+        ? await runSingleRequestCase(testCase, options)
+        : CaseResultSchema.parse({
+            id: testCase.id,
+            title: testCase.title,
+            status: "failed",
+            log: ["Execution and assertion kinds did not align for a single-request case."],
+          })
+      : isSubmitAndQueryCase(testCase)
+        ? await runSubmitAndQueryCase(testCase, options)
+        : CaseResultSchema.parse({
+            id: testCase.id,
+            title: testCase.title,
+            status: "failed",
+            log: ["Execution and assertion kinds did not align for a submit-and-query case."],
+          });
 
   await emitEvent(
     {
@@ -332,11 +328,7 @@ async function runSuite(
   });
 }
 
-async function emitEvent(
-  event: ExecutionEvent,
-  events: ExecutionEvent[],
-  options: RuntimeRunOptions,
-): Promise<void> {
+async function emitEvent(event: ExecutionEvent, events: ExecutionEvent[], options: RuntimeRunOptions): Promise<void> {
   const parsedEvent = ExecutionEventSchema.parse(event);
   events.push(parsedEvent);
   await options.onEvent?.(parsedEvent);

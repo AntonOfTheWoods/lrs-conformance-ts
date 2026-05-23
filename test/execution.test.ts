@@ -15,15 +15,27 @@ describe("runtime executor", () => {
       });
 
       expect(result.status).toBe("passed");
-      expect(result.root.children).toHaveLength(1);
+      expect(result.root.children).toHaveLength(2);
       expect(result.root.children[0]?.status).toBe("passed");
-      expect(mockLrs.requests).toHaveLength(5);
+      expect(result.root.children[1]?.status).toBe("passed");
+      expect(mockLrs.requests).toHaveLength(12);
       expect(mockLrs.requests.map((request) => request.method)).toEqual([
         "POST",
         "POST",
         "POST",
         "POST",
+        "POST",
+        "POST",
+        "POST",
         "GET",
+        "POST",
+        "GET",
+        "PUT",
+        "GET",
+      ]);
+      expect(mockLrs.requests.slice(-2).map((request) => request.path)).toEqual([
+        "/xapi/activities/state",
+        "/xapi/activities/state",
       ]);
     } finally {
       mockLrs.stop();
@@ -41,10 +53,12 @@ describe("runtime executor", () => {
 
       expect(result.events[0]?.kind).toBe("run-start");
       expect(result.events.at(-1)?.kind).toBe("run-finish");
-      expect(result.events.filter((event) => event.kind === "suite-start")).toHaveLength(3);
-      expect(result.events.filter((event) => event.kind === "case-start")).toHaveLength(4);
-      expect(result.events.filter((event) => event.kind === "case-finish")).toHaveLength(4);
-      expect(result.events.filter((event) => event.kind === "case-finish").every((event) => event.status === "passed")).toBe(true);
+      expect(result.events.filter((event) => event.kind === "suite-start")).toHaveLength(4);
+      expect(result.events.filter((event) => event.kind === "case-start")).toHaveLength(9);
+      expect(result.events.filter((event) => event.kind === "case-finish")).toHaveLength(9);
+      expect(
+        result.events.filter((event) => event.kind === "case-finish").every((event) => event.status === "passed"),
+      ).toBe(true);
     } finally {
       mockLrs.stop();
     }

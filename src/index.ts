@@ -1,5 +1,6 @@
 export * from "./domain/contracts";
 export * from "./execution/runner";
+export * from "./fixtures/v2_0/documents";
 export * from "./fixtures/v2_0/statements";
 export * from "./registry/builder";
 export * from "./registry/families";
