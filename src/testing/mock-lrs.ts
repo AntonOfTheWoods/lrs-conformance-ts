@@ -4,6 +4,7 @@ interface StoredDocument {
   id: string;
   contextKey: string;
   body: unknown;
+  storedAt: number;
 }
 
 export interface RecordedRequest {
@@ -60,16 +61,93 @@ function containsDisallowedNull(value: unknown): boolean {
   });
 }
 
-function isValidStatement(value: unknown): value is JsonObject {
-  return hasRequiredStatementFields(value) && !containsDisallowedNull(value);
-}
-
 function isUuid(value: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
 function hasUriScheme(value: string): boolean {
   return /^[a-z][a-z0-9+.-]*:/i.test(value);
+}
+
+function isFiniteNumber(value: unknown): boolean {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+function isValidTimestamp(value: string): boolean {
+  return Number.isFinite(Date.parse(value));
+}
+
+function validateStatementBody(value: unknown): string | undefined {
+  if (!hasRequiredStatementFields(value)) {
+    return "statement must include actor, verb, and object";
+  }
+
+  if (containsDisallowedNull(value)) {
+    return "statement contains disallowed null values";
+  }
+
+  const statementId = value.id;
+  if (typeof statementId !== "string" || !isUuid(statementId)) {
+    return "statement id must be a UUID";
+  }
+
+  const verb = value.verb;
+  if (!isJsonObject(verb) || typeof verb.id !== "string" || !hasUriScheme(verb.id)) {
+    return "verb id must be an IRI";
+  }
+
+  const object = value.object;
+  if (!isJsonObject(object) || typeof object.id !== "string" || !hasUriScheme(object.id)) {
+    return "object id must be an IRI";
+  }
+
+  const definition = object.definition;
+  if (definition !== undefined) {
+    if (!isJsonObject(definition)) {
+      return "object definition must be an object";
+    }
+
+    const type = definition.type;
+    if (type !== undefined && (typeof type !== "string" || !hasUriScheme(type))) {
+      return "object definition type must be an IRI";
+    }
+
+    const moreInfo = definition.moreInfo;
+    if (moreInfo !== undefined && (typeof moreInfo !== "string" || !hasUriScheme(moreInfo))) {
+      return "object definition moreInfo must be an IRI";
+    }
+  }
+
+  const result = value.result;
+  if (result !== undefined) {
+    if (!isJsonObject(result)) {
+      return "result must be an object";
+    }
+
+    if (result.success !== undefined && typeof result.success !== "boolean") {
+      return "result.success must be a boolean";
+    }
+
+    if (result.completion !== undefined && typeof result.completion !== "boolean") {
+      return "result.completion must be a boolean";
+    }
+
+    const score = result.score;
+    if (score !== undefined) {
+      if (!isJsonObject(score)) {
+        return "result.score must be an object";
+      }
+
+      for (const field of ["scaled", "raw", "min", "max"] as const) {
+        const scoreValue = score[field];
+        if (scoreValue !== undefined && !isFiniteNumber(scoreValue)) {
+          return `result.score.${field} must be a number`;
+        }
+      }
+    }
+  }
+
+  return undefined;
 }
 
 function isValidAgentParameter(value: string | null): boolean {
@@ -142,8 +220,10 @@ function buildDocumentKey(contextKey: string, documentId: string): string {
   return `${contextKey}::${documentId}`;
 }
 
-function listDocumentIds(store: Map<string, StoredDocument>, contextKey: string): string[] {
-  return [...store.values()].filter((document) => document.contextKey === contextKey).map((document) => document.id);
+function listDocumentIds(store: Map<string, StoredDocument>, contextKey: string, since?: number): string[] {
+  return [...store.values()]
+    .filter((document) => document.contextKey === contextKey && (since === undefined || document.storedAt > since))
+    .map((document) => document.id);
 }
 
 function deleteDocumentsByContext(store: Map<string, StoredDocument>, contextKey: string): void {
@@ -174,6 +254,7 @@ async function handleDocumentResource(
   }
 
   const documentId = url.searchParams.get(options.idParam);
+  const since = url.searchParams.get("since");
 
   if (request.method === "PUT" || request.method === "POST") {
     if (!documentId) {
@@ -183,10 +264,30 @@ async function handleDocumentResource(
       });
     }
 
-    store.set(buildDocumentKey(contextKey, documentId), {
+    const nextBody = await request.json();
+    const documentKey = buildDocumentKey(contextKey, documentId);
+    const existing = store.get(documentKey);
+
+    let bodyToStore = nextBody;
+    if (request.method === "POST" && existing) {
+      if (!isJsonObject(existing.body) || !isJsonObject(nextBody)) {
+        return new Response(JSON.stringify({ error: "document merge requires JSON objects" }), {
+          status: 400,
+          headers: createHeaders(version),
+        });
+      }
+
+      bodyToStore = {
+        ...existing.body,
+        ...nextBody,
+      };
+    }
+
+    store.set(documentKey, {
       id: documentId,
       contextKey,
-      body: await request.json(),
+      body: bodyToStore,
+      storedAt: Date.now(),
     });
 
     return new Response(null, {
@@ -197,7 +298,19 @@ async function handleDocumentResource(
 
   if (request.method === "GET") {
     if (!documentId) {
-      return new Response(JSON.stringify(listDocumentIds(store, contextKey)), {
+      let sinceTimestamp: number | undefined;
+      if (since !== null) {
+        if (!isValidTimestamp(since)) {
+          return new Response(JSON.stringify({ error: "since must be a timestamp" }), {
+            status: 400,
+            headers: createHeaders(version),
+          });
+        }
+
+        sinceTimestamp = Date.parse(since);
+      }
+
+      return new Response(JSON.stringify(listDocumentIds(store, contextKey, sinceTimestamp)), {
         status: 200,
         headers: createHeaders(version),
       });
@@ -298,14 +411,22 @@ export function startMockLrs(version = "2.0.0"): MockLrsHandle {
 
       if (request.method === "POST") {
         const body = await request.json();
-        if (!isValidStatement(body)) {
-          return new Response(JSON.stringify({ error: "invalid statement" }), {
+        const validationError = validateStatementBody(body);
+        if (validationError) {
+          return new Response(JSON.stringify({ error: validationError }), {
             status: 400,
             headers: createHeaders(version),
           });
         }
 
-        const statementId = typeof body.id === "string" ? body.id : crypto.randomUUID();
+        if (!isJsonObject(body) || typeof body.id !== "string") {
+          return new Response(JSON.stringify({ error: "statement id must be a UUID" }), {
+            status: 400,
+            headers: createHeaders(version),
+          });
+        }
+
+        const statementId = body.id;
         statements.set(statementId, {
           ...body,
           id: statementId,

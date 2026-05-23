@@ -150,11 +150,7 @@ function assertJsonPathMatches(body: unknown, expectations: JsonPathExpectation[
   });
 }
 
-function assertRequestExpectation(
-  response: Response,
-  body: unknown,
-  assertion: RequestAssertion,
-): string[] {
+function assertRequestExpectation(response: Response, body: unknown, assertion: RequestAssertion): string[] {
   const errors: string[] = [];
 
   if (response.status !== assertion.status) {

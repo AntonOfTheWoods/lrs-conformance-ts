@@ -1,4 +1,10 @@
-import type { EndpointKind, HttpMethod, HttpRequest, RegistryDefinition, SuiteDefinition } from "../../domain/contracts";
+import type {
+  EndpointKind,
+  HttpMethod,
+  HttpRequest,
+  RegistryDefinition,
+  SuiteDefinition,
+} from "../../domain/contracts";
 import {
   buildActivityProfileDocumentFixture,
   buildActivityProfileIdentityFixture,
@@ -13,6 +19,7 @@ import {
   queryRetrievalFamily,
   requestSequenceCase,
   requiredFieldFamily,
+  singleRequestCase,
   statementMutationFamily,
   statementQueryValidationFamily,
   statementRoundTripCase,
@@ -69,6 +76,9 @@ function listEquals(expected: string[]) {
     },
   ];
 }
+
+const validSinceTimestamp = "2020-01-01T00:00:00.000Z";
+const invalidSinceTimestamp = "not-a-timestamp";
 
 export function createV20ProofSliceSuite(): SuiteDefinition {
   const formattingCases = requiredFieldFamily({
@@ -179,6 +189,258 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
             id: "XAPI-00001",
             section: "Data 2.2.s4.b1.b1",
             title: "Statements reject null values outside extensions",
+          },
+        ],
+      },
+    ],
+  });
+
+  const wrongTypeCases = statementMutationFamily({
+    familyId: "v2.statements.invalid-types",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "formatting", "types"],
+    legacyTraceSuiteFile: formattingLegacySuiteFile,
+    legacyTraceConfigFile: formattingLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "score-max-string",
+        title: "A Statement rejects a string where result.score.max requires a number",
+        transforms: [
+          {
+            operation: "set",
+            path: ["result", "score", "max"],
+            value: "one hundred",
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00006",
+            section: "Data 2.2.s4.b2",
+            title: "Statements reject wrong data types",
+          },
+        ],
+      },
+      {
+        idSuffix: "score-max-numeric-string",
+        title: "A Statement rejects a numeric string where result.score.max requires a number",
+        transforms: [
+          {
+            operation: "set",
+            path: ["result", "score", "max"],
+            value: "100",
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00006",
+            section: "Data 2.2.s4.b2",
+            title: "Statements reject wrong data types",
+          },
+        ],
+      },
+      {
+        idSuffix: "result-success-string",
+        title: "A Statement rejects a string where result.success requires a boolean",
+        transforms: [
+          {
+            operation: "set",
+            path: ["result", "success"],
+            value: "We regret to inform you that your effort was unsuccessful.",
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00006",
+            section: "Data 2.2.s4.b2",
+            title: "Statements reject wrong data types",
+          },
+        ],
+      },
+      {
+        idSuffix: "result-completion-string",
+        title: "A Statement rejects a string where result.completion requires a boolean",
+        transforms: [
+          {
+            operation: "set",
+            path: ["result", "completion"],
+            value: "false",
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00006",
+            section: "Data 2.2.s4.b2",
+            title: "Statements reject wrong data types",
+          },
+        ],
+      },
+    ],
+  });
+
+  const invalidFormatCases = statementMutationFamily({
+    familyId: "v2.statements.invalid-format",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "formatting", "invalid-format"],
+    legacyTraceSuiteFile: formattingLegacySuiteFile,
+    legacyTraceConfigFile: formattingLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "statement-id-numeric",
+        title: 'A Statement rejects a numeric value for the "id" field',
+        transforms: [
+          {
+            operation: "set",
+            path: ["id"],
+            value: 42,
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00007",
+            section: "Data 2.2.s4.b4",
+            title: "Statements reject invalid formatted values",
+          },
+        ],
+      },
+      {
+        idSuffix: "statement-id-object",
+        title: 'A Statement rejects an object value for the "id" field',
+        transforms: [
+          {
+            operation: "set",
+            path: ["id"],
+            value: { key: "value" },
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00007",
+            section: "Data 2.2.s4.b4",
+            title: "Statements reject invalid formatted values",
+          },
+        ],
+      },
+      {
+        idSuffix: "statement-id-too-many-digits",
+        title: 'A Statement rejects a UUID with too many digits in the "id" field',
+        transforms: [
+          {
+            operation: "set",
+            path: ["id"],
+            value: "111111111-1111-4111-8111-111111111111",
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00007",
+            section: "Data 2.2.s4.b4",
+            title: "Statements reject invalid formatted values",
+          },
+        ],
+      },
+      {
+        idSuffix: "statement-id-invalid-letter",
+        title: 'A Statement rejects a UUID with invalid hexadecimal letters in the "id" field',
+        transforms: [
+          {
+            operation: "set",
+            path: ["id"],
+            value: "11111111-1111-4111-8111-11111111111G",
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00007",
+            section: "Data 2.2.s4.b4",
+            title: "Statements reject invalid formatted values",
+          },
+        ],
+      },
+    ],
+  });
+
+  const iriSchemeCases = statementMutationFamily({
+    familyId: "v2.statements.invalid-iri-schemes",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "formatting", "iri"],
+    legacyTraceSuiteFile: formattingLegacySuiteFile,
+    legacyTraceConfigFile: formattingLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "verb-id-no-scheme",
+        title: "A Statement rejects a verb id without an IRI scheme",
+        transforms: [
+          {
+            operation: "set",
+            path: ["verb", "id"],
+            value: "example.test/xapi/verbs/completed",
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00011",
+            section: "Data 2.2.s4.b1.b8",
+            title: "Statements reject IRIs without schemes",
+          },
+        ],
+      },
+      {
+        idSuffix: "object-id-no-scheme",
+        title: "A Statement rejects an object id without an IRI scheme",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object", "id"],
+            value: "example.test/xapi/activities/first-proof-slice",
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00011",
+            section: "Data 2.2.s4.b1.b8",
+            title: "Statements reject IRIs without schemes",
+          },
+        ],
+      },
+      {
+        idSuffix: "definition-type-no-scheme",
+        title: "A Statement rejects an object definition type without an IRI scheme",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object", "definition", "type"],
+            value: "example.test/xapi/activity-type",
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00011",
+            section: "Data 2.2.s4.b1.b8",
+            title: "Statements reject IRIs without schemes",
+          },
+        ],
+      },
+      {
+        idSuffix: "definition-more-info-no-scheme",
+        title: "A Statement rejects an object definition moreInfo value without an IRI scheme",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object", "definition", "moreInfo"],
+            value: "example.test/xapi/more-info",
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00011",
+            section: "Data 2.2.s4.b1.b8",
+            title: "Statements reject IRIs without schemes",
           },
         ],
       },
@@ -369,7 +631,14 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
         title: "Statement Formatting",
         specVersion: "2.0.0",
         tags: ["formatting"],
-        children: [...formattingCases, ...nullValueCases, precisionCase],
+        children: [
+          ...formattingCases,
+          ...nullValueCases,
+          ...wrongTypeCases,
+          ...invalidFormatCases,
+          ...iriSchemeCases,
+          precisionCase,
+        ],
       },
       {
         type: "suite",
@@ -398,6 +667,14 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
     activityId: "https://example.test/xapi/activities/state-proof-slice/list",
     stateId: "proof-state-list",
   });
+  const stateSinceIdentity = buildActivityStateIdentityFixture({
+    activityId: "https://example.test/xapi/activities/state-proof-slice/since",
+    stateId: "proof-state-since",
+  });
+  const stateMergeIdentity = buildActivityStateIdentityFixture({
+    activityId: "https://example.test/xapi/activities/state-proof-slice/merge",
+    stateId: "proof-state-merge",
+  });
   const stateDeleteIdentity = buildActivityStateIdentityFixture({
     activityId: "https://example.test/xapi/activities/state-proof-slice/delete",
     stateId: "proof-state-delete",
@@ -405,6 +682,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
   const stateListQuery = {
     activityId: stateListIdentity.activityId,
     agent: stateListIdentity.agent,
+  };
+  const stateSinceQuery = {
+    activityId: stateSinceIdentity.activityId,
+    agent: stateSinceIdentity.agent,
   };
   const stateDeleteQuery = {
     activityId: stateDeleteIdentity.activityId,
@@ -486,6 +767,129 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
     ],
   });
 
+  const stateSinceCase = requestSequenceCase({
+    caseId: "v2.activities-state.document-list-since",
+    title: "The State Resource filters listed state ids using the since parameter",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00221",
+        section: "Communication 2.3.s4",
+        title: "State Resource GET without stateId accepts since",
+      },
+      {
+        id: "XAPI-00195",
+        section: "Communication 2.3.s4",
+        title: "State Resource list results can be filtered by since",
+      },
+    ],
+    tags: ["v2.0.0", "activities-state", "document", "list", "since"],
+    capabilityFlags: ["document", "list", "state", "since"],
+    legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    notes: ["proof-slice activity state since filtering"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "activities-state", stateSinceIdentity, {
+          value: buildActivityStateDocumentFixture(),
+          fixtureName: "activity-state-default",
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "activities-state", {
+          ...stateSinceQuery,
+          since: validSinceTimestamp,
+        }),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([stateSinceIdentity.stateId]),
+        },
+      },
+    ],
+  });
+
+  const stateInvalidSinceCase = singleRequestCase({
+    caseId: "v2.activities-state.invalid-since",
+    title: "The State Resource rejects an invalid since value when listing state ids",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00204",
+        section: "Communication 2.3.s4",
+        title: "State Resource rejects invalid since values",
+      },
+    ],
+    tags: ["v2.0.0", "activities-state", "document", "list", "since"],
+    capabilityFlags: ["document", "list", "state", "since"],
+    legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    request: buildVersionedRequest("GET", "activities-state", {
+      activityId: stateSinceIdentity.activityId,
+      agent: stateSinceIdentity.agent,
+      since: invalidSinceTimestamp,
+    }),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice activity state invalid since"],
+  });
+
+  const stateMergeCase = requestSequenceCase({
+    caseId: "v2.activities-state.document-merge",
+    title: "The State Resource merges JSON documents on POST when a state document already exists",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00234",
+        section: "Communication 2.2.s7",
+        title: "State Resource performs JSON document merge",
+      },
+    ],
+    tags: ["v2.0.0", "activities-state", "document", "merge"],
+    capabilityFlags: ["document", "merge", "state"],
+    legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    notes: ["proof-slice activity state merge"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "activities-state", stateMergeIdentity, {
+          value: {
+            car: "Honda",
+          },
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("POST", "activities-state", stateMergeIdentity, {
+          value: {
+            type: "Civic",
+          },
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "activities-state", stateMergeIdentity),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["car"],
+              equals: "Honda",
+            },
+            {
+              path: ["type"],
+              equals: "Civic",
+            },
+          ],
+        },
+      },
+    ],
+  });
+
   const stateDeleteCase = requestSequenceCase({
     caseId: "v2.activities-state.delete-context-documents",
     title: "The State Resource deletes matching documents when DELETE omits stateId",
@@ -552,6 +956,22 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       },
       {
         type: "suite",
+        id: "v2.proof-slice.activities-state.since",
+        title: "State Document Since",
+        specVersion,
+        tags: ["list", "since"],
+        children: [stateSinceCase, stateInvalidSinceCase],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.activities-state.merge",
+        title: "State Document Merge",
+        specVersion,
+        tags: ["merge"],
+        children: [stateMergeCase],
+      },
+      {
+        type: "suite",
         id: "v2.proof-slice.activities-state.deletion",
         title: "State Document Deletion",
         specVersion,
@@ -569,12 +989,23 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
     activityId: "https://example.test/xapi/activities/profile-proof-slice/list",
     profileId: "proof-activity-profile-list",
   });
+  const profileSinceIdentity = buildActivityProfileIdentityFixture({
+    activityId: "https://example.test/xapi/activities/profile-proof-slice/since",
+    profileId: "proof-activity-profile-since",
+  });
+  const profileMergeIdentity = buildActivityProfileIdentityFixture({
+    activityId: "https://example.test/xapi/activities/profile-proof-slice/merge",
+    profileId: "proof-activity-profile-merge",
+  });
   const profileDeleteIdentity = buildActivityProfileIdentityFixture({
     activityId: "https://example.test/xapi/activities/profile-proof-slice/delete",
     profileId: "proof-activity-profile-delete",
   });
   const profileListQuery = {
     activityId: profileListIdentity.activityId,
+  };
+  const profileSinceQuery = {
+    activityId: profileSinceIdentity.activityId,
   };
   const profileDeleteListQuery = {
     activityId: profileDeleteIdentity.activityId,
@@ -651,6 +1082,128 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
     ],
   });
 
+  const sinceCase = requestSequenceCase({
+    caseId: "v2.activities-profile.document-list-since",
+    title: "The Activity Profile Resource filters listed profile ids using the since parameter",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00303",
+        section: "Communication 2.7.s4",
+        title: "Activity Profile GET without profileId accepts since",
+      },
+      {
+        id: "XAPI-00294",
+        section: "Communication 2.7.s4",
+        title: "Activity Profile list results can be filtered by since",
+      },
+    ],
+    tags: ["v2.0.0", "activities-profile", "document", "list", "since"],
+    capabilityFlags: ["document", "list", "activity-profile", "since"],
+    legacyTraceSuiteFile: activityProfileLegacySuiteFile,
+    notes: ["proof-slice activity profile since filtering"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "activities-profile", profileSinceIdentity, {
+          value: buildActivityProfileDocumentFixture(),
+          fixtureName: "activity-profile-default",
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "activities-profile", {
+          ...profileSinceQuery,
+          since: validSinceTimestamp,
+        }),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([profileSinceIdentity.profileId]),
+        },
+      },
+    ],
+  });
+
+  const invalidSinceCase = singleRequestCase({
+    caseId: "v2.activities-profile.invalid-since",
+    title: "The Activity Profile Resource rejects an invalid since value when listing profile ids",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00295",
+        section: "Communication 2.7.s4",
+        title: "Activity Profile rejects invalid since values",
+      },
+    ],
+    tags: ["v2.0.0", "activities-profile", "document", "list", "since"],
+    capabilityFlags: ["document", "list", "activity-profile", "since"],
+    legacyTraceSuiteFile: activityProfileLegacySuiteFile,
+    request: buildVersionedRequest("GET", "activities-profile", {
+      activityId: profileSinceIdentity.activityId,
+      since: invalidSinceTimestamp,
+    }),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice activity profile invalid since"],
+  });
+
+  const mergeCase = requestSequenceCase({
+    caseId: "v2.activities-profile.document-merge",
+    title: "The Activity Profile Resource merges JSON documents on POST when a profile already exists",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00308",
+        section: "Communication 2.2.s7",
+        title: "Activity Profile performs JSON document merge",
+      },
+    ],
+    tags: ["v2.0.0", "activities-profile", "document", "merge"],
+    capabilityFlags: ["document", "merge", "activity-profile"],
+    legacyTraceSuiteFile: activityProfileLegacySuiteFile,
+    notes: ["proof-slice activity profile merge"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "activities-profile", profileMergeIdentity, {
+          value: {
+            car: "Honda",
+          },
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("POST", "activities-profile", profileMergeIdentity, {
+          value: {
+            type: "Civic",
+          },
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "activities-profile", profileMergeIdentity),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["car"],
+              equals: "Honda",
+            },
+            {
+              path: ["type"],
+              equals: "Civic",
+            },
+          ],
+        },
+      },
+    ],
+  });
+
   const deleteCase = requestSequenceCase({
     caseId: "v2.activities-profile.delete-document",
     title: "The Activity Profile Resource deletes a stored document and removes it from profile listings",
@@ -717,6 +1270,22 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
       },
       {
         type: "suite",
+        id: "v2.proof-slice.activities-profile.since",
+        title: "Activity Profile Since",
+        specVersion,
+        tags: ["list", "since"],
+        children: [sinceCase, invalidSinceCase],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.activities-profile.merge",
+        title: "Activity Profile Merge",
+        specVersion,
+        tags: ["merge"],
+        children: [mergeCase],
+      },
+      {
+        type: "suite",
         id: "v2.proof-slice.activities-profile.deletion",
         title: "Activity Profile Deletion",
         specVersion,
@@ -738,6 +1307,22 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
     }),
     profileId: "proof-agent-profile-list",
   });
+  const profileSinceIdentity = buildAgentProfileIdentityFixture({
+    agent: JSON.stringify({
+      objectType: "Agent",
+      mbox: "mailto:agent-profile-since@example.test",
+      name: "Agent Profile Since",
+    }),
+    profileId: "proof-agent-profile-since",
+  });
+  const profileMergeIdentity = buildAgentProfileIdentityFixture({
+    agent: JSON.stringify({
+      objectType: "Agent",
+      mbox: "mailto:agent-profile-merge@example.test",
+      name: "Agent Profile Merge",
+    }),
+    profileId: "proof-agent-profile-merge",
+  });
   const profileDeleteIdentity = buildAgentProfileIdentityFixture({
     agent: JSON.stringify({
       objectType: "Agent",
@@ -748,6 +1333,9 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
   });
   const profileListQuery = {
     agent: profileListIdentity.agent,
+  };
+  const profileSinceQuery = {
+    agent: profileSinceIdentity.agent,
   };
   const profileDeleteListQuery = {
     agent: profileDeleteIdentity.agent,
@@ -824,6 +1412,128 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
     ],
   });
 
+  const sinceCase = requestSequenceCase({
+    caseId: "v2.agents-profile.document-list-since",
+    title: "The Agent Profile Resource filters listed profile ids using the since parameter",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00268",
+        section: "Communication 2.6.s4",
+        title: "Agent Profile GET without profileId accepts since",
+      },
+      {
+        id: "XAPI-00275",
+        section: "Communication 2.6.s4",
+        title: "Agent Profile list results can be filtered by since",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "list", "since"],
+    capabilityFlags: ["document", "list", "agent-profile", "since"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    notes: ["proof-slice agent profile since filtering"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profileSinceIdentity, {
+          value: buildAgentProfileDocumentFixture(),
+          fixtureName: "agent-profile-default",
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "agents-profile", {
+          ...profileSinceQuery,
+          since: validSinceTimestamp,
+        }),
+        assertion: {
+          status: 200,
+          jsonPathEquals: listEquals([profileSinceIdentity.profileId]),
+        },
+      },
+    ],
+  });
+
+  const invalidSinceCase = singleRequestCase({
+    caseId: "v2.agents-profile.invalid-since",
+    title: "The Agent Profile Resource rejects an invalid since value when listing profile ids",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00260",
+        section: "Communication 2.6.s4",
+        title: "Agent Profile rejects invalid since values",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "list", "since"],
+    capabilityFlags: ["document", "list", "agent-profile", "since"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    request: buildVersionedRequest("GET", "agents-profile", {
+      agent: profileSinceIdentity.agent,
+      since: invalidSinceTimestamp,
+    }),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice agent profile invalid since"],
+  });
+
+  const mergeCase = requestSequenceCase({
+    caseId: "v2.agents-profile.document-merge",
+    title: "The Agent Profile Resource merges JSON documents on POST when a profile already exists",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00279",
+        section: "Communication 2.2.s7",
+        title: "Agent Profile performs JSON document merge",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "merge"],
+    capabilityFlags: ["document", "merge", "agent-profile"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    notes: ["proof-slice agent profile merge"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profileMergeIdentity, {
+          value: {
+            car: "Honda",
+          },
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profileMergeIdentity, {
+          value: {
+            type: "Civic",
+          },
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "agents-profile", profileMergeIdentity),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["car"],
+              equals: "Honda",
+            },
+            {
+              path: ["type"],
+              equals: "Civic",
+            },
+          ],
+        },
+      },
+    ],
+  });
+
   const deleteCase = requestSequenceCase({
     caseId: "v2.agents-profile.delete-document",
     title: "The Agent Profile Resource deletes a stored document and removes it from profile listings",
@@ -887,6 +1597,22 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
         specVersion,
         tags: ["list"],
         children: [listCase],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.agents-profile.since",
+        title: "Agent Profile Since",
+        specVersion,
+        tags: ["list", "since"],
+        children: [sinceCase, invalidSinceCase],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.agents-profile.merge",
+        title: "Agent Profile Merge",
+        specVersion,
+        tags: ["merge"],
+        children: [mergeCase],
       },
       {
         type: "suite",
