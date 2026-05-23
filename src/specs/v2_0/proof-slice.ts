@@ -2,7 +2,9 @@ import type {
   EndpointKind,
   HttpMethod,
   HttpRequest,
+  JsonObject,
   RegistryDefinition,
+  RequirementRef,
   SuiteDefinition,
 } from "../../domain/contracts";
 import {
@@ -13,6 +15,7 @@ import {
   buildAgentProfileDocumentFixture,
   buildAgentProfileIdentityFixture,
 } from "../../fixtures/v2_0/documents";
+import type { FixtureTransform } from "../../fixtures/v2_0/statements";
 import { RegistryBuilder } from "../../registry/builder";
 import {
   documentRoundTripCase,
@@ -37,6 +40,9 @@ const agentProfileLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.1.6.5-Agent-Profile-Resource.js";
 const activityProfileLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.1.6.6-Activity-Profile-Resource.js";
+const ifisLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/ifis.js";
+const accountObjectsLegacyConfigFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/accountobjects.js";
 
 function buildVersionedRequest(
   method: HttpMethod,
@@ -79,6 +85,364 @@ function listEquals(expected: string[]) {
 
 const validSinceTimestamp = "2020-01-01T00:00:00.000Z";
 const invalidSinceTimestamp = "not-a-timestamp";
+const validGroupMemberMbox = "mailto:proof-group-member@example.test";
+const validNestedAgentMbox = "mailto:proof-nested-agent@example.test";
+const validAccountHomePage = "https://example.test/xapi/accounts/proof";
+const validAccountName = "proof-account";
+const invalidMailtoIri = "http://should.fail.com";
+const invalidMailtoEmail = "mailto:should.fail.com";
+const invalidOpenId = "ab=c://should.fail.com";
+const invalidAccountHomePage = "ab=c://should.fail.com";
+
+function buildVerbFixture(id: string, display: string): JsonObject {
+  return {
+    id,
+    display: {
+      "en-US": display,
+    },
+  };
+}
+
+function buildActivityObjectFixture(id: string): JsonObject {
+  return {
+    objectType: "Activity",
+    id,
+  };
+}
+
+function buildAgentWithMbox(mbox: string): JsonObject {
+  return {
+    objectType: "Agent",
+    mbox,
+    name: "Proof Agent",
+  };
+}
+
+function buildGroupWithMbox(mbox: string): JsonObject {
+  return {
+    objectType: "Group",
+    mbox,
+    name: "Proof Group",
+    member: [buildAgentWithMbox(validGroupMemberMbox)],
+  };
+}
+
+function buildAgentWithOpenId(openid: string): JsonObject {
+  return {
+    objectType: "Agent",
+    openid,
+    name: "Proof Agent",
+  };
+}
+
+function buildGroupWithOpenId(openid: string): JsonObject {
+  return {
+    objectType: "Group",
+    openid,
+    name: "Proof Group",
+    member: [buildAgentWithMbox(validGroupMemberMbox)],
+  };
+}
+
+function buildAccount(homePage?: string, name?: string): JsonObject {
+  const account: JsonObject = {};
+
+  if (homePage !== undefined) {
+    account.homePage = homePage;
+  }
+
+  if (name !== undefined) {
+    account.name = name;
+  }
+
+  return account;
+}
+
+function buildAgentWithAccount(account: JsonObject): JsonObject {
+  return {
+    objectType: "Agent",
+    account,
+    name: "Proof Agent",
+  };
+}
+
+function buildGroupWithAccount(account: JsonObject): JsonObject {
+  return {
+    objectType: "Group",
+    account,
+    name: "Proof Group",
+    member: [buildAgentWithMbox(validGroupMemberMbox)],
+  };
+}
+
+function buildSubStatementFixture(overrides: Partial<JsonObject> = {}): JsonObject {
+  return {
+    objectType: "SubStatement",
+    actor: buildAgentWithMbox(validNestedAgentMbox),
+    verb: buildVerbFixture("https://example.test/xapi/verbs/experienced", "experienced"),
+    object: buildActivityObjectFixture("https://example.test/xapi/activities/substatement"),
+    ...overrides,
+  };
+}
+
+function buildAttachmentFixture(overrides: Partial<JsonObject> = {}): JsonObject {
+  return {
+    usageType: "https://example.test/xapi/attachments/proof",
+    display: {
+      "en-US": "Proof Attachment",
+    },
+    description: {
+      "en-US": "Proof Attachment Description",
+    },
+    contentType: "text/plain; charset=ascii",
+    length: 27,
+    sha2: "495395e777cd98da653df9615d09c0fd6bb2f8d4788394cd53c56a3bfdcd848a",
+    fileUrl: "https://example.test/files/proof.txt",
+    ...overrides,
+  };
+}
+
+interface ActorLikePlacement {
+  idSuffix: string;
+  title: string;
+  kind: "agent" | "group";
+  buildTransforms(value: JsonObject): FixtureTransform[];
+}
+
+const actorLikePlacements: ActorLikePlacement[] = [
+  {
+    idSuffix: "actor-agent",
+    title: 'statement actor "agent"',
+    kind: "agent",
+    buildTransforms(value) {
+      return [
+        {
+          operation: "set",
+          path: ["actor"],
+          value,
+        },
+      ];
+    },
+  },
+  {
+    idSuffix: "actor-group",
+    title: 'statement actor "group"',
+    kind: "group",
+    buildTransforms(value) {
+      return [
+        {
+          operation: "set",
+          path: ["actor"],
+          value,
+        },
+      ];
+    },
+  },
+  {
+    idSuffix: "authority-agent",
+    title: 'statement authority "agent"',
+    kind: "agent",
+    buildTransforms(value) {
+      return [
+        {
+          operation: "set",
+          path: ["authority"],
+          value,
+        },
+      ];
+    },
+  },
+  {
+    idSuffix: "authority-group",
+    title: 'statement authority "group"',
+    kind: "group",
+    buildTransforms(value) {
+      return [
+        {
+          operation: "set",
+          path: ["authority"],
+          value,
+        },
+      ];
+    },
+  },
+  {
+    idSuffix: "context-instructor-agent",
+    title: 'statement context instructor "agent"',
+    kind: "agent",
+    buildTransforms(value) {
+      return [
+        {
+          operation: "set",
+          path: ["context"],
+          value: {
+            instructor: value,
+          },
+        },
+      ];
+    },
+  },
+  {
+    idSuffix: "context-instructor-group",
+    title: 'statement context instructor "group"',
+    kind: "group",
+    buildTransforms(value) {
+      return [
+        {
+          operation: "set",
+          path: ["context"],
+          value: {
+            instructor: value,
+          },
+        },
+      ];
+    },
+  },
+  {
+    idSuffix: "context-team-group",
+    title: 'statement context team "group"',
+    kind: "group",
+    buildTransforms(value) {
+      return [
+        {
+          operation: "set",
+          path: ["context"],
+          value: {
+            team: value,
+          },
+        },
+      ];
+    },
+  },
+  {
+    idSuffix: "object-agent",
+    title: 'statement object "agent"',
+    kind: "agent",
+    buildTransforms(value) {
+      return [
+        {
+          operation: "set",
+          path: ["object"],
+          value,
+        },
+      ];
+    },
+  },
+  {
+    idSuffix: "object-group",
+    title: 'statement object "group"',
+    kind: "group",
+    buildTransforms(value) {
+      return [
+        {
+          operation: "set",
+          path: ["object"],
+          value,
+        },
+      ];
+    },
+  },
+  {
+    idSuffix: "substatement-actor-agent",
+    title: 'statement substatement actor "agent"',
+    kind: "agent",
+    buildTransforms(value) {
+      return [
+        {
+          operation: "set",
+          path: ["object"],
+          value: buildSubStatementFixture({
+            actor: value,
+          }),
+        },
+      ];
+    },
+  },
+  {
+    idSuffix: "substatement-actor-group",
+    title: 'statement substatement actor "group"',
+    kind: "group",
+    buildTransforms(value) {
+      return [
+        {
+          operation: "set",
+          path: ["object"],
+          value: buildSubStatementFixture({
+            actor: value,
+          }),
+        },
+      ];
+    },
+  },
+  {
+    idSuffix: "substatement-context-instructor-agent",
+    title: 'statement substatement context instructor "agent"',
+    kind: "agent",
+    buildTransforms(value) {
+      return [
+        {
+          operation: "set",
+          path: ["object"],
+          value: buildSubStatementFixture({
+            context: {
+              instructor: value,
+            },
+          }),
+        },
+      ];
+    },
+  },
+  {
+    idSuffix: "substatement-context-instructor-group",
+    title: 'statement substatement context instructor "group"',
+    kind: "group",
+    buildTransforms(value) {
+      return [
+        {
+          operation: "set",
+          path: ["object"],
+          value: buildSubStatementFixture({
+            context: {
+              instructor: value,
+            },
+          }),
+        },
+      ];
+    },
+  },
+  {
+    idSuffix: "substatement-context-team-group",
+    title: 'statement substatement context team "group"',
+    kind: "group",
+    buildTransforms(value) {
+      return [
+        {
+          operation: "set",
+          path: ["object"],
+          value: buildSubStatementFixture({
+            context: {
+              team: value,
+            },
+          }),
+        },
+      ];
+    },
+  },
+];
+
+function buildRepeatedActorMutationVariants(options: {
+  description: string;
+  requirementRefs: RequirementRef[];
+  buildAgent(): JsonObject;
+  buildGroup(): JsonObject;
+}) {
+  return actorLikePlacements.map((placement) => ({
+    idSuffix: placement.idSuffix,
+    title: `A Statement rejects ${placement.title} when ${options.description}`,
+    transforms: placement.buildTransforms(placement.kind === "agent" ? options.buildAgent() : options.buildGroup()),
+    requirementRefs: options.requirementRefs,
+  }));
+}
 
 export function createV20ProofSliceSuite(): SuiteDefinition {
   const formattingCases = requiredFieldFamily({
@@ -447,6 +811,187 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     ],
   });
 
+  const mboxIriCases = statementMutationFamily({
+    familyId: "v2.statements.invalid-mbox-iri",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "formatting", "ifi", "mbox"],
+    legacyTraceSuiteFile: ifisLegacyConfigFile,
+    variants: buildRepeatedActorMutationVariants({
+      description: "mbox is not a valid mailto IRI",
+      requirementRefs: [
+        {
+          id: "XAPI-00038",
+          section: "Data 2.4.2.3.s3.table1.row1",
+          title: "mbox values must be mailto IRIs",
+        },
+      ],
+      buildAgent: () => buildAgentWithMbox(invalidMailtoIri),
+      buildGroup: () => buildGroupWithMbox(invalidMailtoIri),
+    }),
+  });
+
+  const mboxMailtoCases = statementMutationFamily({
+    familyId: "v2.statements.invalid-mbox-mailto",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "formatting", "ifi", "mbox"],
+    legacyTraceSuiteFile: ifisLegacyConfigFile,
+    variants: buildRepeatedActorMutationVariants({
+      description: "mbox is not a valid mailto email address",
+      requirementRefs: [
+        {
+          id: "XAPI-00038",
+          section: "Data 2.4.2.3.s3.table1.row1",
+          title: "mbox values must be mailto IRIs",
+        },
+      ],
+      buildAgent: () => buildAgentWithMbox(invalidMailtoEmail),
+      buildGroup: () => buildGroupWithMbox(invalidMailtoEmail),
+    }),
+  });
+
+  const openIdCases = statementMutationFamily({
+    familyId: "v2.statements.invalid-openid",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "formatting", "ifi", "openid"],
+    legacyTraceSuiteFile: ifisLegacyConfigFile,
+    variants: buildRepeatedActorMutationVariants({
+      description: "openid is not a valid URI",
+      requirementRefs: [
+        {
+          id: "XAPI-00040",
+          section: "Data 2.4.2.3.s3.table1.row3",
+          title: "openid values must be URIs",
+        },
+      ],
+      buildAgent: () => buildAgentWithOpenId(invalidOpenId),
+      buildGroup: () => buildGroupWithOpenId(invalidOpenId),
+    }),
+  });
+
+  const accountHomePageMissingCases = statementMutationFamily({
+    familyId: "v2.statements.account-home-page-missing",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "formatting", "ifi", "account"],
+    legacyTraceSuiteFile: accountObjectsLegacyConfigFile,
+    variants: buildRepeatedActorMutationVariants({
+      description: "account.homePage is missing",
+      requirementRefs: [
+        {
+          id: "XAPI-00042",
+          section: "Data 2.4.2.4.s2.table1.row1",
+          title: "Account objects require homePage",
+        },
+      ],
+      buildAgent: () => buildAgentWithAccount(buildAccount(undefined, validAccountName)),
+      buildGroup: () => buildGroupWithAccount(buildAccount(undefined, validAccountName)),
+    }),
+  });
+
+  const accountHomePageInvalidCases = statementMutationFamily({
+    familyId: "v2.statements.account-home-page-invalid",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "formatting", "ifi", "account"],
+    legacyTraceSuiteFile: accountObjectsLegacyConfigFile,
+    variants: buildRepeatedActorMutationVariants({
+      description: "account.homePage is not a valid URI",
+      requirementRefs: [
+        {
+          id: "XAPI-00042",
+          section: "Data 2.4.2.4.s2.table1.row1",
+          title: "Account objects require valid homePage IRIs",
+        },
+      ],
+      buildAgent: () => buildAgentWithAccount(buildAccount(invalidAccountHomePage, validAccountName)),
+      buildGroup: () => buildGroupWithAccount(buildAccount(invalidAccountHomePage, validAccountName)),
+    }),
+  });
+
+  const accountNameMissingCases = statementMutationFamily({
+    familyId: "v2.statements.account-name-missing",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "formatting", "account"],
+    legacyTraceSuiteFile: accountObjectsLegacyConfigFile,
+    variants: buildRepeatedActorMutationVariants({
+      description: "account.name is missing",
+      requirementRefs: [
+        {
+          id: "XAPI-00043",
+          section: "Data 2.4.2.4.s2.table1.row2",
+          title: "Account objects require name",
+        },
+      ],
+      buildAgent: () => buildAgentWithAccount(buildAccount(validAccountHomePage)),
+      buildGroup: () => buildGroupWithAccount(buildAccount(validAccountHomePage)),
+    }),
+  });
+
+  const attachmentIriCases = statementMutationFamily({
+    familyId: "v2.statements.invalid-attachment-iri",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "formatting", "attachment", "iri"],
+    legacyTraceSuiteFile: formattingLegacySuiteFile,
+    variants: [
+      {
+        idSuffix: "usage-type-no-scheme",
+        title: "A Statement rejects an attachment usageType without an IRI scheme",
+        transforms: [
+          {
+            operation: "set",
+            path: ["attachments"],
+            value: [
+              buildAttachmentFixture({
+                usageType: "example.test/xapi/attachments/proof",
+              }),
+            ],
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00011",
+            section: "Data 2.2.s4.b1.b8",
+            title: "Attachment usageType values must be IRIs",
+          },
+        ],
+      },
+      {
+        idSuffix: "file-url-no-scheme",
+        title: "A Statement rejects an attachment fileUrl without an IRI scheme",
+        transforms: [
+          {
+            operation: "set",
+            path: ["attachments"],
+            value: [
+              buildAttachmentFixture({
+                fileUrl: "example.test/files/proof.txt",
+              }),
+            ],
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00011",
+            section: "Data 2.2.s4.b1.b8",
+            title: "Attachment fileUrl values must be IRIs",
+          },
+        ],
+      },
+    ],
+  });
+
   const min = 0.12123434;
   const raw = 12.125;
   const max = 45.45;
@@ -637,6 +1182,13 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
           ...wrongTypeCases,
           ...invalidFormatCases,
           ...iriSchemeCases,
+          ...mboxIriCases,
+          ...mboxMailtoCases,
+          ...openIdCases,
+          ...accountHomePageMissingCases,
+          ...accountHomePageInvalidCases,
+          ...accountNameMissingCases,
+          ...attachmentIriCases,
           precisionCase,
         ],
       },
@@ -674,6 +1226,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
   const stateMergeIdentity = buildActivityStateIdentityFixture({
     activityId: "https://example.test/xapi/activities/state-proof-slice/merge",
     stateId: "proof-state-merge",
+  });
+  const stateMergeRejectIdentity = buildActivityStateIdentityFixture({
+    activityId: "https://example.test/xapi/activities/state-proof-slice/merge-reject",
+    stateId: "proof-state-merge-reject",
   });
   const stateDeleteIdentity = buildActivityStateIdentityFixture({
     activityId: "https://example.test/xapi/activities/state-proof-slice/delete",
@@ -890,6 +1446,55 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
     ],
   });
 
+  const stateMergeRejectCase = requestSequenceCase({
+    caseId: "v2.activities-state.document-merge-rejects-non-object",
+    title: "The State Resource rejects a non-object POST merge and preserves the existing document",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00229",
+        section: "Communication 2.3.s3.table1.row3",
+        title: "State Resource rejects non-object JSON merge payloads without mutation",
+      },
+    ],
+    tags: ["v2.0.0", "activities-state", "document", "merge", "invalid"],
+    capabilityFlags: ["document", "merge", "state", "invalid"],
+    legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+    notes: ["proof-slice activity state invalid merge payload"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "activities-state", stateMergeRejectIdentity, {
+          value: {
+            car: "Honda",
+          },
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("POST", "activities-state", stateMergeRejectIdentity, {
+          value: "abcdefg",
+        }),
+        assertion: {
+          status: 400,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "activities-state", stateMergeRejectIdentity),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["car"],
+              equals: "Honda",
+            },
+          ],
+        },
+      },
+    ],
+  });
+
   const stateDeleteCase = requestSequenceCase({
     caseId: "v2.activities-state.delete-context-documents",
     title: "The State Resource deletes matching documents when DELETE omits stateId",
@@ -968,7 +1573,7 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
         title: "State Document Merge",
         specVersion,
         tags: ["merge"],
-        children: [stateMergeCase],
+        children: [stateMergeCase, stateMergeRejectCase],
       },
       {
         type: "suite",
@@ -996,6 +1601,10 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
   const profileMergeIdentity = buildActivityProfileIdentityFixture({
     activityId: "https://example.test/xapi/activities/profile-proof-slice/merge",
     profileId: "proof-activity-profile-merge",
+  });
+  const profileMergeRejectIdentity = buildActivityProfileIdentityFixture({
+    activityId: "https://example.test/xapi/activities/profile-proof-slice/merge-reject",
+    profileId: "proof-activity-profile-merge-reject",
   });
   const profileDeleteIdentity = buildActivityProfileIdentityFixture({
     activityId: "https://example.test/xapi/activities/profile-proof-slice/delete",
@@ -1204,6 +1813,55 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
     ],
   });
 
+  const mergeRejectCase = requestSequenceCase({
+    caseId: "v2.activities-profile.document-merge-rejects-non-object",
+    title: "The Activity Profile Resource rejects a non-object POST merge and preserves the existing document",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00313",
+        section: "Communication 2.7.s3.table1.row3",
+        title: "Activity Profile rejects non-object JSON merge payloads without mutation",
+      },
+    ],
+    tags: ["v2.0.0", "activities-profile", "document", "merge", "invalid"],
+    capabilityFlags: ["document", "merge", "activity-profile", "invalid"],
+    legacyTraceSuiteFile: activityProfileLegacySuiteFile,
+    notes: ["proof-slice activity profile invalid merge payload"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "activities-profile", profileMergeRejectIdentity, {
+          value: {
+            car: "Honda",
+          },
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("POST", "activities-profile", profileMergeRejectIdentity, {
+          value: "abcdefg",
+        }),
+        assertion: {
+          status: 400,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "activities-profile", profileMergeRejectIdentity),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["car"],
+              equals: "Honda",
+            },
+          ],
+        },
+      },
+    ],
+  });
+
   const deleteCase = requestSequenceCase({
     caseId: "v2.activities-profile.delete-document",
     title: "The Activity Profile Resource deletes a stored document and removes it from profile listings",
@@ -1282,7 +1940,7 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
         title: "Activity Profile Merge",
         specVersion,
         tags: ["merge"],
-        children: [mergeCase],
+        children: [mergeCase, mergeRejectCase],
       },
       {
         type: "suite",
@@ -1322,6 +1980,14 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
       name: "Agent Profile Merge",
     }),
     profileId: "proof-agent-profile-merge",
+  });
+  const profileMergeRejectIdentity = buildAgentProfileIdentityFixture({
+    agent: JSON.stringify({
+      objectType: "Agent",
+      mbox: "mailto:agent-profile-merge-reject@example.test",
+      name: "Agent Profile Merge Reject",
+    }),
+    profileId: "proof-agent-profile-merge-reject",
   });
   const profileDeleteIdentity = buildAgentProfileIdentityFixture({
     agent: JSON.stringify({
@@ -1534,6 +2200,55 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
     ],
   });
 
+  const mergeRejectCase = requestSequenceCase({
+    caseId: "v2.agents-profile.document-merge-rejects-non-object",
+    title: "The Agent Profile Resource rejects a non-object POST merge and preserves the existing document",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00278",
+        section: "Communication 2.3.s3.table1.row3",
+        title: "Agent Profile rejects non-object JSON merge payloads without mutation",
+      },
+    ],
+    tags: ["v2.0.0", "agents-profile", "document", "merge", "invalid"],
+    capabilityFlags: ["document", "merge", "agent-profile", "invalid"],
+    legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+    notes: ["proof-slice agent profile invalid merge payload"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profileMergeRejectIdentity, {
+          value: {
+            car: "Honda",
+          },
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildVersionedRequest("POST", "agents-profile", profileMergeRejectIdentity, {
+          value: "abcdefg",
+        }),
+        assertion: {
+          status: 400,
+        },
+      },
+      {
+        request: buildVersionedRequest("GET", "agents-profile", profileMergeRejectIdentity),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["car"],
+              equals: "Honda",
+            },
+          ],
+        },
+      },
+    ],
+  });
+
   const deleteCase = requestSequenceCase({
     caseId: "v2.agents-profile.delete-document",
     title: "The Agent Profile Resource deletes a stored document and removes it from profile listings",
@@ -1612,7 +2327,7 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
         title: "Agent Profile Merge",
         specVersion,
         tags: ["merge"],
-        children: [mergeCase],
+        children: [mergeCase, mergeRejectCase],
       },
       {
         type: "suite",

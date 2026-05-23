@@ -77,31 +77,123 @@ function isValidTimestamp(value: string): boolean {
   return Number.isFinite(Date.parse(value));
 }
 
-function validateStatementBody(value: unknown): string | undefined {
-  if (!hasRequiredStatementFields(value)) {
-    return "statement must include actor, verb, and object";
+function isValidUrl(value: string): boolean {
+  try {
+    new URL(value);
+    return true;
+  } catch {
+    return false;
   }
+}
 
-  if (containsDisallowedNull(value)) {
-    return "statement contains disallowed null values";
-  }
+function isValidMailto(value: string): boolean {
+  return /^mailto:[^@\s]+@[^@\s]+\.[^@\s]+$/i.test(value);
+}
 
-  const statementId = value.id;
-  if (typeof statementId !== "string" || !isUuid(statementId)) {
-    return "statement id must be a UUID";
-  }
-
-  const verb = value.verb;
-  if (!isJsonObject(verb) || typeof verb.id !== "string" || !hasUriScheme(verb.id)) {
+function validateVerb(value: unknown): string | undefined {
+  if (!isJsonObject(value) || typeof value.id !== "string" || !hasUriScheme(value.id)) {
     return "verb id must be an IRI";
   }
 
-  const object = value.object;
-  if (!isJsonObject(object) || typeof object.id !== "string" || !hasUriScheme(object.id)) {
+  return undefined;
+}
+
+function validateAccount(value: unknown): string | undefined {
+  if (!isJsonObject(value)) {
+    return "account must be an object";
+  }
+
+  const homePage = value.homePage;
+  if (typeof homePage !== "string" || !isValidUrl(homePage)) {
+    return "account.homePage must be a URI";
+  }
+
+  const name = value.name;
+  if (typeof name !== "string" || name.length === 0) {
+    return "account.name must be a string";
+  }
+
+  return undefined;
+}
+
+function validateActorLike(value: unknown): string | undefined {
+  if (!isJsonObject(value)) {
+    return "actor-like value must be an object";
+  }
+
+  const mbox = value.mbox;
+  if (mbox !== undefined && (typeof mbox !== "string" || !isValidMailto(mbox))) {
+    return "mbox must be a mailto IRI";
+  }
+
+  const openid = value.openid;
+  if (openid !== undefined && (typeof openid !== "string" || !isValidUrl(openid))) {
+    return "openid must be a URI";
+  }
+
+  const account = value.account;
+  if (account !== undefined) {
+    const accountError = validateAccount(account);
+    if (accountError) {
+      return accountError;
+    }
+  }
+
+  return undefined;
+}
+
+function validateContext(value: unknown): string | undefined {
+  if (!isJsonObject(value)) {
+    return "context must be an object";
+  }
+
+  if (value.instructor !== undefined) {
+    const instructorError = validateActorLike(value.instructor);
+    if (instructorError) {
+      return instructorError;
+    }
+  }
+
+  if (value.team !== undefined) {
+    const teamError = validateActorLike(value.team);
+    if (teamError) {
+      return teamError;
+    }
+  }
+
+  return undefined;
+}
+
+function validateAttachments(value: unknown): string | undefined {
+  if (!Array.isArray(value)) {
+    return "attachments must be an array";
+  }
+
+  for (const attachment of value) {
+    if (!isJsonObject(attachment)) {
+      return "attachments must contain objects";
+    }
+
+    if (typeof attachment.usageType !== "string" || !hasUriScheme(attachment.usageType)) {
+      return "attachment usageType must be an IRI";
+    }
+
+    const fileUrl = attachment.fileUrl;
+    if (fileUrl !== undefined && (typeof fileUrl !== "string" || !hasUriScheme(fileUrl))) {
+      return "attachment fileUrl must be an IRI";
+    }
+  }
+
+  return undefined;
+}
+
+function validateActivityObject(value: JsonObject): string | undefined {
+  const objectId = value.id;
+  if (typeof objectId !== "string" || !hasUriScheme(objectId)) {
     return "object id must be an IRI";
   }
 
-  const definition = object.definition;
+  const definition = value.definition;
   if (definition !== undefined) {
     if (!isJsonObject(definition)) {
       return "object definition must be an object";
@@ -115,6 +207,53 @@ function validateStatementBody(value: unknown): string | undefined {
     const moreInfo = definition.moreInfo;
     if (moreInfo !== undefined && (typeof moreInfo !== "string" || !hasUriScheme(moreInfo))) {
       return "object definition moreInfo must be an IRI";
+    }
+  }
+
+  return undefined;
+}
+
+function validateStatementLike(value: JsonObject, requireId: boolean): string | undefined {
+  if (requireId) {
+    const statementId = value.id;
+    if (typeof statementId !== "string" || !isUuid(statementId)) {
+      return "statement id must be a UUID";
+    }
+  }
+
+  const actorError = validateActorLike(value.actor);
+  if (actorError) {
+    return actorError;
+  }
+
+  const verbError = validateVerb(value.verb);
+  if (verbError) {
+    return verbError;
+  }
+
+  const objectError = validateObject(value.object);
+  if (objectError) {
+    return objectError;
+  }
+
+  if (value.authority !== undefined) {
+    const authorityError = validateActorLike(value.authority);
+    if (authorityError) {
+      return authorityError;
+    }
+  }
+
+  if (value.context !== undefined) {
+    const contextError = validateContext(value.context);
+    if (contextError) {
+      return contextError;
+    }
+  }
+
+  if (value.attachments !== undefined) {
+    const attachmentsError = validateAttachments(value.attachments);
+    if (attachmentsError) {
+      return attachmentsError;
     }
   }
 
@@ -148,6 +287,50 @@ function validateStatementBody(value: unknown): string | undefined {
   }
 
   return undefined;
+}
+
+function validateSubStatement(value: JsonObject): string | undefined {
+  if (!["actor", "verb", "object"].every((key) => key in value)) {
+    return "substatement must include actor, verb, and object";
+  }
+
+  return validateStatementLike(value, false);
+}
+
+function validateObject(value: unknown): string | undefined {
+  if (!isJsonObject(value)) {
+    return "object must be an object";
+  }
+
+  const objectType = value.objectType;
+  if (objectType === "SubStatement") {
+    return validateSubStatement(value);
+  }
+
+  if (
+    objectType === "Agent" ||
+    objectType === "Group" ||
+    "mbox" in value ||
+    "openid" in value ||
+    "account" in value ||
+    "mbox_sha1sum" in value
+  ) {
+    return validateActorLike(value);
+  }
+
+  return validateActivityObject(value);
+}
+
+function validateStatementBody(value: unknown): string | undefined {
+  if (!hasRequiredStatementFields(value)) {
+    return "statement must include actor, verb, and object";
+  }
+
+  if (containsDisallowedNull(value)) {
+    return "statement contains disallowed null values";
+  }
+
+  return validateStatementLike(value, true);
 }
 
 function isValidAgentParameter(value: string | null): boolean {
