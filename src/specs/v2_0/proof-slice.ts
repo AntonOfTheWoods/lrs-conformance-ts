@@ -41,6 +41,10 @@ const contextLegacySuiteFile =
 const contextsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/contexts.js";
 const contextActivitiesLegacyConfigFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/contextactivities.js";
+const objectRequirementsLegacySuiteFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.2.3-Object-Requirements.js";
+const resultRequirementsLegacySuiteFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.2.2.4-Result-Requirements.js";
 const statementResourceLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.1.6.1-Statement-Resource.js";
 const errorCodesLegacySuiteFile =
@@ -77,6 +81,12 @@ const statementLifecycleLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v1_0_3/Data2.3-StatementLifecycle.js";
 const accountObjectsLegacyConfigFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/accountobjects.js";
+const resultsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/results.js";
+const scoresLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/scores.js";
+const statementRefsLegacyConfigFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/statementrefs.js";
+const subStatementsLegacyConfigFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/substatements.js";
 
 const proofUuidPrefix = "33333333-3333-4333-8333-";
 const multipartStatementRequestBoundary = "mock-proof-statement-request";
@@ -687,6 +697,8 @@ const nonJsonDocumentBody = "abcdefg";
 const existingNonJsonDocumentBody = "/ asdf / undefined";
 const invalidAgentQuery = '{"objectType":"Agent"';
 const invalidJsonDocumentBody = '{"name":"Broken profile document"[';
+const validScoreDecimal = 0.6767676;
+const validScoreMaxDecimal = 100.6767676;
 
 function buildVerbFixture(id: string, display: string): JsonObject {
   return {
@@ -871,7 +883,107 @@ function buildAttachmentFixture(overrides: Partial<JsonObject> = {}): JsonObject
   };
 }
 
+function buildResultFixture(overrides: Partial<JsonObject> = {}): JsonObject {
+  return {
+    score: {
+      scaled: validScoreDecimal,
+      raw: validScoreDecimal,
+      min: -1,
+      max: 1,
+    },
+    success: true,
+    completion: true,
+    response: "proof result response",
+    duration: "PT1H0M0.1S",
+    extensions: {
+      "https://example.test/xapi/results/extensions/proof": true,
+    },
+    ...overrides,
+  };
+}
+
+function buildStatementRefFixture(id = buildProofUuid(960)): JsonObject {
+  return {
+    objectType: "StatementRef",
+    id,
+  };
+}
+
 type ContextActivityKind = "parent" | "grouping" | "category" | "other";
+
+interface ResultPlacement {
+  idSuffix: string;
+  title: string;
+  buildTransforms(result: JsonObject): FixtureTransform[];
+}
+
+const resultPlacements: ResultPlacement[] = [
+  {
+    idSuffix: "statement",
+    title: "a statement result",
+    buildTransforms(result) {
+      return [
+        {
+          operation: "set",
+          path: ["result"],
+          value: result,
+        },
+      ];
+    },
+  },
+  {
+    idSuffix: "substatement",
+    title: "a substatement result",
+    buildTransforms(result) {
+      return [
+        {
+          operation: "set",
+          path: ["object"],
+          value: buildSubStatementFixture({
+            result,
+          }),
+        },
+      ];
+    },
+  },
+];
+
+interface StatementRefPlacement {
+  idSuffix: string;
+  title: string;
+  buildTransforms(statementRef: JsonObject): FixtureTransform[];
+}
+
+const statementRefPlacements: StatementRefPlacement[] = [
+  {
+    idSuffix: "statement",
+    title: "a statement object",
+    buildTransforms(statementRef) {
+      return [
+        {
+          operation: "set",
+          path: ["object"],
+          value: statementRef,
+        },
+      ];
+    },
+  },
+  {
+    idSuffix: "substatement",
+    title: "a substatement object",
+    buildTransforms(statementRef) {
+      return [
+        {
+          operation: "set",
+          path: ["object"],
+          value: buildSubStatementFixture({
+            object: statementRef,
+          }),
+        },
+      ];
+    },
+  },
+];
 
 interface ContextPlacement {
   idSuffix: string;
@@ -4788,6 +4900,980 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     ],
   });
 
+  const resultSuccessRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00074",
+      section: "Data 2.4.5.s2.table1.row1",
+      title: "Result success values are Booleans",
+    },
+  ];
+  const resultCompletionRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00075",
+      section: "Data 2.4.5.s2.table1.row2",
+      title: "Result completion values are Booleans",
+    },
+  ];
+  const resultResponseRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00076",
+      section: "Data 2.4.5.s2.table1.row3",
+      title: "Result response values are Strings",
+    },
+  ];
+  const resultDurationRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00077",
+      section: "Data 2.4.5.s2.table1.row4",
+      title: "Result duration values are ISO 8601 durations",
+    },
+  ];
+  const resultExtensionsRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00078",
+      section: "Data 2.4.5.s2.table1.row6",
+      title: "Result extensions values are Objects",
+    },
+  ];
+  const scoreObjectRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00079",
+      section: "Data 2.4.5.1",
+      title: "Result score values are Objects",
+    },
+  ];
+  const scoreMaxRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00080",
+      section: "Data 2.4.5.1.s2.table1.row4",
+      title: "Result score max values are greater than min when min is present",
+    },
+  ];
+  const scoreMinRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00081",
+      section: "Data 2.4.5.1.s2.table1.row3",
+      title: "Result score min values are less than max when max is present",
+    },
+  ];
+  const scoreRawRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00082",
+      section: "Data 2.4.5.1.s2.table1.row2",
+      title: "Result score raw values stay within min and max when present",
+    },
+  ];
+  const scoreScaledRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00083",
+      section: "Data 2.4.5.1.s2.table1.row1",
+      title: "Result score scaled values are between -1 and 1 inclusive",
+    },
+  ];
+  const statementRefRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00072",
+      section: "Data 2.4.4.3.s4.table1.row2",
+      title: "StatementRef id values are UUIDs",
+    },
+    {
+      id: "XAPI-00073",
+      section: "Data 2.4.4.3.s4.b1",
+      title: "StatementRef objectType values are StatementRef",
+    },
+  ];
+  const subStatementObjectTypeRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-01002",
+      section: "Data 2.4.4.3.s8.b1",
+      title: "SubStatement objectType values are SubStatement",
+    },
+  ];
+  const subStatementRequirementRefs: RequirementRef[] = [
+    {
+      id: "XAPI-00066",
+      section: "Data 2.4.4.3.s8.b2",
+      title: "SubStatements follow Statement requirements",
+    },
+  ];
+
+  const resultSuccessTypeCases = statementMutationFamily({
+    familyId: "v2.statements.result.success-type",
+    suiteTitle: "Statement Result",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "result", "validation", "success"],
+    legacyTraceSuiteFile: resultRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: resultsLegacyConfigFile,
+    variants: resultPlacements.flatMap((placement) => [
+      {
+        idSuffix: `${placement.idSuffix}-true-string`,
+        title: `A Statement rejects ${placement.title} when success is the string true`,
+        transforms: placement.buildTransforms(
+          buildResultFixture({
+            success: "true",
+          }),
+        ),
+        requirementRefs: resultSuccessRequirementRefs,
+      },
+      {
+        idSuffix: `${placement.idSuffix}-false-string`,
+        title: `A Statement rejects ${placement.title} when success is the string false`,
+        transforms: placement.buildTransforms(
+          buildResultFixture({
+            success: "false",
+          }),
+        ),
+        requirementRefs: resultSuccessRequirementRefs,
+      },
+    ]),
+  });
+
+  const resultCompletionTypeCases = statementMutationFamily({
+    familyId: "v2.statements.result.completion-type",
+    suiteTitle: "Statement Result",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "result", "validation", "completion"],
+    legacyTraceSuiteFile: resultRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: resultsLegacyConfigFile,
+    variants: resultPlacements.flatMap((placement) => [
+      {
+        idSuffix: `${placement.idSuffix}-true-string`,
+        title: `A Statement rejects ${placement.title} when completion is the string true`,
+        transforms: placement.buildTransforms(
+          buildResultFixture({
+            completion: "true",
+          }),
+        ),
+        requirementRefs: resultCompletionRequirementRefs,
+      },
+      {
+        idSuffix: `${placement.idSuffix}-false-string`,
+        title: `A Statement rejects ${placement.title} when completion is the string false`,
+        transforms: placement.buildTransforms(
+          buildResultFixture({
+            completion: "false",
+          }),
+        ),
+        requirementRefs: resultCompletionRequirementRefs,
+      },
+    ]),
+  });
+
+  const resultResponseTypeCases = statementMutationFamily({
+    familyId: "v2.statements.result.response-type",
+    suiteTitle: "Statement Result",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "result", "validation", "response"],
+    legacyTraceSuiteFile: resultRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: resultsLegacyConfigFile,
+    variants: resultPlacements.flatMap((placement) => [
+      {
+        idSuffix: `${placement.idSuffix}-numeric`,
+        title: `A Statement rejects ${placement.title} when response is numeric`,
+        transforms: placement.buildTransforms(
+          buildResultFixture({
+            response: 12345,
+          }),
+        ),
+        requirementRefs: resultResponseRequirementRefs,
+      },
+      {
+        idSuffix: `${placement.idSuffix}-object`,
+        title: `A Statement rejects ${placement.title} when response is an object`,
+        transforms: placement.buildTransforms(
+          buildResultFixture({
+            response: {
+              invalid: true,
+            },
+          }),
+        ),
+        requirementRefs: resultResponseRequirementRefs,
+      },
+    ]),
+  });
+
+  const resultDurationInvalidCases = statementMutationFamily({
+    familyId: "v2.statements.result.duration-invalid",
+    suiteTitle: "Statement Result",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "result", "validation", "duration"],
+    legacyTraceSuiteFile: resultRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: resultsLegacyConfigFile,
+    variants: resultPlacements.map((placement) => ({
+      idSuffix: placement.idSuffix,
+      title: `A Statement rejects ${placement.title} when duration is not a valid ISO 8601 duration`,
+      transforms: placement.buildTransforms(
+        buildResultFixture({
+          duration: "PA1H0M0S",
+        }),
+      ),
+      requirementRefs: resultDurationRequirementRefs,
+    })),
+  });
+
+  const validDurationVariants = [
+    {
+      idSuffix: "hours-minutes-seconds",
+      label: "PT1H0M0.1S",
+      value: "PT1H0M0.1S",
+    },
+    {
+      idSuffix: "time-only",
+      label: "PT4H35M59.14S",
+      value: "PT4H35M59.14S",
+    },
+    {
+      idSuffix: "seconds-only",
+      label: "PT16559.14S",
+      value: "PT16559.14S",
+    },
+    {
+      idSuffix: "date-time",
+      label: "P3Y1M29DT4H35M59.14S",
+      value: "P3Y1M29DT4H35M59.14S",
+    },
+    {
+      idSuffix: "weeks",
+      label: "P4W",
+      value: "P4W",
+    },
+  ] as const;
+
+  const resultDurationAcceptanceCases = statementMutationFamily({
+    familyId: "v2.statements.result.duration-valid",
+    suiteTitle: "Statement Result",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "result", "duration"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: resultRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: resultsLegacyConfigFile,
+    variants: resultPlacements.flatMap((placement) =>
+      validDurationVariants.map((variant) => ({
+        idSuffix: `${placement.idSuffix}-${variant.idSuffix}`,
+        title: `A Statement accepts ${placement.title} when duration is ${variant.label}`,
+        transforms: placement.buildTransforms(
+          buildResultFixture({
+            duration: variant.value,
+          }),
+        ),
+        requirementRefs: resultDurationRequirementRefs,
+      })),
+    ),
+  });
+
+  const resultExtensionsTypeCases = statementMutationFamily({
+    familyId: "v2.statements.result.extensions-type",
+    suiteTitle: "Statement Result",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "result", "validation", "extensions"],
+    legacyTraceSuiteFile: resultRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: resultsLegacyConfigFile,
+    variants: resultPlacements.flatMap((placement) => [
+      {
+        idSuffix: `${placement.idSuffix}-numeric`,
+        title: `A Statement rejects ${placement.title} when extensions is numeric`,
+        transforms: placement.buildTransforms(
+          buildResultFixture({
+            extensions: 12345,
+          }),
+        ),
+        requirementRefs: resultExtensionsRequirementRefs,
+      },
+      {
+        idSuffix: `${placement.idSuffix}-string`,
+        title: `A Statement rejects ${placement.title} when extensions is a string`,
+        transforms: placement.buildTransforms(
+          buildResultFixture({
+            extensions: "should fail",
+          }),
+        ),
+        requirementRefs: resultExtensionsRequirementRefs,
+      },
+    ]),
+  });
+
+  const scoreObjectTypeCases = statementMutationFamily({
+    familyId: "v2.statements.score.type",
+    suiteTitle: "Statement Score",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "result", "score", "validation"],
+    legacyTraceSuiteFile: resultRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: scoresLegacyConfigFile,
+    variants: resultPlacements.flatMap((placement) => [
+      {
+        idSuffix: `${placement.idSuffix}-numeric`,
+        title: `A Statement rejects ${placement.title} when score is numeric`,
+        transforms: placement.buildTransforms(
+          buildResultFixture({
+            score: 12345,
+          }),
+        ),
+        requirementRefs: scoreObjectRequirementRefs,
+      },
+      {
+        idSuffix: `${placement.idSuffix}-string`,
+        title: `A Statement rejects ${placement.title} when score is a string`,
+        transforms: placement.buildTransforms(
+          buildResultFixture({
+            score: "should fail",
+          }),
+        ),
+        requirementRefs: scoreObjectRequirementRefs,
+      },
+    ]),
+  });
+
+  const scoreScaledAcceptanceVariants = [
+    {
+      idSuffix: "decimal",
+      label: "a decimal within range",
+      score: { scaled: validScoreDecimal },
+    },
+    {
+      idSuffix: "upper-bound",
+      label: "the inclusive upper bound 1.0",
+      score: { scaled: 1.0 },
+    },
+    {
+      idSuffix: "lower-bound",
+      label: "the inclusive lower bound -1.0",
+      score: { scaled: -1.0 },
+    },
+  ] as const;
+
+  const scoreScaledAcceptanceCases = statementMutationFamily({
+    familyId: "v2.statements.score.scaled-valid",
+    suiteTitle: "Statement Score",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "result", "score", "scaled"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: resultRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: scoresLegacyConfigFile,
+    variants: resultPlacements.flatMap((placement) =>
+      scoreScaledAcceptanceVariants.map((variant) => ({
+        idSuffix: `${placement.idSuffix}-${variant.idSuffix}`,
+        title: `A Statement accepts ${placement.title} when scaled uses ${variant.label}`,
+        transforms: placement.buildTransforms(
+          buildResultFixture({
+            score: variant.score,
+          }),
+        ),
+        requirementRefs: scoreScaledRequirementRefs,
+      })),
+    ),
+  });
+
+  const scoreScaledRejectionVariants = [
+    {
+      idSuffix: "above-one",
+      label: "1.01",
+      score: { scaled: 1.01 },
+    },
+    {
+      idSuffix: "below-negative-one",
+      label: "-1.00001",
+      score: { scaled: -1.00001 },
+    },
+  ] as const;
+
+  const scoreScaledRejectionCases = statementMutationFamily({
+    familyId: "v2.statements.score.scaled-invalid",
+    suiteTitle: "Statement Score",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "result", "score", "scaled", "validation"],
+    legacyTraceSuiteFile: resultRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: scoresLegacyConfigFile,
+    variants: resultPlacements.flatMap((placement) =>
+      scoreScaledRejectionVariants.map((variant) => ({
+        idSuffix: `${placement.idSuffix}-${variant.idSuffix}`,
+        title: `A Statement rejects ${placement.title} when scaled is ${variant.label}`,
+        transforms: placement.buildTransforms(
+          buildResultFixture({
+            score: variant.score,
+          }),
+        ),
+        requirementRefs: scoreScaledRequirementRefs,
+      })),
+    ),
+  });
+
+  const scoreRawAcceptanceVariants = [
+    {
+      idSuffix: "unrestricted",
+      label: "raw without min or max",
+      score: { raw: validScoreDecimal },
+    },
+    {
+      idSuffix: "bounded",
+      label: "raw between min and max",
+      score: { raw: validScoreDecimal, min: validScoreDecimal - 1, max: validScoreDecimal + 1 },
+    },
+  ] as const;
+
+  const scoreRawAcceptanceCases = statementMutationFamily({
+    familyId: "v2.statements.score.raw-valid",
+    suiteTitle: "Statement Score",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "result", "score", "raw"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: resultRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: scoresLegacyConfigFile,
+    variants: resultPlacements.flatMap((placement) =>
+      scoreRawAcceptanceVariants.map((variant) => ({
+        idSuffix: `${placement.idSuffix}-${variant.idSuffix}`,
+        title: `A Statement accepts ${placement.title} when score uses ${variant.label}`,
+        transforms: placement.buildTransforms(
+          buildResultFixture({
+            score: variant.score,
+          }),
+        ),
+        requirementRefs: scoreRawRequirementRefs,
+      })),
+    ),
+  });
+
+  const scoreRawRejectionVariants = [
+    {
+      idSuffix: "above-max",
+      label: "raw greater than max",
+      score: { raw: validScoreDecimal, max: validScoreDecimal - 0.02 },
+    },
+    {
+      idSuffix: "below-min",
+      label: "raw less than min",
+      score: { raw: validScoreDecimal, min: validScoreDecimal + 0.73 },
+    },
+  ] as const;
+
+  const scoreRawRejectionCases = statementMutationFamily({
+    familyId: "v2.statements.score.raw-invalid",
+    suiteTitle: "Statement Score",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "result", "score", "raw", "validation"],
+    legacyTraceSuiteFile: resultRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: scoresLegacyConfigFile,
+    variants: resultPlacements.flatMap((placement) =>
+      scoreRawRejectionVariants.map((variant) => ({
+        idSuffix: `${placement.idSuffix}-${variant.idSuffix}`,
+        title: `A Statement rejects ${placement.title} when score uses ${variant.label}`,
+        transforms: placement.buildTransforms(
+          buildResultFixture({
+            score: variant.score,
+          }),
+        ),
+        requirementRefs: scoreRawRequirementRefs,
+      })),
+    ),
+  });
+
+  const scoreMinAcceptanceVariants = [
+    {
+      idSuffix: "unrestricted",
+      label: "min without max",
+      score: { min: validScoreDecimal },
+    },
+    {
+      idSuffix: "bounded",
+      label: "min below max with raw between them",
+      score: { min: validScoreDecimal, max: validScoreDecimal + 1, raw: validScoreDecimal + 0.5 },
+    },
+  ] as const;
+
+  const scoreMinAcceptanceCases = statementMutationFamily({
+    familyId: "v2.statements.score.min-valid",
+    suiteTitle: "Statement Score",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "result", "score", "min"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: resultRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: scoresLegacyConfigFile,
+    variants: resultPlacements.flatMap((placement) =>
+      scoreMinAcceptanceVariants.map((variant) => ({
+        idSuffix: `${placement.idSuffix}-${variant.idSuffix}`,
+        title: `A Statement accepts ${placement.title} when score uses ${variant.label}`,
+        transforms: placement.buildTransforms(
+          buildResultFixture({
+            score: variant.score,
+          }),
+        ),
+        requirementRefs: scoreMinRequirementRefs,
+      })),
+    ),
+  });
+
+  const scoreMinRejectionCases = statementMutationFamily({
+    familyId: "v2.statements.score.min-invalid",
+    suiteTitle: "Statement Score",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "result", "score", "min", "validation"],
+    legacyTraceSuiteFile: resultRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: scoresLegacyConfigFile,
+    variants: resultPlacements.map((placement) => ({
+      idSuffix: placement.idSuffix,
+      title: `A Statement rejects ${placement.title} when min is greater than max`,
+      transforms: placement.buildTransforms(
+        buildResultFixture({
+          score: {
+            min: validScoreDecimal,
+            max: validScoreDecimal - 0.0000321,
+            raw: validScoreDecimal - 0.0000033,
+          },
+        }),
+      ),
+      requirementRefs: scoreMinRequirementRefs,
+    })),
+  });
+
+  const scoreMaxAcceptanceVariants = [
+    {
+      idSuffix: "unrestricted",
+      label: "max without min",
+      score: { max: validScoreMaxDecimal },
+    },
+    {
+      idSuffix: "bounded",
+      label: "max above min with raw between them",
+      score: { max: validScoreMaxDecimal, min: validScoreMaxDecimal - 4, raw: validScoreMaxDecimal - 1 },
+    },
+  ] as const;
+
+  const scoreMaxAcceptanceCases = statementMutationFamily({
+    familyId: "v2.statements.score.max-valid",
+    suiteTitle: "Statement Score",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "result", "score", "max"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: resultRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: scoresLegacyConfigFile,
+    variants: resultPlacements.flatMap((placement) =>
+      scoreMaxAcceptanceVariants.map((variant) => ({
+        idSuffix: `${placement.idSuffix}-${variant.idSuffix}`,
+        title: `A Statement accepts ${placement.title} when score uses ${variant.label}`,
+        transforms: placement.buildTransforms(
+          buildResultFixture({
+            score: variant.score,
+          }),
+        ),
+        requirementRefs: scoreMaxRequirementRefs,
+      })),
+    ),
+  });
+
+  const scoreMaxRejectionCases = statementMutationFamily({
+    familyId: "v2.statements.score.max-invalid",
+    suiteTitle: "Statement Score",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "result", "score", "max", "validation"],
+    legacyTraceSuiteFile: resultRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: scoresLegacyConfigFile,
+    variants: resultPlacements.map((placement) => ({
+      idSuffix: placement.idSuffix,
+      title: `A Statement rejects ${placement.title} when max is less than min`,
+      transforms: placement.buildTransforms(
+        buildResultFixture({
+          score: {
+            max: validScoreMaxDecimal,
+            raw: validScoreMaxDecimal + 1,
+            min: validScoreMaxDecimal + 4,
+          },
+        }),
+      ),
+      requirementRefs: scoreMaxRequirementRefs,
+    })),
+  });
+
+  const statementRefAcceptanceCases = statementMutationFamily({
+    familyId: "v2.statements.statement-ref.acceptance",
+    suiteTitle: "Statement References",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "object", "statement-ref"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: objectRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: statementRefsLegacyConfigFile,
+    variants: statementRefPlacements.map((placement, index) => ({
+      idSuffix: placement.idSuffix,
+      title: `A Statement accepts ${placement.title} when it is a valid StatementRef`,
+      transforms: placement.buildTransforms(buildStatementRefFixture(buildProofUuid(970 + index))),
+      requirementRefs: statementRefRequirementRefs,
+    })),
+  });
+
+  const statementRefObjectTypeCases = statementMutationFamily({
+    familyId: "v2.statements.statement-ref.object-type",
+    suiteTitle: "Statement References",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "object", "statement-ref", "validation"],
+    legacyTraceSuiteFile: objectRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: statementRefsLegacyConfigFile,
+    variants: statementRefPlacements.map((placement) => ({
+      idSuffix: placement.idSuffix,
+      title: `A Statement rejects ${placement.title} when objectType does not exactly match StatementRef`,
+      transforms: placement.buildTransforms({
+        objectType: "statementref",
+        id: buildProofUuid(972),
+      }),
+      requirementRefs: statementRefRequirementRefs,
+    })),
+  });
+
+  const statementRefMissingIdCases = statementMutationFamily({
+    familyId: "v2.statements.statement-ref.missing-id",
+    suiteTitle: "Statement References",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "object", "statement-ref", "validation"],
+    legacyTraceSuiteFile: objectRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: statementRefsLegacyConfigFile,
+    variants: statementRefPlacements.map((placement) => ({
+      idSuffix: placement.idSuffix,
+      title: `A Statement rejects ${placement.title} when id is missing`,
+      transforms: placement.buildTransforms({
+        objectType: "StatementRef",
+      }),
+      requirementRefs: statementRefRequirementRefs,
+    })),
+  });
+
+  const statementRefInvalidIdCases = statementMutationFamily({
+    familyId: "v2.statements.statement-ref.invalid-id",
+    suiteTitle: "Statement References",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "object", "statement-ref", "validation"],
+    legacyTraceSuiteFile: objectRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: statementRefsLegacyConfigFile,
+    variants: statementRefPlacements.map((placement) => ({
+      idSuffix: placement.idSuffix,
+      title: `A Statement rejects ${placement.title} when id is not a UUID`,
+      transforms: placement.buildTransforms(buildStatementRefFixture("should fail")),
+      requirementRefs: statementRefRequirementRefs,
+    })),
+  });
+
+  const subStatementAcceptanceCases = statementMutationFamily({
+    familyId: "v2.statements.substatement.acceptance",
+    suiteTitle: "SubStatements",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "object", "substatement"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: objectRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: subStatementsLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "default",
+        title: "A Statement accepts a valid SubStatement object",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture(),
+          },
+        ],
+        requirementRefs: subStatementRequirementRefs,
+      },
+      {
+        idSuffix: "context",
+        title: "A Statement accepts a SubStatement that contains context",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture({
+              context: {
+                language: "en-US",
+              },
+            }),
+          },
+        ],
+        requirementRefs: subStatementRequirementRefs,
+      },
+      {
+        idSuffix: "result",
+        title: "A Statement accepts a SubStatement that contains result",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture({
+              result: buildResultFixture(),
+            }),
+          },
+        ],
+        requirementRefs: subStatementRequirementRefs,
+      },
+      {
+        idSuffix: "statement-ref",
+        title: "A Statement accepts a SubStatement whose object is a StatementRef",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture({
+              object: buildStatementRefFixture(buildProofUuid(973)),
+            }),
+          },
+        ],
+        requirementRefs: subStatementRequirementRefs,
+      },
+      {
+        idSuffix: "agent",
+        title: "A Statement accepts a SubStatement whose object is an Agent",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture({
+              object: buildAgentWithMbox("mailto:proof-substatement-agent@example.test"),
+            }),
+          },
+        ],
+        requirementRefs: subStatementRequirementRefs,
+      },
+      {
+        idSuffix: "group",
+        title: "A Statement accepts a SubStatement whose object is a Group",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture({
+              object: buildGroupWithMbox("mailto:proof-substatement-group@example.test"),
+            }),
+          },
+        ],
+        requirementRefs: subStatementRequirementRefs,
+      },
+    ],
+  });
+
+  const subStatementObjectTypeCases = statementMutationFamily({
+    familyId: "v2.statements.substatement.object-type",
+    suiteTitle: "SubStatements",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "object", "substatement", "validation"],
+    legacyTraceSuiteFile: objectRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: subStatementsLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "statement",
+        title: "A Statement rejects an objectType value that does not exactly match SubStatement",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture({
+              objectType: "substatement",
+            }),
+          },
+        ],
+        requirementRefs: subStatementObjectTypeRequirementRefs,
+      },
+    ],
+  });
+
+  const subStatementMissingFieldCases = statementMutationFamily({
+    familyId: "v2.statements.substatement.missing-fields",
+    suiteTitle: "SubStatements",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "object", "substatement", "validation"],
+    legacyTraceSuiteFile: objectRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: subStatementsLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "actor",
+        title: "A Statement rejects a SubStatement that omits actor",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture(),
+          },
+          {
+            operation: "remove",
+            path: ["object", "actor"],
+          },
+        ],
+        requirementRefs: subStatementRequirementRefs,
+      },
+      {
+        idSuffix: "verb",
+        title: "A Statement rejects a SubStatement that omits verb",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture(),
+          },
+          {
+            operation: "remove",
+            path: ["object", "verb"],
+          },
+        ],
+        requirementRefs: subStatementRequirementRefs,
+      },
+      {
+        idSuffix: "object",
+        title: "A Statement rejects a SubStatement that omits object",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture(),
+          },
+          {
+            operation: "remove",
+            path: ["object", "object"],
+          },
+        ],
+        requirementRefs: subStatementRequirementRefs,
+      },
+    ],
+  });
+
+  const subStatementForbiddenPropertyCases = statementMutationFamily({
+    familyId: "v2.statements.substatement.forbidden-properties",
+    suiteTitle: "SubStatements",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "object", "substatement", "validation"],
+    legacyTraceSuiteFile: objectRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: subStatementsLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "authority",
+        title: "A Statement rejects a SubStatement that contains authority",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture({
+              authority: buildAgentWithMbox("mailto:proof-substatement-authority@example.test"),
+            }),
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00067",
+            section: "Data 2.4.4.3.s8.b3",
+            title: "SubStatements cannot use authority",
+          },
+        ],
+      },
+      {
+        idSuffix: "version",
+        title: "A Statement rejects a SubStatement that contains version",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture({
+              version: "1.0.0",
+            }),
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00068",
+            section: "Data 2.4.4.3.s8.b3",
+            title: "SubStatements cannot use version",
+          },
+        ],
+      },
+      {
+        idSuffix: "stored",
+        title: "A Statement rejects a SubStatement that contains stored",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture({
+              stored: "2013-05-18T05:32:34.804Z",
+            }),
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00069",
+            section: "Data 2.4.4.3.s8.b3",
+            title: "SubStatements cannot use stored",
+          },
+        ],
+      },
+      {
+        idSuffix: "id",
+        title: "A Statement rejects a SubStatement that contains id",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture({
+              id: buildProofUuid(974),
+            }),
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00070",
+            section: "Data 2.4.4.3.s8.b3",
+            title: "SubStatements cannot use id",
+          },
+        ],
+      },
+    ],
+  });
+
+  const subStatementNestedCase = statementMutationFamily({
+    familyId: "v2.statements.substatement.nested",
+    suiteTitle: "SubStatements",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "object", "substatement", "validation"],
+    legacyTraceSuiteFile: objectRequirementsLegacySuiteFile,
+    legacyTraceConfigFile: subStatementsLegacyConfigFile,
+    variants: [
+      {
+        idSuffix: "substatement",
+        title: "A Statement rejects a SubStatement whose object is another SubStatement",
+        transforms: [
+          {
+            operation: "set",
+            path: ["object"],
+            value: buildSubStatementFixture({
+              object: buildSubStatementFixture(),
+            }),
+          },
+        ],
+        requirementRefs: [
+          {
+            id: "XAPI-00071",
+            section: "Data 2.4.4.3.s8.b4",
+            title: "SubStatements cannot contain SubStatements",
+          },
+        ],
+      },
+    ],
+  });
+
   const contextRegistrationRequirementRefs: RequirementRef[] = [
     {
       id: "XAPI-00086",
@@ -5455,6 +6541,66 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
           authorityPopulationCase,
           authorityNonOauthMembersCase,
           ...authorityGroupRejectionCases,
+        ],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.statements.result-and-objects",
+        title: "Statement Result And Object Requirements",
+        specVersion,
+        tags: ["result", "object"],
+        children: [
+          {
+            type: "suite",
+            id: "v2.proof-slice.statements.result-and-objects.result",
+            title: "Result",
+            specVersion,
+            tags: ["result"],
+            children: [
+              ...resultSuccessTypeCases,
+              ...resultCompletionTypeCases,
+              ...resultResponseTypeCases,
+              ...resultDurationInvalidCases,
+              ...resultDurationAcceptanceCases,
+              ...resultExtensionsTypeCases,
+              ...scoreObjectTypeCases,
+              ...scoreScaledAcceptanceCases,
+              ...scoreScaledRejectionCases,
+              ...scoreRawAcceptanceCases,
+              ...scoreRawRejectionCases,
+              ...scoreMinAcceptanceCases,
+              ...scoreMinRejectionCases,
+              ...scoreMaxAcceptanceCases,
+              ...scoreMaxRejectionCases,
+            ],
+          },
+          {
+            type: "suite",
+            id: "v2.proof-slice.statements.result-and-objects.statement-ref",
+            title: "Statement References",
+            specVersion,
+            tags: ["statement-ref"],
+            children: [
+              ...statementRefAcceptanceCases,
+              ...statementRefObjectTypeCases,
+              ...statementRefMissingIdCases,
+              ...statementRefInvalidIdCases,
+            ],
+          },
+          {
+            type: "suite",
+            id: "v2.proof-slice.statements.result-and-objects.substatement",
+            title: "SubStatements",
+            specVersion,
+            tags: ["substatement"],
+            children: [
+              ...subStatementAcceptanceCases,
+              ...subStatementObjectTypeCases,
+              ...subStatementMissingFieldCases,
+              ...subStatementForbiddenPropertyCases,
+              ...subStatementNestedCase,
+            ],
+          },
         ],
       },
       {

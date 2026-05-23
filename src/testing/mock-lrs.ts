@@ -384,6 +384,10 @@ function isValidLanguageTag(value: string): boolean {
   }
 }
 
+function isValidIsoDuration(value: string): boolean {
+  return /^P(?=.)(?:\d+W|(?:\d+Y)?(?:\d+M)?(?:\d+D)?(?:T(?=\d)(?:\d+H)?(?:\d+M)?(?:\d+(?:\.\d+)?S)?)?)$/i.test(value);
+}
+
 function validateLanguageMapValue(value: unknown, label: string): string | undefined {
   if (!isLanguageMap(value)) {
     return `${label} must be a language map`;
@@ -1024,6 +1028,14 @@ function validateResult(value: unknown): string | undefined {
     return "result.completion must be a boolean";
   }
 
+  if (value.response !== undefined && typeof value.response !== "string") {
+    return "result.response must be a string";
+  }
+
+  if (value.duration !== undefined && (typeof value.duration !== "string" || !isValidIsoDuration(value.duration))) {
+    return "result.duration must be an ISO 8601 duration";
+  }
+
   const score = value.score;
   if (score !== undefined) {
     if (!isJsonObject(score)) {
@@ -1040,6 +1052,45 @@ function validateResult(value: unknown): string | undefined {
       if (scoreValue !== undefined && !isFiniteNumber(scoreValue)) {
         return `result.score.${field} must be a number`;
       }
+    }
+
+    const scaled = score.scaled;
+    const raw = score.raw;
+    const min = score.min;
+    const max = score.max;
+
+    if (typeof scaled === "number" && Number.isFinite(scaled) && (scaled < -1 || scaled > 1)) {
+      return "result.score.scaled must be between -1 and 1 inclusive";
+    }
+
+    if (
+      typeof min === "number" &&
+      Number.isFinite(min) &&
+      typeof max === "number" &&
+      Number.isFinite(max) &&
+      min >= max
+    ) {
+      return "result.score.min must be less than result.score.max";
+    }
+
+    if (
+      typeof raw === "number" &&
+      Number.isFinite(raw) &&
+      typeof min === "number" &&
+      Number.isFinite(min) &&
+      raw < min
+    ) {
+      return "result.score.raw must be greater than or equal to result.score.min";
+    }
+
+    if (
+      typeof raw === "number" &&
+      Number.isFinite(raw) &&
+      typeof max === "number" &&
+      Number.isFinite(max) &&
+      raw > max
+    ) {
+      return "result.score.raw must be less than or equal to result.score.max";
     }
   }
 
@@ -1133,6 +1184,10 @@ function validateSubStatement(value: JsonObject): string | undefined {
 
   if (!["actor", "verb", "object"].every((key) => key in value)) {
     return "substatement must include actor, verb, and object";
+  }
+
+  if (isJsonObject(value.object) && value.object.objectType === "SubStatement") {
+    return "substatement object cannot be a SubStatement";
   }
 
   return validateStatementLike(value, false);

@@ -15,7 +15,7 @@ import {
   createV20StateResourceProofSliceSuite,
 } from "../src/specs/v2_0/proof-slice";
 
-const expectedCaseCount = 650;
+const expectedCaseCount = 735;
 const expectedCaseIdAnchors = [
   "v2.statements.required-fields.missing-actor",
   "v2.statements.invalid-types.result-completion-string",
@@ -103,6 +103,10 @@ const expectedCaseIdAnchors = [
   "v2.statements.language-tags.accepted.substatement-context-language",
   "v2.statements.language-tags.rejected.attachment-description",
   "v2.statements.malformed-object-type.substatement-actor",
+  "v2.statements.result.duration-valid.substatement-weeks",
+  "v2.statements.score.scaled-invalid.statement-above-one",
+  "v2.statements.statement-ref.acceptance.substatement",
+  "v2.statements.substatement.nested.substatement",
   "v2.statements.context.invalid-registration.statement-string",
   "v2.statements.context.revision-activity-only.statement-substatement",
   "v2.statements.context.context-activities-keys.substatement-all",
@@ -246,8 +250,9 @@ describe("RegistryBuilder", () => {
       "About Resource",
       "Communication",
     ]);
-    expect(batteries["2.0.0"]?.tests.children[0]?.children).toHaveLength(7);
+    expect(batteries["2.0.0"]?.tests.children[0]?.children).toHaveLength(8);
     expect(batteries["2.0.0"]?.tests.children[0]?.children[2]?.children).toHaveLength(3);
+    expect(batteries["2.0.0"]?.tests.children[0]?.children[3]?.children).toHaveLength(3);
     expect(batteries["2.0.0"]?.tests.children[1]?.children).toHaveLength(5);
     expect(batteries["2.0.0"]?.tests.children[2]?.children).toHaveLength(5);
     expect(batteries["2.0.0"]?.tests.children[3]?.children).toHaveLength(5);
