@@ -9,12 +9,13 @@ import {
   createV20ActivityProfileResourceProofSliceSuite,
   createV20AgentsResourceProofSliceSuite,
   createV20AgentProfileResourceProofSliceSuite,
+  createV20CommunicationProofSliceSuite,
   createProofSliceRegistry,
   createV20ProofSliceSuite,
   createV20StateResourceProofSliceSuite,
 } from "../src/specs/v2_0/proof-slice";
 
-const expectedCaseCount = 487;
+const expectedCaseCount = 532;
 const expectedCaseIdAnchors = [
   "v2.statements.required-fields.missing-actor",
   "v2.statements.invalid-types.result-completion-string",
@@ -86,6 +87,16 @@ const expectedCaseIdAnchors = [
   "v2.activities.resource.unknown-activity-fallback",
   "v2.about.resource.version-array",
   "v2.about.resource.non-about-requires-version-header",
+  "v2.communication.head.activities",
+  "v2.communication.head.statements",
+  "v2.communication.versioning.response-header",
+  "v2.communication.versioning.put-invalid-request-header",
+  "v2.communication.authentication.bad-basic-rejected",
+  "v2.communication.encoding.utf8-roundtrip",
+  "v2.communication.content-types.extra-multipart-section-rejected",
+  "v2.communication.concurrency.activities-state.etag-header",
+  "v2.communication.concurrency.activities-profile.put-accepts-current-if-match",
+  "v2.communication.concurrency.agents-profile.delete-accepts-current-if-match",
 ];
 
 describe("RegistryBuilder", () => {
@@ -188,10 +199,11 @@ describe("RegistryBuilder", () => {
     builder.addSuite("2.0.0", createV20AgentsResourceProofSliceSuite());
     builder.addSuite("2.0.0", createV20ActivitiesResourceProofSliceSuite());
     builder.addSuite("2.0.0", createV20AboutResourceProofSliceSuite());
+    builder.addSuite("2.0.0", createV20CommunicationProofSliceSuite());
 
     const manifest = builder.compileManifest();
 
-    expect(manifest.versions["2.0.0"].suiteCount).toBe(7);
+    expect(manifest.versions["2.0.0"].suiteCount).toBe(8);
     expect(manifest.versions["2.0.0"].caseCount).toBe(expectedCaseCount);
     expect(new Set(manifest.versions["2.0.0"].caseIds).size).toBe(expectedCaseCount);
     for (const caseId of expectedCaseIdAnchors) {
@@ -209,6 +221,7 @@ describe("RegistryBuilder", () => {
     builder.addSuite("2.0.0", createV20AgentsResourceProofSliceSuite());
     builder.addSuite("2.0.0", createV20ActivitiesResourceProofSliceSuite());
     builder.addSuite("2.0.0", createV20AboutResourceProofSliceSuite());
+    builder.addSuite("2.0.0", createV20CommunicationProofSliceSuite());
 
     const batteries = builder.compileBatteries();
 
@@ -221,6 +234,7 @@ describe("RegistryBuilder", () => {
       "Agents Resource",
       "Activities Resource",
       "About Resource",
+      "Communication",
     ]);
     expect(batteries["2.0.0"]?.tests.children[0]?.children).toHaveLength(6);
     expect(batteries["2.0.0"]?.tests.children[1]?.children).toHaveLength(5);
@@ -229,6 +243,7 @@ describe("RegistryBuilder", () => {
     expect(batteries["2.0.0"]?.tests.children[4]?.children).toHaveLength(3);
     expect(batteries["2.0.0"]?.tests.children[5]?.children).toHaveLength(2);
     expect(batteries["2.0.0"]?.tests.children[6]?.children).toHaveLength(2);
+    expect(batteries["2.0.0"]?.tests.children[7]?.children).toHaveLength(6);
     expect(batteries["1.0.3"]).toBeUndefined();
   });
 });
@@ -237,7 +252,7 @@ describe("Proof slice registry", () => {
   test("exposes a versioned registry tree for xAPI 2.0.0", () => {
     const registry = createProofSliceRegistry();
 
-    expect(registry.versions["2.0.0"]).toHaveLength(7);
+    expect(registry.versions["2.0.0"]).toHaveLength(8);
     expect(registry.versions["2.0.0"].map((suite) => suite.id)).toEqual([
       "v2.proof-slice.statements",
       "v2.proof-slice.activities-state",
@@ -246,6 +261,7 @@ describe("Proof slice registry", () => {
       "v2.proof-slice.agents",
       "v2.proof-slice.activities",
       "v2.proof-slice.about",
+      "v2.proof-slice.communication",
     ]);
     expect(registry.versions["2.0.0"][0]?.children[0]?.type).toBe("suite");
   });

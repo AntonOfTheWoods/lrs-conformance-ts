@@ -14,7 +14,7 @@ export const EndpointKindSchema = z.enum([
 ]);
 export type EndpointKind = z.infer<typeof EndpointKindSchema>;
 
-export const HttpMethodSchema = z.enum(["GET", "POST", "PUT", "DELETE"]);
+export const HttpMethodSchema = z.enum(["GET", "HEAD", "POST", "PUT", "DELETE"]);
 export type HttpMethod = z.infer<typeof HttpMethodSchema>;
 
 export const AuthModeSchema = z.enum(["none", "basic", "oauth1"]);

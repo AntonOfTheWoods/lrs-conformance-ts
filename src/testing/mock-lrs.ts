@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import type { JsonObject } from "../domain/contracts";
 
 interface StoredDocument {
@@ -37,6 +39,10 @@ interface ParsedStatementWritePayload {
 const populatedAuthorityAccountHomePage = "https://example.test/xapi/auth/basic";
 const voidingVerbId = "http://adlnet.gov/expapi/verbs/voided";
 const statementAttachmentResponseBoundary = "mock-xapi-statement-attachments";
+const validBasicAuthorization = "Basic cHJvb2YtYmFzaWMtdXNlcjpwcm9vZi1iYXNpYy1wYXNzd29yZA==";
+const validBasicUserName = "proof-basic-user";
+const validBasicPassword = "proof-basic-password";
+const validOauthAuthorizationPrefix = "OAuth ";
 const versionHeaderExemptPaths = new Set(["/xapi/about"]);
 const versionedApiPaths = new Set([
   "/xapi/statements",
@@ -90,6 +96,13 @@ function createHeaders(
   });
 }
 
+function withoutBody(response: Response): Response {
+  return new Response(null, {
+    status: response.status,
+    headers: new Headers(response.headers),
+  });
+}
+
 function validateVersionHeader(request: Request, path: string, version: string): Response | undefined {
   if (!versionedApiPaths.has(path) || versionHeaderExemptPaths.has(path)) {
     return undefined;
@@ -101,6 +114,56 @@ function validateVersionHeader(request: Request, path: string, version: string):
 
   return new Response(JSON.stringify({ error: "X-Experience-API-Version header is required" }), {
     status: 400,
+    headers: createHeaders(version),
+  });
+}
+
+function parseBasicAuthCredentials(headerValue: string | null): { username: string; password: string } | undefined {
+  if (!headerValue) {
+    return undefined;
+  }
+
+  const [scheme, encoded] = headerValue.split(" ", 2);
+  if (!scheme || scheme.toLowerCase() !== "basic" || !encoded) {
+    return undefined;
+  }
+
+  try {
+    const decoded = Buffer.from(encoded, "base64").toString("utf8");
+    const separatorIndex = decoded.indexOf(":");
+    if (separatorIndex <= 0) {
+      return undefined;
+    }
+
+    return {
+      username: decoded.slice(0, separatorIndex),
+      password: decoded.slice(separatorIndex + 1),
+    };
+  } catch {
+    return undefined;
+  }
+}
+
+function validateAuthorizationHeader(request: Request, version: string): Response | undefined {
+  const authorization = request.headers.get("authorization");
+  if (!authorization) {
+    return new Response(JSON.stringify({ error: "authorization is required" }), {
+      status: 401,
+      headers: createHeaders(version),
+    });
+  }
+
+  if (authorization === validBasicAuthorization || authorization.startsWith(validOauthAuthorizationPrefix)) {
+    return undefined;
+  }
+
+  const credentials = parseBasicAuthCredentials(authorization);
+  if (credentials && credentials.username === validBasicUserName && credentials.password === validBasicPassword) {
+    return undefined;
+  }
+
+  return new Response(JSON.stringify({ error: "unauthorized" }), {
+    status: 401,
     headers: createHeaders(version),
   });
 }
@@ -451,26 +514,7 @@ function validateAuthority(value: unknown): string | undefined {
 }
 
 function parseBasicAuthUser(headerValue: string | null): string | undefined {
-  if (!headerValue) {
-    return undefined;
-  }
-
-  const [scheme, encoded] = headerValue.split(" ", 2);
-  if (!scheme || scheme.toLowerCase() !== "basic" || !encoded) {
-    return undefined;
-  }
-
-  try {
-    const decoded = Buffer.from(encoded, "base64").toString("utf8");
-    const separatorIndex = decoded.indexOf(":");
-    if (separatorIndex <= 0) {
-      return undefined;
-    }
-
-    return decoded.slice(0, separatorIndex);
-  } catch {
-    return undefined;
-  }
+  return parseBasicAuthCredentials(headerValue)?.username;
 }
 
 function populateAuthorityFromRequest(statement: unknown, request: Request): unknown {
@@ -1437,12 +1481,55 @@ async function parseStatementWritePayload(
   version: string,
 ): Promise<ParsedStatementWritePayload | Response> {
   const rawContentType = request.headers.get("content-type");
+  const mediaType = normalizeMediaType(rawContentType);
   const boundary = parseMultipartBoundary(rawContentType);
   const rawBody = await request.text();
 
-  if (!boundary) {
+  if (boundary) {
+    if (mediaType !== "multipart/mixed") {
+      return new Response(
+        JSON.stringify({ error: "statement content-type must be application/json or multipart/mixed" }),
+        {
+          status: 400,
+          headers: createHeaders(version),
+        },
+      );
+    }
+
+    const parts = parseMultipartParts(rawBody, boundary);
+    if (parts.length === 0) {
+      return new Response(JSON.stringify({ error: "multipart statements require a JSON statement part" }), {
+        status: 400,
+        headers: createHeaders(version),
+      });
+    }
+
     try {
-      return parseStatementPayload(JSON.parse(rawBody), version, new Map());
+      const attachmentParts = new Map<string, StoredAttachmentPart>();
+      const statementPart = parts[0];
+      if (!statementPart) {
+        return new Response(JSON.stringify({ error: "multipart statements require a JSON statement part" }), {
+          status: 400,
+          headers: createHeaders(version),
+        });
+      }
+
+      const parsedStatement = JSON.parse(statementPart.body);
+
+      for (const part of parts.slice(1)) {
+        const sha2 = part.headers["x-experience-api-hash"];
+        if (!sha2) {
+          continue;
+        }
+
+        attachmentParts.set(sha2, {
+          sha2,
+          contentType: part.headers["content-type"] ?? "application/octet-stream",
+          body: part.body,
+        });
+      }
+
+      return parseStatementPayload(parsedStatement, version, attachmentParts);
     } catch {
       return new Response(JSON.stringify({ error: "invalid JSON body" }), {
         status: 400,
@@ -1451,40 +1538,18 @@ async function parseStatementWritePayload(
     }
   }
 
-  const parts = parseMultipartParts(rawBody, boundary);
-  if (parts.length === 0) {
-    return new Response(JSON.stringify({ error: "multipart statements require a JSON statement part" }), {
-      status: 400,
-      headers: createHeaders(version),
-    });
+  if (!isJsonMediaType(mediaType)) {
+    return new Response(
+      JSON.stringify({ error: "statement content-type must be application/json or multipart/mixed" }),
+      {
+        status: 400,
+        headers: createHeaders(version),
+      },
+    );
   }
 
   try {
-    const attachmentParts = new Map<string, StoredAttachmentPart>();
-    const statementPart = parts[0];
-    if (!statementPart) {
-      return new Response(JSON.stringify({ error: "multipart statements require a JSON statement part" }), {
-        status: 400,
-        headers: createHeaders(version),
-      });
-    }
-
-    const parsedStatement = JSON.parse(statementPart.body);
-
-    for (const part of parts.slice(1)) {
-      const sha2 = part.headers["x-experience-api-hash"];
-      if (!sha2) {
-        continue;
-      }
-
-      attachmentParts.set(sha2, {
-        sha2,
-        contentType: part.headers["content-type"] ?? "application/octet-stream",
-        body: part.body,
-      });
-    }
-
-    return parseStatementPayload(parsedStatement, version, attachmentParts);
+    return parseStatementPayload(JSON.parse(rawBody), version, new Map());
   } catch {
     return new Response(JSON.stringify({ error: "invalid JSON body" }), {
       status: 400,
@@ -1693,11 +1758,97 @@ function buildStoredDocumentResponse(document: StoredDocument, version: string):
     : typeof document.body === "string"
       ? document.body
       : JSON.stringify(document.body ?? null);
+  const etag = `"${createHash("sha1").update(`${document.mediaType}:${body}`).digest("hex")}"`;
 
   return new Response(body, {
     status: 200,
-    headers: createHeaders(version, document.mediaType),
+    headers: createHeaders(version, document.mediaType, {
+      etag,
+    }),
   });
+}
+
+function buildDocumentConflictResponse(version: string): Response {
+  return new Response(JSON.stringify({ error: "If-Match is required when overwriting an existing document" }), {
+    status: 409,
+    headers: createHeaders(version),
+  });
+}
+
+function buildDocumentPreconditionFailedResponse(version: string): Response {
+  return new Response(JSON.stringify({ error: "If-Match does not match the current entity tag" }), {
+    status: 412,
+    headers: createHeaders(version),
+  });
+}
+
+function validateDocumentIfMatch(
+  request: Request,
+  document: StoredDocument | undefined,
+  version: string,
+): Response | undefined {
+  const ifMatch = request.headers.get("if-match");
+  if (ifMatch === null) {
+    return undefined;
+  }
+
+  if (!document) {
+    return buildDocumentPreconditionFailedResponse(version);
+  }
+
+  const currentEtag = buildStoredDocumentResponse(document, version).headers.get("etag");
+  if (currentEtag !== ifMatch) {
+    return buildDocumentPreconditionFailedResponse(version);
+  }
+
+  return undefined;
+}
+
+function validateStatementAttachmentParts(
+  statements: JsonObject[],
+  attachmentParts: Map<string, StoredAttachmentPart>,
+  version: string,
+): Response | undefined {
+  const allowedParts = new Set<string>();
+  const requiredParts = new Set<string>();
+
+  for (const statement of statements) {
+    if (!Array.isArray(statement.attachments)) {
+      continue;
+    }
+
+    for (const attachment of statement.attachments) {
+      if (!isJsonObject(attachment) || typeof attachment.sha2 !== "string") {
+        continue;
+      }
+
+      allowedParts.add(attachment.sha2);
+
+      if (attachment.fileUrl === undefined) {
+        requiredParts.add(attachment.sha2);
+      }
+    }
+  }
+
+  for (const sha2 of requiredParts) {
+    if (!attachmentParts.has(sha2)) {
+      return new Response(JSON.stringify({ error: "multipart attachment parts do not match statement attachments" }), {
+        status: 400,
+        headers: createHeaders(version),
+      });
+    }
+  }
+
+  for (const sha2 of attachmentParts.keys()) {
+    if (!allowedParts.has(sha2)) {
+      return new Response(JSON.stringify({ error: "multipart attachment parts do not match statement attachments" }), {
+        status: 400,
+        headers: createHeaders(version),
+      });
+    }
+  }
+
+  return undefined;
 }
 
 async function handleDocumentResource(
@@ -1711,6 +1862,7 @@ async function handleDocumentResource(
     allowCollectionDelete: boolean;
   },
 ): Promise<Response> {
+  const effectiveMethod = request.method === "HEAD" ? "GET" : request.method;
   const contextKey = buildContextKey(url, options.requiredParams);
   if (!contextKey) {
     return new Response(JSON.stringify({ error: `${options.requiredParams.join(", ")} are required` }), {
@@ -1722,7 +1874,7 @@ async function handleDocumentResource(
   const documentId = url.searchParams.get(options.idParam);
   const since = url.searchParams.get("since");
 
-  if (request.method === "PUT" || request.method === "POST") {
+  if (effectiveMethod === "PUT" || effectiveMethod === "POST") {
     if (!documentId) {
       return new Response(JSON.stringify({ error: `${options.idParam} is required` }), {
         status: 400,
@@ -1739,9 +1891,18 @@ async function handleDocumentResource(
     const documentKey = buildDocumentKey(contextKey, documentId);
     const existing = store.get(documentKey);
 
+    const ifMatchError = validateDocumentIfMatch(request, existing, version);
+    if (ifMatchError) {
+      return ifMatchError;
+    }
+
+    if (effectiveMethod === "PUT" && existing && request.headers.get("if-match") === null) {
+      return buildDocumentConflictResponse(version);
+    }
+
     let bodyToStore = nextBody;
     let mediaTypeToStore = nextMediaType;
-    if (request.method === "POST" && existing) {
+    if (effectiveMethod === "POST" && existing) {
       if (!isJsonMediaType(existing.mediaType) || !isJsonMediaType(nextMediaType)) {
         return new Response(JSON.stringify({ error: "document merge requires application/json documents" }), {
           status: 400,
@@ -1777,7 +1938,7 @@ async function handleDocumentResource(
     });
   }
 
-  if (request.method === "GET") {
+  if (effectiveMethod === "GET") {
     if (!documentId) {
       let sinceTimestamp: number | undefined;
       if (since !== null) {
@@ -1791,10 +1952,12 @@ async function handleDocumentResource(
         sinceTimestamp = Date.parse(since);
       }
 
-      return new Response(JSON.stringify(listDocumentIds(store, contextKey, sinceTimestamp)), {
+      const response = new Response(JSON.stringify(listDocumentIds(store, contextKey, sinceTimestamp)), {
         status: 200,
         headers: createHeaders(version),
       });
+
+      return request.method === "HEAD" ? withoutBody(response) : response;
     }
 
     const document = store.get(buildDocumentKey(contextKey, documentId));
@@ -1805,10 +1968,11 @@ async function handleDocumentResource(
       });
     }
 
-    return buildStoredDocumentResponse(document, version);
+    const response = buildStoredDocumentResponse(document, version);
+    return request.method === "HEAD" ? withoutBody(response) : response;
   }
 
-  if (request.method === "DELETE") {
+  if (effectiveMethod === "DELETE") {
     if (!documentId) {
       if (!options.allowCollectionDelete) {
         return new Response(JSON.stringify({ error: `${options.idParam} is required` }), {
@@ -1822,6 +1986,12 @@ async function handleDocumentResource(
         status: 204,
         headers: createHeaders(version),
       });
+    }
+
+    const existing = store.get(buildDocumentKey(contextKey, documentId));
+    const ifMatchError = validateDocumentIfMatch(request, existing, version);
+    if (ifMatchError) {
+      return ifMatchError;
     }
 
     store.delete(buildDocumentKey(contextKey, documentId));
@@ -1838,17 +2008,19 @@ async function handleDocumentResource(
 }
 
 function handleAboutResource(request: Request, version: string): Response {
-  if (request.method !== "GET") {
+  if (request.method !== "GET" && request.method !== "HEAD") {
     return new Response(JSON.stringify({ error: "method not allowed" }), {
       status: 405,
       headers: createHeaders(version),
     });
   }
 
-  return new Response(JSON.stringify({ version: [version] }), {
+  const response = new Response(JSON.stringify({ version: [version] }), {
     status: 200,
     headers: createHeaders(version),
   });
+
+  return request.method === "HEAD" ? withoutBody(response) : response;
 }
 
 function handleAgentsResource(
@@ -1857,7 +2029,7 @@ function handleAgentsResource(
   version: string,
   statements: Map<string, StoredStatement>,
 ): Response {
-  if (request.method !== "GET") {
+  if (request.method !== "GET" && request.method !== "HEAD") {
     return new Response(JSON.stringify({ error: "method not allowed" }), {
       status: 405,
       headers: createHeaders(version),
@@ -1880,10 +2052,12 @@ function handleAgentsResource(
     });
   }
 
-  return new Response(JSON.stringify(buildPersonObject(agent, statements)), {
+  const response = new Response(JSON.stringify(buildPersonObject(agent, statements)), {
     status: 200,
     headers: createHeaders(version),
   });
+
+  return request.method === "HEAD" ? withoutBody(response) : response;
 }
 
 function handleActivitiesResource(
@@ -1892,7 +2066,7 @@ function handleActivitiesResource(
   version: string,
   statements: Map<string, StoredStatement>,
 ): Response {
-  if (request.method !== "GET") {
+  if (request.method !== "GET" && request.method !== "HEAD") {
     return new Response(JSON.stringify({ error: "method not allowed" }), {
       status: 405,
       headers: createHeaders(version),
@@ -1915,10 +2089,12 @@ function handleActivitiesResource(
     });
   }
 
-  return new Response(JSON.stringify(buildActivityObject(activityId, statements)), {
+  const response = new Response(JSON.stringify(buildActivityObject(activityId, statements)), {
     status: 200,
     headers: createHeaders(version),
   });
+
+  return request.method === "HEAD" ? withoutBody(response) : response;
 }
 
 export function startMockLrs(version = "2.0.0"): MockLrsHandle {
@@ -1944,6 +2120,11 @@ export function startMockLrs(version = "2.0.0"): MockLrsHandle {
       const versionHeaderError = validateVersionHeader(request, url.pathname, version);
       if (versionHeaderError) {
         return versionHeaderError;
+      }
+
+      const authorizationError = validateAuthorizationHeader(request, version);
+      if (authorizationError) {
+        return authorizationError;
       }
 
       if (url.pathname === "/xapi/about") {
@@ -2000,6 +2181,15 @@ export function startMockLrs(version = "2.0.0"): MockLrsHandle {
           return preparedStatements;
         }
 
+        const attachmentValidationError = validateStatementAttachmentParts(
+          preparedStatements,
+          payload.attachmentParts,
+          version,
+        );
+        if (attachmentValidationError) {
+          return attachmentValidationError;
+        }
+
         commitStatements(preparedStatements, payload.attachmentParts, statements, voidedStatementIds);
 
         if (payload.responseKind === "batch") {
@@ -2033,7 +2223,19 @@ export function startMockLrs(version = "2.0.0"): MockLrsHandle {
           });
         }
 
-        let body = populateAuthorityFromRequest(await request.json(), request);
+        const payload = await parseStatementWritePayload(request, version);
+        if (payload instanceof Response) {
+          return payload;
+        }
+
+        if (payload.responseKind !== "single" || payload.statements.length !== 1) {
+          return new Response(JSON.stringify({ error: "statement PUT requires a single statement" }), {
+            status: 400,
+            headers: createHeaders(version),
+          });
+        }
+
+        let body = populateAuthorityFromRequest(payload.statements[0], request);
         if (isJsonObject(body) && body.id === undefined) {
           body = {
             ...body,
@@ -2056,8 +2258,13 @@ export function startMockLrs(version = "2.0.0"): MockLrsHandle {
           });
         }
 
+        const attachmentValidationError = validateStatementAttachmentParts([body], payload.attachmentParts, version);
+        if (attachmentValidationError) {
+          return attachmentValidationError;
+        }
+
         if (!statements.has(statementId)) {
-          const storedStatement = buildStoredStatement(body);
+          const storedStatement = buildStoredStatement(body, payload.attachmentParts);
           statements.set(statementId, storedStatement);
           registerVoidingStatement(storedStatement, statements, voidedStatementIds);
         }
@@ -2068,7 +2275,7 @@ export function startMockLrs(version = "2.0.0"): MockLrsHandle {
         });
       }
 
-      if (request.method === "GET") {
+      if (request.method === "GET" || request.method === "HEAD") {
         const validationError = validateStatementQuery(url);
         if (validationError) {
           return new Response(JSON.stringify({ error: validationError }), {
@@ -2098,11 +2305,13 @@ export function startMockLrs(version = "2.0.0"): MockLrsHandle {
             });
           }
 
-          return buildStatementResponse(statement, version, {
+          const response = buildStatementResponse(statement, version, {
             format,
             acceptLanguage,
             includeAttachments,
           });
+
+          return request.method === "HEAD" ? withoutBody(response) : response;
         }
 
         const voidedStatementId = url.searchParams.get("voidedStatementId");
@@ -2122,11 +2331,13 @@ export function startMockLrs(version = "2.0.0"): MockLrsHandle {
             });
           }
 
-          return buildStatementResponse(statement, version, {
+          const response = buildStatementResponse(statement, version, {
             format,
             acceptLanguage,
             includeAttachments,
           });
+
+          return request.method === "HEAD" ? withoutBody(response) : response;
         }
 
         const ascending = readBooleanQueryValue(url.searchParams.get("ascending"));
@@ -2141,11 +2352,13 @@ export function startMockLrs(version = "2.0.0"): MockLrsHandle {
           resultStatements = resultStatements.slice(0, Number(limit));
         }
 
-        return buildStatementResultResponse(resultStatements, version, {
+        const response = buildStatementResultResponse(resultStatements, version, {
           format,
           acceptLanguage,
           includeAttachments,
         });
+
+        return request.method === "HEAD" ? withoutBody(response) : response;
       }
 
       return new Response(JSON.stringify({ error: "method not allowed" }), {

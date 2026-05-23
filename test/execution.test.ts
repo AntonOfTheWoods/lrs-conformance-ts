@@ -275,7 +275,7 @@ describe("runtime executor", () => {
       });
 
       expect(result.status).toBe("passed");
-      expect(result.root.children).toHaveLength(7);
+      expect(result.root.children).toHaveLength(8);
       expect(result.root.children.every((child) => child.status === "passed")).toBe(true);
 
       const methodCounts = countBy(mockLrs.requests, (request) => request.method);
@@ -284,6 +284,7 @@ describe("runtime executor", () => {
       expect(mockLrs.requests).toHaveLength(expected.requests);
       expect(methodCounts.get("POST")).toBe(expected.methods.get("POST"));
       expect(methodCounts.get("GET")).toBe(expected.methods.get("GET"));
+      expect(methodCounts.get("HEAD")).toBe(expected.methods.get("HEAD"));
       expect(methodCounts.get("DELETE")).toBe(expected.methods.get("DELETE"));
       expect(methodCounts.get("PUT")).toBe(expected.methods.get("PUT"));
       expect(pathCounts.get("/xapi/statements")).toBe(expected.paths.get("/xapi/statements"));
@@ -339,6 +340,7 @@ describe("runtime executor", () => {
           (request) => request.method === "GET" && request.path === "/xapi/agents/profile" && "since" in request.query,
         ),
       ).toBe(true);
+      expect(mockLrs.requests.some((request) => request.method === "HEAD")).toBe(true);
     } finally {
       mockLrs.stop();
     }

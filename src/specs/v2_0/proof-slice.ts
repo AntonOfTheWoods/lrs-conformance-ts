@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import type {
   CaseDefinition,
   EndpointKind,
@@ -50,6 +52,16 @@ const activityProfileLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.1.6.6-Activity-Profile-Resource.js";
 const aboutResourceLegacySuiteFile =
   "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.1.6.7-About-Resource.js";
+const headRequestsLegacySuiteFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/H.Communication1.1-HeadRequestImplementation.js";
+const contentTypesLegacySuiteFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.1.3-Content-Types.js";
+const concurrencyLegacySuiteFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/4.1.4-Concurrency.js";
+const encodingLegacySuiteFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/H.Communication1.4-Encoding.js";
+const versioningLegacySuiteFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/H.Communication3.3-Versioning.js";
+const authenticationLegacySuiteFile =
+  "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/H.Communication4.0-Authentication.js";
 const ifisLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/ifis.js";
 const agentsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/agents.js";
 const groupsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite/test/v2_0/configs/groups.js";
@@ -222,14 +234,68 @@ function buildStatementCollectionRequest(
   };
 }
 
-function buildUnversionedGetRequest(endpoint: EndpointKind, query: Record<string, string>): HttpRequest {
+function buildRequestWithoutVersionHeader(
+  method: HttpMethod,
+  endpoint: EndpointKind,
+  query: Record<string, string>,
+  body?:
+    | { kind?: "json"; value: unknown; fixtureName?: string; contentType?: string }
+    | { kind: "text"; value: string; fixtureName?: string; contentType?: string },
+  extraHeaders: Record<string, string> = {},
+): HttpRequest {
+  const headers = { ...extraHeaders };
+
+  if (body?.contentType) {
+    headers["content-type"] = body.contentType;
+  }
+
   return {
-    method: "GET",
+    method,
     endpoint,
     authMode: "basic",
-    headers: {},
+    headers,
     query,
+    body: body
+      ? body.kind === "text"
+        ? {
+            kind: "text",
+            value: body.value,
+            sourceFixture: body.fixtureName
+              ? {
+                  version: specVersion,
+                  domain: "documents",
+                  name: body.fixtureName,
+                }
+              : undefined,
+          }
+        : {
+            kind: "json",
+            value: body.value,
+            sourceFixture: body.fixtureName
+              ? {
+                  version: specVersion,
+                  domain: "documents",
+                  name: body.fixtureName,
+                }
+              : undefined,
+          }
+      : undefined,
   };
+}
+
+function buildUnversionedGetRequest(endpoint: EndpointKind, query: Record<string, string>): HttpRequest {
+  return buildRequestWithoutVersionHeader("GET", endpoint, query);
+}
+
+function buildHeadRequest(
+  endpoint: EndpointKind,
+  query: Record<string, string>,
+  includeVersionHeader = true,
+  extraHeaders: Record<string, string> = {},
+): HttpRequest {
+  return includeVersionHeader
+    ? buildVersionedRequest("HEAD", endpoint, query, undefined, extraHeaders)
+    : buildRequestWithoutVersionHeader("HEAD", endpoint, query, undefined, extraHeaders);
 }
 
 function buildAboutGetRequest(includeVersionHeader = true): HttpRequest {
@@ -262,10 +328,17 @@ interface MultipartStatementAttachment {
   body: string;
 }
 
+interface MultipartStatementExtraPart {
+  contentType: string;
+  sha2?: string;
+  body: string;
+}
+
 function buildMultipartStatementRequestBody(
   statement: JsonObject,
   attachments: MultipartStatementAttachment[],
   boundary = multipartStatementRequestBoundary,
+  extraParts: MultipartStatementExtraPart[] = [],
 ): string {
   let body = `--${boundary}\r\n`;
   body += "Content-Type: application/json\r\n\r\n";
@@ -278,6 +351,16 @@ function buildMultipartStatementRequestBody(
     body += `${attachment.body}\r\n`;
   }
 
+  for (const part of extraParts) {
+    body += `--${boundary}\r\n`;
+    body += `Content-Type: ${part.contentType}\r\n`;
+    if (part.sha2) {
+      body += `X-Experience-API-Hash: ${part.sha2}\r\n`;
+    }
+    body += "\r\n";
+    body += `${part.body}\r\n`;
+  }
+
   body += `--${boundary}--\r\n`;
   return body;
 }
@@ -286,15 +369,22 @@ function buildMultipartStatementPostRequest(
   statement: JsonObject,
   attachments: MultipartStatementAttachment[],
   extraHeaders: Record<string, string> = {},
+  options: {
+    boundary?: string;
+    contentType?: string;
+    extraParts?: MultipartStatementExtraPart[];
+  } = {},
 ): HttpRequest {
+  const boundary = options.boundary ?? multipartStatementRequestBoundary;
+
   return buildVersionedRequest(
     "POST",
     "statements",
     {},
     {
       kind: "text",
-      value: buildMultipartStatementRequestBody(statement, attachments),
-      contentType: `multipart/mixed; boundary=${multipartStatementRequestBoundary}`,
+      value: buildMultipartStatementRequestBody(statement, attachments, boundary, options.extraParts ?? []),
+      contentType: options.contentType ?? `multipart/mixed; boundary=${boundary}`,
     },
     extraHeaders,
   );
@@ -319,6 +409,11 @@ function buildProofTimestamp(second: number): string {
 
 function buildProofStoredTimestamp(second: number): string {
   return new Date(buildProofTimestamp(second)).toISOString();
+}
+
+function buildProofDocumentEtag(body: unknown, mediaType = "application/json"): string {
+  const serialized = typeof body === "string" ? body : (JSON.stringify(body) ?? "");
+  return `"${createHash("sha1").update(`${mediaType}:${serialized}`).digest("hex")}"`;
 }
 
 function buildFormatProofStatement(sequence: number, actorMbox: string): StatementFixture {
@@ -5865,6 +5960,1396 @@ export function createV20AboutResourceProofSliceSuite(): SuiteDefinition {
   };
 }
 
+interface DocumentConcurrencySuiteOptions {
+  suiteId: string;
+  title: string;
+  endpoint: EndpointKind;
+  bodyFixtureName: string;
+  buildQuery(idSuffix: string): Record<string, string>;
+  initialBody: JsonObject;
+  replacementBody: JsonObject;
+  resourceTag: string;
+}
+
+function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuiteOptions): SuiteDefinition {
+  const baseTags = ["v2.0.0", "communication", "concurrency", options.resourceTag];
+  const staleEtag = '"stale-proof-etag"';
+  const initialEtag = buildProofDocumentEtag(options.initialBody);
+  const mergeBody = {
+    proofMerge: true,
+  } satisfies JsonObject;
+
+  const etagQuery = options.buildQuery("etag");
+  const putStaleQuery = options.buildQuery("put-stale");
+  const putCurrentQuery = options.buildQuery("put-current");
+  const putMissingQuery = options.buildQuery("put-missing");
+  const postStaleQuery = options.buildQuery("post-stale");
+  const deleteStaleQuery = options.buildQuery("delete-stale");
+  const deleteCurrentQuery = options.buildQuery("delete-current");
+
+  return {
+    type: "suite",
+    id: options.suiteId,
+    title: options.title,
+    specVersion,
+    tags: ["communication", "concurrency", options.resourceTag],
+    children: [
+      requestSequenceCase({
+        caseId: `${options.suiteId}.etag-header`,
+        title: `${options.title} GET responses include a quoted ETag header`,
+        specVersion,
+        requirementRefs: [
+          {
+            id: "XAPI-00322",
+            section: "Communication 3.1",
+            title: "Document resources return ETag headers for optimistic concurrency",
+          },
+        ],
+        tags: baseTags,
+        capabilityFlags: ["communication", "concurrency", options.resourceTag],
+        legacyTraceSuiteFile: concurrencyLegacySuiteFile,
+        notes: [`proof-slice ${options.resourceTag} etag header`],
+        steps: [
+          {
+            request: buildVersionedRequest("POST", options.endpoint, etagQuery, {
+              value: options.initialBody,
+              fixtureName: options.bodyFixtureName,
+            }),
+            assertion: {
+              status: 204,
+            },
+          },
+          {
+            request: buildVersionedRequest("GET", options.endpoint, etagQuery),
+            assertion: {
+              status: 200,
+              expectedHeaders: [
+                {
+                  key: "etag",
+                  equals: initialEtag,
+                },
+              ],
+              jsonPathEquals: [
+                {
+                  path: [],
+                  equals: options.initialBody,
+                },
+              ],
+            },
+          },
+        ],
+      }),
+      requestSequenceCase({
+        caseId: `${options.suiteId}.put-rejects-stale-if-match`,
+        title: `${options.title} rejects PUT requests with a stale If-Match header`,
+        specVersion,
+        requirementRefs: [
+          {
+            id: "XAPI-00322",
+            section: "Communication 3.1",
+            title: "Document resources reject stale If-Match values for PUT",
+          },
+        ],
+        tags: baseTags,
+        capabilityFlags: ["communication", "concurrency", options.resourceTag],
+        legacyTraceSuiteFile: concurrencyLegacySuiteFile,
+        notes: [`proof-slice ${options.resourceTag} put stale if-match`],
+        steps: [
+          {
+            request: buildVersionedRequest("POST", options.endpoint, putStaleQuery, {
+              value: options.initialBody,
+              fixtureName: options.bodyFixtureName,
+            }),
+            assertion: {
+              status: 204,
+            },
+          },
+          {
+            request: buildVersionedRequest(
+              "PUT",
+              options.endpoint,
+              putStaleQuery,
+              {
+                value: options.replacementBody,
+                fixtureName: options.bodyFixtureName,
+              },
+              {
+                "If-Match": staleEtag,
+              },
+            ),
+            assertion: {
+              status: 412,
+            },
+          },
+          {
+            request: buildVersionedRequest("GET", options.endpoint, putStaleQuery),
+            assertion: {
+              status: 200,
+              jsonPathEquals: [
+                {
+                  path: [],
+                  equals: options.initialBody,
+                },
+              ],
+            },
+          },
+        ],
+      }),
+      requestSequenceCase({
+        caseId: `${options.suiteId}.put-accepts-current-if-match`,
+        title: `${options.title} accepts PUT requests with the current If-Match header`,
+        specVersion,
+        requirementRefs: [
+          {
+            id: "XAPI-00322",
+            section: "Communication 3.1",
+            title: "Document resources accept current If-Match values for PUT",
+          },
+        ],
+        tags: baseTags,
+        capabilityFlags: ["communication", "concurrency", options.resourceTag],
+        legacyTraceSuiteFile: concurrencyLegacySuiteFile,
+        notes: [`proof-slice ${options.resourceTag} put current if-match`],
+        steps: [
+          {
+            request: buildVersionedRequest("POST", options.endpoint, putCurrentQuery, {
+              value: options.initialBody,
+              fixtureName: options.bodyFixtureName,
+            }),
+            assertion: {
+              status: 204,
+            },
+          },
+          {
+            request: buildVersionedRequest(
+              "PUT",
+              options.endpoint,
+              putCurrentQuery,
+              {
+                value: options.replacementBody,
+                fixtureName: options.bodyFixtureName,
+              },
+              {
+                "If-Match": initialEtag,
+              },
+            ),
+            assertion: {
+              status: 204,
+            },
+          },
+          {
+            request: buildVersionedRequest("GET", options.endpoint, putCurrentQuery),
+            assertion: {
+              status: 200,
+              jsonPathEquals: [
+                {
+                  path: [],
+                  equals: options.replacementBody,
+                },
+              ],
+            },
+          },
+        ],
+      }),
+      requestSequenceCase({
+        caseId: `${options.suiteId}.put-requires-if-match`,
+        title: `${options.title} returns 409 when PUT overwrites an existing document without If-Match`,
+        specVersion,
+        requirementRefs: [
+          {
+            id: "XAPI-00322",
+            section: "Communication 3.1",
+            title: "Document resources require If-Match for overwriting PUT requests",
+          },
+        ],
+        tags: baseTags,
+        capabilityFlags: ["communication", "concurrency", options.resourceTag],
+        legacyTraceSuiteFile: concurrencyLegacySuiteFile,
+        notes: [`proof-slice ${options.resourceTag} put requires if-match`],
+        steps: [
+          {
+            request: buildVersionedRequest("POST", options.endpoint, putMissingQuery, {
+              value: options.initialBody,
+              fixtureName: options.bodyFixtureName,
+            }),
+            assertion: {
+              status: 204,
+            },
+          },
+          {
+            request: buildVersionedRequest("PUT", options.endpoint, putMissingQuery, {
+              value: options.replacementBody,
+              fixtureName: options.bodyFixtureName,
+            }),
+            assertion: {
+              status: 409,
+            },
+          },
+          {
+            request: buildVersionedRequest("GET", options.endpoint, putMissingQuery),
+            assertion: {
+              status: 200,
+              jsonPathEquals: [
+                {
+                  path: [],
+                  equals: options.initialBody,
+                },
+              ],
+            },
+          },
+        ],
+      }),
+      requestSequenceCase({
+        caseId: `${options.suiteId}.post-rejects-stale-if-match`,
+        title: `${options.title} rejects POST merge requests with a stale If-Match header`,
+        specVersion,
+        requirementRefs: [
+          {
+            id: "XAPI-00322",
+            section: "Communication 3.1",
+            title: "Document resources reject stale If-Match values for POST",
+          },
+        ],
+        tags: baseTags,
+        capabilityFlags: ["communication", "concurrency", options.resourceTag],
+        legacyTraceSuiteFile: concurrencyLegacySuiteFile,
+        notes: [`proof-slice ${options.resourceTag} post stale if-match`],
+        steps: [
+          {
+            request: buildVersionedRequest("POST", options.endpoint, postStaleQuery, {
+              value: options.initialBody,
+              fixtureName: options.bodyFixtureName,
+            }),
+            assertion: {
+              status: 204,
+            },
+          },
+          {
+            request: buildVersionedRequest(
+              "POST",
+              options.endpoint,
+              postStaleQuery,
+              {
+                value: mergeBody,
+              },
+              {
+                "If-Match": staleEtag,
+              },
+            ),
+            assertion: {
+              status: 412,
+            },
+          },
+          {
+            request: buildVersionedRequest("GET", options.endpoint, postStaleQuery),
+            assertion: {
+              status: 200,
+              jsonPathEquals: [
+                {
+                  path: [],
+                  equals: options.initialBody,
+                },
+              ],
+            },
+          },
+        ],
+      }),
+      requestSequenceCase({
+        caseId: `${options.suiteId}.delete-rejects-stale-if-match`,
+        title: `${options.title} rejects DELETE requests with a stale If-Match header`,
+        specVersion,
+        requirementRefs: [
+          {
+            id: "XAPI-00322",
+            section: "Communication 3.1",
+            title: "Document resources reject stale If-Match values for DELETE",
+          },
+        ],
+        tags: baseTags,
+        capabilityFlags: ["communication", "concurrency", options.resourceTag],
+        legacyTraceSuiteFile: concurrencyLegacySuiteFile,
+        notes: [`proof-slice ${options.resourceTag} delete stale if-match`],
+        steps: [
+          {
+            request: buildVersionedRequest("POST", options.endpoint, deleteStaleQuery, {
+              value: options.initialBody,
+              fixtureName: options.bodyFixtureName,
+            }),
+            assertion: {
+              status: 204,
+            },
+          },
+          {
+            request: buildVersionedRequest("DELETE", options.endpoint, deleteStaleQuery, undefined, {
+              "If-Match": staleEtag,
+            }),
+            assertion: {
+              status: 412,
+            },
+          },
+          {
+            request: buildVersionedRequest("GET", options.endpoint, deleteStaleQuery),
+            assertion: {
+              status: 200,
+              jsonPathEquals: [
+                {
+                  path: [],
+                  equals: options.initialBody,
+                },
+              ],
+            },
+          },
+        ],
+      }),
+      requestSequenceCase({
+        caseId: `${options.suiteId}.delete-accepts-current-if-match`,
+        title: `${options.title} accepts DELETE requests with the current If-Match header`,
+        specVersion,
+        requirementRefs: [
+          {
+            id: "XAPI-00322",
+            section: "Communication 3.1",
+            title: "Document resources accept current If-Match values for DELETE",
+          },
+        ],
+        tags: baseTags,
+        capabilityFlags: ["communication", "concurrency", options.resourceTag],
+        legacyTraceSuiteFile: concurrencyLegacySuiteFile,
+        notes: [`proof-slice ${options.resourceTag} delete current if-match`],
+        steps: [
+          {
+            request: buildVersionedRequest("POST", options.endpoint, deleteCurrentQuery, {
+              value: options.initialBody,
+              fixtureName: options.bodyFixtureName,
+            }),
+            assertion: {
+              status: 204,
+            },
+          },
+          {
+            request: buildVersionedRequest("DELETE", options.endpoint, deleteCurrentQuery, undefined, {
+              "If-Match": initialEtag,
+            }),
+            assertion: {
+              status: 204,
+            },
+          },
+          {
+            request: buildVersionedRequest("GET", options.endpoint, deleteCurrentQuery),
+            assertion: {
+              status: 404,
+            },
+          },
+        ],
+      }),
+    ],
+  };
+}
+
+export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
+  const headNoBodyExpectation: JsonPathExpectation[] = [
+    {
+      path: [],
+      equals: undefined,
+    },
+  ];
+
+  const headActivityId = "https://example.test/xapi/activities/head-proof";
+  const headAgentMbox = "mailto:head-proof-agent@example.test";
+  const headActivityStatement = buildProofStatement(260, [
+    {
+      operation: "set",
+      path: ["object"],
+      value: buildActivityObjectFixture(headActivityId),
+    },
+  ]);
+  const headAgentStatement = buildProofStatement(261, [
+    {
+      operation: "set",
+      path: ["actor"],
+      value: buildAgentWithMbox(headAgentMbox),
+    },
+  ]);
+  const headStateIdentity = buildActivityStateIdentityFixture({
+    activityId: "https://example.test/xapi/activities/head-state",
+    stateId: "head-state-document",
+  });
+  const headActivityProfileIdentity = buildActivityProfileIdentityFixture({
+    activityId: "https://example.test/xapi/activities/head-activity-profile",
+    profileId: "head-activity-profile-document",
+  });
+  const headAgentProfileIdentity = buildAgentProfileIdentityFixture({
+    agent: JSON.stringify({
+      objectType: "Agent",
+      mbox: "mailto:head-agent-profile@example.test",
+      name: "Head Agent Profile",
+    }),
+    profileId: "head-agent-profile-document",
+  });
+
+  const headActivitiesCase = requestSequenceCase({
+    caseId: "v2.communication.head.activities",
+    title: "The Activities Resource responds to HEAD in the same way as GET but without a message body",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00126",
+        section: "Communication 1.1",
+        title: "An LRS accepts HEAD requests",
+      },
+      {
+        id: "XAPI-00125",
+        section: "Communication 1.1.s3.b1",
+        title: "HEAD responses mirror GET without a message body",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "head", "activities"],
+    capabilityFlags: ["communication", "head", "activities"],
+    legacyTraceSuiteFile: headRequestsLegacySuiteFile,
+    notes: ["proof-slice head activities"],
+    steps: [
+      {
+        request: buildStatementPostRequest(headActivityStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildHeadRequest("activities", {
+          activityId: headActivityId,
+        }),
+        assertion: {
+          status: 200,
+          expectedHeaders: [
+            {
+              key: "X-Experience-API-Version",
+              equals: specVersion,
+            },
+          ],
+          jsonPathEquals: headNoBodyExpectation,
+        },
+      },
+    ],
+  });
+
+  const headActivityProfileCase = requestSequenceCase({
+    caseId: "v2.communication.head.activities-profile",
+    title: "The Activity Profile Resource supports HEAD without returning a message body",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00126",
+        section: "Communication 1.1",
+        title: "An LRS accepts HEAD requests",
+      },
+      {
+        id: "XAPI-00125",
+        section: "Communication 1.1.s3.b1",
+        title: "HEAD responses mirror GET without a message body",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "head", "activities-profile"],
+    capabilityFlags: ["communication", "head", "activities-profile"],
+    legacyTraceSuiteFile: headRequestsLegacySuiteFile,
+    notes: ["proof-slice head activities profile"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "activities-profile", headActivityProfileIdentity, {
+          value: buildActivityProfileDocumentFixture(),
+          fixtureName: "activity-profile-default",
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildHeadRequest("activities-profile", headActivityProfileIdentity),
+        assertion: {
+          status: 200,
+          jsonPathEquals: headNoBodyExpectation,
+        },
+      },
+    ],
+  });
+
+  const headStateCase = requestSequenceCase({
+    caseId: "v2.communication.head.activities-state",
+    title: "The State Resource supports HEAD without returning a message body",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00126",
+        section: "Communication 1.1",
+        title: "An LRS accepts HEAD requests",
+      },
+      {
+        id: "XAPI-00125",
+        section: "Communication 1.1.s3.b1",
+        title: "HEAD responses mirror GET without a message body",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "head", "activities-state"],
+    capabilityFlags: ["communication", "head", "activities-state"],
+    legacyTraceSuiteFile: headRequestsLegacySuiteFile,
+    notes: ["proof-slice head activities state"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "activities-state", headStateIdentity, {
+          value: buildActivityStateDocumentFixture(),
+          fixtureName: "activity-state-default",
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildHeadRequest("activities-state", headStateIdentity),
+        assertion: {
+          status: 200,
+          jsonPathEquals: headNoBodyExpectation,
+        },
+      },
+    ],
+  });
+
+  const headAgentsCase = requestSequenceCase({
+    caseId: "v2.communication.head.agents",
+    title: "The Agents Resource supports HEAD without returning a message body",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00126",
+        section: "Communication 1.1",
+        title: "An LRS accepts HEAD requests",
+      },
+      {
+        id: "XAPI-00125",
+        section: "Communication 1.1.s3.b1",
+        title: "HEAD responses mirror GET without a message body",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "head", "agents"],
+    capabilityFlags: ["communication", "head", "agents"],
+    legacyTraceSuiteFile: headRequestsLegacySuiteFile,
+    notes: ["proof-slice head agents"],
+    steps: [
+      {
+        request: buildStatementPostRequest(headAgentStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildHeadRequest("agents", {
+          agent: buildAgentQuery(headAgentMbox),
+        }),
+        assertion: {
+          status: 200,
+          jsonPathEquals: headNoBodyExpectation,
+        },
+      },
+    ],
+  });
+
+  const headAgentProfileCase = requestSequenceCase({
+    caseId: "v2.communication.head.agents-profile",
+    title: "The Agent Profile Resource supports HEAD without returning a message body",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00126",
+        section: "Communication 1.1",
+        title: "An LRS accepts HEAD requests",
+      },
+      {
+        id: "XAPI-00125",
+        section: "Communication 1.1.s3.b1",
+        title: "HEAD responses mirror GET without a message body",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "head", "agents-profile"],
+    capabilityFlags: ["communication", "head", "agents-profile"],
+    legacyTraceSuiteFile: headRequestsLegacySuiteFile,
+    notes: ["proof-slice head agents profile"],
+    steps: [
+      {
+        request: buildVersionedRequest("POST", "agents-profile", headAgentProfileIdentity, {
+          value: buildAgentProfileDocumentFixture(),
+          fixtureName: "agent-profile-default",
+        }),
+        assertion: {
+          status: 204,
+        },
+      },
+      {
+        request: buildHeadRequest("agents-profile", headAgentProfileIdentity),
+        assertion: {
+          status: 200,
+          jsonPathEquals: headNoBodyExpectation,
+        },
+      },
+    ],
+  });
+
+  const headStatementsCase = singleRequestCase({
+    caseId: "v2.communication.head.statements",
+    title: "The Statements Resource accepts HEAD without returning a message body",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00126",
+        section: "Communication 1.1",
+        title: "An LRS accepts HEAD requests",
+      },
+      {
+        id: "XAPI-00125",
+        section: "Communication 1.1.s3.b1",
+        title: "HEAD responses mirror GET without a message body",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "head", "statements"],
+    capabilityFlags: ["communication", "head", "statements"],
+    legacyTraceSuiteFile: headRequestsLegacySuiteFile,
+    request: buildHeadRequest("statements", {}),
+    assertion: {
+      status: 200,
+      jsonPathEquals: headNoBodyExpectation,
+    },
+    notes: ["proof-slice head statements"],
+  });
+
+  const versionHeaderStatement = buildProofStatement(262);
+  const missingHeaderGetStatement = buildProofStatement(263);
+  const missingHeaderPostStatement = buildProofStatement(264);
+  const missingHeaderPutStatement = buildProofStatement(265);
+  const invalidHeaderGetStatement = buildProofStatement(266);
+  const invalidHeaderPostStatement = buildProofStatement(267);
+  const invalidHeaderPutStatement = buildProofStatement(268);
+
+  const versionHeaderResponseCase = requestSequenceCase({
+    caseId: "v2.communication.versioning.response-header",
+    title: "Statement responses include the X-Experience-API-Version response header",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00333",
+        section: "Communication 3.3.s3.b1",
+        title: "Statement responses include X-Experience-API-Version",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "versioning"],
+    capabilityFlags: ["communication", "versioning"],
+    legacyTraceSuiteFile: versioningLegacySuiteFile,
+    notes: ["proof-slice versioning response header"],
+    steps: [
+      {
+        request: buildStatementPostRequest(versionHeaderStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementGetRequest(versionHeaderStatement.id),
+        assertion: {
+          status: 200,
+          expectedHeaders: [
+            {
+              key: "X-Experience-API-Version",
+              equals: specVersion,
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const missingGetHeaderCase = requestSequenceCase({
+    caseId: "v2.communication.versioning.get-missing-request-header",
+    title: "The Statements Resource rejects GET requests that omit X-Experience-API-Version",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00331",
+        section: "Communication 3.3.s4.b1",
+        title: "Non-About GET requests require X-Experience-API-Version",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "versioning", "validation"],
+    capabilityFlags: ["communication", "versioning", "validation"],
+    legacyTraceSuiteFile: versioningLegacySuiteFile,
+    notes: ["proof-slice versioning missing header get"],
+    steps: [
+      {
+        request: buildStatementPostRequest(missingHeaderGetStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildRequestWithoutVersionHeader("GET", "statements", {
+          statementId: missingHeaderGetStatement.id,
+        }),
+        assertion: {
+          status: 400,
+        },
+      },
+    ],
+  });
+
+  const missingPostHeaderCase = singleRequestCase({
+    caseId: "v2.communication.versioning.post-missing-request-header",
+    title: "The Statements Resource rejects POST requests that omit X-Experience-API-Version",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00331",
+        section: "Communication 3.3.s4.b1",
+        title: "Non-About POST requests require X-Experience-API-Version",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "versioning", "validation"],
+    capabilityFlags: ["communication", "versioning", "validation"],
+    legacyTraceSuiteFile: versioningLegacySuiteFile,
+    request: buildRequestWithoutVersionHeader(
+      "POST",
+      "statements",
+      {},
+      {
+        value: missingHeaderPostStatement,
+      },
+    ),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice versioning missing header post"],
+  });
+
+  const missingPutHeaderCase = singleRequestCase({
+    caseId: "v2.communication.versioning.put-missing-request-header",
+    title: "The Statements Resource rejects PUT requests that omit X-Experience-API-Version",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00331",
+        section: "Communication 3.3.s4.b1",
+        title: "Non-About PUT requests require X-Experience-API-Version",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "versioning", "validation"],
+    capabilityFlags: ["communication", "versioning", "validation"],
+    legacyTraceSuiteFile: versioningLegacySuiteFile,
+    request: buildRequestWithoutVersionHeader(
+      "PUT",
+      "statements",
+      {
+        statementId: missingHeaderPutStatement.id,
+      },
+      {
+        value: missingHeaderPutStatement,
+      },
+    ),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice versioning missing header put"],
+  });
+
+  const invalidGetHeaderCase = requestSequenceCase({
+    caseId: "v2.communication.versioning.get-invalid-request-header",
+    title: "The Statements Resource rejects GET requests with an invalid X-Experience-API-Version value",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00331",
+        section: "Communication 3.3.s4.b1",
+        title: "Non-About GET requests reject invalid X-Experience-API-Version values",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "versioning", "validation"],
+    capabilityFlags: ["communication", "versioning", "validation"],
+    legacyTraceSuiteFile: versioningLegacySuiteFile,
+    notes: ["proof-slice versioning invalid header get"],
+    steps: [
+      {
+        request: buildStatementPostRequest(invalidHeaderGetStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementGetRequest(invalidHeaderGetStatement.id, {
+          "X-Experience-API-Version": "BAD",
+        }),
+        assertion: {
+          status: 400,
+        },
+      },
+    ],
+  });
+
+  const invalidPostHeaderCase = singleRequestCase({
+    caseId: "v2.communication.versioning.post-invalid-request-header",
+    title: "The Statements Resource rejects POST requests with an invalid X-Experience-API-Version value",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00331",
+        section: "Communication 3.3.s4.b1",
+        title: "Non-About POST requests reject invalid X-Experience-API-Version values",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "versioning", "validation"],
+    capabilityFlags: ["communication", "versioning", "validation"],
+    legacyTraceSuiteFile: versioningLegacySuiteFile,
+    request: buildStatementPostRequest(invalidHeaderPostStatement, {
+      "X-Experience-API-Version": "BAD",
+    }),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice versioning invalid header post"],
+  });
+
+  const invalidPutHeaderCase = singleRequestCase({
+    caseId: "v2.communication.versioning.put-invalid-request-header",
+    title: "The Statements Resource rejects PUT requests with an invalid X-Experience-API-Version value",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00331",
+        section: "Communication 3.3.s4.b1",
+        title: "Non-About PUT requests reject invalid X-Experience-API-Version values",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "versioning", "validation"],
+    capabilityFlags: ["communication", "versioning", "validation"],
+    legacyTraceSuiteFile: versioningLegacySuiteFile,
+    request: buildStatementPutRequest(invalidHeaderPutStatement.id, invalidHeaderPutStatement, {
+      "X-Experience-API-Version": "BAD",
+    }),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice versioning invalid header put"],
+  });
+
+  const authenticationSuccessStatement = buildProofStatement(269);
+  const authenticationBadStatement = buildProofStatement(270);
+  const authenticationMalformedStatement = buildProofStatement(271);
+
+  const basicAuthenticationCase = singleRequestCase({
+    caseId: "v2.communication.authentication.basic-accepted",
+    title: "The Statements Resource accepts requests authenticated with valid HTTP Basic credentials",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00335",
+        section: "Communication 4.0",
+        title: "An LRS supports HTTP Basic Authentication",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "authentication"],
+    capabilityFlags: ["communication", "authentication"],
+    legacyTraceSuiteFile: authenticationLegacySuiteFile,
+    request: buildStatementPutRequest(authenticationSuccessStatement.id, authenticationSuccessStatement),
+    assertion: {
+      status: 204,
+    },
+    notes: ["proof-slice authentication basic accepted"],
+  });
+
+  const badAuthenticationCase = singleRequestCase({
+    caseId: "v2.communication.authentication.bad-basic-rejected",
+    title: "The Statements Resource rejects requests authenticated with invalid HTTP Basic credentials",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00334",
+        section: "Communication 4.0",
+        title: "Bad authorization is rejected with 401 Unauthorized",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "authentication", "validation"],
+    capabilityFlags: ["communication", "authentication", "validation"],
+    legacyTraceSuiteFile: authenticationLegacySuiteFile,
+    request: buildStatementPutRequest(authenticationBadStatement.id, authenticationBadStatement, {
+      Authorization: `Basic ${Buffer.from("bad:credentials").toString("base64")}`,
+    }),
+    assertion: {
+      status: 401,
+    },
+    notes: ["proof-slice authentication bad basic rejected"],
+  });
+
+  const malformedAuthenticationCase = singleRequestCase({
+    caseId: "v2.communication.authentication.malformed-basic-rejected",
+    title: "The Statements Resource rejects malformed Authorization headers with 401 Unauthorized",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00334",
+        section: "Communication 4.0",
+        title: "Malformed authorization is rejected with 401 Unauthorized",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "authentication", "validation"],
+    capabilityFlags: ["communication", "authentication", "validation"],
+    legacyTraceSuiteFile: authenticationLegacySuiteFile,
+    request: buildStatementPutRequest(authenticationMalformedStatement.id, authenticationMalformedStatement, {
+      Authorization: "Basic:not-base64",
+    }),
+    assertion: {
+      status: 401,
+    },
+    notes: ["proof-slice authentication malformed basic rejected"],
+  });
+
+  const unicodeVerbId = "https://example.test/xapi/verbs/unicode-proof";
+  const unicodeStatement = buildProofStatement(272, [
+    {
+      operation: "set",
+      path: ["verb"],
+      value: {
+        id: unicodeVerbId,
+        display: {
+          "en-US": "snowman ☃",
+          "ja-JP": "学習完了",
+        },
+      },
+    },
+  ]);
+
+  const utf8EncodingCase = requestSequenceCase({
+    caseId: "v2.communication.encoding.utf8-roundtrip",
+    title: "The Statements Resource preserves UTF-8 string content across submit and retrieval",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00015",
+        section: "Communication 1.4.s1.b1",
+        title: "All strings are encoded and interpreted as UTF-8",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "encoding"],
+    capabilityFlags: ["communication", "encoding"],
+    legacyTraceSuiteFile: encodingLegacySuiteFile,
+    notes: ["proof-slice utf8 roundtrip"],
+    steps: [
+      {
+        request: buildStatementPostRequest(unicodeStatement),
+        assertion: {
+          status: 200,
+        },
+      },
+      {
+        request: buildStatementGetRequest(unicodeStatement.id),
+        assertion: {
+          status: 200,
+          jsonPathEquals: [
+            {
+              path: ["verb", "display"],
+              equals: {
+                "en-US": "snowman ☃",
+                "ja-JP": "学習完了",
+              },
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const contentTypeBoundary = "mock-proof-content-types";
+  const rawAttachmentBody = "proof raw attachment";
+  const rawAttachmentSha = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+  const extraAttachmentSha = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+  const fileUrlAttachmentStatement = buildProofStatement(273, [
+    {
+      operation: "set",
+      path: ["attachments"],
+      value: [
+        buildAttachmentFixture({
+          fileUrl: "https://example.test/files/content-type-proof.txt",
+        }),
+      ],
+    },
+  ]);
+  const rawAttachmentStatement = buildProofStatement(274, [
+    {
+      operation: "set",
+      path: ["attachments"],
+      value: [
+        buildAttachmentFixture({
+          contentType: "text/plain",
+          length: rawAttachmentBody.length,
+          sha2: rawAttachmentSha,
+          fileUrl: undefined,
+        }),
+      ],
+    },
+  ]);
+
+  const jsonFileUrlContentTypeCase = singleRequestCase({
+    caseId: "v2.communication.content-types.json-file-url",
+    title: "Statement POST accepts application/json when attachments only use fileUrl",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00127",
+        section: "Communication 1.5.1",
+        title: "Statement writes accept application/json for fileUrl attachments",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "content-types"],
+    capabilityFlags: ["communication", "content-types"],
+    legacyTraceSuiteFile: contentTypesLegacySuiteFile,
+    request: buildStatementPostRequest(fileUrlAttachmentStatement),
+    assertion: {
+      status: 200,
+    },
+    notes: ["proof-slice content types json fileUrl"],
+  });
+
+  const multipartFileUrlContentTypeCase = singleRequestCase({
+    caseId: "v2.communication.content-types.multipart-file-url",
+    title: "Statement POST accepts multipart or mixed when attachments only use fileUrl",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00127",
+        section: "Communication 1.5.1",
+        title: "Statement writes accept multipart or mixed for fileUrl attachments",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "content-types"],
+    capabilityFlags: ["communication", "content-types"],
+    legacyTraceSuiteFile: contentTypesLegacySuiteFile,
+    request: buildMultipartStatementPostRequest(
+      fileUrlAttachmentStatement,
+      [],
+      {},
+      {
+        boundary: contentTypeBoundary,
+      },
+    ),
+    assertion: {
+      status: 200,
+    },
+    notes: ["proof-slice content types multipart fileUrl"],
+  });
+
+  const multipartRawAttachmentContentTypeCase = singleRequestCase({
+    caseId: "v2.communication.content-types.multipart-raw-attachment",
+    title: "Statement POST accepts multipart or mixed when raw attachment parts are present",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00127",
+        section: "Communication 1.5.1",
+        title: "Statement writes accept multipart or mixed for raw attachment data",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "content-types"],
+    capabilityFlags: ["communication", "content-types"],
+    legacyTraceSuiteFile: contentTypesLegacySuiteFile,
+    request: buildMultipartStatementPostRequest(
+      rawAttachmentStatement,
+      [
+        {
+          contentType: "text/plain",
+          sha2: rawAttachmentSha,
+          body: rawAttachmentBody,
+        },
+      ],
+      {},
+      {
+        boundary: contentTypeBoundary,
+      },
+    ),
+    assertion: {
+      status: 200,
+    },
+    notes: ["proof-slice content types multipart raw attachment"],
+  });
+
+  const jsonRawAttachmentRejectedCase = singleRequestCase({
+    caseId: "v2.communication.content-types.json-raw-attachment-rejected",
+    title: "Statement POST rejects application or json when raw attachment parts are missing",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00129",
+        section: "Communication 1.5.1.s1.b2",
+        title: "Statement writes reject application or json when raw attachment parts are missing",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "content-types", "validation"],
+    capabilityFlags: ["communication", "content-types", "validation"],
+    legacyTraceSuiteFile: contentTypesLegacySuiteFile,
+    request: buildStatementPostRequest(rawAttachmentStatement),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice content types json raw attachment rejected"],
+  });
+
+  const formDataFileUrlRejectedCase = singleRequestCase({
+    caseId: "v2.communication.content-types.form-data-file-url-rejected",
+    title: "Statement POST rejects multipart or form-data when attachments are submitted with fileUrl metadata",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00127",
+        section: "Communication 1.5.1",
+        title: "Statement writes reject multipart or form-data for attachment submission",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "content-types", "validation"],
+    capabilityFlags: ["communication", "content-types", "validation"],
+    legacyTraceSuiteFile: contentTypesLegacySuiteFile,
+    request: buildMultipartStatementPostRequest(
+      fileUrlAttachmentStatement,
+      [],
+      {},
+      {
+        boundary: contentTypeBoundary,
+        contentType: `multipart/form-data; boundary=${contentTypeBoundary}`,
+      },
+    ),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice content types form-data fileUrl rejected"],
+  });
+
+  const formDataRawRejectedCase = singleRequestCase({
+    caseId: "v2.communication.content-types.form-data-raw-rejected",
+    title: "Statement POST rejects multipart or form-data when raw attachment parts are submitted",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00127",
+        section: "Communication 1.5.1",
+        title: "Statement writes reject multipart or form-data for raw attachment submission",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "content-types", "validation"],
+    capabilityFlags: ["communication", "content-types", "validation"],
+    legacyTraceSuiteFile: contentTypesLegacySuiteFile,
+    request: buildMultipartStatementPostRequest(
+      rawAttachmentStatement,
+      [
+        {
+          contentType: "text/plain",
+          sha2: rawAttachmentSha,
+          body: rawAttachmentBody,
+        },
+      ],
+      {},
+      {
+        boundary: contentTypeBoundary,
+        contentType: `multipart/form-data; boundary=${contentTypeBoundary}`,
+      },
+    ),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice content types form-data raw rejected"],
+  });
+
+  const extraMultipartSectionRejectedCase = singleRequestCase({
+    caseId: "v2.communication.content-types.extra-multipart-section-rejected",
+    title: "Statement POST rejects multipart or mixed requests with excess attachment sections",
+    specVersion,
+    requirementRefs: [
+      {
+        id: "XAPI-00128",
+        section: "Communication 1.5.1.s1.b2",
+        title: "Statement writes reject excess multipart sections that are not attachments",
+      },
+    ],
+    tags: ["v2.0.0", "communication", "content-types", "validation"],
+    capabilityFlags: ["communication", "content-types", "validation"],
+    legacyTraceSuiteFile: contentTypesLegacySuiteFile,
+    request: buildMultipartStatementPostRequest(
+      rawAttachmentStatement,
+      [
+        {
+          contentType: "text/plain",
+          sha2: rawAttachmentSha,
+          body: rawAttachmentBody,
+        },
+      ],
+      {},
+      {
+        boundary: contentTypeBoundary,
+        extraParts: [
+          {
+            contentType: "text/plain",
+            sha2: extraAttachmentSha,
+            body: "extra multipart section",
+          },
+        ],
+      },
+    ),
+    assertion: {
+      status: 400,
+    },
+    notes: ["proof-slice content types extra multipart section rejected"],
+  });
+
+  const stateConcurrencySuite = buildDocumentConcurrencyResourceSuite({
+    suiteId: "v2.communication.concurrency.activities-state",
+    title: "State Resource Concurrency",
+    endpoint: "activities-state",
+    bodyFixtureName: "activity-state-default",
+    buildQuery: (idSuffix) =>
+      buildActivityStateIdentityFixture({
+        activityId: `https://example.test/xapi/activities/concurrency-state-${idSuffix}`,
+        stateId: `proof-concurrency-state-${idSuffix}`,
+      }),
+    initialBody: buildActivityStateDocumentFixture(),
+    replacementBody: {
+      bookmark: "chapter-9",
+      progress: {
+        attempts: 9,
+        complete: false,
+      },
+      context: {
+        location: "lab-9",
+      },
+    },
+    resourceTag: "activities-state",
+  });
+
+  const activityProfileConcurrencySuite = buildDocumentConcurrencyResourceSuite({
+    suiteId: "v2.communication.concurrency.activities-profile",
+    title: "Activity Profile Resource Concurrency",
+    endpoint: "activities-profile",
+    bodyFixtureName: "activity-profile-default",
+    buildQuery: (idSuffix) =>
+      buildActivityProfileIdentityFixture({
+        activityId: `https://example.test/xapi/activities/concurrency-activity-profile-${idSuffix}`,
+        profileId: `proof-concurrency-activity-profile-${idSuffix}`,
+      }),
+    initialBody: buildActivityProfileDocumentFixture(),
+    replacementBody: {
+      summary: "activity-profile-updated",
+      metadata: {
+        audience: "engineering",
+        level: "advanced",
+      },
+    },
+    resourceTag: "activities-profile",
+  });
+
+  const agentProfileConcurrencySuite = buildDocumentConcurrencyResourceSuite({
+    suiteId: "v2.communication.concurrency.agents-profile",
+    title: "Agent Profile Resource Concurrency",
+    endpoint: "agents-profile",
+    bodyFixtureName: "agent-profile-default",
+    buildQuery: (idSuffix) =>
+      buildAgentProfileIdentityFixture({
+        agent: JSON.stringify({
+          objectType: "Agent",
+          mbox: `mailto:concurrency-agent-profile-${idSuffix}@example.test`,
+          name: `Concurrency Agent ${idSuffix}`,
+        }),
+        profileId: `proof-concurrency-agent-profile-${idSuffix}`,
+      }),
+    initialBody: buildAgentProfileDocumentFixture(),
+    replacementBody: {
+      preference: "expanded",
+      notifications: {
+        email: false,
+        digest: "weekly",
+      },
+    },
+    resourceTag: "agents-profile",
+  });
+
+  return {
+    type: "suite",
+    id: "v2.proof-slice.communication",
+    title: "Communication",
+    specVersion,
+    tags: ["proof-slice", "communication"],
+    children: [
+      {
+        type: "suite",
+        id: "v2.proof-slice.communication.head",
+        title: "HEAD Requests",
+        specVersion,
+        tags: ["communication", "head"],
+        children: [
+          headActivitiesCase,
+          headActivityProfileCase,
+          headStateCase,
+          headAgentsCase,
+          headAgentProfileCase,
+          headStatementsCase,
+        ],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.communication.versioning",
+        title: "Versioning",
+        specVersion,
+        tags: ["communication", "versioning"],
+        children: [
+          versionHeaderResponseCase,
+          missingGetHeaderCase,
+          missingPostHeaderCase,
+          missingPutHeaderCase,
+          invalidGetHeaderCase,
+          invalidPostHeaderCase,
+          invalidPutHeaderCase,
+        ],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.communication.authentication",
+        title: "Authentication",
+        specVersion,
+        tags: ["communication", "authentication"],
+        children: [basicAuthenticationCase, badAuthenticationCase, malformedAuthenticationCase],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.communication.encoding",
+        title: "Encoding",
+        specVersion,
+        tags: ["communication", "encoding"],
+        children: [utf8EncodingCase],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.communication.content-types",
+        title: "Content Types",
+        specVersion,
+        tags: ["communication", "content-types"],
+        children: [
+          jsonFileUrlContentTypeCase,
+          multipartFileUrlContentTypeCase,
+          multipartRawAttachmentContentTypeCase,
+          jsonRawAttachmentRejectedCase,
+          formDataFileUrlRejectedCase,
+          formDataRawRejectedCase,
+          extraMultipartSectionRejectedCase,
+        ],
+      },
+      {
+        type: "suite",
+        id: "v2.proof-slice.communication.concurrency",
+        title: "Concurrency",
+        specVersion,
+        tags: ["communication", "concurrency"],
+        children: [stateConcurrencySuite, activityProfileConcurrencySuite, agentProfileConcurrencySuite],
+      },
+    ],
+  };
+}
+
 export function createProofSliceRegistry(): RegistryDefinition {
   const builder = new RegistryBuilder();
   builder.addSuite(specVersion, createV20ProofSliceSuite());
@@ -5874,5 +7359,6 @@ export function createProofSliceRegistry(): RegistryDefinition {
   builder.addSuite(specVersion, createV20AgentsResourceProofSliceSuite());
   builder.addSuite(specVersion, createV20ActivitiesResourceProofSliceSuite());
   builder.addSuite(specVersion, createV20AboutResourceProofSliceSuite());
+  builder.addSuite(specVersion, createV20CommunicationProofSliceSuite());
   return builder.build();
 }
