@@ -1,10 +1,10 @@
-import type { SuiteDefinition } from "../../domain/contracts";
+import type { SuiteDefinition } from "../../../domain/contracts";
 import {
   buildActivityProfileDocumentFixture,
   buildActivityProfileIdentityFixture,
-} from "../../fixtures/v2_0/documents";
-import { requestSequenceCase, singleRequestCase } from "../../registry/families";
-import { specVersion, upstreamV103Root } from "./shared";
+} from "../../../fixtures/v2_0/documents";
+import { requestSequenceCase, singleRequestCase } from "../../../registry/families";
+import { specVersion, upstreamV103Root } from "../shared";
 
 const activityProfileLegacySuiteFile = `${upstreamV103Root}/H.Communication2.7-ActivityProfileResource.js`;
 

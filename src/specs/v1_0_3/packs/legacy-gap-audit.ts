@@ -1,6 +1,6 @@
-import type { SuiteDefinition } from "../../domain/contracts";
-import { singleRequestCase } from "../../registry/families";
-import { specVersion, upstreamV103Root } from "./shared";
+import type { SuiteDefinition } from "../../../domain/contracts";
+import { singleRequestCase } from "../../../registry/families";
+import { specVersion, upstreamV103Root } from "../shared";
 
 const legacyAuditSuiteFile = `${upstreamV103Root}/H.Communication3.2-ErrorCodes.js`;
 

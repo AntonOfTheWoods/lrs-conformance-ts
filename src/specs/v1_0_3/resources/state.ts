@@ -1,7 +1,7 @@
-import type { SuiteDefinition } from "../../domain/contracts";
-import { buildActivityStateDocumentFixture, buildActivityStateIdentityFixture } from "../../fixtures/v2_0/documents";
-import { requestSequenceCase, singleRequestCase } from "../../registry/families";
-import { specVersion, upstreamV103Root } from "./shared";
+import type { SuiteDefinition } from "../../../domain/contracts";
+import { buildActivityStateDocumentFixture, buildActivityStateIdentityFixture } from "../../../fixtures/v2_0/documents";
+import { requestSequenceCase, singleRequestCase } from "../../../registry/families";
+import { specVersion, upstreamV103Root } from "../shared";
 
 const stateResourceLegacySuiteFile = `${upstreamV103Root}/H.Communication2.3-StateResource.js`;
 

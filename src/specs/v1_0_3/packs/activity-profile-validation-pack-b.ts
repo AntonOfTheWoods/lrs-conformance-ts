@@ -1,8 +1,8 @@
-import type { CaseDefinition, RegistryNode, SuiteDefinition } from "../../domain/contracts";
-import { buildActivityProfileIdentityFixture } from "../../fixtures/v2_0/documents";
-import { singleRequestCase } from "../../registry/families";
-import { createV20ActivityProfileResourceProofSliceSuite } from "../v2_0/activity-profile-resource";
-import { specVersion, upstreamV103Root } from "./shared";
+import type { CaseDefinition, RegistryNode, SuiteDefinition } from "../../../domain/contracts";
+import { buildActivityProfileIdentityFixture } from "../../../fixtures/v2_0/documents";
+import { singleRequestCase } from "../../../registry/families";
+import { createV20ActivityProfileResourceProofSliceSuite } from "../../v2_0/activity-profile-resource";
+import { specVersion, upstreamV103Root } from "../shared";
 
 const includeCaseIds = new Set([
   "v1.activities-profile.validation.invalid-profileId.delete",

@@ -1,6 +1,6 @@
-import type { CaseDefinition, RegistryNode, SuiteDefinition } from "../../domain/contracts";
-import { createV20CommunicationProofSliceSuite } from "../v2_0/communication";
-import { specVersion } from "./shared";
+import type { CaseDefinition, RegistryNode, SuiteDefinition } from "../../../domain/contracts";
+import { statementsAttachmentsSuite } from "../../v2_0/statements/areas/attachments";
+import { specVersion } from "../shared";
 
 function rewriteTags(tags: string[]): string[] {
   const next = tags.map((tag) => (tag === "v2.0.0" ? "v1.0.3" : tag));
@@ -59,14 +59,14 @@ function rewriteNodeFromV2(node: RegistryNode): RegistryNode {
   return cloned;
 }
 
-export function createV103CommunicationProofSliceSuite(): SuiteDefinition {
-  const adapted = rewriteNodeFromV2(createV20CommunicationProofSliceSuite() as unknown as RegistryNode);
+export function createV103StatementsAttachmentsProofSliceSuite(): SuiteDefinition {
+  const adapted = rewriteNodeFromV2(statementsAttachmentsSuite as unknown as RegistryNode);
   if (adapted.type !== "suite") {
-    throw new Error("expected communication root to be a suite");
+    throw new Error("expected statements attachments root to be a suite");
   }
 
-  adapted.id = "v1.proof-slice.communication";
-  adapted.title = "Communication";
-  adapted.tags = ["proof-slice", "communication"];
+  adapted.id = "v1.proof-slice.statements.attachments";
+  adapted.title = "Statements Attachments";
+  adapted.tags = ["proof-slice", "statements", "attachments"];
   return adapted;
 }

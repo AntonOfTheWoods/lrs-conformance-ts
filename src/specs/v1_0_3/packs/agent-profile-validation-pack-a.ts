@@ -1,33 +1,18 @@
-import type { CaseDefinition, RegistryNode, SuiteDefinition } from "../../domain/contracts";
-import { createV20StateResourceProofSliceSuite } from "../v2_0/state-resource";
-import { specVersion } from "./shared";
+import type { CaseDefinition, RegistryNode, SuiteDefinition } from "../../../domain/contracts";
+import { createV20AgentProfileResourceProofSliceSuite } from "../../v2_0/agent-profile-resource";
+import { specVersion } from "../shared";
 
 const includeCaseIds = new Set([
-  "v1.activities-state.accepts.delete-with-state-id",
-  "v1.activities-state.accepts.get-with-state-id",
-  "v1.activities-state.delete-context-documents",
-  "v1.activities-state.document-post-as-put",
-  "v1.activities-state.document-merge-rejects-non-json-post",
-  "v1.activities-state.document-merge-rejects-non-json-type",
-  "v1.activities-state.registration.put",
-  "v1.activities-state.registration.post",
-  "v1.activities-state.registration.get",
-  "v1.activities-state.registration.delete",
-  "v1.activities-state.validation.invalid-agent.delete",
-  "v1.activities-state.validation.invalid-agent.get",
-  "v1.activities-state.validation.invalid-agent.post",
-  "v1.activities-state.validation.invalid-registration.delete",
-  "v1.activities-state.validation.invalid-registration.get",
-  "v1.activities-state.validation.invalid-registration.post",
-  "v1.activities-state.validation.invalid-registration.put",
-  "v1.activities-state.validation.invalid-stateId.delete",
-  "v1.activities-state.validation.invalid-stateId.get",
-  "v1.activities-state.validation.invalid-stateId.post",
-  "v1.activities-state.validation.invalid-stateId.put",
-  "v1.activities-state.validation.missing-agent.delete",
-  "v1.activities-state.validation.missing-agent.get",
-  "v1.activities-state.validation.missing-stateId.post",
-  "v1.activities-state.validation.missing-stateId.put",
+  "v1.agents-profile.validation.invalid-agent.post",
+  "v1.agents-profile.validation.invalid-agent.put",
+  "v1.agents-profile.validation.missing-agent.post",
+  "v1.agents-profile.validation.missing-agent.put",
+  "v1.agents-profile.validation.missing-profileId.post",
+  "v1.agents-profile.validation.missing-profileId.put",
+  "v1.agents-profile.validation.invalid-profileId.post",
+  "v1.agents-profile.validation.invalid-profileId.put",
+  "v1.agents-profile.document-post-as-put",
+  "v1.agents-profile.document-merge-rejects-legacy-non-json-post",
 ]);
 
 function rewriteTags(tags: string[]): string[] {
@@ -85,11 +70,8 @@ function rewriteNodeFromV2(node: RegistryNode): RegistryNode | null {
 
   const cloned = structuredClone(node) as SuiteDefinition;
   cloned.id = cloned.id.replace(/^v2\./, "v1.");
-  if (cloned.id.startsWith("v1.proof-slice.activities-state.")) {
-    cloned.id = cloned.id.replace(
-      "v1.proof-slice.activities-state.",
-      "v1.proof-slice.activities-state.validation-pack-a.",
-    );
+  if (cloned.id.startsWith("v1.proof-slice.agents-profile.")) {
+    cloned.id = cloned.id.replace("v1.proof-slice.agents-profile.", "v1.proof-slice.agents-profile.validation-pack-a.");
   }
   cloned.specVersion = specVersion;
   cloned.tags = rewriteTags(cloned.tags);
@@ -100,14 +82,14 @@ function rewriteNodeFromV2(node: RegistryNode): RegistryNode | null {
   return cloned;
 }
 
-export function createV103StateResourceValidationPackAProofSliceSuite(): SuiteDefinition {
-  const adapted = rewriteNodeFromV2(createV20StateResourceProofSliceSuite() as unknown as RegistryNode);
+export function createV103AgentProfileValidationPackAProofSliceSuite(): SuiteDefinition {
+  const adapted = rewriteNodeFromV2(createV20AgentProfileResourceProofSliceSuite() as unknown as RegistryNode);
   if (adapted?.type !== "suite") {
-    throw new Error("expected activities-state root to be a suite");
+    throw new Error("expected agents-profile root to be a suite");
   }
 
-  adapted.id = "v1.proof-slice.activities-state.validation-pack-a";
-  adapted.title = "Activities State Validation Pack A";
-  adapted.tags = ["proof-slice", "activities-state", "validation", "parity-pack"];
+  adapted.id = "v1.proof-slice.agents-profile.validation-pack-a";
+  adapted.title = "Agents Profile Validation Pack A";
+  adapted.tags = ["proof-slice", "agents-profile", "validation", "parity-pack"];
   return adapted;
 }

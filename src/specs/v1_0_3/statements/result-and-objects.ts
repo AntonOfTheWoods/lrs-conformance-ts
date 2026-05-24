@@ -1,6 +1,8 @@
-import type { CaseDefinition, RegistryNode, SuiteDefinition } from "../../domain/contracts";
-import { statementsAdditionalDataTypesSuite } from "../v2_0/statements/areas/additional-data-types";
-import { specVersion } from "./shared";
+import type { CaseDefinition, RegistryNode, SuiteDefinition } from "../../../domain/contracts";
+import { statementsResultAndObjectsSuite } from "../../v2_0/statements/areas/result-and-objects";
+import { specVersion } from "../shared";
+
+const unsupportedRequirementIds = new Set(["XAPI-01002"]);
 
 function rewriteTags(tags: string[]): string[] {
   const next = tags.map((tag) => (tag === "v2.0.0" ? "v1.0.3" : tag));
@@ -10,7 +12,11 @@ function rewriteTags(tags: string[]): string[] {
   return next;
 }
 
-function rewriteCaseFromV2(caseNode: CaseDefinition): CaseDefinition {
+function rewriteCaseFromV2(caseNode: CaseDefinition): CaseDefinition | null {
+  if (caseNode.requirementRefs.some((ref) => unsupportedRequirementIds.has(ref.id))) {
+    return null;
+  }
+
   const cloned = structuredClone(caseNode) as CaseDefinition;
   cloned.id = cloned.id.replace(/^v2\./, "v1.");
   cloned.specVersion = specVersion;
@@ -46,7 +52,7 @@ function rewriteCaseFromV2(caseNode: CaseDefinition): CaseDefinition {
   return cloned;
 }
 
-function rewriteNodeFromV2(node: RegistryNode): RegistryNode {
+function rewriteNodeFromV2(node: RegistryNode): RegistryNode | null {
   if (node.type === "case") {
     return rewriteCaseFromV2(node);
   }
@@ -55,18 +61,25 @@ function rewriteNodeFromV2(node: RegistryNode): RegistryNode {
   cloned.id = cloned.id.replace(/^v2\./, "v1.");
   cloned.specVersion = specVersion;
   cloned.tags = rewriteTags(cloned.tags);
-  cloned.children = cloned.children.map(rewriteNodeFromV2);
+  cloned.children = cloned.children
+    .map((child) => rewriteNodeFromV2(child))
+    .filter((child): child is RegistryNode => child !== null);
+
+  if (cloned.children.length === 0) {
+    return null;
+  }
+
   return cloned;
 }
 
-export function createV103StatementsAdditionalDataTypesProofSliceSuite(): SuiteDefinition {
-  const adapted = rewriteNodeFromV2(statementsAdditionalDataTypesSuite as unknown as RegistryNode);
-  if (adapted.type !== "suite") {
-    throw new Error("expected statements additional-data-types root to be a suite");
+export function createV103StatementsResultAndObjectsProofSliceSuite(): SuiteDefinition {
+  const adapted = rewriteNodeFromV2(statementsResultAndObjectsSuite as unknown as RegistryNode);
+  if (!adapted || adapted.type !== "suite") {
+    throw new Error("expected statements result-and-objects root to be a suite");
   }
 
-  adapted.id = "v1.proof-slice.statements.additional-data-types";
-  adapted.title = "Statements Additional Data Types";
-  adapted.tags = ["proof-slice", "statements", "additional-data-types"];
+  adapted.id = "v1.proof-slice.statements.result-and-objects";
+  adapted.title = "Statements Result and Objects";
+  adapted.tags = ["proof-slice", "statements", "result-and-objects"];
   return adapted;
 }

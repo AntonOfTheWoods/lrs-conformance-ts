@@ -1,6 +1,6 @@
-import type { EndpointKind, HttpRequest, SuiteDefinition } from "../../domain/contracts";
-import { singleRequestCase } from "../../registry/families";
-import { specVersion, upstreamV103Root } from "./shared";
+import type { EndpointKind, HttpRequest, SuiteDefinition } from "../../../domain/contracts";
+import { singleRequestCase } from "../../../registry/families";
+import { specVersion, upstreamV103Root } from "../shared";
 
 const aboutResourceLegacySuiteFile = `${upstreamV103Root}/H.Communication2.8-AboutResource.js`;
 

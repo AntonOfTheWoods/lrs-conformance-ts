@@ -1,8 +1,6 @@
-import type { CaseDefinition, RegistryNode, SuiteDefinition } from "../../domain/contracts";
-import { statementsRepresentationSuite } from "../v2_0/statements/areas/representation";
-import { specVersion } from "./shared";
-
-const unsupportedRequirementIds = new Set(["XAPI-01002"]);
+import type { CaseDefinition, RegistryNode, SuiteDefinition } from "../../../domain/contracts";
+import { statementsAdditionalDataTypesSuite } from "../../v2_0/statements/areas/additional-data-types";
+import { specVersion } from "../shared";
 
 function rewriteTags(tags: string[]): string[] {
   const next = tags.map((tag) => (tag === "v2.0.0" ? "v1.0.3" : tag));
@@ -12,11 +10,7 @@ function rewriteTags(tags: string[]): string[] {
   return next;
 }
 
-function rewriteCaseFromV2(caseNode: CaseDefinition): CaseDefinition | null {
-  if (caseNode.requirementRefs.some((ref) => unsupportedRequirementIds.has(ref.id))) {
-    return null;
-  }
-
+function rewriteCaseFromV2(caseNode: CaseDefinition): CaseDefinition {
   const cloned = structuredClone(caseNode) as CaseDefinition;
   cloned.id = cloned.id.replace(/^v2\./, "v1.");
   cloned.specVersion = specVersion;
@@ -52,7 +46,7 @@ function rewriteCaseFromV2(caseNode: CaseDefinition): CaseDefinition | null {
   return cloned;
 }
 
-function rewriteNodeFromV2(node: RegistryNode): RegistryNode | null {
+function rewriteNodeFromV2(node: RegistryNode): RegistryNode {
   if (node.type === "case") {
     return rewriteCaseFromV2(node);
   }
@@ -61,25 +55,18 @@ function rewriteNodeFromV2(node: RegistryNode): RegistryNode | null {
   cloned.id = cloned.id.replace(/^v2\./, "v1.");
   cloned.specVersion = specVersion;
   cloned.tags = rewriteTags(cloned.tags);
-  cloned.children = cloned.children
-    .map((child) => rewriteNodeFromV2(child))
-    .filter((child): child is RegistryNode => child !== null);
-
-  if (cloned.children.length === 0) {
-    return null;
-  }
-
+  cloned.children = cloned.children.map(rewriteNodeFromV2);
   return cloned;
 }
 
-export function createV103StatementsRepresentationProofSliceSuite(): SuiteDefinition {
-  const adapted = rewriteNodeFromV2(statementsRepresentationSuite as unknown as RegistryNode);
-  if (!adapted || adapted.type !== "suite") {
-    throw new Error("expected statements representation root to be a suite");
+export function createV103StatementsAdditionalDataTypesProofSliceSuite(): SuiteDefinition {
+  const adapted = rewriteNodeFromV2(statementsAdditionalDataTypesSuite as unknown as RegistryNode);
+  if (adapted.type !== "suite") {
+    throw new Error("expected statements additional-data-types root to be a suite");
   }
 
-  adapted.id = "v1.proof-slice.statements.representation";
-  adapted.title = "Statements Representation";
-  adapted.tags = ["proof-slice", "statements", "representation"];
+  adapted.id = "v1.proof-slice.statements.additional-data-types";
+  adapted.title = "Statements Additional Data Types";
+  adapted.tags = ["proof-slice", "statements", "additional-data-types"];
   return adapted;
 }

@@ -1,6 +1,6 @@
-import type { CaseDefinition, RegistryNode, SuiteDefinition } from "../../domain/contracts";
-import { statementsQueryValidationSuite } from "../v2_0/statements/areas/query-validation";
-import { specVersion } from "./shared";
+import type { CaseDefinition, RegistryNode, SuiteDefinition } from "../../../domain/contracts";
+import { statementsQueryValidationSuite } from "../../v2_0/statements/areas/query-validation";
+import { specVersion } from "../shared";
 
 function rewriteTags(tags: string[]): string[] {
   const next = tags.map((tag) => (tag === "v2.0.0" ? "v1.0.3" : tag));

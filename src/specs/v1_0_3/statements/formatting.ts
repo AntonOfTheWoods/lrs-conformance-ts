@@ -1,6 +1,6 @@
-import type { CaseDefinition, RegistryNode, SuiteDefinition } from "../../domain/contracts";
-import { statementsFormattingSuite } from "../v2_0/statements/areas/formatting";
-import { specVersion } from "./shared";
+import type { CaseDefinition, RegistryNode, SuiteDefinition } from "../../../domain/contracts";
+import { statementsFormattingSuite } from "../../v2_0/statements/areas/formatting";
+import { specVersion } from "../shared";
 
 const excludedCaseIds = new Set([
   "v1.statements.invalid-mbox-iri.actor-agent",

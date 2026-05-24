@@ -1,9 +1,6 @@
-import type { CaseDefinition, RegistryNode, SuiteDefinition } from "../../domain/contracts";
-import { v2ProofSliceStatementsQuerySuite } from "../v2_0/statements/root/query";
-import { specVersion, upstreamV103Root } from "./shared";
-
-const statementResourceLegacySuiteFile = `${upstreamV103Root}/H.Communication2.1-StatementResource.js`;
-const unsupportedRequirementIds = new Set(["XAPI-01001"]);
+import type { CaseDefinition, RegistryNode, SuiteDefinition } from "../../../domain/contracts";
+import { statementsContextSuite } from "../../v2_0/statements/areas/context";
+import { specVersion } from "../shared";
 
 function rewriteTags(tags: string[]): string[] {
   const next = tags.map((tag) => (tag === "v2.0.0" ? "v1.0.3" : tag));
@@ -13,18 +10,15 @@ function rewriteTags(tags: string[]): string[] {
   return next;
 }
 
-function rewriteCaseFromV2(caseNode: CaseDefinition): CaseDefinition | null {
-  if (caseNode.requirementRefs.some((ref) => unsupportedRequirementIds.has(ref.id))) {
-    return null;
-  }
-
+function rewriteCaseFromV2(caseNode: CaseDefinition): CaseDefinition {
   const cloned = structuredClone(caseNode) as CaseDefinition;
   cloned.id = cloned.id.replace(/^v2\./, "v1.");
   cloned.specVersion = specVersion;
   cloned.tags = rewriteTags(cloned.tags);
-  cloned.legacyTrace = {
-    suiteFile: statementResourceLegacySuiteFile,
-  };
+
+  if (cloned.legacyTrace?.suiteFile) {
+    cloned.legacyTrace.suiteFile = cloned.legacyTrace.suiteFile.replace("/test/v2_0/", "/test/v1_0_3/");
+  }
 
   if (cloned.execution.kind === "single-request") {
     cloned.execution.request.headers["X-Experience-API-Version"] = specVersion;
@@ -52,7 +46,7 @@ function rewriteCaseFromV2(caseNode: CaseDefinition): CaseDefinition | null {
   return cloned;
 }
 
-function rewriteNodeFromV2(node: RegistryNode): RegistryNode | null {
+function rewriteNodeFromV2(node: RegistryNode): RegistryNode {
   if (node.type === "case") {
     return rewriteCaseFromV2(node);
   }
@@ -61,25 +55,18 @@ function rewriteNodeFromV2(node: RegistryNode): RegistryNode | null {
   cloned.id = cloned.id.replace(/^v2\./, "v1.");
   cloned.specVersion = specVersion;
   cloned.tags = rewriteTags(cloned.tags);
-  cloned.children = cloned.children
-    .map((child) => rewriteNodeFromV2(child))
-    .filter((child): child is RegistryNode => child !== null);
-
-  if (cloned.children.length === 0) {
-    return null;
-  }
-
+  cloned.children = cloned.children.map(rewriteNodeFromV2);
   return cloned;
 }
 
-export function createV103StatementQueryProofSliceSuite(): SuiteDefinition {
-  const adapted = rewriteNodeFromV2(v2ProofSliceStatementsQuerySuite as unknown as RegistryNode);
-  if (!adapted || adapted.type !== "suite") {
-    throw new Error("expected statement query root to be a suite");
+export function createV103StatementsContextProofSliceSuite(): SuiteDefinition {
+  const adapted = rewriteNodeFromV2(statementsContextSuite as unknown as RegistryNode);
+  if (adapted.type !== "suite") {
+    throw new Error("expected statements context root to be a suite");
   }
 
-  adapted.id = "v1.proof-slice.statements.query";
-  adapted.title = "Statement Query";
-  adapted.tags = ["proof-slice", "statements", "query"];
+  adapted.id = "v1.proof-slice.statements.context";
+  adapted.title = "Statements Context";
+  adapted.tags = ["proof-slice", "statements", "context"];
   return adapted;
 }

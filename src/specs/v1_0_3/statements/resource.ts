@@ -1,6 +1,8 @@
-import type { CaseDefinition, RegistryNode, SuiteDefinition } from "../../domain/contracts";
-import { statementsAuthoritySuite } from "../v2_0/statements/areas/authority";
-import { specVersion } from "./shared";
+import type { CaseDefinition, RegistryNode, SuiteDefinition } from "../../../domain/contracts";
+import { v2ProofSliceStatementsTransportSuite } from "../../v2_0/statements/root/transport";
+import { specVersion, upstreamV103Root } from "../shared";
+
+const statementResourceLegacySuiteFile = `${upstreamV103Root}/H.Communication2.1-StatementResource.js`;
 
 function rewriteTags(tags: string[]): string[] {
   const next = tags.map((tag) => (tag === "v2.0.0" ? "v1.0.3" : tag));
@@ -12,13 +14,13 @@ function rewriteTags(tags: string[]): string[] {
 
 function rewriteCaseFromV2(caseNode: CaseDefinition): CaseDefinition {
   const cloned = structuredClone(caseNode) as CaseDefinition;
+
   cloned.id = cloned.id.replace(/^v2\./, "v1.");
   cloned.specVersion = specVersion;
   cloned.tags = rewriteTags(cloned.tags);
-
-  if (cloned.legacyTrace?.suiteFile) {
-    cloned.legacyTrace.suiteFile = cloned.legacyTrace.suiteFile.replace("/test/v2_0/", "/test/v1_0_3/");
-  }
+  cloned.legacyTrace = {
+    suiteFile: statementResourceLegacySuiteFile,
+  };
 
   if (cloned.execution.kind === "single-request") {
     cloned.execution.request.headers["X-Experience-API-Version"] = specVersion;
@@ -59,14 +61,14 @@ function rewriteNodeFromV2(node: RegistryNode): RegistryNode {
   return cloned;
 }
 
-export function createV103StatementsAuthorityProofSliceSuite(): SuiteDefinition {
-  const adapted = rewriteNodeFromV2(statementsAuthoritySuite as unknown as RegistryNode);
+export function createV103StatementResourceProofSliceSuite(): SuiteDefinition {
+  const adapted = rewriteNodeFromV2(v2ProofSliceStatementsTransportSuite as unknown as RegistryNode);
   if (adapted.type !== "suite") {
-    throw new Error("expected statements authority root to be a suite");
+    throw new Error("expected statement transport root to be a suite");
   }
 
-  adapted.id = "v1.proof-slice.statements.authority";
-  adapted.title = "Statements Authority";
-  adapted.tags = ["proof-slice", "statements", "authority"];
+  adapted.id = "v1.proof-slice.statements";
+  adapted.title = "Statement Resource";
+  adapted.tags = ["proof-slice", "statements", "transport"];
   return adapted;
 }

@@ -1,6 +1,8 @@
-import type { CaseDefinition, RegistryNode, SuiteDefinition } from "../../domain/contracts";
-import { statementsSignedStatementsSuite } from "../v2_0/statements/areas/signed-statements";
-import { specVersion } from "./shared";
+import type { CaseDefinition, RegistryNode, SuiteDefinition } from "../../../domain/contracts";
+import { statementsRepresentationSuite } from "../../v2_0/statements/areas/representation";
+import { specVersion } from "../shared";
+
+const unsupportedRequirementIds = new Set(["XAPI-01002"]);
 
 function rewriteTags(tags: string[]): string[] {
   const next = tags.map((tag) => (tag === "v2.0.0" ? "v1.0.3" : tag));
@@ -10,7 +12,11 @@ function rewriteTags(tags: string[]): string[] {
   return next;
 }
 
-function rewriteCaseFromV2(caseNode: CaseDefinition): CaseDefinition {
+function rewriteCaseFromV2(caseNode: CaseDefinition): CaseDefinition | null {
+  if (caseNode.requirementRefs.some((ref) => unsupportedRequirementIds.has(ref.id))) {
+    return null;
+  }
+
   const cloned = structuredClone(caseNode) as CaseDefinition;
   cloned.id = cloned.id.replace(/^v2\./, "v1.");
   cloned.specVersion = specVersion;
@@ -46,7 +52,7 @@ function rewriteCaseFromV2(caseNode: CaseDefinition): CaseDefinition {
   return cloned;
 }
 
-function rewriteNodeFromV2(node: RegistryNode): RegistryNode {
+function rewriteNodeFromV2(node: RegistryNode): RegistryNode | null {
   if (node.type === "case") {
     return rewriteCaseFromV2(node);
   }
@@ -55,18 +61,25 @@ function rewriteNodeFromV2(node: RegistryNode): RegistryNode {
   cloned.id = cloned.id.replace(/^v2\./, "v1.");
   cloned.specVersion = specVersion;
   cloned.tags = rewriteTags(cloned.tags);
-  cloned.children = cloned.children.map(rewriteNodeFromV2);
+  cloned.children = cloned.children
+    .map((child) => rewriteNodeFromV2(child))
+    .filter((child): child is RegistryNode => child !== null);
+
+  if (cloned.children.length === 0) {
+    return null;
+  }
+
   return cloned;
 }
 
-export function createV103StatementsSignedStatementsProofSliceSuite(): SuiteDefinition {
-  const adapted = rewriteNodeFromV2(statementsSignedStatementsSuite as unknown as RegistryNode);
-  if (adapted.type !== "suite") {
-    throw new Error("expected statements signed-statements root to be a suite");
+export function createV103StatementsRepresentationProofSliceSuite(): SuiteDefinition {
+  const adapted = rewriteNodeFromV2(statementsRepresentationSuite as unknown as RegistryNode);
+  if (!adapted || adapted.type !== "suite") {
+    throw new Error("expected statements representation root to be a suite");
   }
 
-  adapted.id = "v1.proof-slice.statements.signed-statements";
-  adapted.title = "Statements Signed Statements";
-  adapted.tags = ["proof-slice", "statements", "signed-statements"];
+  adapted.id = "v1.proof-slice.statements.representation";
+  adapted.title = "Statements Representation";
+  adapted.tags = ["proof-slice", "statements", "representation"];
   return adapted;
 }

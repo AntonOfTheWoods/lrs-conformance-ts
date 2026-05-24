@@ -1,6 +1,15 @@
-import type { CaseDefinition, RegistryNode, SuiteDefinition } from "../../domain/contracts";
-import { statementsIdSuite } from "../v2_0/statements/areas/id";
-import { specVersion } from "./shared";
+import type { CaseDefinition, RegistryNode, SuiteDefinition } from "../../../domain/contracts";
+import { createV20ActivityProfileResourceProofSliceSuite } from "../../v2_0/activity-profile-resource";
+import { specVersion } from "../shared";
+
+const includeCaseIds = new Set([
+  "v1.activities-profile.validation.missing-activityId.get",
+  "v1.activities-profile.validation.missing-activityId.post",
+  "v1.activities-profile.validation.missing-activityId.put",
+  "v1.activities-profile.validation.missing-profileId.post",
+  "v1.activities-profile.validation.missing-profileId.put",
+  "v1.activities-profile.document-post-as-put",
+]);
 
 function rewriteTags(tags: string[]): string[] {
   const next = tags.map((tag) => (tag === "v2.0.0" ? "v1.0.3" : tag));
@@ -46,27 +55,40 @@ function rewriteCaseFromV2(caseNode: CaseDefinition): CaseDefinition {
   return cloned;
 }
 
-function rewriteNodeFromV2(node: RegistryNode): RegistryNode {
+function rewriteNodeFromV2(node: RegistryNode): RegistryNode | null {
   if (node.type === "case") {
-    return rewriteCaseFromV2(node);
+    const rewritten = rewriteCaseFromV2(node);
+    if (!includeCaseIds.has(rewritten.id)) {
+      return null;
+    }
+    return rewritten;
   }
 
   const cloned = structuredClone(node) as SuiteDefinition;
   cloned.id = cloned.id.replace(/^v2\./, "v1.");
+  if (cloned.id.startsWith("v1.proof-slice.activities-profile.")) {
+    cloned.id = cloned.id.replace(
+      "v1.proof-slice.activities-profile.",
+      "v1.proof-slice.activities-profile.validation-pack-a.",
+    );
+  }
   cloned.specVersion = specVersion;
   cloned.tags = rewriteTags(cloned.tags);
-  cloned.children = cloned.children.map(rewriteNodeFromV2);
+  cloned.children = cloned.children.map(rewriteNodeFromV2).filter((child): child is RegistryNode => child !== null);
+  if (cloned.children.length === 0) {
+    return null;
+  }
   return cloned;
 }
 
-export function createV103StatementsIdProofSliceSuite(): SuiteDefinition {
-  const adapted = rewriteNodeFromV2(statementsIdSuite as unknown as RegistryNode);
-  if (adapted.type !== "suite") {
-    throw new Error("expected statements id root to be a suite");
+export function createV103ActivityProfileValidationPackAProofSliceSuite(): SuiteDefinition {
+  const adapted = rewriteNodeFromV2(createV20ActivityProfileResourceProofSliceSuite() as unknown as RegistryNode);
+  if (adapted?.type !== "suite") {
+    throw new Error("expected activities-profile root to be a suite");
   }
 
-  adapted.id = "v1.proof-slice.statements.id";
-  adapted.title = "Statements ID";
-  adapted.tags = ["proof-slice", "statements", "id"];
+  adapted.id = "v1.proof-slice.activities-profile.validation-pack-a";
+  adapted.title = "Activities Profile Validation Pack A";
+  adapted.tags = ["proof-slice", "activities-profile", "validation", "parity-pack"];
   return adapted;
 }

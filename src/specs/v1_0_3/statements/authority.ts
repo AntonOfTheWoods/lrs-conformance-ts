@@ -1,6 +1,6 @@
-import type { CaseDefinition, RegistryNode, SuiteDefinition } from "../../domain/contracts";
-import { statementsMetadataSuite } from "../v2_0/statements/areas/metadata";
-import { specVersion } from "./shared";
+import type { CaseDefinition, RegistryNode, SuiteDefinition } from "../../../domain/contracts";
+import { statementsAuthoritySuite } from "../../v2_0/statements/areas/authority";
+import { specVersion } from "../shared";
 
 function rewriteTags(tags: string[]): string[] {
   const next = tags.map((tag) => (tag === "v2.0.0" ? "v1.0.3" : tag));
@@ -59,14 +59,14 @@ function rewriteNodeFromV2(node: RegistryNode): RegistryNode {
   return cloned;
 }
 
-export function createV103StatementsMetadataProofSliceSuite(): SuiteDefinition {
-  const adapted = rewriteNodeFromV2(statementsMetadataSuite as unknown as RegistryNode);
+export function createV103StatementsAuthorityProofSliceSuite(): SuiteDefinition {
+  const adapted = rewriteNodeFromV2(statementsAuthoritySuite as unknown as RegistryNode);
   if (adapted.type !== "suite") {
-    throw new Error("expected statements metadata root to be a suite");
+    throw new Error("expected statements authority root to be a suite");
   }
 
-  adapted.id = "v1.proof-slice.statements.metadata";
-  adapted.title = "Statements Metadata";
-  adapted.tags = ["proof-slice", "statements", "metadata"];
+  adapted.id = "v1.proof-slice.statements.authority";
+  adapted.title = "Statements Authority";
+  adapted.tags = ["proof-slice", "statements", "authority"];
   return adapted;
 }

@@ -1,15 +1,9 @@
-import type { CaseDefinition, RegistryNode, SuiteDefinition } from "../../domain/contracts";
-import { createV20ActivityProfileResourceProofSliceSuite } from "../v2_0/activity-profile-resource";
-import { specVersion } from "./shared";
+import type { CaseDefinition, RegistryNode, SuiteDefinition } from "../../../domain/contracts";
+import { v2ProofSliceStatementsQuerySuite } from "../../v2_0/statements/root/query";
+import { specVersion, upstreamV103Root } from "../shared";
 
-const includeCaseIds = new Set([
-  "v1.activities-profile.validation.missing-activityId.get",
-  "v1.activities-profile.validation.missing-activityId.post",
-  "v1.activities-profile.validation.missing-activityId.put",
-  "v1.activities-profile.validation.missing-profileId.post",
-  "v1.activities-profile.validation.missing-profileId.put",
-  "v1.activities-profile.document-post-as-put",
-]);
+const statementResourceLegacySuiteFile = `${upstreamV103Root}/H.Communication2.1-StatementResource.js`;
+const unsupportedRequirementIds = new Set(["XAPI-01001"]);
 
 function rewriteTags(tags: string[]): string[] {
   const next = tags.map((tag) => (tag === "v2.0.0" ? "v1.0.3" : tag));
@@ -19,15 +13,18 @@ function rewriteTags(tags: string[]): string[] {
   return next;
 }
 
-function rewriteCaseFromV2(caseNode: CaseDefinition): CaseDefinition {
+function rewriteCaseFromV2(caseNode: CaseDefinition): CaseDefinition | null {
+  if (caseNode.requirementRefs.some((ref) => unsupportedRequirementIds.has(ref.id))) {
+    return null;
+  }
+
   const cloned = structuredClone(caseNode) as CaseDefinition;
   cloned.id = cloned.id.replace(/^v2\./, "v1.");
   cloned.specVersion = specVersion;
   cloned.tags = rewriteTags(cloned.tags);
-
-  if (cloned.legacyTrace?.suiteFile) {
-    cloned.legacyTrace.suiteFile = cloned.legacyTrace.suiteFile.replace("/test/v2_0/", "/test/v1_0_3/");
-  }
+  cloned.legacyTrace = {
+    suiteFile: statementResourceLegacySuiteFile,
+  };
 
   if (cloned.execution.kind === "single-request") {
     cloned.execution.request.headers["X-Experience-API-Version"] = specVersion;
@@ -57,38 +54,32 @@ function rewriteCaseFromV2(caseNode: CaseDefinition): CaseDefinition {
 
 function rewriteNodeFromV2(node: RegistryNode): RegistryNode | null {
   if (node.type === "case") {
-    const rewritten = rewriteCaseFromV2(node);
-    if (!includeCaseIds.has(rewritten.id)) {
-      return null;
-    }
-    return rewritten;
+    return rewriteCaseFromV2(node);
   }
 
   const cloned = structuredClone(node) as SuiteDefinition;
   cloned.id = cloned.id.replace(/^v2\./, "v1.");
-  if (cloned.id.startsWith("v1.proof-slice.activities-profile.")) {
-    cloned.id = cloned.id.replace(
-      "v1.proof-slice.activities-profile.",
-      "v1.proof-slice.activities-profile.validation-pack-a.",
-    );
-  }
   cloned.specVersion = specVersion;
   cloned.tags = rewriteTags(cloned.tags);
-  cloned.children = cloned.children.map(rewriteNodeFromV2).filter((child): child is RegistryNode => child !== null);
+  cloned.children = cloned.children
+    .map((child) => rewriteNodeFromV2(child))
+    .filter((child): child is RegistryNode => child !== null);
+
   if (cloned.children.length === 0) {
     return null;
   }
+
   return cloned;
 }
 
-export function createV103ActivityProfileValidationPackAProofSliceSuite(): SuiteDefinition {
-  const adapted = rewriteNodeFromV2(createV20ActivityProfileResourceProofSliceSuite() as unknown as RegistryNode);
-  if (adapted?.type !== "suite") {
-    throw new Error("expected activities-profile root to be a suite");
+export function createV103StatementQueryProofSliceSuite(): SuiteDefinition {
+  const adapted = rewriteNodeFromV2(v2ProofSliceStatementsQuerySuite as unknown as RegistryNode);
+  if (!adapted || adapted.type !== "suite") {
+    throw new Error("expected statement query root to be a suite");
   }
 
-  adapted.id = "v1.proof-slice.activities-profile.validation-pack-a";
-  adapted.title = "Activities Profile Validation Pack A";
-  adapted.tags = ["proof-slice", "activities-profile", "validation", "parity-pack"];
+  adapted.id = "v1.proof-slice.statements.query";
+  adapted.title = "Statement Query";
+  adapted.tags = ["proof-slice", "statements", "query"];
   return adapted;
 }

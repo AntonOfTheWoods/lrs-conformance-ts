@@ -1,19 +1,6 @@
-import type { CaseDefinition, RegistryNode, SuiteDefinition } from "../../domain/contracts";
-import { createV20AgentProfileResourceProofSliceSuite } from "../v2_0/agent-profile-resource";
-import { specVersion } from "./shared";
-
-const includeCaseIds = new Set([
-  "v1.agents-profile.validation.invalid-agent.post",
-  "v1.agents-profile.validation.invalid-agent.put",
-  "v1.agents-profile.validation.missing-agent.post",
-  "v1.agents-profile.validation.missing-agent.put",
-  "v1.agents-profile.validation.missing-profileId.post",
-  "v1.agents-profile.validation.missing-profileId.put",
-  "v1.agents-profile.validation.invalid-profileId.post",
-  "v1.agents-profile.validation.invalid-profileId.put",
-  "v1.agents-profile.document-post-as-put",
-  "v1.agents-profile.document-merge-rejects-legacy-non-json-post",
-]);
+import type { CaseDefinition, RegistryNode, SuiteDefinition } from "../../../domain/contracts";
+import { statementsIdSuite } from "../../v2_0/statements/areas/id";
+import { specVersion } from "../shared";
 
 function rewriteTags(tags: string[]): string[] {
   const next = tags.map((tag) => (tag === "v2.0.0" ? "v1.0.3" : tag));
@@ -59,37 +46,27 @@ function rewriteCaseFromV2(caseNode: CaseDefinition): CaseDefinition {
   return cloned;
 }
 
-function rewriteNodeFromV2(node: RegistryNode): RegistryNode | null {
+function rewriteNodeFromV2(node: RegistryNode): RegistryNode {
   if (node.type === "case") {
-    const rewritten = rewriteCaseFromV2(node);
-    if (!includeCaseIds.has(rewritten.id)) {
-      return null;
-    }
-    return rewritten;
+    return rewriteCaseFromV2(node);
   }
 
   const cloned = structuredClone(node) as SuiteDefinition;
   cloned.id = cloned.id.replace(/^v2\./, "v1.");
-  if (cloned.id.startsWith("v1.proof-slice.agents-profile.")) {
-    cloned.id = cloned.id.replace("v1.proof-slice.agents-profile.", "v1.proof-slice.agents-profile.validation-pack-a.");
-  }
   cloned.specVersion = specVersion;
   cloned.tags = rewriteTags(cloned.tags);
-  cloned.children = cloned.children.map(rewriteNodeFromV2).filter((child): child is RegistryNode => child !== null);
-  if (cloned.children.length === 0) {
-    return null;
-  }
+  cloned.children = cloned.children.map(rewriteNodeFromV2);
   return cloned;
 }
 
-export function createV103AgentProfileValidationPackAProofSliceSuite(): SuiteDefinition {
-  const adapted = rewriteNodeFromV2(createV20AgentProfileResourceProofSliceSuite() as unknown as RegistryNode);
-  if (adapted?.type !== "suite") {
-    throw new Error("expected agents-profile root to be a suite");
+export function createV103StatementsIdProofSliceSuite(): SuiteDefinition {
+  const adapted = rewriteNodeFromV2(statementsIdSuite as unknown as RegistryNode);
+  if (adapted.type !== "suite") {
+    throw new Error("expected statements id root to be a suite");
   }
 
-  adapted.id = "v1.proof-slice.agents-profile.validation-pack-a";
-  adapted.title = "Agents Profile Validation Pack A";
-  adapted.tags = ["proof-slice", "agents-profile", "validation", "parity-pack"];
+  adapted.id = "v1.proof-slice.statements.id";
+  adapted.title = "Statements ID";
+  adapted.tags = ["proof-slice", "statements", "id"];
   return adapted;
 }
