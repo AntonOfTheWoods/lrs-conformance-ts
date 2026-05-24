@@ -1557,7 +1557,7 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       tags: ["v2.0.0", "activities-state", "validation", "stateId"],
       capabilityFlags: ["document", "state", "validation", "parameters"],
       legacyTraceSuiteFile: parametersLegacySuiteFile,
-      expectedStatus: 204,
+      expectedStatus: 400,
 
       notes: ["legacy note: XAPI-00228 upstream comment - in Parameters folder"],
     }),
@@ -1582,7 +1582,7 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       tags: ["v2.0.0", "activities-state", "validation", "stateId"],
       capabilityFlags: ["document", "state", "validation", "parameters"],
       legacyTraceSuiteFile: parametersLegacySuiteFile,
-      expectedStatus: 204,
+      expectedStatus: 400,
 
       notes: ["legacy note: XAPI-00226 upstream comment - in Parameters folder"],
     }),
@@ -1606,7 +1606,7 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       tags: ["v2.0.0", "activities-state", "validation", "stateId"],
       capabilityFlags: ["document", "state", "validation", "parameters"],
       legacyTraceSuiteFile: parametersLegacySuiteFile,
-      expectedStatus: 404,
+      expectedStatus: 400,
 
       notes: ["legacy note: XAPI-00225 upstream comment - in Parameters folder"],
     }),
@@ -1630,7 +1630,7 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       tags: ["v2.0.0", "activities-state", "validation", "stateId"],
       capabilityFlags: ["document", "state", "validation", "parameters"],
       legacyTraceSuiteFile: parametersLegacySuiteFile,
-      expectedStatus: 204,
+      expectedStatus: 400,
 
       notes: ["legacy note: XAPI-00224 upstream comment - in Parameters folder"],
     }),

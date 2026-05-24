@@ -77,15 +77,12 @@ export const v2StatementsLanguageTagsRejectedSubstatementObjectNameCase = {
   },
   assertion: {
     kind: "single-request",
-    status: 200,
+    status: 400,
     expectedHeaders: [],
     expectedHeaderPatterns: [],
     jsonPathEquals: [],
     jsonPathNotEquals: [],
     textContains: [],
-    notes: [
-      "Statement Formatting",
-      "legacy note: XAPI-00013 upstream comment - in formatting.js",
-    ],
+    notes: ["Statement Formatting", "legacy note: XAPI-00013 upstream comment - in formatting.js"],
   },
 } as unknown as CaseDefinition;

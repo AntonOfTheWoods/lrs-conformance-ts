@@ -1094,7 +1094,7 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
       tags: ["v2.0.0", "activities-profile", "validation", "profileId"],
       capabilityFlags: ["document", "activity-profile", "validation", "parameters"],
       legacyTraceSuiteFile: parametersLegacySuiteFile,
-      expectedStatus: 204,
+      expectedStatus: 400,
 
       notes: ["legacy note: XAPI-00307 upstream comment - in Parameters folder"],
     }),
@@ -1119,7 +1119,7 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
       tags: ["v2.0.0", "activities-profile", "validation", "profileId"],
       capabilityFlags: ["document", "activity-profile", "validation", "parameters"],
       legacyTraceSuiteFile: parametersLegacySuiteFile,
-      expectedStatus: 204,
+      expectedStatus: 400,
 
       notes: ["legacy note: XAPI-00306 upstream comment - in Parameters folder"],
     }),
@@ -1143,7 +1143,7 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
       tags: ["v2.0.0", "activities-profile", "validation", "profileId"],
       capabilityFlags: ["document", "activity-profile", "validation", "parameters"],
       legacyTraceSuiteFile: parametersLegacySuiteFile,
-      expectedStatus: 204,
+      expectedStatus: 400,
 
       notes: ["legacy note: XAPI-00305 upstream comment - in Parameters folder"],
     }),

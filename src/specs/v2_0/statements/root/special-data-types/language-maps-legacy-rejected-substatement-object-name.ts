@@ -77,15 +77,12 @@ export const v2StatementsLanguageMapsLegacyRejectedSubstatementObjectNameCase = 
   },
   assertion: {
     kind: "single-request",
-    status: 200,
+    status: 400,
     expectedHeaders: [],
     expectedHeaderPatterns: [],
     jsonPathEquals: [],
     jsonPathNotEquals: [],
     textContains: [],
-    notes: [
-      "Statement Special Data Types",
-      "legacy note: XAPI-00121 upstream comment - in languages.js",
-    ],
+    notes: ["Statement Special Data Types", "legacy note: XAPI-00121 upstream comment - in languages.js"],
   },
 } as unknown as CaseDefinition;

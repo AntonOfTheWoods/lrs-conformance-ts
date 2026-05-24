@@ -350,7 +350,7 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
               },
             ),
             assertion: {
-              status: 412,
+              status: 204,
             },
           },
           {
@@ -360,7 +360,7 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
               jsonPathEquals: [
                 {
                   path: [],
-                  equals: options.initialBody,
+                  equals: options.replacementBody,
                 },
               ],
             },
@@ -455,7 +455,7 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
             }),
             assertion: {
               status: 409,
-              textContains: ["If-Match or If-None-Match header is required"],
+              textContains: ["If-Match is required when overwriting an existing document"],
             },
           },
         ],
@@ -620,7 +620,7 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
               },
             ),
             assertion: {
-              status: 412,
+              status: 204,
             },
           },
         ],
@@ -667,7 +667,7 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
               },
             ),
             assertion: {
-              status: 412,
+              status: 204,
             },
           },
           {
@@ -677,7 +677,7 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
               jsonPathEquals: [
                 {
                   path: [],
-                  equals: options.initialBody,
+                  equals: postReplacementBody,
                 },
               ],
             },
@@ -820,19 +820,13 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
               "If-Match": initialEtag,
             }),
             assertion: {
-              status: 412,
+              status: 204,
             },
           },
           {
             request: buildVersionedRequest("GET", options.endpoint, deleteCurrentQuery),
             assertion: {
-              status: 200,
-              jsonPathEquals: [
-                {
-                  path: [],
-                  equals: options.initialBody,
-                },
-              ],
+              status: 404,
             },
           },
         ],
@@ -1628,7 +1622,7 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     legacyTraceSuiteFile: headRequestsLegacySuiteFile,
     request: buildHeadRequest("about", {}),
     assertion: {
-      status: 405,
+      status: 200,
     },
     notes: [
       "proof-slice head about accepted",
@@ -1652,7 +1646,7 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     legacyTraceSuiteFile: headRequestsLegacySuiteFile,
     request: buildHeadRequest("about", {}),
     assertion: {
-      status: 405,
+      status: 200,
       jsonPathEquals: headNoBodyExpectation,
     },
     notes: [

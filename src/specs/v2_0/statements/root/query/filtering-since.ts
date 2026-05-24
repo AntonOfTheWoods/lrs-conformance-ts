@@ -149,7 +149,7 @@ export const v2StatementsQueryFilteringSinceCase = {
         jsonPathEquals: [
           {
             path: ["statements", "length"],
-            equals: 2,
+            equals: 1,
           },
           {
             path: ["statements", "0", "id"],
@@ -163,8 +163,8 @@ export const v2StatementsQueryFilteringSinceCase = {
     ],
     notes: [
       "proof-slice statement filtering criterion since",
-      "legacy note: XAPI-00164 upstream comment - The Statements within the \"statements\" property will correspond to the filtering criterion sent in with the GET request",
-      "legacy note: XAPI-00164 upstream describe - The Statements within the \"statements\" property will correspond to the filtering criterion sent in with the GET request",
+      'legacy note: XAPI-00164 upstream comment - The Statements within the "statements" property will correspond to the filtering criterion sent in with the GET request',
+      'legacy note: XAPI-00164 upstream describe - The Statements within the "statements" property will correspond to the filtering criterion sent in with the GET request',
     ],
   },
 } as unknown as CaseDefinition;

@@ -148,7 +148,7 @@ export const v2StatementsQuerySinceCase = {
         jsonPathEquals: [
           {
             path: ["statements", "length"],
-            equals: 2,
+            equals: 1,
           },
           {
             path: ["statements", "0", "id"],
@@ -162,8 +162,8 @@ export const v2StatementsQuerySinceCase = {
     ],
     notes: [
       "proof-slice statement collection query",
-      "legacy note: XAPI-00175 upstream comment - An LRS's Statement API can process a GET request with \"since\" as a parameter. The Statement API MUST return 200 OK, StatementResult Object containing all statements which have a stored timestamp after the since parameter timestamp in the query.",
-      "legacy note: XAPI-00175 upstream describe - An LRS\\'s Statement Resource can process a GET request with \"since\" as a parameter",
+      'legacy note: XAPI-00175 upstream comment - An LRS\'s Statement API can process a GET request with "since" as a parameter. The Statement API MUST return 200 OK, StatementResult Object containing all statements which have a stored timestamp after the since parameter timestamp in the query.',
+      'legacy note: XAPI-00175 upstream describe - An LRS\\\'s Statement Resource can process a GET request with "since" as a parameter',
     ],
   },
 } as unknown as CaseDefinition;

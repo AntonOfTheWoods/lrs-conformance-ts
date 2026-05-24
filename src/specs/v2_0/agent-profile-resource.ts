@@ -1214,7 +1214,7 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
       tags: ["v2.0.0", "agents-profile", "validation", "profileId"],
       capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
       legacyTraceSuiteFile: parametersLegacySuiteFile,
-      expectedStatus: 204,
+      expectedStatus: 400,
 
       notes: ["legacy note: XAPI-00277 upstream comment - in parameters folder"],
     }),
@@ -1239,7 +1239,7 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
       tags: ["v2.0.0", "agents-profile", "validation", "profileId"],
       capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
       legacyTraceSuiteFile: parametersLegacySuiteFile,
-      expectedStatus: 204,
+      expectedStatus: 400,
 
       notes: ["legacy note: XAPI-00276 upstream comment - in parameters folder"],
     }),

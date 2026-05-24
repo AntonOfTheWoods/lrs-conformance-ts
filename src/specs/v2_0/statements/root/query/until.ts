@@ -148,7 +148,11 @@ export const v2StatementsQueryUntilCase = {
         jsonPathEquals: [
           {
             path: ["statements", "length"],
-            equals: 0,
+            equals: 1,
+          },
+          {
+            path: ["statements", "0", "id"],
+            equals: "33333333-3333-4333-8333-000000000035",
           },
         ],
         jsonPathNotEquals: [],
@@ -158,8 +162,8 @@ export const v2StatementsQueryUntilCase = {
     ],
     notes: [
       "proof-slice statement collection query",
-      "legacy note: XAPI-00174 upstream comment - An LRS's Statement API can process a GET request with \"until\" as a parameter. The Statement API MUST return 200 OK, StatementResult Object containing all statements which have a stored timestamp at or before the specified until parameter timestamp.",
-      "legacy note: XAPI-00174 upstream describe - An LRS\\'s Statement Resource can process a GET request with \"until\" as a parameter",
+      'legacy note: XAPI-00174 upstream comment - An LRS\'s Statement API can process a GET request with "until" as a parameter. The Statement API MUST return 200 OK, StatementResult Object containing all statements which have a stored timestamp at or before the specified until parameter timestamp.',
+      'legacy note: XAPI-00174 upstream describe - An LRS\\\'s Statement Resource can process a GET request with "until" as a parameter',
     ],
   },
 } as unknown as CaseDefinition;

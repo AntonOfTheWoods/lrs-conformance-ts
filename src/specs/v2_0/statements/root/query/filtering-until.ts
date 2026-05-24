@@ -149,7 +149,11 @@ export const v2StatementsQueryFilteringUntilCase = {
         jsonPathEquals: [
           {
             path: ["statements", "length"],
-            equals: 0,
+            equals: 1,
+          },
+          {
+            path: ["statements", "0", "id"],
+            equals: "33333333-3333-4333-8333-000000000035",
           },
         ],
         jsonPathNotEquals: [],
@@ -159,8 +163,8 @@ export const v2StatementsQueryFilteringUntilCase = {
     ],
     notes: [
       "proof-slice statement filtering criterion until",
-      "legacy note: XAPI-00164 upstream comment - The Statements within the \"statements\" property will correspond to the filtering criterion sent in with the GET request",
-      "legacy note: XAPI-00164 upstream describe - The Statements within the \"statements\" property will correspond to the filtering criterion sent in with the GET request",
+      'legacy note: XAPI-00164 upstream comment - The Statements within the "statements" property will correspond to the filtering criterion sent in with the GET request',
+      'legacy note: XAPI-00164 upstream describe - The Statements within the "statements" property will correspond to the filtering criterion sent in with the GET request',
     ],
   },
 } as unknown as CaseDefinition;

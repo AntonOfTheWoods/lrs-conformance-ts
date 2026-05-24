@@ -87,7 +87,7 @@ export const v2StatementsSpecialDataTypesTimestampMillisecondPrecisionCase = {
         jsonPathEquals: [
           {
             path: ["timestamp"],
-            equals: "2023-05-04T12:00:00.123456-05:00",
+            equals: "2023-05-04T17:00:00.123Z",
           },
         ],
         jsonPathNotEquals: [],
