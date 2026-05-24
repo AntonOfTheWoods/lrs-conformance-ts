@@ -1,6 +1,11 @@
 import { describe, expect, test } from "bun:test";
 
-import { compareParityRunOutputs, compareParityTrees, normalizeParityTree } from "../src/parity/comparison";
+import {
+  compareParityRunOutputs,
+  compareParityTrees,
+  compareRuntimeRunOutputs,
+  normalizeParityTree,
+} from "../src/parity/comparison";
 
 describe("parity comparison normalizer", () => {
   test("normalizes rewrite-style trees into canonical case paths", () => {
@@ -217,6 +222,130 @@ describe("parity comparison normalizer", () => {
     };
 
     const comparison = compareParityRunOutputs(rewriteRun, upstreamRecord);
+
+    expect(comparison.matched).toHaveLength(1);
+    expect(comparison.statusMismatches).toHaveLength(0);
+    expect(comparison.leftOnly).toHaveLength(0);
+    expect(comparison.rightOnly).toHaveLength(0);
+  });
+
+  test("compares two runtime run outputs directly for saved artifact comparison", () => {
+    const leftRun = {
+      root: {
+        id: "run.2.0.0",
+        title: "xAPI 2.0.0",
+        status: "passed",
+        children: [
+          {
+            id: "suite.statement",
+            title: "Statement Resource",
+            status: "passed",
+            children: [
+              {
+                id: "case.statement.post",
+                title: "accepts statement POST",
+                status: "passed",
+                log: [],
+              },
+            ],
+            log: [],
+          },
+        ],
+        log: [],
+      },
+    };
+
+    const rightRun = {
+      root: {
+        id: "run.1.0.3",
+        title: "xAPI 1.0.3",
+        status: "passed",
+        children: [
+          {
+            id: "suite.statement",
+            title: "Statement Resource",
+            status: "passed",
+            children: [
+              {
+                id: "case.statement.post",
+                title: "accepts statement POST",
+                status: "passed",
+                log: [],
+              },
+            ],
+            log: [],
+          },
+        ],
+        log: [],
+      },
+    };
+
+    const comparison = compareRuntimeRunOutputs(leftRun, rightRun);
+
+    expect(comparison.matched).toHaveLength(1);
+    expect(comparison.statusMismatches).toHaveLength(0);
+    expect(comparison.leftOnly).toHaveLength(0);
+    expect(comparison.rightOnly).toHaveLength(0);
+  });
+
+  test("unwraps exported run payload wrappers", () => {
+    const leftExported = {
+      generatedAt: "2026-05-24T00:00:00.000Z",
+      run: {
+        id: "metadata",
+        root: {
+          id: "run.2.0.0",
+          title: "xAPI 2.0.0",
+          status: "passed",
+          children: [
+            {
+              id: "suite.statement",
+              title: "Statement Resource",
+              status: "passed",
+              children: [
+                {
+                  id: "case.statement.post",
+                  title: "accepts statement POST",
+                  status: "passed",
+                  log: [],
+                },
+              ],
+              log: [],
+            },
+          ],
+          log: [],
+        },
+      },
+    };
+
+    const rightExported = {
+      run: {
+        root: {
+          id: "run.1.0.3",
+          title: "xAPI 1.0.3",
+          status: "passed",
+          children: [
+            {
+              id: "suite.statement",
+              title: "Statement Resource",
+              status: "passed",
+              children: [
+                {
+                  id: "case.statement.post",
+                  title: "accepts statement POST",
+                  status: "passed",
+                  log: [],
+                },
+              ],
+              log: [],
+            },
+          ],
+          log: [],
+        },
+      },
+    };
+
+    const comparison = compareRuntimeRunOutputs(leftExported, rightExported);
 
     expect(comparison.matched).toHaveLength(1);
     expect(comparison.statusMismatches).toHaveLength(0);

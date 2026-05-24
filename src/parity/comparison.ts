@@ -54,6 +54,15 @@ export interface UpstreamParityRecordLike {
   log?: unknown;
 }
 
+export interface RuntimeRunOutputLike {
+  root?: unknown;
+  log?: unknown;
+  run?: {
+    root?: unknown;
+    log?: unknown;
+  };
+}
+
 function toTreeNodeLike(value: unknown): TreeNodeLike | undefined {
   if (typeof value !== "object" || value === null) {
     return undefined;
@@ -67,7 +76,15 @@ function normalizeStatus(value: unknown): NormalizedParityRecord["status"] {
 }
 
 function normalizeTitleSegment(value: string): string {
-  return value.trim().replace(/\s+/g, " ").replace(/[/]+/g, " /").toLowerCase();
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/["']/g, "")
+    .replace(/\([^)]*\)/g, " ")
+    .replace(/\brequirements?\b/g, " ")
+    .replace(/\s+/g, " ")
+    .replace(/[/]+/g, " /")
+    .trim();
 }
 
 function buildKey(path: string[]): string {
@@ -208,6 +225,25 @@ export function getRewriteParityRoot(runResult: RuntimeParityResultLike): unknow
 
 export function getUpstreamParityRoot(record: UpstreamParityRecordLike): unknown {
   return record.log ?? record;
+}
+
+export function getRuntimeRunRoot(runOutput: RuntimeRunOutputLike): unknown {
+  if (runOutput.run && typeof runOutput.run === "object") {
+    return runOutput.run.root ?? runOutput.run.log ?? runOutput.run;
+  }
+
+  return runOutput.root ?? runOutput.log ?? runOutput;
+}
+
+export function compareRuntimeRunOutputs(
+  leftRun: RuntimeRunOutputLike,
+  rightRun: RuntimeRunOutputLike,
+  options: CompareParityTreesOptions = {},
+): ParityComparisonResult {
+  return compareParityTrees(getRuntimeRunRoot(leftRun), getRuntimeRunRoot(rightRun), {
+    leftIncludeRoot: options.leftIncludeRoot ?? false,
+    rightIncludeRoot: options.rightIncludeRoot ?? false,
+  });
 }
 
 export function compareParityRunOutputs(

@@ -529,33 +529,44 @@ async function runCase(
     options,
   );
 
-  const result =
-    testCase.execution.kind === "single-request"
-      ? isSingleRequestCase(testCase)
-        ? await runSingleRequestCase(testCase, options)
-        : CaseResultSchema.parse({
-            id: testCase.id,
-            title: testCase.title,
-            status: "failed",
-            log: ["Execution and assertion kinds did not align for a single-request case."],
-          })
-      : testCase.execution.kind === "submit-and-query"
-        ? isSubmitAndQueryCase(testCase)
-          ? await runSubmitAndQueryCase(testCase, options)
+  let result: CaseResult;
+  try {
+    result =
+      testCase.execution.kind === "single-request"
+        ? isSingleRequestCase(testCase)
+          ? await runSingleRequestCase(testCase, options)
           : CaseResultSchema.parse({
               id: testCase.id,
               title: testCase.title,
               status: "failed",
-              log: ["Execution and assertion kinds did not align for a submit-and-query case."],
+              log: ["Execution and assertion kinds did not align for a single-request case."],
             })
-        : isRequestSequenceCase(testCase)
-          ? await runRequestSequenceCase(testCase, options)
-          : CaseResultSchema.parse({
-              id: testCase.id,
-              title: testCase.title,
-              status: "failed",
-              log: ["Execution and assertion kinds did not align for a request-sequence case."],
-            });
+        : testCase.execution.kind === "submit-and-query"
+          ? isSubmitAndQueryCase(testCase)
+            ? await runSubmitAndQueryCase(testCase, options)
+            : CaseResultSchema.parse({
+                id: testCase.id,
+                title: testCase.title,
+                status: "failed",
+                log: ["Execution and assertion kinds did not align for a submit-and-query case."],
+              })
+          : isRequestSequenceCase(testCase)
+            ? await runRequestSequenceCase(testCase, options)
+            : CaseResultSchema.parse({
+                id: testCase.id,
+                title: testCase.title,
+                status: "failed",
+                log: ["Execution and assertion kinds did not align for a request-sequence case."],
+              });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    result = CaseResultSchema.parse({
+      id: testCase.id,
+      title: testCase.title,
+      status: "failed",
+      log: [`Request execution failed with a transport/runtime error: ${message}`],
+    });
+  }
 
   await emitEvent(
     {
