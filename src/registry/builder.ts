@@ -13,6 +13,7 @@ import {
   type SuiteDefinition,
 } from "../domain/contracts";
 import { LEGACY_XAPI_COMMENT_MAP } from "./legacyCommentMap";
+import { LEGACY_XAPI_DESCRIBE_MAP } from "./legacyDescribeMap";
 
 function formatRequirementNote(id: string, section: string, title?: string): string {
   if (!title || title.trim().length === 0) {
@@ -49,6 +50,14 @@ function enrichCaseRequirementNotes(node: RegistryNode): void {
     const mappedLegacyNote = `legacy note: ${ref.id} upstream comment - ${comment}`;
     if (!node.assertion.notes.includes(mappedLegacyNote)) {
       node.assertion.notes.push(mappedLegacyNote);
+    }
+
+    const describeTexts = LEGACY_XAPI_DESCRIBE_MAP[ref.id] ?? [];
+    for (const describeText of describeTexts) {
+      const describeNote = `legacy note: ${ref.id} upstream describe - ${describeText}`;
+      if (!node.assertion.notes.includes(describeNote)) {
+        node.assertion.notes.push(describeNote);
+      }
     }
   }
 }

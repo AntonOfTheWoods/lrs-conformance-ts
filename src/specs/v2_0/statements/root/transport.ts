@@ -1679,7 +1679,10 @@ export const v2ProofSliceStatementsTransportSuite = {
             expectedHeaderDateAfterStep: [],
           },
         ],
-        notes: ["proof-slice voided statement retrieval"],
+        notes: [
+          "proof-slice voided statement retrieval",
+          "legacy note: A Voided Statement is defined as a Statement that is not a Voiding Statement and is the Target of a Voiding Statement within the LRS",
+        ],
       },
     },
     {
@@ -1823,7 +1826,10 @@ export const v2ProofSliceStatementsTransportSuite = {
             expectedHeaderDateAfterStep: [],
           },
         ],
-        notes: ["proof-slice hidden voided statement lookup"],
+        notes: [
+          "proof-slice hidden voided statement lookup",
+          "legacy note: A Voided Statement is defined as a Statement that is not a Voiding Statement and is the Target of a Voiding Statement within the LRS",
+        ],
       },
     },
   ],

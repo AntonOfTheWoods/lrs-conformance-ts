@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import type { RegistryNode } from "../src/domain/contracts";
 import { LEGACY_XAPI_COMMENT_MAP } from "../src/registry/legacyCommentMap";
+import { LEGACY_XAPI_DESCRIBE_MAP } from "../src/registry/legacyDescribeMap";
 import { createProofSliceRegistry as createV20Registry } from "../src/specs/v2_0/proof-slice";
 import { createV103ProofSliceRegistry as createV103Registry } from "../src/specs/v1_0_3/proof-slice";
 
@@ -63,7 +64,7 @@ describe("Comment Parity", () => {
     }
   });
 
-  test("all referenced XAPI IDs are mapped to upstream explanatory comments", () => {
+  test("all referenced XAPI IDs are mapped to upstream explanatory text", () => {
     const v20 = createV20Registry();
     const v103 = createV103Registry();
     const cases = collectAllCases(v20).concat(collectAllCases(v103));
@@ -76,7 +77,11 @@ describe("Comment Parity", () => {
           continue;
         }
 
-        if (LEGACY_XAPI_COMMENT_MAP[ref.id]) {
+        const hasComment = Boolean(LEGACY_XAPI_COMMENT_MAP[ref.id]);
+        const describeTexts = LEGACY_XAPI_DESCRIBE_MAP[ref.id] ?? [];
+        const hasDescribe = describeTexts.length > 0;
+
+        if (hasComment || hasDescribe) {
           continue;
         }
 
@@ -92,9 +97,29 @@ describe("Comment Parity", () => {
         .map(([xapiId, caseIds]) => `${xapiId}: ${[...new Set(caseIds)].sort().join(", ")}`)
         .join("\n");
 
-      throw new Error(`Missing upstream explanatory comment mapping for XAPI IDs:\n${message}`);
+      throw new Error(`Missing upstream explanatory mapping (comment/describe) for XAPI IDs:\n${message}`);
     }
 
     expect(missing.size).toBe(0);
+  });
+
+  test("cases preserve upstream describe-level explanatory text for mapped XAPI requirements", () => {
+    const v20 = createV20Registry();
+    const v103 = createV103Registry();
+    const cases = collectAllCases(v20).concat(collectAllCases(v103));
+
+    for (const testCase of cases) {
+      const mappedRefs = testCase.requirementRefs.filter(
+        (ref) => /^XAPI-\d{5}$/.test(ref.id) && Array.isArray(LEGACY_XAPI_DESCRIBE_MAP[ref.id]),
+      );
+
+      for (const ref of mappedRefs) {
+        const describeTexts = LEGACY_XAPI_DESCRIBE_MAP[ref.id] ?? [];
+        for (const describeText of describeTexts) {
+          const expected = `legacy note: ${ref.id} upstream describe - ${describeText}`;
+          expect(testCase.assertion.notes).toContain(expected);
+        }
+      }
+    }
   });
 });
