@@ -126,15 +126,15 @@ describe("xAPI 2.0 batteries gap audit", () => {
       conformanceGap: upstreamV20Batteries.conformanceTestCount - rewriteCaseCount,
     }).toEqual({
       upstreamStatements: 1195,
-      rewriteStatements: 1170,
-      statementGap: 25,
+      rewriteStatements: 1184,
+      statementGap: 11,
       upstreamResources: 234,
       rewriteResources: 245,
       resourceSurplus: 11,
       upstreamLeafCount: 1429,
-      rewriteCaseCount: 1415,
-      leafGap: 14,
-      conformanceGap: 20,
+      rewriteCaseCount: 1429,
+      leafGap: 0,
+      conformanceGap: 6,
     });
   });
 });

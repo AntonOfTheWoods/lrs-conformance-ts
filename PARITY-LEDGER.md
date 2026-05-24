@@ -6,17 +6,18 @@
 - Source-of-truth baseline: `/home/anton/dev/tmp/lrs-conformance-test-suite-orig`.
 - xAPI 2.0 upstream conformance count: 1435 tests in the original upstream batteries artifact.
 - xAPI 2.0 upstream batteries rendered leaf count: 1429 leaf nodes, with a legacy summary delta of 6 above rendered leaves.
-- xAPI 2.0 rewrite manifest size: 1415 proof cases.
-- xAPI 2.0 count gap versus upstream batteries total: 20.
-- xAPI 2.0 leaf-count gap versus the upstream batteries tree: 14.
+- xAPI 2.0 rewrite manifest size: 1429 proof cases.
+- xAPI 2.0 count gap versus upstream batteries total: 6.
+- xAPI 2.0 leaf-count gap versus the upstream batteries tree: 0.
 - xAPI 2.0 unique requirement-id gap inside `test/v2_0`: 22 upstream `XAPI-xxxxx` ids remain unreferenced by the proof slice after the latest audit reconciliation.
 - Current top-level 2.0 suites: Statements, State Resource, Activity Profile Resource, Agent Profile Resource, Agents Resource, Activities Resource, About Resource, Communication.
 
 ## Current interpretation
 
 - The rewrite appears to have direct proof-slice trace coverage for every legacy `test/v2_0` suite owner, including Additional Data Types, Signed Statements, and Special Data Types And Rules, and the `legacyTrace` suite/config constants now point at the upstream-original baseline instead of the local fork.
-- That suite-owner closure is not yet enough to claim upstream parity. The original upstream battery still reports 1435 2.0 conformance tests, so the rewrite's 1415-case manifest should currently be treated as a lower-granularity proof surface, not full one-to-one upstream test parity.
-- Verify-template parity tranche: added 51 direct acceptance cases from upstream-original `configs/verify.js`, covering the default statement template, default verb templates, the activity-template matrix, activity-definition property acceptance, default result and context templates, single-Activity `contextActivities` templates, and the language-template acceptance slice. The remaining 2.0 batteries gap is now down to a small statement-heavy tail instead of a large unmapped acceptance block.
+- That suite-owner closure is not yet enough to claim upstream parity. The original upstream battery still reports 1435 2.0 conformance tests, so the rewrite's 1429-case manifest should currently be treated as a lower-granularity proof surface, not full one-to-one upstream test parity.
+- Verify-template parity tranche: added 51 direct acceptance cases from upstream-original `configs/verify.js`, covering the default statement template, default verb templates, the activity-template matrix, activity-definition property acceptance, default result and context templates, single-Activity `contextActivities` templates, and the language-template acceptance slice.
+- Verify actor/group template tranche: added the 14-case upstream-original agent and group placement matrix from `configs/verify.js`, including authority-safe group templates. That closes the rendered 2.0 batteries leaf gap exactly; the only remaining upstream count delta is the legacy `+6` summary difference baked into the published batteries artifact.
 - Statement Resource/retrieval direct-trace tranche: added 51 upstream-original one-to-one leaves across `4.1.6.1-Statement-Resource.js` and `E.Data2.5-RetrievalofStatements.js`, including the explicit StatementResult-object matrix, GET-parameter acceptance leaves, filtering-criterion correspondence leaves, collection format and Accept-Language leaves, collection retrieval of statements targeting voided statements, and split retrieval container/`more` semantics. The full gate remains green after this expansion.
 - Error Codes direct-trace tranche: added the executable upstream-original `H.Communication3.2-ErrorCodes.js` matrix for unrecognized statement query parameters and case-differing statement parameter names across PUT and GET, so the proof slice now directly traces the `400 Bad Request` leaves for `XAPI-00324` and `XAPI-00325`. The existing batch-rollback proof already covered `XAPI-00326`, and the remaining upstream refs in that file (`XAPI-00323`, `XAPI-00327`, `XAPI-00329`, and the held-out size-limit `XAPI-00328`) are currently audit-only rather than executable parity targets.
 - Statement Resource direct-trace tranche: added the next major upstream-original catch-up slice for `4.1.6.1-Statement-Resource.js`, including explicit `/statements` POST/PUT/GET endpoint leaves, positive PUT/POST/GET acceptance leaves, StatementResult-without-id lookup coverage, direct `statementId`/`voidedStatementId` processing leaves, explicit GET `Content-Type` coverage, format-absent exact retrieval, non-canonical Accept-Language preservation, split attachment JSON-fallback leaves, allowed `statementId`/`voidedStatementId` plus `format`/`attachments` combinations, and the repeated `X-Experience-API-Consistent-Through` header matrix. The full gate remains green after this expansion.
@@ -30,7 +31,7 @@
 - Executable gap audit tranche: `test/v2-parity-audit.test.ts` now diffs all upstream-original `test/v2_0/**/*.js` `XAPI-xxxxx` ids against the proof-slice requirement refs and pins the remaining 34-id exception set. This converts the prior open-ended 2.0 reconciliation problem into an executable audited list.
 - Parameter-owner parity tranche: added 9 direct proof cases for the upstream Parameters-owned state/profile requirement ids (`XAPI-00224`, `XAPI-00225`, `XAPI-00226`, `XAPI-00228`, `XAPI-00276`, `XAPI-00277`, `XAPI-00305`, `XAPI-00306`, and `XAPI-00307`) and tightened the mock document-resource validator so serialized non-string `stateId` and `profileId` query values now reject with `400 Bad Request`.
 - Config-backed statement parity tranche: added 27 direct proof cases for the remaining actionable xAPI 2.0 config-backed ids, including account-property acceptance from `configs/ifis.js` (`XAPI-00041`), extension-key IRI rejection from `configs/extensions.js` (`XAPI-00118`), and invalid language-map rejection from `configs/languages.js` (`XAPI-00121`).
-- Batteries count-gap audit tranche: `test/v2-batteries-gap-audit.test.ts` now pins the live upstream-vs-rewrite 2.0 count decomposition. The upstream `1435` total is `1429` rendered battery leaves plus a legacy `+6` summary delta. Within the rendered leaves, the remaining `14` gap is statement-heavy compression: upstream statement-facing buckets contribute `1195` leaves versus `1170` rewrite Statement cases, while rewrite resource and communication suites contribute `245` cases versus `234` upstream resource leaves.
+- Batteries count-gap audit tranche: `test/v2-batteries-gap-audit.test.ts` now pins the live upstream-vs-rewrite 2.0 count decomposition. The upstream `1435` total is `1429` rendered battery leaves plus a legacy `+6` summary delta. The rewrite now matches the upstream rendered leaf count exactly: statement-facing buckets contribute `1195` leaves versus `1184` rewrite Statement cases, while rewrite resource and communication suites contribute `245` cases versus `234` upstream resource leaves, so the remaining `11`-leaf statement shortfall is fully offset by the existing `11`-case resource surplus.
 - Communication resource parity: added direct legacy-trace coverage for rejected-request rollback, duplicate-key overwrite semantics during document merges, and one-level-deep document merge behavior. Audited `H.Communication1.2-Headers.js` as empty in xAPI 2.0 and `H.Communication1.3-AlternateRequestSyntax.js` as an explicit no-op suite in xAPI 2.0, so both now drop out of the remaining-gap ledger without adding fake executable coverage.
 - Statement Lifecycle and Retrieval: added direct legacy-trace coverage for the remaining xAPI 2.0 voiding and retrieval suite owners, including voided lookup visibility, repeated voiding ignore semantics, rejection of voiding statements whose object is not a `StatementRef`, StatementResult array shape, empty `more` on exhausted results, and paginated `more` containers that can be followed to the next page.
 - Actor and Verb requirements: added direct legacy-trace coverage for actor `objectType` vocabulary and type validation, actor `name` typing, anonymous group `member` requirements and member type validation, verb `id` presence and IRI validation, and verb `display` language-map typing. Existing actor IFI and account families now trace back to the real `4.2.2.1-Actor-Requirements.js` suite instead of config-only files.
@@ -41,9 +42,9 @@
 
 ## Remaining xAPI 2.0 backlog
 
-- The upstream-baseline gap is now explicitly decomposed: `20 = 6` legacy batteries summary delta `+ 14` rendered-leaf gap.
-- The remaining rendered-leaf gap is also bounded: `14 = 25` statement-leaf shortfall `- 11` rewrite resource/communication surplus.
-- The prior dominant executable hotspot across State/Profile/HEAD/Content Types is closed. Remaining 2.0 work is now limited to the explicit 22-id audited exception set and the residual statement-heavy one-to-many compression gap, not an unidentified resource-suite hole.
+- The upstream-baseline gap is now explicitly decomposed: `6 = 6` legacy batteries summary delta `+ 0` rendered-leaf gap.
+- The rendered-leaf gap is closed: the remaining `11`-leaf statement shortfall is fully offset by the existing `11`-case rewrite resource/communication surplus.
+- The prior dominant executable hotspot across State/Profile/HEAD/Content Types is closed. Remaining 2.0 work is now limited to the explicit 22-id audited exception set and direct-trace cleanup beyond the batteries leaf count, not an unidentified executable suite hole.
 
 ## Unique Requirement-ID Audit
 
@@ -55,12 +56,12 @@
 ## Batteries Count Audit
 
 - `test/v2-batteries-gap-audit.test.ts` now pins the published upstream-original 2.0 batteries totals directly: `1435` conformance count, `1429` rendered leaves, and a fixed `6` summary delta in the legacy batteries artifact itself.
-- The same audit pins the current rewrite-vs-upstream split at the top level: upstream statement-facing buckets total `1195` leaves, while the rewrite `Statements` suite contains `1170` proof cases; upstream resource/communication buckets total `234` leaves, while the rewrite non-Statement suites contain `245` cases.
-- That decomposition converts the old open-ended count gap into an explicit residual: the rewrite is no longer missing a large unknown resource tranche. The remaining difference is a small statement-heavy compression gap inside the legacy batteries tree.
+- The same audit pins the current rewrite-vs-upstream split at the top level: upstream statement-facing buckets total `1195` leaves, while the rewrite `Statements` suite contains `1184` proof cases; upstream resource/communication buckets total `234` leaves, while the rewrite non-Statement suites contain `245` cases.
+- That decomposition converts the old open-ended count gap into an explicit residual: the rewrite is no longer missing any rendered leaf coverage in the legacy batteries tree. The remaining difference is only the legacy `+6` summary delta in the published batteries artifact.
 
 ## Audit-needed overlap
 
-- Continue porting the remaining `14`-leaf statement compression tail until the upstream batteries tree converges further.
+- Treat the rendered-leaf batteries gap as closed. Remaining xAPI 2.0 work is now direct-trace cleanup and audit reconciliation rather than batteries-leaf catch-up.
 
 ## After 2.0
 

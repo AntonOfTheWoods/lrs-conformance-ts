@@ -13047,6 +13047,48 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
     ],
   });
 
+  const verifyAgentTemplateAcceptanceCases = statementMutationFamily({
+    familyId: "v2.statements.verify.agent-template",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "verify-template", "agent", "acceptance"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: formattingLegacySuiteFile,
+    legacyTraceConfigFile: verifyLegacyConfigFile,
+    variants: agentActorPlacements.map((placement) => ({
+      idSuffix: placement.idSuffix,
+      title: `A Statement accepts ${placement.title} verify template`,
+      transforms: placement.buildTransforms(buildAgentWithMbox(`mailto:verify-${placement.idSuffix}@example.test`)),
+      requirementRefs: verifyTemplateRequirementRefs,
+    })),
+  });
+
+  function buildVerifyGroupTemplateValue(placementId: string): JsonObject {
+    if (placementId === "authority-group") {
+      return buildAnonymousAuthorityGroup();
+    }
+
+    return buildGroupWithMbox(`mailto:verify-${placementId}@example.test`);
+  }
+
+  const verifyGroupTemplateAcceptanceCases = statementMutationFamily({
+    familyId: "v2.statements.verify.group-template",
+    suiteTitle: "Statement Formatting",
+    specVersion,
+    endpoint: "statements",
+    tags: ["v2.0.0", "statements", "verify-template", "group", "acceptance"],
+    expectedStatus: 200,
+    legacyTraceSuiteFile: formattingLegacySuiteFile,
+    legacyTraceConfigFile: verifyLegacyConfigFile,
+    variants: groupActorPlacements.map((placement) => ({
+      idSuffix: placement.idSuffix,
+      title: `A Statement accepts ${placement.title} verify template`,
+      transforms: placement.buildTransforms(buildVerifyGroupTemplateValue(placement.idSuffix)),
+      requirementRefs: verifyTemplateRequirementRefs,
+    })),
+  });
+
   const verifyVerbTemplateAcceptanceCases = statementMutationFamily({
     familyId: "v2.statements.verify.verb-template",
     suiteTitle: "Statement Formatting",
@@ -13580,6 +13622,8 @@ export function createV20ProofSliceSuite(): SuiteDefinition {
           ...mboxSha1sumCases,
           ...openIdCases,
           ...verifyStatementTemplateAcceptanceCases,
+          ...verifyAgentTemplateAcceptanceCases,
+          ...verifyGroupTemplateAcceptanceCases,
           ...verifyVerbTemplateAcceptanceCases,
           ...accountHomePageMissingCases,
           ...accountHomePageInvalidCases,

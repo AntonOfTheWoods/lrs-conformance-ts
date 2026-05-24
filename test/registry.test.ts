@@ -15,7 +15,7 @@ import {
   createV20StateResourceProofSliceSuite,
 } from "../src/specs/v2_0/proof-slice";
 
-const expectedCaseCount = 1415;
+const expectedCaseCount = 1429;
 const expectedCaseIdAnchors = [
   "v2.statements.required-fields.missing-actor",
   "v2.statements.invalid-types.result-completion-string",
@@ -26,6 +26,8 @@ const expectedCaseIdAnchors = [
   "v2.statements.invalid-mbox-mailto.actor-agent",
   "v2.statements.invalid-mbox-sha1sum.actor-agent",
   "v2.statements.verify.statement-template.default",
+  "v2.statements.verify.agent-template.substatement-context-instructor-agent",
+  "v2.statements.verify.group-template.substatement-context-team-group",
   "v2.statements.verify.activity-template.substatement-sequencing",
   "v2.statements.verify.activity-definition.statement-extensions",
   "v2.statements.verify.context-activity-single.substatement-other",
