@@ -1,0 +1,24 @@
+services:
+  lrs:
+    image: ${RALPH_IMAGE:-fundocker/ralph:latest}
+    ports:
+      - "${RALPH_PORT:-8100}:8100"
+    environment:
+      RALPH_APP_DIR: /app/.ralph
+      RALPH_RUNSERVER_BACKEND: fs
+      RALPH_RUNSERVER_AUTH_BACKENDS: basic
+    command:
+      - uvicorn
+      - ralph.api:app
+      - --proxy-headers
+      - --workers
+      - "1"
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8100"
+    volumes:
+      - ralph-data:/app/.ralph
+
+volumes:
+  ralph-data:
