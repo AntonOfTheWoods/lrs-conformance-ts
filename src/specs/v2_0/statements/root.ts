@@ -1,43 +1,41 @@
 import type { SuiteDefinition } from "../../../domain/contracts";
-import { v2ProofSliceStatementsFormattingSuite } from "./root/v2-proof-slice-statements-formatting";
-import { v2ProofSliceStatementsAuthoritySuite } from "./root/v2-proof-slice-statements-authority";
-import { v2ProofSliceStatementsAttachmentsSuite } from "./root/v2-proof-slice-statements-attachments";
-import { v2ProofSliceStatementsResultAndObjectsSuite } from "./root/v2-proof-slice-statements-result-and-objects";
-import { v2ProofSliceStatementsMetadataSuite } from "./root/v2-proof-slice-statements-metadata";
-import { v2ProofSliceStatementsContextSuite } from "./root/v2-proof-slice-statements-context";
-import { v2ProofSliceStatementsTransportSuite } from "./root/v2-proof-slice-statements-transport";
-import { v2ProofSliceStatementsRepresentationSuite } from "./root/v2-proof-slice-statements-representation";
-import { v2ProofSliceStatementsQueryValidationSuite } from "./root/v2-proof-slice-statements-query-validation";
-import { v2ProofSliceStatementsQuerySuite } from "./root/v2-proof-slice-statements-query";
-import { v2ProofSliceStatementsIdSuite } from "./root/v2-proof-slice-statements-id";
-import { v2ProofSliceStatementsAdditionalDataTypesSuite } from "./root/v2-proof-slice-statements-additional-data-types";
-import { v2ProofSliceStatementsSignedStatementsSuite } from "./root/v2-proof-slice-statements-signed-statements";
-import { v2ProofSliceStatementsSpecialDataTypesSuite } from "./root/v2-proof-slice-statements-special-data-types";
+import { statementsFormattingSuite } from "./areas/formatting";
+import { statementsAuthoritySuite } from "./areas/authority";
+import { statementsAttachmentsSuite } from "./areas/attachments";
+import { statementsResultAndObjectsSuite } from "./areas/result-and-objects";
+import { statementsMetadataSuite } from "./areas/metadata";
+import { statementsContextSuite } from "./areas/context";
+import { statementsTransportSuite } from "./areas/transport";
+import { statementsRepresentationSuite } from "./areas/representation";
+import { statementsQueryValidationSuite } from "./areas/query-validation";
+import { statementsQuerySuite } from "./areas/query";
+import { statementsIdSuite } from "./areas/id";
+import { statementsAdditionalDataTypesSuite } from "./areas/additional-data-types";
+import { statementsSignedStatementsSuite } from "./areas/signed-statements";
+import { statementsSpecialDataTypesSuite } from "./areas/special-data-types";
 
-export const v2ProofSliceStatementsSuite = {
-  "type": "suite",
-  "id": "v2.proof-slice.statements",
-  "title": "Statements",
-  "specVersion": "2.0.0",
-  "tags": [
-    "proof-slice",
-    "statements"
-  ]
-,
-  "children": [
-    v2ProofSliceStatementsFormattingSuite,
-    v2ProofSliceStatementsAuthoritySuite,
-    v2ProofSliceStatementsAttachmentsSuite,
-    v2ProofSliceStatementsResultAndObjectsSuite,
-    v2ProofSliceStatementsMetadataSuite,
-    v2ProofSliceStatementsContextSuite,
-    v2ProofSliceStatementsTransportSuite,
-    v2ProofSliceStatementsRepresentationSuite,
-    v2ProofSliceStatementsQueryValidationSuite,
-    v2ProofSliceStatementsQuerySuite,
-    v2ProofSliceStatementsIdSuite,
-    v2ProofSliceStatementsAdditionalDataTypesSuite,
-    v2ProofSliceStatementsSignedStatementsSuite,
-    v2ProofSliceStatementsSpecialDataTypesSuite,
-  ]
+export const statementsSuite = {
+  type: "suite",
+  id: "v2.proof-slice.statements",
+  title: "Statements",
+  specVersion: "2.0.0",
+  tags: ["proof-slice", "statements"],
+  children: [
+    statementsFormattingSuite,
+    statementsAuthoritySuite,
+    statementsAttachmentsSuite,
+    statementsResultAndObjectsSuite,
+    statementsMetadataSuite,
+    statementsContextSuite,
+    statementsTransportSuite,
+    statementsRepresentationSuite,
+    statementsQueryValidationSuite,
+    statementsQuerySuite,
+    statementsIdSuite,
+    statementsAdditionalDataTypesSuite,
+    statementsSignedStatementsSuite,
+    statementsSpecialDataTypesSuite,
+  ],
 } as unknown as SuiteDefinition;
+
+export const v2ProofSliceStatementsSuite = statementsSuite;

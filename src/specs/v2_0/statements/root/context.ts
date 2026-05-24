@@ -1,7 +1,7 @@
 import type { SuiteDefinition } from "../../../../domain/contracts";
-import { v2ProofSliceStatementsContextValidationSuite } from "./v2-proof-slice-statements-context/v2-proof-slice-statements-context-validation";
-import { v2ProofSliceStatementsContextActivitiesSuite } from "./v2-proof-slice-statements-context/v2-proof-slice-statements-context-activities";
-import { v2ProofSliceStatementsContextRoundtripSuite } from "./v2-proof-slice-statements-context/v2-proof-slice-statements-context-roundtrip";
+import { v2ProofSliceStatementsContextValidationSuite } from "./context/validation";
+import { v2ProofSliceStatementsContextActivitiesSuite } from "./context/activities";
+import { v2ProofSliceStatementsContextRoundtripSuite } from "./context/roundtrip";
 
 export const v2ProofSliceStatementsContextSuite = {
   "type": "suite",
