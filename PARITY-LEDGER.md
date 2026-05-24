@@ -6,6 +6,7 @@
 - Source-of-truth baseline: `/home/anton/dev/tmp/lrs-conformance-test-suite-orig`.
 - xAPI 2.0 upstream conformance count: 1435 tests in the original upstream batteries artifact.
 - xAPI 2.0 upstream batteries rendered leaf count: 1429 leaf nodes, with a legacy summary delta of 6 above rendered leaves.
+- xAPI 2.0 legacy batteries delta root cause: the upstream runner declares 1435 tests, but three `4.1.4-Concurrency.js` `before all` failures collapse nine declared ETag concurrency tests into three empty serialized suite leaves, yielding the published `1435 - 1429 = 6` gap.
 - xAPI 2.0 rewrite manifest size: 1429 proof cases.
 - xAPI 2.0 count gap versus upstream batteries total: 6.
 - xAPI 2.0 leaf-count gap versus the upstream batteries tree: 0.
@@ -18,6 +19,7 @@
 - That suite-owner closure is not yet enough to claim upstream parity. The original upstream battery still reports 1435 2.0 conformance tests, so the rewrite's 1429-case manifest should currently be treated as a lower-granularity proof surface, not full one-to-one upstream test parity.
 - Verify-template parity tranche: added 51 direct acceptance cases from upstream-original `configs/verify.js`, covering the default statement template, default verb templates, the activity-template matrix, activity-definition property acceptance, default result and context templates, single-Activity `contextActivities` templates, and the language-template acceptance slice.
 - Verify actor/group template tranche: added the 14-case upstream-original agent and group placement matrix from `configs/verify.js`, including authority-safe group templates. That closes the rendered 2.0 batteries leaf gap exactly; the only remaining upstream count delta is the legacy `+6` summary difference baked into the published batteries artifact.
+- Legacy batteries delta root cause: after installing and running the original upstream clone, the prior pending-test theory was falsified (`PENDING_COUNT=0`). The real source is the upstream `4.1.4-Concurrency.js` ETag setup path: three `before all` failures on the Activity State, Activity Profile, and Agents Profile `If a PUT request is received without either header for a resource that already exists` suites prevent nine declared child tests from ever emitting `test start`, while the published batteries artifact still serializes those three parent suites as empty leaves. That turns the raw upstream `1435` total into `1426` started tests plus `3` empty suite leaves, matching the published `1429` leaf count and explaining the net `+6` summary delta exactly.
 - Statement Resource/retrieval direct-trace tranche: added 51 upstream-original one-to-one leaves across `4.1.6.1-Statement-Resource.js` and `E.Data2.5-RetrievalofStatements.js`, including the explicit StatementResult-object matrix, GET-parameter acceptance leaves, filtering-criterion correspondence leaves, collection format and Accept-Language leaves, collection retrieval of statements targeting voided statements, and split retrieval container/`more` semantics. The full gate remains green after this expansion.
 - Error Codes direct-trace tranche: added the executable upstream-original `H.Communication3.2-ErrorCodes.js` matrix for unrecognized statement query parameters and case-differing statement parameter names across PUT and GET, so the proof slice now directly traces the `400 Bad Request` leaves for `XAPI-00324` and `XAPI-00325`. The existing batch-rollback proof already covered `XAPI-00326`, and the remaining upstream refs in that file (`XAPI-00323`, `XAPI-00327`, `XAPI-00329`, and the held-out size-limit `XAPI-00328`) are currently audit-only rather than executable parity targets.
 - Statement Resource direct-trace tranche: added the next major upstream-original catch-up slice for `4.1.6.1-Statement-Resource.js`, including explicit `/statements` POST/PUT/GET endpoint leaves, positive PUT/POST/GET acceptance leaves, StatementResult-without-id lookup coverage, direct `statementId`/`voidedStatementId` processing leaves, explicit GET `Content-Type` coverage, format-absent exact retrieval, non-canonical Accept-Language preservation, split attachment JSON-fallback leaves, allowed `statementId`/`voidedStatementId` plus `format`/`attachments` combinations, and the repeated `X-Experience-API-Consistent-Through` header matrix. The full gate remains green after this expansion.
@@ -43,6 +45,7 @@
 ## Remaining xAPI 2.0 backlog
 
 - The upstream-baseline gap is now explicitly decomposed: `6 = 6` legacy batteries summary delta `+ 0` rendered-leaf gap.
+- That `+6` is now explained rather than inferred: upstream declares `1435` tests, but the published batteries tree renders `1426` started tests plus `3` empty concurrency suite placeholders after `before all` hook failures block `9` child test starts.
 - The rendered-leaf gap is closed: the remaining `11`-leaf statement shortfall is fully offset by the existing `11`-case rewrite resource/communication surplus.
 - The prior dominant executable hotspot across State/Profile/HEAD/Content Types is closed. Remaining 2.0 work is now limited to the explicit 22-id audited exception set and direct-trace cleanup beyond the batteries leaf count, not an unidentified executable suite hole.
 
@@ -56,6 +59,7 @@
 ## Batteries Count Audit
 
 - `test/v2-batteries-gap-audit.test.ts` now pins the published upstream-original 2.0 batteries totals directly: `1435` conformance count, `1429` rendered leaves, and a fixed `6` summary delta in the legacy batteries artifact itself.
+- The same audit now also pins the three serialized concurrency placeholder leaves that survive in the upstream batteries artifact even though their nine declared child tests never emitted `test start` during the original run.
 - The same audit pins the current rewrite-vs-upstream split at the top level: upstream statement-facing buckets total `1195` leaves, while the rewrite `Statements` suite contains `1184` proof cases; upstream resource/communication buckets total `234` leaves, while the rewrite non-Statement suites contain `245` cases.
 - That decomposition converts the old open-ended count gap into an explicit residual: the rewrite is no longer missing any rendered leaf coverage in the legacy batteries tree. The remaining difference is only the legacy `+6` summary delta in the published batteries artifact.
 

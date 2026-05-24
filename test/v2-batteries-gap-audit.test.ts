@@ -46,6 +46,16 @@ function countBatteryLeaves(node: BatteryNode): number {
   return node.children.reduce((total, child) => total + countBatteryLeaves(child), 0);
 }
 
+function collectBatteryLeafPaths(node: BatteryNode, trail: string[] = []): string[] {
+  const nextTrail = node.text.trim().length > 0 ? [...trail, node.text] : trail;
+
+  if (node.children.length === 0) {
+    return [nextTrail.join(" > ")];
+  }
+
+  return node.children.flatMap((child) => collectBatteryLeafPaths(child, nextTrail));
+}
+
 function countRegistryCases(node: RegistryNode): number {
   if (node.type === "case") {
     return 1;
@@ -91,6 +101,18 @@ describe("xAPI 2.0 batteries gap audit", () => {
       leafCount: 1429,
       summaryDelta: 6,
     });
+  });
+
+  test("pins the three serialized upstream concurrency placeholder leaves behind the summary delta", () => {
+    const upstreamLeafPaths = collectBatteryLeafPaths(upstreamBatteries["2.0.0"].tests).filter((path) =>
+      path.includes("If a PUT request is received without either header for a resource that already exists"),
+    );
+
+    expect(upstreamLeafPaths).toEqual([
+      "xAPI uses HTTP 1.1 entity tags (ETags) to implement optimistic concurrency control in the following resources, where PUT, POST or DELETE are allowed to overwrite or remove existing data. > Concurrency for the Activity State Resource. > If a PUT request is received without either header for a resource that already exists",
+      "xAPI uses HTTP 1.1 entity tags (ETags) to implement optimistic concurrency control in the following resources, where PUT, POST or DELETE are allowed to overwrite or remove existing data. > Concurrency for the Activity Profile Resource. > If a PUT request is received without either header for a resource that already exists",
+      "xAPI uses HTTP 1.1 entity tags (ETags) to implement optimistic concurrency control in the following resources, where PUT, POST or DELETE are allowed to overwrite or remove existing data. > Concurrency for the Agents Profile Resource. > If a PUT request is received without either header for a resource that already exists",
+    ]);
   });
 
   test("pins the current 2.0 count-gap breakdown between upstream batteries and the proof slice", () => {
