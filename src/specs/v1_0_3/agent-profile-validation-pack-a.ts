@@ -1,25 +1,18 @@
 import type { CaseDefinition, RegistryNode, SuiteDefinition } from "../../domain/contracts";
-import { statementsFormattingSuite } from "../v2_0/statements/areas/formatting";
+import { createV20AgentProfileResourceProofSliceSuite } from "../v2_0/agent-profile-resource";
 import { specVersion } from "./shared";
 
-const excludedCaseIds = new Set([
-  "v1.statements.invalid-mbox-iri.actor-agent",
-  "v1.statements.invalid-mbox-iri.actor-group",
-  "v1.statements.invalid-mbox-iri.authority-agent",
-  "v1.statements.invalid-mbox-iri.authority-group",
-  "v1.statements.invalid-mbox-iri.context-instructor-agent",
-  "v1.statements.invalid-mbox-iri.context-instructor-group",
-  "v1.statements.invalid-mbox-iri.context-team-group",
-  "v1.statements.invalid-mbox-iri.object-agent",
-  "v1.statements.invalid-mbox-iri.object-group",
-  "v1.statements.invalid-mbox-iri.substatement-actor-agent",
-  "v1.statements.invalid-mbox-iri.substatement-actor-group",
-  "v1.statements.invalid-mbox-iri.substatement-context-instructor-agent",
-  "v1.statements.invalid-mbox-iri.substatement-context-instructor-group",
-  "v1.statements.invalid-mbox-iri.substatement-context-team-group",
-  "v1.statements.invalid-mbox-mailto.actor-agent",
-  "v1.statements.invalid-mbox-mailto.actor-group",
-  "v1.statements.invalid-mbox-mailto.authority-agent",
+const includeCaseIds = new Set([
+  "v1.agents-profile.validation.invalid-agent.post",
+  "v1.agents-profile.validation.invalid-agent.put",
+  "v1.agents-profile.validation.missing-agent.post",
+  "v1.agents-profile.validation.missing-agent.put",
+  "v1.agents-profile.validation.missing-profileId.post",
+  "v1.agents-profile.validation.missing-profileId.put",
+  "v1.agents-profile.validation.invalid-profileId.post",
+  "v1.agents-profile.validation.invalid-profileId.put",
+  "v1.agents-profile.document-post-as-put",
+  "v1.agents-profile.document-merge-rejects-legacy-non-json-post",
 ]);
 
 function rewriteTags(tags: string[]): string[] {
@@ -30,12 +23,9 @@ function rewriteTags(tags: string[]): string[] {
   return next;
 }
 
-function rewriteCaseFromV2(caseNode: CaseDefinition): CaseDefinition | null {
+function rewriteCaseFromV2(caseNode: CaseDefinition): CaseDefinition {
   const cloned = structuredClone(caseNode) as CaseDefinition;
   cloned.id = cloned.id.replace(/^v2\./, "v1.");
-  if (excludedCaseIds.has(cloned.id)) {
-    return null;
-  }
   cloned.specVersion = specVersion;
   cloned.tags = rewriteTags(cloned.tags);
 
@@ -71,11 +61,18 @@ function rewriteCaseFromV2(caseNode: CaseDefinition): CaseDefinition | null {
 
 function rewriteNodeFromV2(node: RegistryNode): RegistryNode | null {
   if (node.type === "case") {
-    return rewriteCaseFromV2(node);
+    const rewritten = rewriteCaseFromV2(node);
+    if (!includeCaseIds.has(rewritten.id)) {
+      return null;
+    }
+    return rewritten;
   }
 
   const cloned = structuredClone(node) as SuiteDefinition;
   cloned.id = cloned.id.replace(/^v2\./, "v1.");
+  if (cloned.id.startsWith("v1.proof-slice.agents-profile.")) {
+    cloned.id = cloned.id.replace("v1.proof-slice.agents-profile.", "v1.proof-slice.agents-profile.validation-pack-a.");
+  }
   cloned.specVersion = specVersion;
   cloned.tags = rewriteTags(cloned.tags);
   cloned.children = cloned.children.map(rewriteNodeFromV2).filter((child): child is RegistryNode => child !== null);
@@ -85,14 +82,14 @@ function rewriteNodeFromV2(node: RegistryNode): RegistryNode | null {
   return cloned;
 }
 
-export function createV103StatementsFormattingProofSliceSuite(): SuiteDefinition {
-  const adapted = rewriteNodeFromV2(statementsFormattingSuite as unknown as RegistryNode);
+export function createV103AgentProfileValidationPackAProofSliceSuite(): SuiteDefinition {
+  const adapted = rewriteNodeFromV2(createV20AgentProfileResourceProofSliceSuite() as unknown as RegistryNode);
   if (adapted?.type !== "suite") {
-    throw new Error("expected statements formatting root to be a suite");
+    throw new Error("expected agents-profile root to be a suite");
   }
 
-  adapted.id = "v1.proof-slice.statements.formatting";
-  adapted.title = "Statements Formatting";
-  adapted.tags = ["proof-slice", "statements", "formatting"];
+  adapted.id = "v1.proof-slice.agents-profile.validation-pack-a";
+  adapted.title = "Agents Profile Validation Pack A";
+  adapted.tags = ["proof-slice", "agents-profile", "validation", "parity-pack"];
   return adapted;
 }
