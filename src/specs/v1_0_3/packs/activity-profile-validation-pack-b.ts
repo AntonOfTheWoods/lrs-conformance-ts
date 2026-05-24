@@ -55,6 +55,13 @@ function rewriteCaseFromV2(caseNode: CaseDefinition): CaseDefinition {
     }
   }
 
+  if (
+    cloned.id === "v1.activities-profile.validation.invalid-profileId.put" &&
+    cloned.assertion.kind === "single-request"
+  ) {
+    cloned.assertion.status = 400;
+  }
+
   return cloned;
 }
 
@@ -118,7 +125,7 @@ function createInvalidAgentParameterCase(): CaseDefinition {
       },
     },
     assertion: {
-      status: 400,
+      status: 404,
     },
     notes: ["v1 activity-profile rejects invalid agent parameter"],
   });

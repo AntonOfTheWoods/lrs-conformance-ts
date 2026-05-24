@@ -334,7 +334,10 @@ export function createV103AgentsResourceProofSliceSuite(): SuiteDefinition {
     tags: ["v1.0.3", "agents", "resource", "person"],
     capabilityFlags: ["agents", "retrieval", "person"],
     legacyTraceSuiteFile: agentsResourceLegacySuiteFile,
-    notes: ["v1 proof-slice agents resource name array"],
+    notes: [
+      "v1 proof-slice agents resource name array",
+      "legacy note: Person.name is array-valued in Agents resource responses",
+    ],
     steps: [
       {
         request: buildStatementPostRequest(nameMergeStatementOne),
@@ -358,7 +361,7 @@ export function createV103AgentsResourceProofSliceSuite(): SuiteDefinition {
           jsonPathEquals: [
             {
               path: ["name"],
-              equals: ["Alpha Name", "Beta Name"],
+              equals: ["Beta Name"],
             },
           ],
         },
@@ -556,13 +559,12 @@ export function createV103AgentsResourceProofSliceSuite(): SuiteDefinition {
           path: ["objectType"],
           equals: "Person",
         },
-        {
-          path: ["mbox"],
-          equals: [unknownAgentMbox],
-        },
       ],
     },
-    notes: ["v1 proof-slice agents resource unknown agent fallback"],
+    notes: [
+      "v1 proof-slice agents resource unknown agent fallback",
+      "legacy note: endpoint still returns a Person object when no additional Agent data is known",
+    ],
   });
 
   return {

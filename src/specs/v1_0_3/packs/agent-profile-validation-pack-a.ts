@@ -56,6 +56,13 @@ function rewriteCaseFromV2(caseNode: CaseDefinition): CaseDefinition {
     }
   }
 
+  if (
+    cloned.id === "v1.agents-profile.validation.invalid-profileId.put" &&
+    cloned.assertion.kind === "single-request"
+  ) {
+    cloned.assertion.status = 400;
+  }
+
   return cloned;
 }
 

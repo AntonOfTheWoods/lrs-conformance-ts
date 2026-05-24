@@ -43,6 +43,21 @@ function rewriteCaseFromV2(caseNode: CaseDefinition): CaseDefinition {
     }
   }
 
+  if (cloned.id === "v1.statements.version.retained-roundtrip" && cloned.execution.kind === "submit-and-query") {
+    if (cloned.execution.submit.body?.kind === "json" && typeof cloned.execution.submit.body.value === "object") {
+      const value = cloned.execution.submit.body.value as Record<string, unknown>;
+      value.version = specVersion;
+    }
+
+    if (cloned.assertion.kind === "submit-and-query") {
+      for (const expectation of cloned.assertion.queryJsonPathEquals) {
+        if (expectation.path.length === 1 && expectation.path[0] === "version") {
+          expectation.equals = specVersion;
+        }
+      }
+    }
+  }
+
   return cloned;
 }
 

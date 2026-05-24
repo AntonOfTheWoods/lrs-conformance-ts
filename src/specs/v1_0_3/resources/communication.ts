@@ -21,20 +21,28 @@ function rewriteCaseFromV2(caseNode: CaseDefinition): CaseDefinition {
   }
 
   if (cloned.execution.kind === "single-request") {
-    cloned.execution.request.headers["X-Experience-API-Version"] = specVersion;
+    if (cloned.execution.request.headers["X-Experience-API-Version"] === "2.0.0") {
+      cloned.execution.request.headers["X-Experience-API-Version"] = specVersion;
+    }
     if (cloned.execution.request.body?.kind === "json" && cloned.execution.request.body.sourceFixture) {
       cloned.execution.request.body.sourceFixture.version = specVersion;
     }
   } else if (cloned.execution.kind === "request-sequence") {
     for (const request of cloned.execution.steps) {
-      request.headers["X-Experience-API-Version"] = specVersion;
+      if (request.headers["X-Experience-API-Version"] === "2.0.0") {
+        request.headers["X-Experience-API-Version"] = specVersion;
+      }
       if (request.body?.kind === "json" && request.body.sourceFixture) {
         request.body.sourceFixture.version = specVersion;
       }
     }
   } else {
-    cloned.execution.submit.headers["X-Experience-API-Version"] = specVersion;
-    cloned.execution.query.headers["X-Experience-API-Version"] = specVersion;
+    if (cloned.execution.submit.headers["X-Experience-API-Version"] === "2.0.0") {
+      cloned.execution.submit.headers["X-Experience-API-Version"] = specVersion;
+    }
+    if (cloned.execution.query.headers["X-Experience-API-Version"] === "2.0.0") {
+      cloned.execution.query.headers["X-Experience-API-Version"] = specVersion;
+    }
     if (cloned.execution.submit.body?.kind === "json" && cloned.execution.submit.body.sourceFixture) {
       cloned.execution.submit.body.sourceFixture.version = specVersion;
     }

@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import {
   CaseResultSchema,
   ExecutionEventSchema,
@@ -101,6 +103,211 @@ function deepEqual(left: unknown, right: unknown): boolean {
   return JSON.stringify(left) === JSON.stringify(right);
 }
 
+const proofUuidPattern = /\b(?:33333333-3333-4333-8333|11111111-1111-4111-8111)-[0-9a-f]{12}\b/gi;
+
+function replaceProofDataInString(value: string, rewriteUuid: (uuid: string) => string, caseToken: string): string {
+  const withRemappedUuids = value.replace(proofUuidPattern, (matched) => rewriteUuid(matched));
+  if (caseToken.length === 0) {
+    return withRemappedUuids;
+  }
+
+  return withRemappedUuids.replace(/\bexample\.test\b/gi, `${caseToken}.example.test`);
+}
+
+function replaceProofDataInUnknown(value: unknown, rewriteUuid: (uuid: string) => string, caseToken: string): unknown {
+  if (typeof value === "string") {
+    return replaceProofDataInString(value, rewriteUuid, caseToken);
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => replaceProofDataInUnknown(item, rewriteUuid, caseToken));
+  }
+
+  if (!isJsonObject(value)) {
+    return value;
+  }
+
+  const output: Record<string, unknown> = {};
+  for (const [key, nestedValue] of Object.entries(value)) {
+    output[key] = replaceProofDataInUnknown(nestedValue, rewriteUuid, caseToken);
+  }
+
+  return output;
+}
+
+function normalizeExpectedVersionHeader(value: string, version: SpecVersion): string {
+  if (version === "1.0.3" && value === "2.0.0") {
+    return "1.0.3";
+  }
+
+  return value;
+}
+
+function rewriteRequestAssertion(
+  assertion: RequestAssertion,
+  version: SpecVersion,
+  rewriteUuid: (uuid: string) => string,
+  caseToken: string,
+): RequestAssertion {
+  return {
+    ...assertion,
+    expectedHeaders: assertion.expectedHeaders.map((header) =>
+      header.key.toLowerCase() === "x-experience-api-version"
+        ? {
+            ...header,
+            equals: normalizeExpectedVersionHeader(header.equals, version),
+          }
+        : header,
+    ),
+    jsonPathEquals: assertion.jsonPathEquals.map((expectation) => ({
+      ...expectation,
+      equals: replaceProofDataInUnknown(expectation.equals, rewriteUuid, caseToken),
+    })),
+    jsonPathNotEquals: assertion.jsonPathNotEquals.map((expectation) => ({
+      ...expectation,
+      equals: replaceProofDataInUnknown(expectation.equals, rewriteUuid, caseToken),
+    })),
+    textContains: assertion.textContains.map((text) => replaceProofDataInString(text, rewriteUuid, caseToken)),
+  };
+}
+
+function rewriteHttpRequest(
+  request: HttpRequest,
+  rewriteUuid: (uuid: string) => string,
+  caseToken: string,
+): HttpRequest {
+  const headers = Object.fromEntries(
+    Object.entries(request.headers).map(([key, value]) => [
+      key,
+      replaceProofDataInString(value, rewriteUuid, caseToken),
+    ]),
+  );
+  const query = Object.fromEntries(
+    Object.entries(request.query).map(([key, value]) => [key, replaceProofDataInString(value, rewriteUuid, caseToken)]),
+  );
+
+  const body =
+    request.body == null
+      ? undefined
+      : request.body.kind === "json"
+        ? {
+            ...request.body,
+            value: replaceProofDataInUnknown(request.body.value, rewriteUuid, caseToken),
+          }
+        : {
+            ...request.body,
+            value: replaceProofDataInString(request.body.value, rewriteUuid, caseToken),
+          };
+
+  return {
+    ...request,
+    headers,
+    query,
+    body,
+  };
+}
+
+function rewriteAssertionPlan(
+  assertion: AssertionPlan,
+  version: SpecVersion,
+  rewriteUuid: (uuid: string) => string,
+  caseToken: string,
+): AssertionPlan {
+  if (assertion.kind === "single-request") {
+    return {
+      ...assertion,
+      expectedHeaders: assertion.expectedHeaders.map((header) =>
+        header.key.toLowerCase() === "x-experience-api-version"
+          ? {
+              ...header,
+              equals: normalizeExpectedVersionHeader(header.equals, version),
+            }
+          : header,
+      ),
+      jsonPathEquals: assertion.jsonPathEquals.map((expectation) => ({
+        ...expectation,
+        equals: replaceProofDataInUnknown(expectation.equals, rewriteUuid, caseToken),
+      })),
+      jsonPathNotEquals: assertion.jsonPathNotEquals.map((expectation) => ({
+        ...expectation,
+        equals: replaceProofDataInUnknown(expectation.equals, rewriteUuid, caseToken),
+      })),
+      textContains: assertion.textContains.map((text) => replaceProofDataInString(text, rewriteUuid, caseToken)),
+    };
+  }
+
+  if (assertion.kind === "submit-and-query") {
+    return {
+      ...assertion,
+      expectedHeaders: assertion.expectedHeaders.map((header) =>
+        header.key.toLowerCase() === "x-experience-api-version"
+          ? {
+              ...header,
+              equals: normalizeExpectedVersionHeader(header.equals, version),
+            }
+          : header,
+      ),
+      queryJsonPathEquals: assertion.queryJsonPathEquals.map((expectation) => ({
+        ...expectation,
+        equals: replaceProofDataInUnknown(expectation.equals, rewriteUuid, caseToken),
+      })),
+      queryTextContains: assertion.queryTextContains.map((text) =>
+        replaceProofDataInString(text, rewriteUuid, caseToken),
+      ),
+    };
+  }
+
+  return {
+    ...assertion,
+    steps: assertion.steps.map((step) => rewriteRequestAssertion(step, version, rewriteUuid, caseToken)),
+  };
+}
+
+function prepareCaseForRuntime(testCase: CaseDefinition, version: SpecVersion): CaseDefinition {
+  const prepared = structuredClone(testCase) as CaseDefinition;
+  const hasTextBody =
+    prepared.execution.kind === "single-request"
+      ? prepared.execution.request.body?.kind === "text"
+      : prepared.execution.kind === "submit-and-query"
+        ? prepared.execution.submit.body?.kind === "text" || prepared.execution.query.body?.kind === "text"
+        : prepared.execution.steps.some((request) => request.body?.kind === "text");
+
+  const remappedUuids = new Map<string, string>();
+  const caseToken = hasTextBody ? "" : createHash("sha1").update(`${version}:${prepared.id}`).digest("hex").slice(0, 8);
+  const rewriteUuid = (uuid: string): string => {
+    if (hasTextBody) {
+      return uuid;
+    }
+
+    const lowerUuid = uuid.toLowerCase();
+    const existing = remappedUuids.get(lowerUuid);
+    if (existing) {
+      return existing;
+    }
+
+    const prefixLength = lowerUuid.length - 12;
+    const prefix = lowerUuid.slice(0, prefixLength);
+    const hashSuffix = createHash("sha1").update(`${version}:${prepared.id}:${lowerUuid}`).digest("hex").slice(0, 12);
+    const remapped = `${prefix}${hashSuffix}`;
+    remappedUuids.set(lowerUuid, remapped);
+    return remapped;
+  };
+
+  if (prepared.execution.kind === "single-request") {
+    prepared.execution.request = rewriteHttpRequest(prepared.execution.request, rewriteUuid, caseToken);
+  } else if (prepared.execution.kind === "submit-and-query") {
+    prepared.execution.submit = rewriteHttpRequest(prepared.execution.submit, rewriteUuid, caseToken);
+    prepared.execution.query = rewriteHttpRequest(prepared.execution.query, rewriteUuid, caseToken);
+  } else {
+    prepared.execution.steps = prepared.execution.steps.map((request) =>
+      rewriteHttpRequest(request, rewriteUuid, caseToken),
+    );
+  }
+
+  prepared.assertion = rewriteAssertionPlan(prepared.assertion, version, rewriteUuid, caseToken);
+  return prepared;
+}
+
 function isSingleRequestCase(testCase: CaseDefinition): testCase is SingleRequestCase {
   return testCase.execution.kind === "single-request" && testCase.assertion.kind === "single-request";
 }
@@ -141,6 +348,60 @@ function aggregateStatus(children: Array<SuiteResult | CaseResult>): RunStatus {
   }
 
   return "passed";
+}
+
+function parseRelativeEndpointFromMoreLink(moreLink: string): HttpRequest | null {
+  if (!moreLink.startsWith("/xapi/")) {
+    return null;
+  }
+
+  const [pathPart, queryPart = ""] = moreLink.slice("/xapi/".length).split("?", 2);
+  const endpoint = (pathPart as HttpRequest["endpoint"]) || "";
+  if (!Object.prototype.hasOwnProperty.call(endpointPaths, endpoint)) {
+    return null;
+  }
+
+  const query: Record<string, string> = {};
+  for (const [key, value] of new URLSearchParams(queryPart)) {
+    query[key] = value;
+  }
+
+  return {
+    method: "GET",
+    endpoint,
+    authMode: "basic",
+    headers: {},
+    query,
+  };
+}
+
+function resolveRequestSequenceStepRequest(
+  request: HttpRequest,
+  previousBody: unknown,
+  previousRequest: HttpRequest | null,
+): HttpRequest {
+  if (
+    request.method === "GET" &&
+    request.endpoint === "statements" &&
+    request.query.offset != null &&
+    previousRequest?.method === "GET" &&
+    previousRequest.endpoint === "statements" &&
+    isJsonObject(previousBody)
+  ) {
+    const moreLink = typeof previousBody.more === "string" ? previousBody.more : "";
+    if (moreLink.length > 0) {
+      const parsed = parseRelativeEndpointFromMoreLink(moreLink);
+      if (parsed) {
+        return {
+          ...request,
+          endpoint: parsed.endpoint,
+          query: parsed.query,
+        };
+      }
+    }
+  }
+
+  return request;
 }
 
 async function parseResponseBody(response: Response): Promise<unknown> {
@@ -469,9 +730,12 @@ async function runRequestSequenceCase(testCase: RequestSequenceCase, options: Ru
   }
 
   const previousResponses: Response[] = [];
+  let previousBody: unknown = undefined;
+  let previousRequest: HttpRequest | null = null;
 
   for (const [index, request] of testCase.execution.steps.entries()) {
-    const response = await executeHttpRequest(request, options);
+    const resolvedRequest = resolveRequestSequenceStepRequest(request, previousBody, previousRequest);
+    const response = await executeHttpRequest(resolvedRequest, options);
     const body = await parseResponseBody(response);
     const assertion = testCase.assertion.steps[index];
 
@@ -494,7 +758,7 @@ async function runRequestSequenceCase(testCase: RequestSequenceCase, options: Ru
         title: testCase.title,
         status: "failed",
         log: [
-          `Step ${index + 1} ${request.method} ${request.endpoint} failed.`,
+          `Step ${index + 1} ${resolvedRequest.method} ${resolvedRequest.endpoint} failed.`,
           ...errors,
           `Response body: ${JSON.stringify(body)}`,
         ],
@@ -502,6 +766,8 @@ async function runRequestSequenceCase(testCase: RequestSequenceCase, options: Ru
     }
 
     previousResponses.push(response);
+    previousBody = body;
+    previousRequest = resolvedRequest;
   }
 
   return CaseResultSchema.parse({
@@ -518,12 +784,14 @@ async function runCase(
   options: RuntimeRunOptions,
   events: ExecutionEvent[],
 ): Promise<CaseResult> {
+  const runtimeCase = prepareCaseForRuntime(testCase, version);
+
   await emitEvent(
     {
       kind: "case-start",
       version,
-      caseId: testCase.id,
-      title: testCase.title,
+      caseId: runtimeCase.id,
+      title: runtimeCase.title,
     },
     events,
     options,
@@ -532,37 +800,37 @@ async function runCase(
   let result: CaseResult;
   try {
     result =
-      testCase.execution.kind === "single-request"
-        ? isSingleRequestCase(testCase)
-          ? await runSingleRequestCase(testCase, options)
+      runtimeCase.execution.kind === "single-request"
+        ? isSingleRequestCase(runtimeCase)
+          ? await runSingleRequestCase(runtimeCase, options)
           : CaseResultSchema.parse({
-              id: testCase.id,
-              title: testCase.title,
+              id: runtimeCase.id,
+              title: runtimeCase.title,
               status: "failed",
               log: ["Execution and assertion kinds did not align for a single-request case."],
             })
-        : testCase.execution.kind === "submit-and-query"
-          ? isSubmitAndQueryCase(testCase)
-            ? await runSubmitAndQueryCase(testCase, options)
+        : runtimeCase.execution.kind === "submit-and-query"
+          ? isSubmitAndQueryCase(runtimeCase)
+            ? await runSubmitAndQueryCase(runtimeCase, options)
             : CaseResultSchema.parse({
-                id: testCase.id,
-                title: testCase.title,
+                id: runtimeCase.id,
+                title: runtimeCase.title,
                 status: "failed",
                 log: ["Execution and assertion kinds did not align for a submit-and-query case."],
               })
-          : isRequestSequenceCase(testCase)
-            ? await runRequestSequenceCase(testCase, options)
+          : isRequestSequenceCase(runtimeCase)
+            ? await runRequestSequenceCase(runtimeCase, options)
             : CaseResultSchema.parse({
-                id: testCase.id,
-                title: testCase.title,
+                id: runtimeCase.id,
+                title: runtimeCase.title,
                 status: "failed",
                 log: ["Execution and assertion kinds did not align for a request-sequence case."],
               });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     result = CaseResultSchema.parse({
-      id: testCase.id,
-      title: testCase.title,
+      id: runtimeCase.id,
+      title: runtimeCase.title,
       status: "failed",
       log: [`Request execution failed with a transport/runtime error: ${message}`],
     });
@@ -572,7 +840,7 @@ async function runCase(
     {
       kind: "case-finish",
       version,
-      caseId: testCase.id,
+      caseId: runtimeCase.id,
       status: result.status,
     },
     events,

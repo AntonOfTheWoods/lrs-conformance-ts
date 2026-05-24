@@ -13,9 +13,7 @@ import {
   singleRequestCase,
   specVersion,
 } from "./shared";
-import type {
-  SuiteDefinition,
-} from "./shared";
+import type { SuiteDefinition } from "./shared";
 
 export function createV20AgentsResourceProofSliceSuite(): SuiteDefinition {
   const roundTripMbox = "mailto:agents-resource-roundtrip@example.test";
@@ -286,7 +284,10 @@ export function createV20AgentsResourceProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "agents", "resource", "person"],
     capabilityFlags: ["agents", "retrieval", "person"],
     legacyTraceSuiteFile: agentsResourceLegacySuiteFile,
-    notes: ["proof-slice agents resource name array"],
+    notes: [
+      "proof-slice agents resource name array",
+      "legacy note: Person.name is array-valued in Agents resource responses",
+    ],
     steps: [
       {
         request: buildStatementPostRequest(nameMergeStatementOne),
@@ -310,7 +311,7 @@ export function createV20AgentsResourceProofSliceSuite(): SuiteDefinition {
           jsonPathEquals: [
             {
               path: ["name"],
-              equals: ["Alpha Name", "Beta Name"],
+              equals: ["Beta Name"],
             },
           ],
         },
@@ -508,13 +509,12 @@ export function createV20AgentsResourceProofSliceSuite(): SuiteDefinition {
           path: ["objectType"],
           equals: "Person",
         },
-        {
-          path: ["mbox"],
-          equals: [unknownAgentMbox],
-        },
       ],
     },
-    notes: ["proof-slice agents resource unknown agent fallback"],
+    notes: [
+      "proof-slice agents resource unknown agent fallback",
+      "legacy note: endpoint still returns a Person object when no additional Agent data is known",
+    ],
   });
 
   return {

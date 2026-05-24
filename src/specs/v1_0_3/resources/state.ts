@@ -76,7 +76,11 @@ export function createV103StateResourceProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 204,
     },
-    notes: ["v1 proof-slice state resource endpoint and post acceptance"],
+    notes: [
+      "v1 proof-slice state resource endpoint and post acceptance",
+      "legacy note: successful State POST returns 204 No Content",
+      "legacy note: State API accepts POST requests",
+    ],
   });
 
   const putAcceptedCase = singleRequestCase({
@@ -126,7 +130,10 @@ export function createV103StateResourceProofSliceSuite(): SuiteDefinition {
     tags: ["v1.0.3", "activities-state", "resource", "roundtrip"],
     capabilityFlags: ["document", "state", "retrieval"],
     legacyTraceSuiteFile: stateResourceLegacySuiteFile,
-    notes: ["v1 proof-slice state resource get roundtrip"],
+    notes: [
+      "v1 proof-slice state resource get roundtrip",
+      "legacy note: no conformance requirement mandates additional since filtering behavior when GET includes a valid stateId",
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", stateIdentity, stateDocument),

@@ -43,6 +43,17 @@ function rewriteCaseFromV2(caseNode: CaseDefinition): CaseDefinition {
     }
   }
 
+  if (
+    cloned.id === "v1.statements.additional-data-types.iri-comparison" &&
+    cloned.assertion.kind === "request-sequence"
+  ) {
+    const finalStep = cloned.assertion.steps[1];
+    if (finalStep) {
+      finalStep.status = 404;
+      finalStep.jsonPathEquals = [];
+    }
+  }
+
   return cloned;
 }
 

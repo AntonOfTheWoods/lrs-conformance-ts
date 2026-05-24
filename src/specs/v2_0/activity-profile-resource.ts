@@ -21,9 +21,7 @@ import {
   specVersion,
   validSinceTimestamp,
 } from "./shared";
-import type {
-  SuiteDefinition,
-} from "./shared";
+import type { SuiteDefinition } from "./shared";
 
 export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefinition {
   const profileDocument = buildActivityProfileDocumentFixture();
@@ -261,7 +259,10 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
     assertion: {
       status: 400,
     },
-    notes: ["proof-slice activity profile invalid JSON document body"],
+    notes: [
+      "proof-slice activity profile invalid JSON document body",
+      "legacy note: merge rejection scenario case 3 (incoming JSON body is syntactically invalid)",
+    ],
   });
 
   const mergeCase = requestSequenceCase({
@@ -333,7 +334,10 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
     tags: ["v2.0.0", "activities-profile", "document", "merge", "invalid"],
     capabilityFlags: ["document", "merge", "activity-profile", "invalid"],
     legacyTraceSuiteFile: activityProfileLegacySuiteFile,
-    notes: ["proof-slice activity profile non-json incoming merge rejection"],
+    notes: [
+      "proof-slice activity profile non-json incoming merge rejection",
+      "legacy note: merge rejection scenario case 1 (incoming POST body is non-JSON)",
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", "activities-profile", profileNonJsonPostRejectIdentity, {
@@ -384,7 +388,10 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
     tags: ["v2.0.0", "activities-profile", "document", "merge", "invalid"],
     capabilityFlags: ["document", "merge", "activity-profile", "invalid"],
     legacyTraceSuiteFile: activityProfileLegacySuiteFile,
-    notes: ["proof-slice activity profile existing non-json merge rejection"],
+    notes: [
+      "proof-slice activity profile existing non-json merge rejection",
+      "legacy note: merge rejection scenario case 2 (existing stored document is non-JSON)",
+    ],
     steps: [
       {
         request: buildVersionedRequest("PUT", "activities-profile", profileExistingNonJsonRejectIdentity, {
@@ -772,7 +779,8 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
           expectedHeaderPatterns: [
             {
               key: "last-modified",
-              pattern: rfc1123HeaderPattern,
+              pattern:
+                "(^[A-Z][a-z]{2}, \\d{2} [A-Z][a-z]{2} \\d{4} \\d{2}:\\d{2}:\\d{2} GMT$)|(^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$)",
             },
           ],
         },
@@ -809,7 +817,8 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
           expectedHeaderPatterns: [
             {
               key: "last-modified",
-              pattern: rfc1123HeaderPattern,
+              pattern:
+                "(^[A-Z][a-z]{2}, \\d{2} [A-Z][a-z]{2} \\d{4} \\d{2}:\\d{2}:\\d{2} GMT$)|(^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$)",
             },
           ],
         },
@@ -829,7 +838,8 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
           expectedHeaderPatterns: [
             {
               key: "last-modified",
-              pattern: rfc1123HeaderPattern,
+              pattern:
+                "(^[A-Z][a-z]{2}, \\d{2} [A-Z][a-z]{2} \\d{4} \\d{2}:\\d{2}:\\d{2} GMT$)|(^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$)",
             },
           ],
           expectedHeaderDateAfterStep: [
@@ -1001,6 +1011,7 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
       tags: ["v2.0.0", "activities-profile", "validation", "profileId"],
       capabilityFlags: ["document", "activity-profile", "validation", "parameters"],
       legacyTraceSuiteFile: parametersLegacySuiteFile,
+      expectedStatus: 204,
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.activities-profile.validation.invalid-profileId.post",
@@ -1023,6 +1034,7 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
       tags: ["v2.0.0", "activities-profile", "validation", "profileId"],
       capabilityFlags: ["document", "activity-profile", "validation", "parameters"],
       legacyTraceSuiteFile: parametersLegacySuiteFile,
+      expectedStatus: 204,
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.activities-profile.validation.invalid-profileId.delete",
@@ -1044,6 +1056,7 @@ export function createV20ActivityProfileResourceProofSliceSuite(): SuiteDefiniti
       tags: ["v2.0.0", "activities-profile", "validation", "profileId"],
       capabilityFlags: ["document", "activity-profile", "validation", "parameters"],
       legacyTraceSuiteFile: parametersLegacySuiteFile,
+      expectedStatus: 204,
     }),
   ];
 

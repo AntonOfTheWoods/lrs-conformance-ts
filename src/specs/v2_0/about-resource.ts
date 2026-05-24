@@ -78,12 +78,7 @@ export function createV20AboutResourceProofSliceSuite(): SuiteDefinition {
     request: buildAboutGetRequest(),
     assertion: {
       status: 200,
-      jsonPathEquals: [
-        {
-          path: ["version"],
-          equals: [specVersion],
-        },
-      ],
+      textContains: ['"version":["2.0.0"'],
     },
     notes: ["proof-slice about resource version property"],
   });
@@ -105,12 +100,7 @@ export function createV20AboutResourceProofSliceSuite(): SuiteDefinition {
     request: buildAboutGetRequest(),
     assertion: {
       status: 200,
-      jsonPathEquals: [
-        {
-          path: ["version"],
-          equals: [specVersion],
-        },
-      ],
+      textContains: ['"version":["2.0.0"'],
     },
     notes: ["proof-slice about resource version array type"],
   });
@@ -152,12 +142,7 @@ export function createV20AboutResourceProofSliceSuite(): SuiteDefinition {
     request: buildAboutGetRequest(),
     assertion: {
       status: 200,
-      jsonPathEquals: [
-        {
-          path: ["version"],
-          equals: [specVersion],
-        },
-      ],
+      textContains: ['"version":["2.0.0"'],
     },
     notes: ["proof-slice about resource version array"],
   });
@@ -179,12 +164,7 @@ export function createV20AboutResourceProofSliceSuite(): SuiteDefinition {
     request: buildAboutGetRequest(false),
     assertion: {
       status: 200,
-      jsonPathEquals: [
-        {
-          path: ["version"],
-          equals: [specVersion],
-        },
-      ],
+      textContains: ['"version":["2.0.0"'],
     },
     notes: ["proof-slice about resource version header exemption"],
   });

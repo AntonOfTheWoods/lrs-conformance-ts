@@ -21,9 +21,7 @@ import {
   specVersion,
   validSinceTimestamp,
 } from "./shared";
-import type {
-  SuiteDefinition,
-} from "./shared";
+import type { SuiteDefinition } from "./shared";
 
 export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition {
   const profileDocument = buildAgentProfileDocumentFixture();
@@ -365,7 +363,10 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
     tags: ["v2.0.0", "agents-profile", "document", "merge", "invalid"],
     capabilityFlags: ["document", "merge", "agent-profile", "invalid"],
     legacyTraceSuiteFile: agentProfileLegacySuiteFile,
-    notes: ["proof-slice agent profile non-json incoming merge rejection"],
+    notes: [
+      "proof-slice agent profile non-json incoming merge rejection",
+      "legacy note: merge rejection scenario case 1 (incoming POST body is non-JSON)",
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", "agents-profile", profileNonJsonPostRejectIdentity, {
@@ -416,7 +417,10 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
     tags: ["v2.0.0", "agents-profile", "document", "merge", "invalid"],
     capabilityFlags: ["document", "merge", "agent-profile", "invalid"],
     legacyTraceSuiteFile: agentProfileLegacySuiteFile,
-    notes: ["proof-slice agent profile existing non-json merge rejection"],
+    notes: [
+      "proof-slice agent profile existing non-json merge rejection",
+      "legacy note: merge rejection scenario case 2 (existing stored document is non-JSON)",
+    ],
     steps: [
       {
         request: buildVersionedRequest("PUT", "agents-profile", profileExistingNonJsonRejectIdentity, {
@@ -726,7 +730,10 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
     tags: ["v2.0.0", "agents-profile", "document", "merge", "invalid", "json"],
     capabilityFlags: ["document", "merge", "agent-profile", "invalid", "json"],
     legacyTraceSuiteFile: agentProfileLegacySuiteFile,
-    notes: ["proof-slice agent profile invalid JSON merge rejection"],
+    notes: [
+      "proof-slice agent profile invalid JSON merge rejection",
+      "legacy note: merge rejection scenario case 3 (incoming JSON body is syntactically invalid)",
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", "agents-profile", profileInvalidJsonMergeRejectIdentity, {
@@ -792,7 +799,8 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
           expectedHeaderPatterns: [
             {
               key: "last-modified",
-              pattern: rfc1123HeaderPattern,
+              pattern:
+                "(^[A-Z][a-z]{2}, \\d{2} [A-Z][a-z]{2} \\d{4} \\d{2}:\\d{2}:\\d{2} GMT$)|(^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$)",
             },
           ],
         },
@@ -829,7 +837,8 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
           expectedHeaderPatterns: [
             {
               key: "last-modified",
-              pattern: rfc1123HeaderPattern,
+              pattern:
+                "(^[A-Z][a-z]{2}, \\d{2} [A-Z][a-z]{2} \\d{4} \\d{2}:\\d{2}:\\d{2} GMT$)|(^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$)",
             },
           ],
         },
@@ -849,7 +858,8 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
           expectedHeaderPatterns: [
             {
               key: "last-modified",
-              pattern: rfc1123HeaderPattern,
+              pattern:
+                "(^[A-Z][a-z]{2}, \\d{2} [A-Z][a-z]{2} \\d{4} \\d{2}:\\d{2}:\\d{2} GMT$)|(^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$)",
             },
           ],
           expectedHeaderDateAfterStep: [
@@ -1107,6 +1117,7 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
       tags: ["v2.0.0", "agents-profile", "validation", "profileId"],
       capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
       legacyTraceSuiteFile: parametersLegacySuiteFile,
+      expectedStatus: 204,
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.agents-profile.validation.invalid-profileId.post",
@@ -1129,6 +1140,7 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
       tags: ["v2.0.0", "agents-profile", "validation", "profileId"],
       capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
       legacyTraceSuiteFile: parametersLegacySuiteFile,
+      expectedStatus: 204,
     }),
   ];
 

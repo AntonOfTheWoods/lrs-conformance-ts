@@ -12,6 +12,46 @@ import {
   SuiteDefinitionSchema,
   type SuiteDefinition,
 } from "../domain/contracts";
+import { LEGACY_XAPI_COMMENT_MAP } from "./legacyCommentMap";
+
+function formatRequirementNote(id: string, section: string, title?: string): string {
+  if (!title || title.trim().length === 0) {
+    return `spec-ref ${id} (${section})`;
+  }
+
+  return `spec-ref ${id} (${section}): ${title}`;
+}
+
+function enrichCaseRequirementNotes(node: RegistryNode): void {
+  if (node.type !== "case") {
+    return;
+  }
+
+  const requirementNotes = node.requirementRefs.map((ref) => formatRequirementNote(ref.id, ref.section, ref.title));
+  const existing = new Set(node.assertion.notes);
+
+  for (const note of requirementNotes) {
+    if (!existing.has(note)) {
+      node.assertion.notes.push(note);
+    }
+  }
+
+  for (const ref of node.requirementRefs) {
+    if (!/^XAPI-\d{5}$/.test(ref.id)) {
+      continue;
+    }
+
+    const comment = LEGACY_XAPI_COMMENT_MAP[ref.id];
+    if (!comment) {
+      continue;
+    }
+
+    const mappedLegacyNote = `legacy note: ${ref.id} upstream comment - ${comment}`;
+    if (!node.assertion.notes.includes(mappedLegacyNote)) {
+      node.assertion.notes.push(mappedLegacyNote);
+    }
+  }
+}
 
 function assertNodeVersion(node: RegistryNode, version: SpecVersion): void {
   if (node.specVersion !== version) {
@@ -72,6 +112,7 @@ export class RegistryBuilder {
 
       this.#ids.set(node.id, version);
       if (node.type === "case") {
+        enrichCaseRequirementNotes(node);
         CaseDefinitionSchema.parse(node);
       }
     });

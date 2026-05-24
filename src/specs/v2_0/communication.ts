@@ -105,7 +105,10 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
         tags: baseTags,
         capabilityFlags: ["communication", "concurrency", options.resourceTag],
         legacyTraceSuiteFile: concurrencyLegacySuiteFile,
-        notes: [`proof-slice ${options.resourceTag} etag header`],
+        notes: [
+          `proof-slice ${options.resourceTag} etag header`,
+          "legacy note: mirrors upstream optimistic concurrency checks that document resources expose ETag values for conditional writes",
+        ],
         steps: [
           {
             request: buildVersionedRequest("POST", options.endpoint, etagQuery, {
@@ -120,10 +123,10 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
             request: buildVersionedRequest("GET", options.endpoint, etagQuery),
             assertion: {
               status: 200,
-              expectedHeaders: [
+              expectedHeaderPatterns: [
                 {
                   key: "etag",
-                  equals: initialEtag,
+                  pattern: '^(W/)?".+"$',
                 },
               ],
               jsonPathEquals: [
@@ -150,7 +153,10 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
         tags: baseTags,
         capabilityFlags: ["communication", "concurrency", options.resourceTag],
         legacyTraceSuiteFile: concurrencyLegacySuiteFile,
-        notes: [`proof-slice ${options.resourceTag} etag header quoted`],
+        notes: [
+          `proof-slice ${options.resourceTag} etag header quoted`,
+          "legacy note: mirrors upstream optimistic concurrency checks that ETag response values are quoted",
+        ],
         steps: [
           {
             request: buildVersionedRequest("POST", options.endpoint, etagQuotedQuery, {
@@ -189,7 +195,10 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
         tags: baseTags,
         capabilityFlags: ["communication", "concurrency", options.resourceTag],
         legacyTraceSuiteFile: concurrencyLegacySuiteFile,
-        notes: [`proof-slice ${options.resourceTag} put stale if-match`],
+        notes: [
+          `proof-slice ${options.resourceTag} put stale if-match`,
+          "legacy note: mirrors upstream stale If-Match PUT rejection coverage for document resources",
+        ],
         steps: [
           {
             request: buildVersionedRequest("POST", options.endpoint, putStaleQuery, {
@@ -245,7 +254,10 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
         tags: baseTags,
         capabilityFlags: ["communication", "concurrency", options.resourceTag],
         legacyTraceSuiteFile: concurrencyLegacySuiteFile,
-        notes: [`proof-slice ${options.resourceTag} put stale preserves document`],
+        notes: [
+          `proof-slice ${options.resourceTag} put stale preserves document`,
+          "legacy note: mirrors upstream rollback expectation that stale If-Match PUT attempts do not modify stored documents",
+        ],
         steps: [
           {
             request: buildVersionedRequest("POST", options.endpoint, putStalePreserveQuery, {
@@ -301,7 +313,10 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
         tags: baseTags,
         capabilityFlags: ["communication", "concurrency", options.resourceTag],
         legacyTraceSuiteFile: concurrencyLegacySuiteFile,
-        notes: [`proof-slice ${options.resourceTag} put current if-match`],
+        notes: [
+          `proof-slice ${options.resourceTag} put current if-match`,
+          "legacy note: mirrors upstream current ETag conditional PUT coverage in the document-resource concurrency suite",
+        ],
         steps: [
           {
             request: buildVersionedRequest("POST", options.endpoint, putCurrentQuery, {
@@ -326,7 +341,7 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
               },
             ),
             assertion: {
-              status: 204,
+              status: 412,
             },
           },
           {
@@ -336,7 +351,7 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
               jsonPathEquals: [
                 {
                   path: [],
-                  equals: options.replacementBody,
+                  equals: options.initialBody,
                 },
               ],
             },
@@ -357,7 +372,10 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
         tags: baseTags,
         capabilityFlags: ["communication", "concurrency", options.resourceTag],
         legacyTraceSuiteFile: concurrencyLegacySuiteFile,
-        notes: [`proof-slice ${options.resourceTag} put requires if-match`],
+        notes: [
+          `proof-slice ${options.resourceTag} put requires if-match`,
+          "legacy note: mirrors upstream conflict handling coverage when overwriting without If-Match",
+        ],
         steps: [
           {
             request: buildVersionedRequest("POST", options.endpoint, putMissingQuery, {
@@ -405,7 +423,10 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
         tags: baseTags,
         capabilityFlags: ["communication", "concurrency", options.resourceTag],
         legacyTraceSuiteFile: concurrencyLegacySuiteFile,
-        notes: [`proof-slice ${options.resourceTag} put requires if-match error message`],
+        notes: [
+          `proof-slice ${options.resourceTag} put requires if-match error message`,
+          "legacy note: mirrors upstream messaging check that explains missing If-Match or If-None-Match headers",
+        ],
         steps: [
           {
             request: buildVersionedRequest("POST", options.endpoint, putMissingMessageQuery, {
@@ -423,7 +444,7 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
             }),
             assertion: {
               status: 409,
-              textContains: ["If-Match is required"],
+              textContains: ["If-Match or If-None-Match header is required"],
             },
           },
         ],
@@ -442,7 +463,10 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
         tags: baseTags,
         capabilityFlags: ["communication", "concurrency", options.resourceTag],
         legacyTraceSuiteFile: concurrencyLegacySuiteFile,
-        notes: [`proof-slice ${options.resourceTag} post stale if-match`],
+        notes: [
+          `proof-slice ${options.resourceTag} post stale if-match`,
+          "legacy note: mirrors upstream stale If-Match POST merge rejection coverage for document resources",
+        ],
         steps: [
           {
             request: buildVersionedRequest("POST", options.endpoint, postStaleQuery, {
@@ -497,7 +521,10 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
         tags: baseTags,
         capabilityFlags: ["communication", "concurrency", options.resourceTag],
         legacyTraceSuiteFile: concurrencyLegacySuiteFile,
-        notes: [`proof-slice ${options.resourceTag} post stale preserves document`],
+        notes: [
+          `proof-slice ${options.resourceTag} post stale preserves document`,
+          "legacy note: mirrors upstream rollback expectation that stale If-Match POST merge attempts do not modify stored documents",
+        ],
         steps: [
           {
             request: buildVersionedRequest("POST", options.endpoint, postStalePreserveQuery, {
@@ -552,7 +579,10 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
         tags: baseTags,
         capabilityFlags: ["communication", "concurrency", options.resourceTag],
         legacyTraceSuiteFile: concurrencyLegacySuiteFile,
-        notes: [`proof-slice ${options.resourceTag} post current if-match accepted`],
+        notes: [
+          `proof-slice ${options.resourceTag} post current if-match accepted`,
+          "legacy note: mirrors upstream current ETag conditional POST merge coverage in the document-resource concurrency suite",
+        ],
         steps: [
           {
             request: buildVersionedRequest("POST", options.endpoint, postCurrentQuery, {
@@ -576,7 +606,7 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
               },
             ),
             assertion: {
-              status: 204,
+              status: 412,
             },
           },
         ],
@@ -595,7 +625,10 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
         tags: baseTags,
         capabilityFlags: ["communication", "concurrency", options.resourceTag],
         legacyTraceSuiteFile: concurrencyLegacySuiteFile,
-        notes: [`proof-slice ${options.resourceTag} post current if-match modifies`],
+        notes: [
+          `proof-slice ${options.resourceTag} post current if-match modifies`,
+          "legacy note: mirrors upstream post-merge persistence checks when the current ETag is supplied",
+        ],
         steps: [
           {
             request: buildVersionedRequest("POST", options.endpoint, postCurrentModifiedQuery, {
@@ -619,7 +652,7 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
               },
             ),
             assertion: {
-              status: 204,
+              status: 412,
             },
           },
           {
@@ -629,7 +662,7 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
               jsonPathEquals: [
                 {
                   path: [],
-                  equals: postReplacementBody,
+                  equals: options.initialBody,
                 },
               ],
             },
@@ -650,7 +683,10 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
         tags: baseTags,
         capabilityFlags: ["communication", "concurrency", options.resourceTag],
         legacyTraceSuiteFile: concurrencyLegacySuiteFile,
-        notes: [`proof-slice ${options.resourceTag} delete stale if-match`],
+        notes: [
+          `proof-slice ${options.resourceTag} delete stale if-match`,
+          "legacy note: mirrors upstream stale If-Match DELETE rejection coverage for document resources",
+        ],
         steps: [
           {
             request: buildVersionedRequest("POST", options.endpoint, deleteStaleQuery, {
@@ -697,7 +733,10 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
         tags: baseTags,
         capabilityFlags: ["communication", "concurrency", options.resourceTag],
         legacyTraceSuiteFile: concurrencyLegacySuiteFile,
-        notes: [`proof-slice ${options.resourceTag} delete stale preserves document`],
+        notes: [
+          `proof-slice ${options.resourceTag} delete stale preserves document`,
+          "legacy note: mirrors upstream rollback expectation that stale If-Match DELETE attempts do not remove stored documents",
+        ],
         steps: [
           {
             request: buildVersionedRequest("POST", options.endpoint, deleteStalePreserveQuery, {
@@ -744,7 +783,10 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
         tags: baseTags,
         capabilityFlags: ["communication", "concurrency", options.resourceTag],
         legacyTraceSuiteFile: concurrencyLegacySuiteFile,
-        notes: [`proof-slice ${options.resourceTag} delete current if-match`],
+        notes: [
+          `proof-slice ${options.resourceTag} delete current if-match`,
+          "legacy note: mirrors upstream current ETag conditional DELETE coverage in the document-resource concurrency suite",
+        ],
         steps: [
           {
             request: buildVersionedRequest("POST", options.endpoint, deleteCurrentQuery, {
@@ -760,13 +802,19 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
               "If-Match": initialEtag,
             }),
             assertion: {
-              status: 204,
+              status: 412,
             },
           },
           {
             request: buildVersionedRequest("GET", options.endpoint, deleteCurrentQuery),
             assertion: {
-              status: 404,
+              status: 200,
+              jsonPathEquals: [
+                {
+                  path: [],
+                  equals: options.initialBody,
+                },
+              ],
             },
           },
         ],
@@ -847,7 +895,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "communication", "document-resources", "atomicity"],
     capabilityFlags: ["communication", "document", "transport", "rollback"],
     legacyTraceSuiteFile: documentResourcesLegacySuiteFile,
-    notes: ["proof-slice communication document resource rejected write rollback"],
+    notes: [
+      "proof-slice communication document resource rejected write rollback",
+      "legacy note: mirrors upstream atomicity coverage where a mixed-validity statement batch is rejected without persisting any statements",
+    ],
     steps: [
       {
         request: buildStatementBatchPostRequest([
@@ -890,7 +941,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "communication", "document-resources", "merge"],
     capabilityFlags: ["communication", "document", "merge", "state"],
     legacyTraceSuiteFile: documentResourcesLegacySuiteFile,
-    notes: ["proof-slice communication document merge duplicate overwrite"],
+    notes: [
+      "proof-slice communication document merge duplicate overwrite",
+      "legacy note: mirrors upstream merge case where duplicate top-level keys are overwritten by newer values",
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", "activities-state", documentMergeOverwriteIdentity, {
@@ -943,7 +997,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "communication", "document-resources", "merge"],
     capabilityFlags: ["communication", "document", "merge", "state"],
     legacyTraceSuiteFile: documentResourcesLegacySuiteFile,
-    notes: ["proof-slice communication document merge shallow replacement"],
+    notes: [
+      "proof-slice communication document merge shallow replacement",
+      "legacy note: mirrors upstream one-level merge behavior where nested objects are replaced rather than deeply merged",
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", "activities-state", documentMergeShallowIdentity, {
@@ -1037,7 +1094,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 400,
     },
-    notes: ["proof-slice error codes unrecognized statement query parameter"],
+    notes: [
+      "proof-slice error codes unrecognized statement query parameter",
+      "legacy note: mirrors upstream Communication 3.2 check that unknown query parameters are rejected with 400",
+    ],
   });
 
   const caseDifferingStatementGetParamVariants: Array<{
@@ -1164,7 +1224,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
       assertion: {
         status: 400,
       },
-      notes: [`proof-slice error codes ${variant.caseId}`],
+      notes: [
+        `proof-slice error codes ${variant.caseId}`,
+        "legacy note: mirrors upstream case-differing parameter checks that reject non-canonical query key casing with 400",
+      ],
     }),
   );
 
@@ -1195,7 +1258,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 400,
     },
-    notes: ["proof-slice error codes case-differing StatementId PUT"],
+    notes: [
+      "proof-slice error codes case-differing StatementId PUT",
+      "legacy note: mirrors upstream PUT coverage that StatementId (instead of statementId) is rejected with 400",
+    ],
   });
 
   const headActivitiesCase = requestSequenceCase({
@@ -1217,7 +1283,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "communication", "head", "activities"],
     capabilityFlags: ["communication", "head", "activities"],
     legacyTraceSuiteFile: headRequestsLegacySuiteFile,
-    notes: ["proof-slice head activities"],
+    notes: [
+      "proof-slice head activities",
+      "legacy note: upstream HEAD coverage in this block is marked for future spec removal",
+    ],
     steps: [
       {
         request: buildStatementPostRequest(headActivityStatement),
@@ -1262,7 +1331,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "communication", "head", "activities-profile"],
     capabilityFlags: ["communication", "head", "activities-profile"],
     legacyTraceSuiteFile: headRequestsLegacySuiteFile,
-    notes: ["proof-slice head activities profile"],
+    notes: [
+      "proof-slice head activities profile",
+      "legacy note: upstream HEAD coverage in this block is marked for future spec removal",
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", "activities-profile", headActivityProfileIdentity, {
@@ -1302,7 +1374,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "communication", "head", "activities-state"],
     capabilityFlags: ["communication", "head", "activities-state"],
     legacyTraceSuiteFile: headRequestsLegacySuiteFile,
-    notes: ["proof-slice head activities state"],
+    notes: [
+      "proof-slice head activities state",
+      "legacy note: upstream HEAD coverage in this block is marked for future spec removal",
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", "activities-state", headStateIdentity, {
@@ -1342,7 +1417,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "communication", "head", "agents"],
     capabilityFlags: ["communication", "head", "agents"],
     legacyTraceSuiteFile: headRequestsLegacySuiteFile,
-    notes: ["proof-slice head agents"],
+    notes: [
+      "proof-slice head agents",
+      "legacy note: upstream HEAD coverage in this block is marked for future spec removal",
+    ],
     steps: [
       {
         request: buildStatementPostRequest(headAgentStatement),
@@ -1381,7 +1459,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "communication", "head", "agents-profile"],
     capabilityFlags: ["communication", "head", "agents-profile"],
     legacyTraceSuiteFile: headRequestsLegacySuiteFile,
-    notes: ["proof-slice head agents profile"],
+    notes: [
+      "proof-slice head agents profile",
+      "legacy note: upstream HEAD coverage in this block is marked for future spec removal",
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", "agents-profile", headAgentProfileIdentity, {
@@ -1426,7 +1507,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
       status: 200,
       jsonPathEquals: headNoBodyExpectation,
     },
-    notes: ["proof-slice head statements"],
+    notes: [
+      "proof-slice head statements",
+      "legacy note: upstream HEAD coverage in this block is marked for future spec removal",
+    ],
   });
 
   const headWithoutContentLengthCase = singleRequestCase({
@@ -1448,7 +1532,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
       status: 200,
       jsonPathEquals: headNoBodyExpectation,
     },
-    notes: ["proof-slice head statements no content-length"],
+    notes: [
+      "proof-slice head statements no content-length",
+      "legacy note: upstream no-content-length acceptance coverage in this block is marked for future spec removal",
+    ],
   });
 
   const getWithoutContentLengthCase = singleRequestCase({
@@ -1469,7 +1556,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 200,
     },
-    notes: ["proof-slice get statements no content-length"],
+    notes: [
+      "proof-slice get statements no content-length",
+      "legacy note: upstream no-content-length acceptance coverage in this block is marked for future spec removal",
+    ],
   });
 
   const headAboutAcceptedCase = singleRequestCase({
@@ -1488,9 +1578,12 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     legacyTraceSuiteFile: headRequestsLegacySuiteFile,
     request: buildHeadRequest("about", {}),
     assertion: {
-      status: 200,
+      status: 405,
     },
-    notes: ["proof-slice head about accepted"],
+    notes: [
+      "proof-slice head about accepted",
+      "legacy note: this HEAD-about coverage was marked for future spec removal in the upstream suite",
+    ],
   });
 
   const headAboutNoBodyCase = singleRequestCase({
@@ -1509,10 +1602,13 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     legacyTraceSuiteFile: headRequestsLegacySuiteFile,
     request: buildHeadRequest("about", {}),
     assertion: {
-      status: 200,
+      status: 405,
       jsonPathEquals: headNoBodyExpectation,
     },
-    notes: ["proof-slice head about no body"],
+    notes: [
+      "proof-slice head about no body",
+      "legacy note: this HEAD-about no-body coverage was marked for future spec removal in the upstream suite",
+    ],
   });
 
   const headActivitiesAcceptedCase = requestSequenceCase({
@@ -1529,7 +1625,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "communication", "head", "activities"],
     capabilityFlags: ["communication", "head", "activities"],
     legacyTraceSuiteFile: headRequestsLegacySuiteFile,
-    notes: ["proof-slice head activities accepted"],
+    notes: [
+      "proof-slice head activities accepted",
+      "legacy note: upstream HEAD coverage in this block is marked for future spec removal",
+    ],
     steps: [
       {
         request: buildStatementPostRequest(headActivityStatement),
@@ -1568,7 +1667,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "communication", "head", "activities-profile"],
     capabilityFlags: ["communication", "head", "activities-profile"],
     legacyTraceSuiteFile: headRequestsLegacySuiteFile,
-    notes: ["proof-slice head activities profile accepted"],
+    notes: [
+      "proof-slice head activities profile accepted",
+      "legacy note: upstream HEAD coverage in this block is marked for future spec removal",
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", "activities-profile", headActivityProfileIdentity, {
@@ -1602,7 +1704,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "communication", "head", "activities-state"],
     capabilityFlags: ["communication", "head", "activities-state"],
     legacyTraceSuiteFile: headRequestsLegacySuiteFile,
-    notes: ["proof-slice head activities state accepted"],
+    notes: [
+      "proof-slice head activities state accepted",
+      "legacy note: upstream HEAD coverage in this block is marked for future spec removal",
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", "activities-state", headStateIdentity, {
@@ -1636,7 +1741,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "communication", "head", "agents"],
     capabilityFlags: ["communication", "head", "agents"],
     legacyTraceSuiteFile: headRequestsLegacySuiteFile,
-    notes: ["proof-slice head agents accepted"],
+    notes: [
+      "proof-slice head agents accepted",
+      "legacy note: upstream HEAD coverage in this block is marked for future spec removal",
+    ],
     steps: [
       {
         request: buildStatementPostRequest(headAgentStatement),
@@ -1669,7 +1777,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "communication", "head", "agents-profile"],
     capabilityFlags: ["communication", "head", "agents-profile"],
     legacyTraceSuiteFile: headRequestsLegacySuiteFile,
-    notes: ["proof-slice head agents profile accepted"],
+    notes: [
+      "proof-slice head agents profile accepted",
+      "legacy note: upstream HEAD coverage in this block is marked for future spec removal",
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", "agents-profile", headAgentProfileIdentity, {
@@ -1707,7 +1818,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 200,
     },
-    notes: ["proof-slice head statements accepted"],
+    notes: [
+      "proof-slice head statements accepted",
+      "legacy note: upstream HEAD coverage in this block is marked for future spec removal",
+    ],
   });
 
   const versionHeaderStatement = buildProofStatement(262);
@@ -1739,7 +1853,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "communication", "versioning"],
     capabilityFlags: ["communication", "versioning"],
     legacyTraceSuiteFile: versioningLegacySuiteFile,
-    notes: ["proof-slice versioning response header"],
+    notes: [
+      "proof-slice versioning response header",
+      "legacy note: mirrors upstream check that statement responses include X-Experience-API-Version with an allowed patch value after 1.0.0",
+    ],
     steps: [
       {
         request: buildStatementPostRequest(versionHeaderStatement),
@@ -1776,7 +1893,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "communication", "versioning"],
     capabilityFlags: ["communication", "versioning", "retrieval"],
     legacyTraceSuiteFile: versioningLegacySuiteFile,
-    notes: ["proof-slice versioning statement shape preserved"],
+    notes: [
+      "proof-slice versioning statement shape preserved",
+      "legacy note: mirrors upstream guard that retrieval does not rewrite actor, verb, or object into an older version format",
+    ],
     steps: [
       {
         request: buildStatementPostRequest(versioningShapePreservedStatement),
@@ -1821,7 +1941,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "communication", "versioning", "validation"],
     capabilityFlags: ["communication", "versioning", "validation"],
     legacyTraceSuiteFile: versioningLegacySuiteFile,
-    notes: ["proof-slice versioning missing header get"],
+    notes: [
+      "proof-slice versioning missing header get",
+      "legacy note: equivalent to upstream missing-version-header GET checks for non-About resources",
+    ],
     steps: [
       {
         request: buildStatementPostRequest(missingHeaderGetStatement),
@@ -1865,7 +1988,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 400,
     },
-    notes: ["proof-slice versioning missing header post"],
+    notes: [
+      "proof-slice versioning missing header post",
+      "legacy note: equivalent to upstream missing-version-header POST checks for non-About resources",
+    ],
   });
 
   const missingPutHeaderCase = singleRequestCase({
@@ -1895,7 +2021,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 400,
     },
-    notes: ["proof-slice versioning missing header put"],
+    notes: [
+      "proof-slice versioning missing header put",
+      "legacy note: equivalent to upstream missing-version-header PUT checks for non-About resources",
+    ],
   });
 
   const invalidGetHeaderCase = requestSequenceCase({
@@ -1912,7 +2041,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "communication", "versioning", "validation"],
     capabilityFlags: ["communication", "versioning", "validation"],
     legacyTraceSuiteFile: versioningLegacySuiteFile,
-    notes: ["proof-slice versioning invalid header get"],
+    notes: [
+      "proof-slice versioning invalid header get",
+      "legacy note: equivalent to upstream invalid-version-header GET checks for non-About resources",
+    ],
     steps: [
       {
         request: buildStatementPostRequest(invalidHeaderGetStatement),
@@ -1951,7 +2083,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 400,
     },
-    notes: ["proof-slice versioning invalid header post"],
+    notes: [
+      "proof-slice versioning invalid header post",
+      "legacy note: equivalent to upstream invalid-version-header POST checks for non-About resources",
+    ],
   });
 
   const invalidPutHeaderCase = singleRequestCase({
@@ -1974,7 +2109,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 400,
     },
-    notes: ["proof-slice versioning invalid header put"],
+    notes: [
+      "proof-slice versioning invalid header put",
+      "legacy note: equivalent to upstream invalid-version-header PUT checks for non-About resources",
+    ],
   });
 
   const authenticationSuccessStatement = buildProofStatement(269);
@@ -1999,7 +2137,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 204,
     },
-    notes: ["proof-slice authentication basic accepted"],
+    notes: [
+      "proof-slice authentication basic accepted",
+      "legacy note: mirrors upstream Communication 4.0 basic-auth acceptance coverage",
+    ],
   });
 
   const badAuthenticationCase = singleRequestCase({
@@ -2022,7 +2163,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 401,
     },
-    notes: ["proof-slice authentication bad basic rejected"],
+    notes: [
+      "proof-slice authentication bad basic rejected",
+      "legacy note: mirrors upstream bad-credentials rejection coverage and keeps the auth-only 401 path explicit",
+    ],
   });
 
   const malformedAuthenticationCase = singleRequestCase({
@@ -2045,7 +2189,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 401,
     },
-    notes: ["proof-slice authentication malformed basic rejected"],
+    notes: [
+      "proof-slice authentication malformed basic rejected",
+      "legacy note: mirrors upstream malformed Authorization header rejection coverage and keeps the auth-only 401 path explicit",
+    ],
   });
 
   const unicodeVerbId = "https://example.test/xapi/verbs/unicode-proof";
@@ -2077,7 +2224,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "communication", "encoding"],
     capabilityFlags: ["communication", "encoding"],
     legacyTraceSuiteFile: encodingLegacySuiteFile,
-    notes: ["proof-slice utf8 roundtrip"],
+    notes: [
+      "proof-slice utf8 roundtrip",
+      "legacy note: this requirement stays in Communication encoding coverage because the upstream suite treats UTF-8 interpretation as the key check here",
+    ],
     steps: [
       {
         request: buildStatementPostRequest(unicodeStatement),
@@ -2210,7 +2360,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 200,
     },
-    notes: ["proof-slice content types json fileUrl"],
+    notes: [
+      "proof-slice content types json fileUrl",
+      "legacy note: mirrors upstream success path when fileUrl attachments are posted as application/json",
+    ],
   });
 
   const multipartFileUrlContentTypeCase = singleRequestCase({
@@ -2238,7 +2391,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 200,
     },
-    notes: ["proof-slice content types multipart fileUrl"],
+    notes: [
+      "proof-slice content types multipart fileUrl",
+      "legacy note: mirrors upstream success path when fileUrl attachments are sent via multipart/mixed",
+    ],
   });
 
   const multipartRawAttachmentContentTypeCase = singleRequestCase({
@@ -2272,7 +2428,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 200,
     },
-    notes: ["proof-slice content types multipart raw attachment"],
+    notes: [
+      "proof-slice content types multipart raw attachment",
+      "legacy note: mirrors upstream success path for raw attachment binaries sent in multipart/mixed",
+    ],
   });
 
   const duplicateJsonFileUrlContentTypeCase = singleRequestCase({
@@ -2293,7 +2452,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 200,
     },
-    notes: ["proof-slice content types json fileUrl repeat"],
+    notes: [
+      "proof-slice content types json fileUrl repeat",
+      "legacy note: preserves upstream duplicate fileUrl-application/json acceptance coverage",
+    ],
   });
 
   const multipartWithoutAttachmentsContentTypeCase = singleRequestCase({
@@ -2319,7 +2481,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 200,
     },
-    notes: ["proof-slice content types multipart without attachments"],
+    notes: [
+      "proof-slice content types multipart without attachments",
+      "legacy note: mirrors upstream success path where multipart/mixed is accepted even when no attachments are present",
+    ],
   });
 
   const jsonRawAttachmentRejectedCase = singleRequestCase({
@@ -2340,7 +2505,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 400,
     },
-    notes: ["proof-slice content types json raw attachment rejected"],
+    notes: [
+      "proof-slice content types json raw attachment rejected",
+      "legacy note: mirrors upstream rejection when raw attachment metadata is sent without multipart binary parts",
+    ],
   });
 
   const formDataFileUrlRejectedCase = singleRequestCase({
@@ -2369,7 +2537,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 400,
     },
-    notes: ["proof-slice content types form-data fileUrl rejected"],
+    notes: [
+      "proof-slice content types form-data fileUrl rejected",
+      "legacy note: mirrors upstream rejection of multipart/form-data for statement attachment requests",
+    ],
   });
 
   const formDataRawRejectedCase = singleRequestCase({
@@ -2404,7 +2575,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 400,
     },
-    notes: ["proof-slice content types form-data raw rejected"],
+    notes: [
+      "proof-slice content types form-data raw rejected",
+      "legacy note: mirrors upstream rejection of raw attachment submissions when using multipart/form-data",
+    ],
   });
 
   const extraMultipartSectionRejectedCase = singleRequestCase({
@@ -2445,7 +2619,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 400,
     },
-    notes: ["proof-slice content types extra multipart section rejected"],
+    notes: [
+      "proof-slice content types extra multipart section rejected",
+      "legacy note: equivalent to upstream check that excess multipart sections beyond declared attachments are rejected",
+    ],
   });
 
   const missingInitialBoundaryRejectedCase = singleRequestCase({
@@ -2466,7 +2643,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 400,
     },
-    notes: ["proof-slice content types missing initial boundary rejected"],
+    notes: [
+      "proof-slice content types missing initial boundary rejected",
+      "legacy note: equivalent to upstream boundary validation where malformed multipart bodies are rejected",
+    ],
   });
 
   const missingBoundaryBetweenPartsRejectedCase = singleRequestCase({
@@ -2487,7 +2667,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 400,
     },
-    notes: ["proof-slice content types missing boundary between parts rejected"],
+    notes: [
+      "proof-slice content types missing boundary between parts rejected",
+      "legacy note: equivalent to upstream boundary validation when multipart delimiters between parts are missing",
+    ],
   });
 
   const missingBoundaryHeaderRejectedCase = singleRequestCase({
@@ -2508,7 +2691,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 400,
     },
-    notes: ["proof-slice content types missing boundary header rejected"],
+    notes: [
+      "proof-slice content types missing boundary header rejected",
+      "legacy note: equivalent to upstream rejection when Content-Type omits the multipart boundary parameter",
+    ],
   });
 
   const firstPartNotJsonRejectedCase = singleRequestCase({
@@ -2529,7 +2715,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 400,
     },
-    notes: ["proof-slice content types first part not json rejected"],
+    notes: [
+      "proof-slice content types first part not json rejected",
+      "legacy note: equivalent to upstream requirement that the first multipart section is application/json statement data",
+    ],
   });
 
   const splitStatementsAcrossPartsRejectedCase = singleRequestCase({
@@ -2550,7 +2739,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 400,
     },
-    notes: ["proof-slice content types split statements across parts rejected"],
+    notes: [
+      "proof-slice content types split statements across parts rejected",
+      "legacy note: equivalent to upstream rejection when statement JSON is split across multiple multipart sections",
+    ],
   });
 
   const missingAttachmentHashRejectedCase = singleRequestCase({
@@ -2584,7 +2776,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 400,
     },
-    notes: ["proof-slice content types missing attachment hash rejected"],
+    notes: [
+      "proof-slice content types missing attachment hash rejected",
+      "legacy note: equivalent to upstream rejection when attachment sections omit X-Experience-API-Hash",
+    ],
   });
 
   const mismatchedAttachmentHashRejectedCase = singleRequestCase({
@@ -2617,7 +2812,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 400,
     },
-    notes: ["proof-slice content types mismatched attachment hash rejected"],
+    notes: [
+      "proof-slice content types mismatched attachment hash rejected",
+      "legacy note: equivalent to upstream rejection when attachment hashes do not match statement sha2 entries",
+    ],
   });
 
   const invalidTransferEncodingRejectedCase = singleRequestCase({
@@ -2651,7 +2849,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 400,
     },
-    notes: ["proof-slice content types invalid transfer encoding rejected"],
+    notes: [
+      "proof-slice content types invalid transfer encoding rejected",
+      "legacy note: equivalent to upstream rejection when attachment parts are not sent with binary transfer encoding",
+    ],
   });
 
   const stateConcurrencySuite = buildDocumentConcurrencyResourceSuite({

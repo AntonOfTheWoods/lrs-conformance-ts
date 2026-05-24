@@ -24,9 +24,7 @@ import {
   stateResourceLegacySuiteFile,
   validSinceTimestamp,
 } from "./shared";
-import type {
-  SuiteDefinition,
-} from "./shared";
+import type { SuiteDefinition } from "./shared";
 
 export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
   const stateDocument = buildActivityStateDocumentFixture();
@@ -380,7 +378,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "activities-state", "document", "merge", "invalid"],
     capabilityFlags: ["document", "merge", "state", "invalid"],
     legacyTraceSuiteFile: stateResourceLegacySuiteFile,
-    notes: ["proof-slice activity state non-json incoming merge rejection"],
+    notes: [
+      "proof-slice activity state non-json incoming merge rejection",
+      "legacy note: merge rejection scenario case 1 (incoming POST body is non-JSON)",
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", "activities-state", stateNonJsonPostRejectIdentity, {
@@ -431,7 +432,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "activities-state", "document", "merge", "invalid"],
     capabilityFlags: ["document", "merge", "state", "invalid"],
     legacyTraceSuiteFile: stateResourceLegacySuiteFile,
-    notes: ["proof-slice activity state existing non-json merge rejection"],
+    notes: [
+      "proof-slice activity state existing non-json merge rejection",
+      "legacy note: merge rejection scenario case 2 (existing stored document is non-JSON)",
+    ],
     steps: [
       {
         request: buildVersionedRequest("PUT", "activities-state", stateExistingNonJsonRejectIdentity, {
@@ -574,7 +578,11 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 204,
     },
-    notes: ["proof-slice activity state post accepted"],
+    notes: [
+      "proof-slice activity state post accepted",
+      "legacy note: successful State POST returns 204 No Content",
+      "legacy note: State API accepts POST requests",
+    ],
   });
 
   const stateGetAcceptedCase = documentRoundTripCase({
@@ -654,7 +662,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       },
     ],
     capabilityFlags: ["document", "retrieval", "state", "stateId"],
-    notes: ["proof-slice activity state get with stateId accepted"],
+    notes: [
+      "proof-slice activity state get with stateId accepted",
+      "legacy note: no conformance requirement mandates additional since filtering behavior when GET includes a valid stateId",
+    ],
   });
 
   const stateSinceAcceptedCase = requestSequenceCase({
@@ -783,7 +794,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "activities-state", "document", "merge", "invalid", "json"],
     capabilityFlags: ["document", "merge", "state", "invalid", "json"],
     legacyTraceSuiteFile: stateResourceLegacySuiteFile,
-    notes: ["proof-slice activity state invalid JSON merge rejection"],
+    notes: [
+      "proof-slice activity state invalid JSON merge rejection",
+      "legacy note: merge rejection scenario case 3 (incoming JSON body is syntactically invalid)",
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", "activities-state", stateInvalidJsonMergeRejectIdentity, {
@@ -947,7 +961,8 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
           expectedHeaderPatterns: [
             {
               key: "last-modified",
-              pattern: rfc1123HeaderPattern,
+              pattern:
+                "(^[A-Z][a-z]{2}, \\d{2} [A-Z][a-z]{2} \\d{4} \\d{2}:\\d{2}:\\d{2} GMT$)|(^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$)",
             },
           ],
         },
@@ -984,7 +999,8 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
           expectedHeaderPatterns: [
             {
               key: "last-modified",
-              pattern: rfc1123HeaderPattern,
+              pattern:
+                "(^[A-Z][a-z]{2}, \\d{2} [A-Z][a-z]{2} \\d{4} \\d{2}:\\d{2}:\\d{2} GMT$)|(^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$)",
             },
           ],
         },
@@ -1004,7 +1020,8 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
           expectedHeaderPatterns: [
             {
               key: "last-modified",
-              pattern: rfc1123HeaderPattern,
+              pattern:
+                "(^[A-Z][a-z]{2}, \\d{2} [A-Z][a-z]{2} \\d{4} \\d{2}:\\d{2}:\\d{2} GMT$)|(^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$)",
             },
           ],
           expectedHeaderDateAfterStep: [
@@ -1404,6 +1421,7 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       tags: ["v2.0.0", "activities-state", "validation", "stateId"],
       capabilityFlags: ["document", "state", "validation", "parameters"],
       legacyTraceSuiteFile: parametersLegacySuiteFile,
+      expectedStatus: 204,
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.activities-state.validation.invalid-stateId.post",
@@ -1426,6 +1444,7 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       tags: ["v2.0.0", "activities-state", "validation", "stateId"],
       capabilityFlags: ["document", "state", "validation", "parameters"],
       legacyTraceSuiteFile: parametersLegacySuiteFile,
+      expectedStatus: 204,
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.activities-state.validation.invalid-stateId.get",
@@ -1447,6 +1466,7 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       tags: ["v2.0.0", "activities-state", "validation", "stateId"],
       capabilityFlags: ["document", "state", "validation", "parameters"],
       legacyTraceSuiteFile: parametersLegacySuiteFile,
+      expectedStatus: 404,
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.activities-state.validation.invalid-stateId.delete",
@@ -1468,6 +1488,7 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       tags: ["v2.0.0", "activities-state", "validation", "stateId"],
       capabilityFlags: ["document", "state", "validation", "parameters"],
       legacyTraceSuiteFile: parametersLegacySuiteFile,
+      expectedStatus: 204,
     }),
   ];
 

@@ -8,10 +8,7 @@ import {
   singleRequestCase,
   specVersion,
 } from "./shared";
-import type {
-  JsonObject,
-  SuiteDefinition,
-} from "./shared";
+import type { JsonObject, SuiteDefinition } from "./shared";
 
 export function createV20ActivitiesResourceProofSliceSuite(): SuiteDefinition {
   const completeActivityId = "https://example.test/xapi/activities/resource-complete";
@@ -95,7 +92,10 @@ export function createV20ActivitiesResourceProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 200,
     },
-    notes: ["proof-slice activities resource endpoint exists"],
+    notes: [
+      "proof-slice activities resource endpoint exists",
+      "legacy note: XAPI-00252 treats the /activities endpoint requirement as implicit because the spec does not name it directly",
+    ],
   });
 
   const acceptsGetCase = singleRequestCase({
@@ -116,7 +116,10 @@ export function createV20ActivitiesResourceProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 200,
     },
-    notes: ["proof-slice activities resource accepts get"],
+    notes: [
+      "proof-slice activities resource accepts get",
+      "legacy note: equivalent to upstream XAPI-00253 coverage that the Activities Resource accepts GET",
+    ],
   });
 
   const completeActivityCase = requestSequenceCase({
@@ -143,7 +146,10 @@ export function createV20ActivitiesResourceProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "activities", "resource", "roundtrip"],
     capabilityFlags: ["activities", "retrieval"],
     legacyTraceSuiteFile: activitiesResourceLegacySuiteFile,
-    notes: ["proof-slice activities resource complete object"],
+    notes: [
+      "proof-slice activities resource complete object",
+      "legacy note: equivalent to upstream XAPI-00251 coverage that a successful GET returns the complete stored Activity Object",
+    ],
     steps: [
       {
         request: buildStatementPostRequest(completeActivityStatement),
@@ -184,7 +190,10 @@ export function createV20ActivitiesResourceProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 400,
     },
-    notes: ["proof-slice activities resource missing activityId"],
+    notes: [
+      "proof-slice activities resource missing activityId",
+      "legacy note: equivalent to upstream XAPI-00250 coverage that GET without activityId is rejected with 400",
+    ],
   });
 
   const invalidActivityIdCase = singleRequestCase({
@@ -205,7 +214,10 @@ export function createV20ActivitiesResourceProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 400,
     },
-    notes: ["proof-slice activities resource invalid activityId"],
+    notes: [
+      "proof-slice activities resource invalid activityId",
+      "legacy note: equivalent to upstream format validation coverage that non-string or invalid activityId values are rejected",
+    ],
   });
 
   const mergedDefinitionCase = requestSequenceCase({
@@ -222,7 +234,10 @@ export function createV20ActivitiesResourceProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "activities", "resource", "merge"],
     capabilityFlags: ["activities", "retrieval", "merge"],
     legacyTraceSuiteFile: activitiesResourceLegacySuiteFile,
-    notes: ["proof-slice activities resource definition merge"],
+    notes: [
+      "proof-slice activities resource definition merge",
+      "legacy note: equivalent to upstream XAPI-00254 example that language-map information from statements sharing activityId is merged and returned",
+    ],
     steps: [
       {
         request: buildStatementPostRequest(mergedActivityStatementOne),
@@ -289,7 +304,10 @@ export function createV20ActivitiesResourceProofSliceSuite(): SuiteDefinition {
         },
       ],
     },
-    notes: ["proof-slice activities resource unknown activity fallback"],
+    notes: [
+      "proof-slice activities resource unknown activity fallback",
+      "legacy note: equivalent to upstream behavior that an Activity object is still returned even without a canonical stored definition",
+    ],
   });
 
   return {
