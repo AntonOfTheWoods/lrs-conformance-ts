@@ -20,8 +20,8 @@ export const v2StatementsResultSuccessTypeStatementFalseStringCase = {
   ],
   "capabilityFlags": [],
   "legacyTrace": {
-    "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.4-Result-Requirements.js",
-    "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/results.js"
+    "suiteFile": "test/v2_0/4.2.2.4-Result-Requirements.js",
+    "configFile": "test/v2_0/configs/results.js"
   },
   "execution": {
     "kind": "single-request",

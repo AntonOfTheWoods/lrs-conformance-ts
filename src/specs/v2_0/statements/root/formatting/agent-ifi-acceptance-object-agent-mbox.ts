@@ -21,8 +21,8 @@ export const v2StatementsAgentIfiAcceptanceObjectAgentMboxCase = {
   ],
   "capabilityFlags": [],
   "legacyTrace": {
-    "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.1-Actor-Requirements.js",
-    "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/agents.js"
+    "suiteFile": "test/v2_0/4.2.2.1-Actor-Requirements.js",
+    "configFile": "test/v2_0/configs/agents.js"
   },
   "execution": {
     "kind": "single-request",

@@ -20,7 +20,7 @@ export const v2StatementsInvalidAttachmentIriUsageTypeNoSchemeCase = {
   ],
   "capabilityFlags": [],
   "legacyTrace": {
-    "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/Data2.2-FormattingRequirements.js"
+    "suiteFile": "test/v2_0/Data2.2-FormattingRequirements.js"
   },
   "execution": {
     "kind": "single-request",

@@ -33,8 +33,8 @@ export const v2ProofSliceStatementsContextRoundtripSuite = {
         "context-activities"
       ],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.5-Context-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/contextactivities.js"
+        "suiteFile": "test/v2_0/4.2.2.5-Context-Requirements.js",
+        "configFile": "test/v2_0/configs/contextactivities.js"
       },
       "execution": {
         "kind": "submit-and-query",
@@ -159,8 +159,8 @@ export const v2ProofSliceStatementsContextRoundtripSuite = {
         "context-activities"
       ],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.5-Context-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/contextactivities.js"
+        "suiteFile": "test/v2_0/4.2.2.5-Context-Requirements.js",
+        "configFile": "test/v2_0/configs/contextactivities.js"
       },
       "execution": {
         "kind": "submit-and-query",
@@ -285,8 +285,8 @@ export const v2ProofSliceStatementsContextRoundtripSuite = {
         "context-activities"
       ],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.5-Context-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/contextactivities.js"
+        "suiteFile": "test/v2_0/4.2.2.5-Context-Requirements.js",
+        "configFile": "test/v2_0/configs/contextactivities.js"
       },
       "execution": {
         "kind": "submit-and-query",
@@ -411,8 +411,8 @@ export const v2ProofSliceStatementsContextRoundtripSuite = {
         "context-activities"
       ],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.5-Context-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/contextactivities.js"
+        "suiteFile": "test/v2_0/4.2.2.5-Context-Requirements.js",
+        "configFile": "test/v2_0/configs/contextactivities.js"
       },
       "execution": {
         "kind": "submit-and-query",
@@ -537,8 +537,8 @@ export const v2ProofSliceStatementsContextRoundtripSuite = {
         "context-activities"
       ],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.5-Context-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/contextactivities.js"
+        "suiteFile": "test/v2_0/4.2.2.5-Context-Requirements.js",
+        "configFile": "test/v2_0/configs/contextactivities.js"
       },
       "execution": {
         "kind": "submit-and-query",
@@ -678,8 +678,8 @@ export const v2ProofSliceStatementsContextRoundtripSuite = {
         "context-activities"
       ],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.5-Context-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/contextactivities.js"
+        "suiteFile": "test/v2_0/4.2.2.5-Context-Requirements.js",
+        "configFile": "test/v2_0/configs/contextactivities.js"
       },
       "execution": {
         "kind": "submit-and-query",
@@ -819,8 +819,8 @@ export const v2ProofSliceStatementsContextRoundtripSuite = {
         "context-activities"
       ],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.5-Context-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/contextactivities.js"
+        "suiteFile": "test/v2_0/4.2.2.5-Context-Requirements.js",
+        "configFile": "test/v2_0/configs/contextactivities.js"
       },
       "execution": {
         "kind": "submit-and-query",
@@ -960,8 +960,8 @@ export const v2ProofSliceStatementsContextRoundtripSuite = {
         "context-activities"
       ],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.5-Context-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/contextactivities.js"
+        "suiteFile": "test/v2_0/4.2.2.5-Context-Requirements.js",
+        "configFile": "test/v2_0/configs/contextactivities.js"
       },
       "execution": {
         "kind": "submit-and-query",

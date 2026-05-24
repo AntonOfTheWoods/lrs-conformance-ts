@@ -20,8 +20,8 @@ export const v2StatementsActivityInteractionTypeAcceptanceStatementNumericCase =
   ],
   "capabilityFlags": [],
   "legacyTrace": {
-    "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.3-Object-Requirements.js",
-    "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/activities.js"
+    "suiteFile": "test/v2_0/4.2.2.3-Object-Requirements.js",
+    "configFile": "test/v2_0/configs/activities.js"
   },
   "execution": {
     "kind": "single-request",

@@ -14,7 +14,7 @@ export const v2StatementsSpecialDataTypesTimestampMillisecondPrecisionCase = {
   tags: ["v2.0.0", "statements", "special-data-types", "timestamp"],
   capabilityFlags: ["timestamp", "retrieval", "special-data-types"],
   legacyTrace: {
-    suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/E.Data4.0-SpecialDataTypesAndRules.js",
+    suiteFile: "test/v2_0/E.Data4.0-SpecialDataTypesAndRules.js",
   },
   execution: {
     kind: "request-sequence",

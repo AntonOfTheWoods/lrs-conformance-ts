@@ -21,8 +21,8 @@ export const v2ProofSliceStatementsAuthoritySuite = {
       tags: ["v2.0.0", "statements", "authority", "group", "acceptance"],
       capabilityFlags: [],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Authority-Requirements.js",
-        configFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/authorities.js",
+        suiteFile: "test/v2_0/4.2.4.2-Authority-Requirements.js",
+        configFile: "test/v2_0/configs/authorities.js",
       },
       execution: {
         kind: "single-request",
@@ -106,7 +106,7 @@ export const v2ProofSliceStatementsAuthoritySuite = {
       tags: ["v2.0.0", "statements", "authority", "population"],
       capabilityFlags: ["authority", "query", "retrieval"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Authority-Requirements.js",
+        suiteFile: "test/v2_0/4.2.4.2-Authority-Requirements.js",
       },
       execution: {
         kind: "request-sequence",
@@ -219,7 +219,7 @@ export const v2ProofSliceStatementsAuthoritySuite = {
       tags: ["v2.0.0", "statements", "authority", "group", "rejection", "non-oauth"],
       capabilityFlags: ["authority"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Authority-Requirements.js",
+        suiteFile: "test/v2_0/4.2.4.2-Authority-Requirements.js",
       },
       execution: {
         kind: "single-request",
@@ -300,8 +300,8 @@ export const v2ProofSliceStatementsAuthoritySuite = {
       tags: ["v2.0.0", "statements", "authority", "group", "rejection"],
       capabilityFlags: [],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Authority-Requirements.js",
-        configFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/authorities.js",
+        suiteFile: "test/v2_0/4.2.4.2-Authority-Requirements.js",
+        configFile: "test/v2_0/configs/authorities.js",
       },
       execution: {
         kind: "single-request",
@@ -386,8 +386,8 @@ export const v2ProofSliceStatementsAuthoritySuite = {
       tags: ["v2.0.0", "statements", "authority", "group", "rejection"],
       capabilityFlags: [],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Authority-Requirements.js",
-        configFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/authorities.js",
+        suiteFile: "test/v2_0/4.2.4.2-Authority-Requirements.js",
+        configFile: "test/v2_0/configs/authorities.js",
       },
       execution: {
         kind: "single-request",
@@ -472,8 +472,8 @@ export const v2ProofSliceStatementsAuthoritySuite = {
       tags: ["v2.0.0", "statements", "authority", "group", "rejection"],
       capabilityFlags: [],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Authority-Requirements.js",
-        configFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/authorities.js",
+        suiteFile: "test/v2_0/4.2.4.2-Authority-Requirements.js",
+        configFile: "test/v2_0/configs/authorities.js",
       },
       execution: {
         kind: "single-request",
@@ -558,8 +558,8 @@ export const v2ProofSliceStatementsAuthoritySuite = {
       tags: ["v2.0.0", "statements", "authority", "group", "rejection"],
       capabilityFlags: [],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Authority-Requirements.js",
-        configFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/authorities.js",
+        suiteFile: "test/v2_0/4.2.4.2-Authority-Requirements.js",
+        configFile: "test/v2_0/configs/authorities.js",
       },
       execution: {
         kind: "single-request",
@@ -647,8 +647,8 @@ export const v2ProofSliceStatementsAuthoritySuite = {
       tags: ["v2.0.0", "statements", "authority", "group", "rejection"],
       capabilityFlags: [],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Authority-Requirements.js",
-        configFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/authorities.js",
+        suiteFile: "test/v2_0/4.2.4.2-Authority-Requirements.js",
+        configFile: "test/v2_0/configs/authorities.js",
       },
       execution: {
         kind: "single-request",
@@ -722,8 +722,8 @@ export const v2ProofSliceStatementsAuthoritySuite = {
       tags: ["v2.0.0", "statements", "authority", "group", "rejection"],
       capabilityFlags: [],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Authority-Requirements.js",
-        configFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/authorities.js",
+        suiteFile: "test/v2_0/4.2.4.2-Authority-Requirements.js",
+        configFile: "test/v2_0/configs/authorities.js",
       },
       execution: {
         kind: "single-request",
@@ -801,8 +801,8 @@ export const v2ProofSliceStatementsAuthoritySuite = {
       tags: ["v2.0.0", "statements", "authority", "group", "rejection"],
       capabilityFlags: [],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Authority-Requirements.js",
-        configFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/authorities.js",
+        suiteFile: "test/v2_0/4.2.4.2-Authority-Requirements.js",
+        configFile: "test/v2_0/configs/authorities.js",
       },
       execution: {
         kind: "single-request",

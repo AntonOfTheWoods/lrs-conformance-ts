@@ -25,8 +25,8 @@ export const v2StatementsContextInvalidPlatformTypeSubstatementObjectCase = {
   ],
   "capabilityFlags": [],
   "legacyTrace": {
-    "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.5-Context-Requirements.js",
-    "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/contexts.js"
+    "suiteFile": "test/v2_0/4.2.2.5-Context-Requirements.js",
+    "configFile": "test/v2_0/configs/contexts.js"
   },
   "execution": {
     "kind": "single-request",

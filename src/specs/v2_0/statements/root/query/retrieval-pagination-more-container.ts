@@ -30,7 +30,7 @@ export const v2StatementsRetrievalPaginationMoreContainerCase = {
   tags: ["v2.0.0", "statements", "retrieval", "pagination"],
   capabilityFlags: ["transport", "query", "retrieval"],
   legacyTrace: {
-    suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/E.Data2.5-RetrievalofStatements.js",
+    suiteFile: "test/v2_0/E.Data2.5-RetrievalofStatements.js",
   },
   execution: {
     kind: "request-sequence",

@@ -20,8 +20,8 @@ export const v2StatementsLanguageMapsLegacyRejectedAttachmentDescriptionCase = {
   ],
   "capabilityFlags": [],
   "legacyTrace": {
-    "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/E.Data4.0-SpecialDataTypesAndRules.js",
-    "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/languages.js"
+    "suiteFile": "test/v2_0/E.Data4.0-SpecialDataTypesAndRules.js",
+    "configFile": "test/v2_0/configs/languages.js"
   },
   "execution": {
     "kind": "single-request",

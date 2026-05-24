@@ -14,7 +14,7 @@ export const v2StatementsQueryUntilCase = {
   tags: ["v2.0.0", "statements", "query", "until"],
   capabilityFlags: ["query", "retrieval"],
   legacyTrace: {
-    suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+    suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
   },
   execution: {
     kind: "request-sequence",

@@ -3,7 +3,7 @@
 ## Current status
 
 - Validation gate: `bun run check` is green.
-- Source-of-truth baseline: `/home/anton/dev/tmp/lrs-conformance-test-suite-orig`.
+- Source-of-truth baseline: `/home/anton/dev/tmp/legacy-upstream-suite`.
 - xAPI 2.0 status: closed and audit-reconciled against the upstream-original baseline.
 - xAPI 2.0 upstream conformance count: 1435 tests in the original upstream batteries artifact.
 - xAPI 2.0 upstream batteries rendered leaf count: 1429 leaf nodes, with a legacy summary delta of 6 above rendered leaves.

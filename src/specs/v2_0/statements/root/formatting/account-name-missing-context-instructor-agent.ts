@@ -19,8 +19,8 @@ export const v2StatementsAccountNameMissingContextInstructorAgentCase = {
   ],
   "capabilityFlags": [],
   "legacyTrace": {
-    "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.1-Actor-Requirements.js",
-    "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/accountobjects.js"
+    "suiteFile": "test/v2_0/4.2.2.1-Actor-Requirements.js",
+    "configFile": "test/v2_0/configs/accountobjects.js"
   },
   "execution": {
     "kind": "single-request",

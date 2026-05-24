@@ -4,9 +4,10 @@ import { join } from "node:path";
 
 import type { RegistryNode } from "../src/domain/contracts";
 import { buildOriginalSuiteDeltaMatrix } from "../src/specs/migration/v1-v2-delta";
+import { resolveUpstreamTestRoot } from "../src/specs/migration/upstream-root";
 import { createV103ProofSliceRegistry } from "../src/specs/v1_0_3/proof-slice";
 
-const upstreamV103Root = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v1_0_3";
+const upstreamV103Root = resolveUpstreamTestRoot("v1_0_3");
 
 function collectFiles(root: string): string[] {
   return readdirSync(root, { withFileTypes: true }).flatMap((entry) => {

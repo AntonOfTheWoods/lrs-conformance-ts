@@ -3,9 +3,10 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import type { RegistryNode } from "../src/domain/contracts";
+import { resolveUpstreamTestRoot } from "../src/specs/migration/upstream-root";
 import { createProofSliceRegistry } from "../src/specs/v2_0/proof-slice";
 
-const upstreamV20Root = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0";
+const upstreamV20Root = resolveUpstreamTestRoot("v2_0");
 
 const auditedMissingV20RequirementIds = {
   "XAPI-00021": "Multiplicity-folder-only note in the upstream ID Requirements suite; not executed from test/v2_0.",

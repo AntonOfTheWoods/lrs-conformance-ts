@@ -22,7 +22,7 @@ export const v2StatementsQueryRelatedAgentsCase = {
     "retrieval"
   ],
   "legacyTrace": {
-    "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js"
+    "suiteFile": "test/v2_0/4.1.6.1-Statement-Resource.js"
   },
   "execution": {
     "kind": "request-sequence",

@@ -32,7 +32,7 @@ export const v2ProofSliceStatementsSignedStatementsSuite = {
         "validation"
       ],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/E.Data2.6-SignedStatements.js"
+        "suiteFile": "test/v2_0/E.Data2.6-SignedStatements.js"
       },
       "execution": {
         "kind": "single-request",
@@ -90,7 +90,7 @@ export const v2ProofSliceStatementsSignedStatementsSuite = {
         "validation"
       ],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/E.Data2.6-SignedStatements.js"
+        "suiteFile": "test/v2_0/E.Data2.6-SignedStatements.js"
       },
       "execution": {
         "kind": "single-request",
@@ -148,7 +148,7 @@ export const v2ProofSliceStatementsSignedStatementsSuite = {
         "validation"
       ],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/E.Data2.6-SignedStatements.js"
+        "suiteFile": "test/v2_0/E.Data2.6-SignedStatements.js"
       },
       "execution": {
         "kind": "single-request",
@@ -205,7 +205,7 @@ export const v2ProofSliceStatementsSignedStatementsSuite = {
         "multipart"
       ],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/E.Data2.6-SignedStatements.js"
+        "suiteFile": "test/v2_0/E.Data2.6-SignedStatements.js"
       },
       "execution": {
         "kind": "single-request",
@@ -262,7 +262,7 @@ export const v2ProofSliceStatementsSignedStatementsSuite = {
         "multipart"
       ],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/E.Data2.6-SignedStatements.js"
+        "suiteFile": "test/v2_0/E.Data2.6-SignedStatements.js"
       },
       "execution": {
         "kind": "single-request",
@@ -319,7 +319,7 @@ export const v2ProofSliceStatementsSignedStatementsSuite = {
         "multipart"
       ],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/E.Data2.6-SignedStatements.js"
+        "suiteFile": "test/v2_0/E.Data2.6-SignedStatements.js"
       },
       "execution": {
         "kind": "single-request",
@@ -377,7 +377,7 @@ export const v2ProofSliceStatementsSignedStatementsSuite = {
         "validation"
       ],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/E.Data2.6-SignedStatements.js"
+        "suiteFile": "test/v2_0/E.Data2.6-SignedStatements.js"
       },
       "execution": {
         "kind": "single-request",

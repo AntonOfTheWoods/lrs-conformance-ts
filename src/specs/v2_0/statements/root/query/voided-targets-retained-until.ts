@@ -16,7 +16,7 @@ export const v2StatementsQueryVoidedTargetsRetainedUntilCase = {
   tags: ["v2.0.0", "statements", "query", "voiding", "retrieval"],
   capabilityFlags: ["query", "retrieval", "voiding"],
   legacyTrace: {
-    suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+    suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
   },
   execution: {
     kind: "request-sequence",

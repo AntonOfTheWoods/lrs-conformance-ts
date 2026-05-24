@@ -21,7 +21,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "representation", "format"],
       capabilityFlags: ["query", "retrieval", "format"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "request-sequence",
@@ -153,7 +153,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "representation", "format", "accept-language"],
       capabilityFlags: ["query", "retrieval", "format"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "request-sequence",
@@ -286,7 +286,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "representation", "format"],
       capabilityFlags: ["query", "retrieval", "format"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "request-sequence",
@@ -424,7 +424,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "representation", "format", "canonical"],
       capabilityFlags: ["query", "retrieval", "format"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "request-sequence",
@@ -556,7 +556,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "representation", "format", "ids"],
       capabilityFlags: ["query", "retrieval", "format"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "request-sequence",
@@ -686,7 +686,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "representation", "format"],
       capabilityFlags: ["query", "retrieval", "format"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "request-sequence",
@@ -818,7 +818,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "representation", "format"],
       capabilityFlags: ["query", "retrieval", "format"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "request-sequence",
@@ -956,7 +956,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "representation", "format"],
       capabilityFlags: ["query", "retrieval", "format"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "request-sequence",
@@ -1089,7 +1089,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "representation", "format"],
       capabilityFlags: ["query", "retrieval", "format"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "request-sequence",
@@ -1218,7 +1218,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "representation", "format", "accept-language"],
       capabilityFlags: ["query", "retrieval", "format"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "request-sequence",
@@ -1345,7 +1345,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "representation", "format", "accept-language"],
       capabilityFlags: ["query", "retrieval", "format"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "request-sequence",
@@ -1472,7 +1472,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "representation", "attachments"],
       capabilityFlags: ["query", "retrieval", "attachments"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "request-sequence",
@@ -1564,7 +1564,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "representation", "attachments"],
       capabilityFlags: ["query", "retrieval", "attachments"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "request-sequence",
@@ -1687,7 +1687,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "representation", "attachments"],
       capabilityFlags: ["query", "retrieval", "attachments"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "request-sequence",
@@ -1774,7 +1774,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "representation", "attachments"],
       capabilityFlags: ["query", "retrieval", "attachments"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "request-sequence",
@@ -1862,7 +1862,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "representation", "headers"],
       capabilityFlags: ["query", "headers"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -1913,7 +1913,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "headers"],
       capabilityFlags: ["query", "retrieval", "headers"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "request-sequence",
@@ -2020,7 +2020,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "headers"],
       capabilityFlags: ["headers", "query"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -2072,7 +2072,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "headers", "validation"],
       capabilityFlags: ["headers", "query", "validation"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -2123,7 +2123,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "headers", "consistent-through"],
       capabilityFlags: ["headers", "query"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -2174,7 +2174,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "headers", "consistent-through"],
       capabilityFlags: ["headers", "query"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -2225,7 +2225,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "headers", "consistent-through"],
       capabilityFlags: ["headers", "query"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -2276,7 +2276,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "headers", "consistent-through"],
       capabilityFlags: ["headers", "query"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -2328,7 +2328,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "headers", "consistent-through"],
       capabilityFlags: ["headers", "query"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -2381,7 +2381,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "headers", "consistent-through"],
       capabilityFlags: ["headers", "query"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -2433,7 +2433,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "headers", "consistent-through"],
       capabilityFlags: ["headers", "query"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -2484,7 +2484,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "headers", "consistent-through"],
       capabilityFlags: ["headers", "query"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -2535,7 +2535,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "headers", "consistent-through"],
       capabilityFlags: ["headers", "query"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -2586,7 +2586,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "headers", "consistent-through"],
       capabilityFlags: ["headers", "query"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -2637,7 +2637,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "headers", "consistent-through"],
       capabilityFlags: ["headers", "query"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -2688,7 +2688,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "headers", "consistent-through"],
       capabilityFlags: ["headers", "query"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -2740,7 +2740,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "headers", "consistent-through"],
       capabilityFlags: ["headers", "query"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -2791,7 +2791,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "headers", "consistent-through"],
       capabilityFlags: ["headers", "query"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -2842,7 +2842,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "headers", "consistent-through"],
       capabilityFlags: ["headers", "query"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -2893,7 +2893,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "headers", "consistent-through"],
       capabilityFlags: ["headers", "query"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -2944,7 +2944,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "headers", "consistent-through"],
       capabilityFlags: ["headers", "query"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -2996,7 +2996,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "headers", "consistent-through"],
       capabilityFlags: ["headers", "query"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -3048,7 +3048,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "headers", "consistent-through"],
       capabilityFlags: ["headers", "query"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -3099,7 +3099,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "headers", "consistent-through"],
       capabilityFlags: ["headers", "query"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -3150,7 +3150,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "headers", "consistent-through"],
       capabilityFlags: ["headers", "query"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -3201,7 +3201,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "headers", "consistent-through"],
       capabilityFlags: ["headers", "query"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -3252,7 +3252,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "headers", "consistent-through"],
       capabilityFlags: ["headers", "query"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -3303,7 +3303,7 @@ export const v2ProofSliceStatementsRepresentationSuite = {
       tags: ["v2.0.0", "statements", "headers", "consistent-through"],
       capabilityFlags: ["headers", "query"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",

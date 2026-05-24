@@ -33,7 +33,7 @@ export const v2ProofSliceStatementsIdSuite = {
         "id-generation"
       ],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-ID-Requirements.js"
+        "suiteFile": "test/v2_0/4.2.4.2-ID-Requirements.js"
       },
       "execution": {
         "kind": "submit-and-query",
@@ -143,8 +143,8 @@ export const v2ProofSliceStatementsIdSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-ID-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/uuids.js"
+        "suiteFile": "test/v2_0/4.2.4.2-ID-Requirements.js",
+        "configFile": "test/v2_0/configs/uuids.js"
       },
       "execution": {
         "kind": "single-request",
@@ -220,8 +220,8 @@ export const v2ProofSliceStatementsIdSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-ID-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/uuids.js"
+        "suiteFile": "test/v2_0/4.2.4.2-ID-Requirements.js",
+        "configFile": "test/v2_0/configs/uuids.js"
       },
       "execution": {
         "kind": "single-request",
@@ -299,8 +299,8 @@ export const v2ProofSliceStatementsIdSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-ID-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/uuids.js"
+        "suiteFile": "test/v2_0/4.2.4.2-ID-Requirements.js",
+        "configFile": "test/v2_0/configs/uuids.js"
       },
       "execution": {
         "kind": "single-request",
@@ -390,8 +390,8 @@ export const v2ProofSliceStatementsIdSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-ID-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/uuids.js"
+        "suiteFile": "test/v2_0/4.2.4.2-ID-Requirements.js",
+        "configFile": "test/v2_0/configs/uuids.js"
       },
       "execution": {
         "kind": "single-request",
@@ -483,8 +483,8 @@ export const v2ProofSliceStatementsIdSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-ID-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/uuids.js"
+        "suiteFile": "test/v2_0/4.2.4.2-ID-Requirements.js",
+        "configFile": "test/v2_0/configs/uuids.js"
       },
       "execution": {
         "kind": "single-request",
@@ -560,8 +560,8 @@ export const v2ProofSliceStatementsIdSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-ID-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/uuids.js"
+        "suiteFile": "test/v2_0/4.2.4.2-ID-Requirements.js",
+        "configFile": "test/v2_0/configs/uuids.js"
       },
       "execution": {
         "kind": "single-request",
@@ -637,8 +637,8 @@ export const v2ProofSliceStatementsIdSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-ID-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/uuids.js"
+        "suiteFile": "test/v2_0/4.2.4.2-ID-Requirements.js",
+        "configFile": "test/v2_0/configs/uuids.js"
       },
       "execution": {
         "kind": "single-request",
@@ -728,8 +728,8 @@ export const v2ProofSliceStatementsIdSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-ID-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/uuids.js"
+        "suiteFile": "test/v2_0/4.2.4.2-ID-Requirements.js",
+        "configFile": "test/v2_0/configs/uuids.js"
       },
       "execution": {
         "kind": "single-request",
@@ -820,8 +820,8 @@ export const v2ProofSliceStatementsIdSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-ID-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/uuids.js"
+        "suiteFile": "test/v2_0/4.2.4.2-ID-Requirements.js",
+        "configFile": "test/v2_0/configs/uuids.js"
       },
       "execution": {
         "kind": "single-request",
@@ -901,8 +901,8 @@ export const v2ProofSliceStatementsIdSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-ID-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/uuids.js"
+        "suiteFile": "test/v2_0/4.2.4.2-ID-Requirements.js",
+        "configFile": "test/v2_0/configs/uuids.js"
       },
       "execution": {
         "kind": "single-request",
@@ -984,8 +984,8 @@ export const v2ProofSliceStatementsIdSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-ID-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/uuids.js"
+        "suiteFile": "test/v2_0/4.2.4.2-ID-Requirements.js",
+        "configFile": "test/v2_0/configs/uuids.js"
       },
       "execution": {
         "kind": "single-request",
@@ -1079,8 +1079,8 @@ export const v2ProofSliceStatementsIdSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-ID-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/uuids.js"
+        "suiteFile": "test/v2_0/4.2.4.2-ID-Requirements.js",
+        "configFile": "test/v2_0/configs/uuids.js"
       },
       "execution": {
         "kind": "single-request",
@@ -1176,8 +1176,8 @@ export const v2ProofSliceStatementsIdSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-ID-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/uuids.js"
+        "suiteFile": "test/v2_0/4.2.4.2-ID-Requirements.js",
+        "configFile": "test/v2_0/configs/uuids.js"
       },
       "execution": {
         "kind": "single-request",
@@ -1257,8 +1257,8 @@ export const v2ProofSliceStatementsIdSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-ID-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/uuids.js"
+        "suiteFile": "test/v2_0/4.2.4.2-ID-Requirements.js",
+        "configFile": "test/v2_0/configs/uuids.js"
       },
       "execution": {
         "kind": "single-request",
@@ -1338,8 +1338,8 @@ export const v2ProofSliceStatementsIdSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-ID-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/uuids.js"
+        "suiteFile": "test/v2_0/4.2.4.2-ID-Requirements.js",
+        "configFile": "test/v2_0/configs/uuids.js"
       },
       "execution": {
         "kind": "single-request",
@@ -1433,8 +1433,8 @@ export const v2ProofSliceStatementsIdSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-ID-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/uuids.js"
+        "suiteFile": "test/v2_0/4.2.4.2-ID-Requirements.js",
+        "configFile": "test/v2_0/configs/uuids.js"
       },
       "execution": {
         "kind": "single-request",
@@ -1528,8 +1528,8 @@ export const v2ProofSliceStatementsIdSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-ID-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/uuids.js"
+        "suiteFile": "test/v2_0/4.2.4.2-ID-Requirements.js",
+        "configFile": "test/v2_0/configs/uuids.js"
       },
       "execution": {
         "kind": "single-request",
@@ -1612,8 +1612,8 @@ export const v2ProofSliceStatementsIdSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-ID-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/uuids.js"
+        "suiteFile": "test/v2_0/4.2.4.2-ID-Requirements.js",
+        "configFile": "test/v2_0/configs/uuids.js"
       },
       "execution": {
         "kind": "single-request",
@@ -1698,8 +1698,8 @@ export const v2ProofSliceStatementsIdSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-ID-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/uuids.js"
+        "suiteFile": "test/v2_0/4.2.4.2-ID-Requirements.js",
+        "configFile": "test/v2_0/configs/uuids.js"
       },
       "execution": {
         "kind": "single-request",
@@ -1796,8 +1796,8 @@ export const v2ProofSliceStatementsIdSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-ID-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/uuids.js"
+        "suiteFile": "test/v2_0/4.2.4.2-ID-Requirements.js",
+        "configFile": "test/v2_0/configs/uuids.js"
       },
       "execution": {
         "kind": "single-request",
@@ -1896,8 +1896,8 @@ export const v2ProofSliceStatementsIdSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-ID-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/uuids.js"
+        "suiteFile": "test/v2_0/4.2.4.2-ID-Requirements.js",
+        "configFile": "test/v2_0/configs/uuids.js"
       },
       "execution": {
         "kind": "single-request",
@@ -1980,8 +1980,8 @@ export const v2ProofSliceStatementsIdSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-ID-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/uuids.js"
+        "suiteFile": "test/v2_0/4.2.4.2-ID-Requirements.js",
+        "configFile": "test/v2_0/configs/uuids.js"
       },
       "execution": {
         "kind": "single-request",
@@ -2064,8 +2064,8 @@ export const v2ProofSliceStatementsIdSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-ID-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/uuids.js"
+        "suiteFile": "test/v2_0/4.2.4.2-ID-Requirements.js",
+        "configFile": "test/v2_0/configs/uuids.js"
       },
       "execution": {
         "kind": "single-request",
@@ -2162,8 +2162,8 @@ export const v2ProofSliceStatementsIdSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-ID-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/uuids.js"
+        "suiteFile": "test/v2_0/4.2.4.2-ID-Requirements.js",
+        "configFile": "test/v2_0/configs/uuids.js"
       },
       "execution": {
         "kind": "single-request",

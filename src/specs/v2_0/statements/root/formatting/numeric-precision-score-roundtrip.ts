@@ -23,7 +23,7 @@ export const v2StatementsNumericPrecisionScoreRoundtripCase = {
     "precision"
   ],
   "legacyTrace": {
-    "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/Data2.2-FormattingRequirements.js"
+    "suiteFile": "test/v2_0/Data2.2-FormattingRequirements.js"
   },
   "execution": {
     "kind": "submit-and-query",

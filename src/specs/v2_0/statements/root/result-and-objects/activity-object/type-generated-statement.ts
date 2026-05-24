@@ -14,7 +14,7 @@ export const v2StatementsActivityObjectTypeGeneratedStatementCase = {
   tags: ["v2.0.0", "statements", "activity", "object", "retrieval"],
   capabilityFlags: ["query", "retrieval", "activity"],
   legacyTrace: {
-    suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.3-Object-Requirements.js",
+    suiteFile: "test/v2_0/4.2.2.3-Object-Requirements.js",
   },
   execution: {
     kind: "submit-and-query",

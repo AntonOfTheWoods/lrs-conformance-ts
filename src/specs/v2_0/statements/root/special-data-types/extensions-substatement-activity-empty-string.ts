@@ -29,7 +29,7 @@ export const v2StatementsSpecialDataTypesExtensionsSubstatementActivityEmptyStri
     "special-data-types"
   ],
   "legacyTrace": {
-    "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/E.Data4.0-SpecialDataTypesAndRules.js"
+    "suiteFile": "test/v2_0/E.Data4.0-SpecialDataTypesAndRules.js"
   },
   "execution": {
     "kind": "single-request",

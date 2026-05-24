@@ -24,8 +24,8 @@ export const v2StatementsResultDurationValidStatementYearsOnlyCase = {
   ],
   "capabilityFlags": [],
   "legacyTrace": {
-    "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.4-Result-Requirements.js",
-    "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/durations.js"
+    "suiteFile": "test/v2_0/4.2.2.4-Result-Requirements.js",
+    "configFile": "test/v2_0/configs/durations.js"
   },
   "execution": {
     "kind": "single-request",

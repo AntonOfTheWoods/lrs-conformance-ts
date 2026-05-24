@@ -28,8 +28,8 @@ export const v2ProofSliceStatementsAttachmentsSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.6-Attachment-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/attachments.js"
+        "suiteFile": "test/v2_0/4.2.2.6-Attachment-Requirements.js",
+        "configFile": "test/v2_0/configs/attachments.js"
       },
       "execution": {
         "kind": "single-request",
@@ -119,8 +119,8 @@ export const v2ProofSliceStatementsAttachmentsSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.6-Attachment-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/attachments.js"
+        "suiteFile": "test/v2_0/4.2.2.6-Attachment-Requirements.js",
+        "configFile": "test/v2_0/configs/attachments.js"
       },
       "execution": {
         "kind": "single-request",
@@ -208,8 +208,8 @@ export const v2ProofSliceStatementsAttachmentsSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.6-Attachment-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/attachments.js"
+        "suiteFile": "test/v2_0/4.2.2.6-Attachment-Requirements.js",
+        "configFile": "test/v2_0/configs/attachments.js"
       },
       "execution": {
         "kind": "single-request",
@@ -287,8 +287,8 @@ export const v2ProofSliceStatementsAttachmentsSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.6-Attachment-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/attachments.js"
+        "suiteFile": "test/v2_0/4.2.2.6-Attachment-Requirements.js",
+        "configFile": "test/v2_0/configs/attachments.js"
       },
       "execution": {
         "kind": "single-request",
@@ -366,8 +366,8 @@ export const v2ProofSliceStatementsAttachmentsSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.6-Attachment-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/attachments.js"
+        "suiteFile": "test/v2_0/4.2.2.6-Attachment-Requirements.js",
+        "configFile": "test/v2_0/configs/attachments.js"
       },
       "execution": {
         "kind": "single-request",
@@ -457,8 +457,8 @@ export const v2ProofSliceStatementsAttachmentsSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.6-Attachment-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/attachments.js"
+        "suiteFile": "test/v2_0/4.2.2.6-Attachment-Requirements.js",
+        "configFile": "test/v2_0/configs/attachments.js"
       },
       "execution": {
         "kind": "single-request",
@@ -548,8 +548,8 @@ export const v2ProofSliceStatementsAttachmentsSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.6-Attachment-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/attachments.js"
+        "suiteFile": "test/v2_0/4.2.2.6-Attachment-Requirements.js",
+        "configFile": "test/v2_0/configs/attachments.js"
       },
       "execution": {
         "kind": "single-request",
@@ -639,8 +639,8 @@ export const v2ProofSliceStatementsAttachmentsSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.6-Attachment-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/attachments.js"
+        "suiteFile": "test/v2_0/4.2.2.6-Attachment-Requirements.js",
+        "configFile": "test/v2_0/configs/attachments.js"
       },
       "execution": {
         "kind": "single-request",
@@ -730,8 +730,8 @@ export const v2ProofSliceStatementsAttachmentsSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.6-Attachment-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/attachments.js"
+        "suiteFile": "test/v2_0/4.2.2.6-Attachment-Requirements.js",
+        "configFile": "test/v2_0/configs/attachments.js"
       },
       "execution": {
         "kind": "single-request",
@@ -821,8 +821,8 @@ export const v2ProofSliceStatementsAttachmentsSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.6-Attachment-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/attachments.js"
+        "suiteFile": "test/v2_0/4.2.2.6-Attachment-Requirements.js",
+        "configFile": "test/v2_0/configs/attachments.js"
       },
       "execution": {
         "kind": "single-request",
@@ -910,8 +910,8 @@ export const v2ProofSliceStatementsAttachmentsSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.6-Attachment-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/attachments.js"
+        "suiteFile": "test/v2_0/4.2.2.6-Attachment-Requirements.js",
+        "configFile": "test/v2_0/configs/attachments.js"
       },
       "execution": {
         "kind": "single-request",
@@ -999,8 +999,8 @@ export const v2ProofSliceStatementsAttachmentsSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.6-Attachment-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/attachments.js"
+        "suiteFile": "test/v2_0/4.2.2.6-Attachment-Requirements.js",
+        "configFile": "test/v2_0/configs/attachments.js"
       },
       "execution": {
         "kind": "single-request",
@@ -1088,8 +1088,8 @@ export const v2ProofSliceStatementsAttachmentsSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.6-Attachment-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/attachments.js"
+        "suiteFile": "test/v2_0/4.2.2.6-Attachment-Requirements.js",
+        "configFile": "test/v2_0/configs/attachments.js"
       },
       "execution": {
         "kind": "single-request",

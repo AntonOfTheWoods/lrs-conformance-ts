@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import type { RegistryNode } from "../src/domain/contracts";
 import { LEGACY_XAPI_COMMENT_MAP } from "../src/registry/legacyCommentMap";
 import { LEGACY_XAPI_DESCRIBE_MAP } from "../src/registry/legacyDescribeMap";
+import { resolveUpstreamPath } from "../src/specs/migration/upstream-root";
 import { createProofSliceRegistry as createV20Registry } from "../src/specs/v2_0/proof-slice";
 import { createV103ProofSliceRegistry as createV103Registry } from "../src/specs/v1_0_3/proof-slice";
 
@@ -20,7 +21,7 @@ function collectAllCases(registry: ReturnType<typeof createV20Registry | typeof 
 }
 
 function extractUpstreamTexts(filePath: string) {
-  const text = readFileSync(filePath, "utf8");
+  const text = readFileSync(resolveUpstreamPath(filePath), "utf8");
   const comments = [...text.matchAll(/\/\*\*([\s\S]*?)\*\//g)].map((match) =>
     (match[1] ?? "")
       .split("\n")
@@ -161,7 +162,7 @@ describe("Comment Parity", () => {
   });
 
   test("statement-voiding upstream comments, describes, and it texts are automatically associable to rewrite cases", () => {
-    const upstreamPath = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.5-Statement-Voiding.js";
+    const upstreamPath = "test/v2_0/4.2.5-Statement-Voiding.js";
     const upstream = extractUpstreamTexts(upstreamPath);
 
     const v20 = createV20Registry();
@@ -276,7 +277,7 @@ describe("Comment Parity", () => {
   });
 
   test("statement-resource upstream comments, describes, and it texts are automatically associable to rewrite cases", () => {
-    const upstreamPath = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js";
+    const upstreamPath = "test/v2_0/4.1.6.1-Statement-Resource.js";
     const upstream = extractUpstreamTexts(upstreamPath);
 
     const v20 = createV20Registry();

@@ -24,8 +24,8 @@ export const v2StatementsCaseSensitiveKeysActorCase = {
   ],
   "capabilityFlags": [],
   "legacyTrace": {
-    "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/Data2.2-FormattingRequirements.js",
-    "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/formatting.js"
+    "suiteFile": "test/v2_0/Data2.2-FormattingRequirements.js",
+    "configFile": "test/v2_0/configs/formatting.js"
   },
   "execution": {
     "kind": "single-request",

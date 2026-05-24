@@ -20,8 +20,8 @@ export const v2StatementsVerbDisplayTypeStatementNumericCase = {
   ],
   "capabilityFlags": [],
   "legacyTrace": {
-    "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.2-Verb-Requirements.js",
-    "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/verbs.js"
+    "suiteFile": "test/v2_0/4.2.2.2-Verb-Requirements.js",
+    "configFile": "test/v2_0/configs/verbs.js"
   },
   "execution": {
     "kind": "single-request",

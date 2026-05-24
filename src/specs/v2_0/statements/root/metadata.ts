@@ -28,8 +28,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Timestamp-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/timestamp_property.js"
+        "suiteFile": "test/v2_0/4.2.4.2-Timestamp-Requirements.js",
+        "configFile": "test/v2_0/configs/timestamp_property.js"
       },
       "execution": {
         "kind": "single-request",
@@ -104,8 +104,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Timestamp-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/timestamp_property.js"
+        "suiteFile": "test/v2_0/4.2.4.2-Timestamp-Requirements.js",
+        "configFile": "test/v2_0/configs/timestamp_property.js"
       },
       "execution": {
         "kind": "single-request",
@@ -180,8 +180,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Timestamp-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/timestamp_property.js"
+        "suiteFile": "test/v2_0/4.2.4.2-Timestamp-Requirements.js",
+        "configFile": "test/v2_0/configs/timestamp_property.js"
       },
       "execution": {
         "kind": "single-request",
@@ -271,8 +271,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Timestamp-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/timestamp_property.js"
+        "suiteFile": "test/v2_0/4.2.4.2-Timestamp-Requirements.js",
+        "configFile": "test/v2_0/configs/timestamp_property.js"
       },
       "execution": {
         "kind": "single-request",
@@ -362,8 +362,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Timestamp-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/timestamp_property.js"
+        "suiteFile": "test/v2_0/4.2.4.2-Timestamp-Requirements.js",
+        "configFile": "test/v2_0/configs/timestamp_property.js"
       },
       "execution": {
         "kind": "single-request",
@@ -438,8 +438,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Timestamp-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/timestamp_property.js"
+        "suiteFile": "test/v2_0/4.2.4.2-Timestamp-Requirements.js",
+        "configFile": "test/v2_0/configs/timestamp_property.js"
       },
       "execution": {
         "kind": "single-request",
@@ -529,8 +529,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Timestamp-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/timestamps.js"
+        "suiteFile": "test/v2_0/4.2.4.2-Timestamp-Requirements.js",
+        "configFile": "test/v2_0/configs/timestamps.js"
       },
       "execution": {
         "kind": "single-request",
@@ -605,8 +605,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Timestamp-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/timestamps.js"
+        "suiteFile": "test/v2_0/4.2.4.2-Timestamp-Requirements.js",
+        "configFile": "test/v2_0/configs/timestamps.js"
       },
       "execution": {
         "kind": "single-request",
@@ -681,8 +681,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Timestamp-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/timestamps.js"
+        "suiteFile": "test/v2_0/4.2.4.2-Timestamp-Requirements.js",
+        "configFile": "test/v2_0/configs/timestamps.js"
       },
       "execution": {
         "kind": "single-request",
@@ -757,8 +757,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Timestamp-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/timestamps.js"
+        "suiteFile": "test/v2_0/4.2.4.2-Timestamp-Requirements.js",
+        "configFile": "test/v2_0/configs/timestamps.js"
       },
       "execution": {
         "kind": "single-request",
@@ -848,8 +848,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Timestamp-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/timestamps.js"
+        "suiteFile": "test/v2_0/4.2.4.2-Timestamp-Requirements.js",
+        "configFile": "test/v2_0/configs/timestamps.js"
       },
       "execution": {
         "kind": "single-request",
@@ -939,8 +939,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Timestamp-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/timestamps.js"
+        "suiteFile": "test/v2_0/4.2.4.2-Timestamp-Requirements.js",
+        "configFile": "test/v2_0/configs/timestamps.js"
       },
       "execution": {
         "kind": "single-request",
@@ -1031,8 +1031,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Timestamp-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/timestamps.js"
+        "suiteFile": "test/v2_0/4.2.4.2-Timestamp-Requirements.js",
+        "configFile": "test/v2_0/configs/timestamps.js"
       },
       "execution": {
         "kind": "single-request",
@@ -1108,8 +1108,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Timestamp-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/timestamps.js"
+        "suiteFile": "test/v2_0/4.2.4.2-Timestamp-Requirements.js",
+        "configFile": "test/v2_0/configs/timestamps.js"
       },
       "execution": {
         "kind": "single-request",
@@ -1199,8 +1199,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.3-Version-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/version.js"
+        "suiteFile": "test/v2_0/4.2.4.3-Version-Requirements.js",
+        "configFile": "test/v2_0/configs/version.js"
       },
       "execution": {
         "kind": "single-request",
@@ -1276,8 +1276,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.3-Version-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/version.js"
+        "suiteFile": "test/v2_0/4.2.4.3-Version-Requirements.js",
+        "configFile": "test/v2_0/configs/version.js"
       },
       "execution": {
         "kind": "single-request",
@@ -1353,8 +1353,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.3-Version-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/version.js"
+        "suiteFile": "test/v2_0/4.2.4.3-Version-Requirements.js",
+        "configFile": "test/v2_0/configs/version.js"
       },
       "execution": {
         "kind": "single-request",
@@ -1430,8 +1430,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.3-Version-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/version.js"
+        "suiteFile": "test/v2_0/4.2.4.3-Version-Requirements.js",
+        "configFile": "test/v2_0/configs/version.js"
       },
       "execution": {
         "kind": "single-request",
@@ -1507,8 +1507,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
       ],
       "capabilityFlags": [],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.3-Version-Requirements.js",
-        "configFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/version.js"
+        "suiteFile": "test/v2_0/4.2.4.3-Version-Requirements.js",
+        "configFile": "test/v2_0/configs/version.js"
       },
       "execution": {
         "kind": "single-request",
@@ -1589,7 +1589,7 @@ export const v2ProofSliceStatementsMetadataSuite = {
         "retrieval"
       ],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.3-Version-Requirements.js"
+        "suiteFile": "test/v2_0/4.2.4.3-Version-Requirements.js"
       },
       "execution": {
         "kind": "submit-and-query",
@@ -1704,7 +1704,7 @@ export const v2ProofSliceStatementsMetadataSuite = {
         "retrieval"
       ],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Stored-Requirements.js"
+        "suiteFile": "test/v2_0/4.2.4.2-Stored-Requirements.js"
       },
       "execution": {
         "kind": "request-sequence",
@@ -1834,7 +1834,7 @@ export const v2ProofSliceStatementsMetadataSuite = {
         "retrieval"
       ],
       "legacyTrace": {
-        "suiteFile": "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Stored-Requirements.js"
+        "suiteFile": "test/v2_0/4.2.4.2-Stored-Requirements.js"
       },
       "execution": {
         "kind": "request-sequence",

@@ -21,7 +21,7 @@ export const v2ProofSliceStatementsTransportSuite = {
       tags: ["v2.0.0", "statements", "transport", "endpoint"],
       capabilityFlags: ["transport"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -92,7 +92,7 @@ export const v2ProofSliceStatementsTransportSuite = {
       tags: ["v2.0.0", "statements", "transport", "endpoint"],
       capabilityFlags: ["transport"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -165,7 +165,7 @@ export const v2ProofSliceStatementsTransportSuite = {
       tags: ["v2.0.0", "statements", "transport", "put"],
       capabilityFlags: ["transport"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -238,7 +238,7 @@ export const v2ProofSliceStatementsTransportSuite = {
       tags: ["v2.0.0", "statements", "transport", "put"],
       capabilityFlags: ["transport", "query", "retrieval"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "request-sequence",
@@ -353,7 +353,7 @@ export const v2ProofSliceStatementsTransportSuite = {
       tags: ["v2.0.0", "statements", "transport", "put"],
       capabilityFlags: ["transport", "validation"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -425,7 +425,7 @@ export const v2ProofSliceStatementsTransportSuite = {
       tags: ["v2.0.0", "statements", "transport", "put", "immutability"],
       capabilityFlags: ["transport", "query", "retrieval"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "request-sequence",
@@ -578,7 +578,7 @@ export const v2ProofSliceStatementsTransportSuite = {
       tags: ["v2.0.0", "statements", "transport", "post"],
       capabilityFlags: ["transport"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -650,7 +650,7 @@ export const v2ProofSliceStatementsTransportSuite = {
       tags: ["v2.0.0", "statements", "transport", "post"],
       capabilityFlags: ["transport"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -726,7 +726,7 @@ export const v2ProofSliceStatementsTransportSuite = {
       tags: ["v2.0.0", "statements", "transport", "batch"],
       capabilityFlags: ["transport", "batch"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -823,7 +823,7 @@ export const v2ProofSliceStatementsTransportSuite = {
       tags: ["v2.0.0", "statements", "transport", "batch", "validation"],
       capabilityFlags: ["transport", "batch", "validation"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js",
+        suiteFile: "test/v2_0/4.1.6.1-Statement-Resource.js",
       },
       execution: {
         kind: "single-request",
@@ -915,7 +915,7 @@ export const v2ProofSliceStatementsTransportSuite = {
       tags: ["v2.0.0", "statements", "transport", "batch", "rollback"],
       capabilityFlags: ["transport", "batch", "validation"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/H.Communication3.2-ErrorCodes.js",
+        suiteFile: "test/v2_0/H.Communication3.2-ErrorCodes.js",
       },
       execution: {
         kind: "request-sequence",
@@ -1039,8 +1039,8 @@ export const v2ProofSliceStatementsTransportSuite = {
       tags: ["v2.0.0", "statements", "voiding"],
       capabilityFlags: ["transport", "voiding"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.5-Statement-Voiding.js",
-        configFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/voiding.js",
+        suiteFile: "test/v2_0/4.2.5-Statement-Voiding.js",
+        configFile: "test/v2_0/configs/voiding.js",
       },
       execution: {
         kind: "single-request",
@@ -1116,8 +1116,8 @@ export const v2ProofSliceStatementsTransportSuite = {
       tags: ["v2.0.0", "statements", "voiding", "validation"],
       capabilityFlags: ["transport", "voiding", "validation"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.5-Statement-Voiding.js",
-        configFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/voiding.js",
+        suiteFile: "test/v2_0/4.2.5-Statement-Voiding.js",
+        configFile: "test/v2_0/configs/voiding.js",
       },
       execution: {
         kind: "single-request",
@@ -1187,7 +1187,7 @@ export const v2ProofSliceStatementsTransportSuite = {
       tags: ["v2.0.0", "statements", "voiding"],
       capabilityFlags: ["transport", "query", "retrieval", "voiding"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.5-Statement-Voiding.js",
+        suiteFile: "test/v2_0/4.2.5-Statement-Voiding.js",
       },
       execution: {
         kind: "request-sequence",
@@ -1397,7 +1397,7 @@ export const v2ProofSliceStatementsTransportSuite = {
       tags: ["v2.0.0", "statements", "voiding"],
       capabilityFlags: ["transport", "query", "retrieval", "voiding"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.5-Statement-Voiding.js",
+        suiteFile: "test/v2_0/4.2.5-Statement-Voiding.js",
       },
       execution: {
         kind: "request-sequence",
@@ -1612,7 +1612,7 @@ export const v2ProofSliceStatementsTransportSuite = {
       tags: ["v2.0.0", "statements", "voiding", "query"],
       capabilityFlags: ["transport", "query", "retrieval", "voiding"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.5-Statement-Voiding.js",
+        suiteFile: "test/v2_0/4.2.5-Statement-Voiding.js",
       },
       execution: {
         kind: "request-sequence",
@@ -1768,7 +1768,7 @@ export const v2ProofSliceStatementsTransportSuite = {
       tags: ["v2.0.0", "statements", "voiding", "query"],
       capabilityFlags: ["transport", "query", "retrieval", "voiding"],
       legacyTrace: {
-        suiteFile: "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.5-Statement-Voiding.js",
+        suiteFile: "test/v2_0/4.2.5-Statement-Voiding.js",
       },
       execution: {
         kind: "request-sequence",

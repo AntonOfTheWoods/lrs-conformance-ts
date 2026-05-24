@@ -22,7 +22,7 @@ export const v2ProofSliceStatementsAdditionalDataTypesSuite = {
       capabilityFlags: ["activities", "retrieval", "iri"],
       legacyTrace: {
         suiteFile:
-          "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.7-Additional-Requirements-for-Data-Types.js",
+          "test/v2_0/4.2.7-Additional-Requirements-for-Data-Types.js",
       },
       execution: {
         kind: "request-sequence",
@@ -147,7 +147,7 @@ export const v2ProofSliceStatementsAdditionalDataTypesSuite = {
       capabilityFlags: ["duration", "validation"],
       legacyTrace: {
         suiteFile:
-          "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.7-Additional-Requirements-for-Data-Types.js",
+          "test/v2_0/4.2.7-Additional-Requirements-for-Data-Types.js",
       },
       execution: {
         kind: "single-request",
@@ -230,7 +230,7 @@ export const v2ProofSliceStatementsAdditionalDataTypesSuite = {
       capabilityFlags: ["duration", "retrieval"],
       legacyTrace: {
         suiteFile:
-          "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.7-Additional-Requirements-for-Data-Types.js",
+          "test/v2_0/4.2.7-Additional-Requirements-for-Data-Types.js",
       },
       execution: {
         kind: "request-sequence",
@@ -345,7 +345,7 @@ export const v2ProofSliceStatementsAdditionalDataTypesSuite = {
       capabilityFlags: ["duration", "signed"],
       legacyTrace: {
         suiteFile:
-          "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.7-Additional-Requirements-for-Data-Types.js",
+          "test/v2_0/4.2.7-Additional-Requirements-for-Data-Types.js",
       },
       execution: {
         kind: "single-request",
@@ -392,7 +392,7 @@ export const v2ProofSliceStatementsAdditionalDataTypesSuite = {
       capabilityFlags: ["timestamp", "retrieval"],
       legacyTrace: {
         suiteFile:
-          "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.7-Additional-Requirements-for-Data-Types.js",
+          "test/v2_0/4.2.7-Additional-Requirements-for-Data-Types.js",
       },
       execution: {
         kind: "request-sequence",

@@ -35,115 +35,115 @@ import {
 
 export const specVersion = "2.0.0" as const;
 export const formattingLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/Data2.2-FormattingRequirements.js";
+  "test/v2_0/Data2.2-FormattingRequirements.js";
 export const formattingLegacyConfigFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/formatting.js";
-export const verifyLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/verify.js";
+  "test/v2_0/configs/formatting.js";
+export const verifyLegacyConfigFile = "test/v2_0/configs/verify.js";
 export const actorRequirementsLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.1-Actor-Requirements.js";
+  "test/v2_0/4.2.2.1-Actor-Requirements.js";
 export const verbRequirementsLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.2-Verb-Requirements.js";
+  "test/v2_0/4.2.2.2-Verb-Requirements.js";
 export const contextLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.5-Context-Requirements.js";
+  "test/v2_0/4.2.2.5-Context-Requirements.js";
 export const contextsLegacyConfigFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/contexts.js";
+  "test/v2_0/configs/contexts.js";
 export const contextActivitiesLegacyConfigFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/contextactivities.js";
+  "test/v2_0/configs/contextactivities.js";
 export const objectRequirementsLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.3-Object-Requirements.js";
+  "test/v2_0/4.2.2.3-Object-Requirements.js";
 export const resultRequirementsLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.4-Result-Requirements.js";
+  "test/v2_0/4.2.2.4-Result-Requirements.js";
 export const attachmentRequirementsLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.2.6-Attachment-Requirements.js";
+  "test/v2_0/4.2.2.6-Attachment-Requirements.js";
 export const idRequirementsLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-ID-Requirements.js";
+  "test/v2_0/4.2.4.2-ID-Requirements.js";
 export const storedRequirementsLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Stored-Requirements.js";
+  "test/v2_0/4.2.4.2-Stored-Requirements.js";
 export const timestampRequirementsLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Timestamp-Requirements.js";
+  "test/v2_0/4.2.4.2-Timestamp-Requirements.js";
 export const versionRequirementsLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.3-Version-Requirements.js";
+  "test/v2_0/4.2.4.3-Version-Requirements.js";
 export const additionalDataTypesLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.7-Additional-Requirements-for-Data-Types.js";
+  "test/v2_0/4.2.7-Additional-Requirements-for-Data-Types.js";
 export const retrievalOfStatementsLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/E.Data2.5-RetrievalofStatements.js";
+  "test/v2_0/E.Data2.5-RetrievalofStatements.js";
 export const signedStatementsLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/E.Data2.6-SignedStatements.js";
+  "test/v2_0/E.Data2.6-SignedStatements.js";
 export const specialDataTypesLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/E.Data4.0-SpecialDataTypesAndRules.js";
+  "test/v2_0/E.Data4.0-SpecialDataTypesAndRules.js";
 export const statementResourceLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.1-Statement-Resource.js";
+  "test/v2_0/4.1.6.1-Statement-Resource.js";
 export const errorCodesLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/H.Communication3.2-ErrorCodes.js";
+  "test/v2_0/H.Communication3.2-ErrorCodes.js";
 export const stateResourceLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.2-State-Resource.js";
+  "test/v2_0/4.1.6.2-State-Resource.js";
 export const agentsResourceLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.3-Agents-Resource.js";
+  "test/v2_0/4.1.6.3-Agents-Resource.js";
 export const activitiesResourceLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.4-Activity-Resource.js";
+  "test/v2_0/4.1.6.4-Activity-Resource.js";
 export const agentProfileLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.5-Agent-Profile-Resource.js";
+  "test/v2_0/4.1.6.5-Agent-Profile-Resource.js";
 export const activityProfileLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.6-Activity-Profile-Resource.js";
+  "test/v2_0/4.1.6.6-Activity-Profile-Resource.js";
 export const aboutResourceLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.6.7-About-Resource.js";
+  "test/v2_0/4.1.6.7-About-Resource.js";
 export const headRequestsLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/H.Communication1.1-HeadRequestImplementation.js";
+  "test/v2_0/H.Communication1.1-HeadRequestImplementation.js";
 export const contentTypesLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.3-Content-Types.js";
+  "test/v2_0/4.1.3-Content-Types.js";
 export const concurrencyLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.1.4-Concurrency.js";
+  "test/v2_0/4.1.4-Concurrency.js";
 export const encodingLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/H.Communication1.4-Encoding.js";
+  "test/v2_0/H.Communication1.4-Encoding.js";
 export const versioningLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/H.Communication3.3-Versioning.js";
+  "test/v2_0/H.Communication3.3-Versioning.js";
 export const authenticationLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/H.Communication4.0-Authentication.js";
+  "test/v2_0/H.Communication4.0-Authentication.js";
 export const documentResourcesLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/H.Communication2.2-DocumentResources.js";
+  "test/v2_0/H.Communication2.2-DocumentResources.js";
 export const parametersLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/Parameters/testing.js";
-export const ifisLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/ifis.js";
-export const actorsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/actors.js";
-export const agentsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/agents.js";
+  "test/Parameters/testing.js";
+export const ifisLegacyConfigFile = "test/v2_0/configs/ifis.js";
+export const actorsLegacyConfigFile = "test/v2_0/configs/actors.js";
+export const agentsLegacyConfigFile = "test/v2_0/configs/agents.js";
 export const attachmentsLegacyConfigFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/attachments.js";
-export const groupsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/groups.js";
-export const verbsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/verbs.js";
+  "test/v2_0/configs/attachments.js";
+export const groupsLegacyConfigFile = "test/v2_0/configs/groups.js";
+export const verbsLegacyConfigFile = "test/v2_0/configs/verbs.js";
 export const voidingLegacyConfigFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/voiding.js";
+  "test/v2_0/configs/voiding.js";
 export const authoritiesLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.4.2-Authority-Requirements.js";
+  "test/v2_0/4.2.4.2-Authority-Requirements.js";
 export const authoritiesLegacyConfigFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/authorities.js";
+  "test/v2_0/configs/authorities.js";
 export const statementLifecycleLegacySuiteFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/4.2.5-Statement-Voiding.js";
+  "test/v2_0/4.2.5-Statement-Voiding.js";
 export const accountObjectsLegacyConfigFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/accountobjects.js";
+  "test/v2_0/configs/accountobjects.js";
 export const activitiesLegacyConfigFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/activities.js";
+  "test/v2_0/configs/activities.js";
 export const objectsLegacyConfigFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/objects.js";
+  "test/v2_0/configs/objects.js";
 export const resultsLegacyConfigFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/results.js";
+  "test/v2_0/configs/results.js";
 export const durationsLegacyConfigFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/durations.js";
-export const scoresLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/scores.js";
+  "test/v2_0/configs/durations.js";
+export const scoresLegacyConfigFile = "test/v2_0/configs/scores.js";
 export const timestampPropertyLegacyConfigFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/timestamp_property.js";
+  "test/v2_0/configs/timestamp_property.js";
 export const timestampsLegacyConfigFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/timestamps.js";
-export const uuidsLegacyConfigFile = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/uuids.js";
+  "test/v2_0/configs/timestamps.js";
+export const uuidsLegacyConfigFile = "test/v2_0/configs/uuids.js";
 export const versionPropertyLegacyConfigFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/version.js";
+  "test/v2_0/configs/version.js";
 export const statementRefsLegacyConfigFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/statementrefs.js";
+  "test/v2_0/configs/statementrefs.js";
 export const subStatementsLegacyConfigFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/substatements.js";
+  "test/v2_0/configs/substatements.js";
 export const extensionsLegacyConfigFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/extensions.js";
+  "test/v2_0/configs/extensions.js";
 export const languagesLegacyConfigFile =
-  "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test/v2_0/configs/languages.js";
+  "test/v2_0/configs/languages.js";
 
 export const proofUuidPrefix = "33333333-3333-4333-8333-";
 export const multipartStatementRequestBoundary = "mock-proof-statement-request";

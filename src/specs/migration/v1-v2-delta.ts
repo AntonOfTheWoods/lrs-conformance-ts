@@ -1,9 +1,9 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
+import { resolveUpstreamTestRoot } from "./upstream-root";
 
-const originalSuiteRoot = "/home/anton/dev/tmp/lrs-conformance-test-suite-orig/test";
-const v103Root = join(originalSuiteRoot, "v1_0_3");
-const v20Root = join(originalSuiteRoot, "v2_0");
+const v103Root = resolveUpstreamTestRoot("v1_0_3");
+const v20Root = resolveUpstreamTestRoot("v2_0");
 
 const xapiRequirementIdPattern = /XAPI-\d{5}/g;
 
