@@ -5,5 +5,6 @@ export * from "./fixtures/v2_0/statements";
 export * from "./registry/builder";
 export * from "./registry/families";
 export * from "./specs/migration/v1-v2-delta";
+export * from "./specs/v1_0_3/proof-slice";
 export * from "./specs/v2_0/proof-slice";
 export * from "./testing/mock-lrs";

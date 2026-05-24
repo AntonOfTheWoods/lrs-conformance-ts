@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { buildOriginalSuiteDeltaMatrix } from "../src/specs/migration/v1-v2-delta";
+import { buildOriginalSuiteDeltaMatrix, buildTopLevelSpecStemDelta } from "../src/specs/migration/v1-v2-delta";
 
 describe("v1.0.3 vs v2.0 original-suite delta matrix", () => {
   test("pins the known high-overlap inventory and requirement-id intersection", () => {
@@ -69,5 +69,23 @@ describe("v1.0.3 vs v2.0 original-suite delta matrix", () => {
 
     expect(matrix.requirementIds.v103Only).toEqual(["XAPI-00336"]);
     expect(matrix.requirementIds.v20Only).toEqual([]);
+  });
+
+  test("pins normalized top-level spec stem mapping for migration batching", () => {
+    const stemDelta = buildTopLevelSpecStemDelta();
+
+    expect(stemDelta.sharedStems.length).toBe(22);
+    expect(stemDelta.v103OnlyStems.length).toBe(11);
+    expect(stemDelta.v20OnlyStems.length).toBe(12);
+
+    expect(stemDelta.sharedStems).toContain("statement resource");
+    expect(stemDelta.sharedStems).toContain("signed statements");
+    expect(stemDelta.sharedStems).toContain("about resource");
+
+    expect(stemDelta.v103OnlyStems).toContain("actor property");
+    expect(stemDelta.v103OnlyStems).toContain("version property");
+
+    expect(stemDelta.v20OnlyStems).toContain("actor requirements");
+    expect(stemDelta.v20OnlyStems).toContain("additional requirements for data types");
   });
 });

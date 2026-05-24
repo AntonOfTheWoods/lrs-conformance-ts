@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import type { SuiteDefinition } from "../src/domain/contracts";
+import type { RegistryNode, SuiteDefinition } from "../src/domain/contracts";
 import { buildStatementFixture } from "../src/fixtures/v2_0/statements";
 import { RegistryBuilder } from "../src/registry/builder";
 import {
@@ -14,6 +14,7 @@ import {
   createV20ProofSliceSuite,
   createV20StateResourceProofSliceSuite,
 } from "../src/specs/v2_0/proof-slice";
+import { createV103ProofSliceRegistry as createV103Registry } from "../src/specs/v1_0_3/proof-slice";
 
 const expectedCaseCount = 1429;
 const expectedCaseIdAnchors = [
@@ -399,5 +400,51 @@ describe("Proof slice registry", () => {
       "v2.proof-slice.communication",
     ]);
     expect(registry.versions["2.0.0"][0]?.children[0]?.type).toBe("suite");
+  });
+
+  test("exposes the initial versioned registry tree for xAPI 1.0.3", () => {
+    const registry = createV103Registry();
+    const v103Suites = registry.versions["1.0.3"];
+
+    expect(v103Suites.length).toBe(2);
+    expect(v103Suites.map((suite) => suite.id)).toEqual(["v1.proof-slice.about", "v1.proof-slice.activities"]);
+  });
+
+  test("includes the first migrated xAPI 1.0.3 requirement IDs", () => {
+    const registry = createV103Registry();
+    const ids = new Set<string>();
+
+    const walk = (node: RegistryNode) => {
+      if (node.type === "case") {
+        for (const ref of node.requirementRefs) {
+          if (/^XAPI-\d{5}$/.test(ref.id)) {
+            ids.add(ref.id);
+          }
+        }
+        return;
+      }
+
+      for (const child of node.children) {
+        walk(child);
+      }
+    };
+
+    for (const suite of registry.versions["1.0.3"]) {
+      walk(suite);
+    }
+
+    expect([...ids].sort()).toEqual([
+      "XAPI-00250",
+      "XAPI-00251",
+      "XAPI-00252",
+      "XAPI-00253",
+      "XAPI-00254",
+      "XAPI-00315",
+      "XAPI-00316",
+      "XAPI-00317",
+      "XAPI-00318",
+      "XAPI-00319",
+      "XAPI-00321",
+    ]);
   });
 });

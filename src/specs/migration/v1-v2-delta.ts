@@ -46,6 +46,12 @@ export interface OriginalSuiteDeltaMatrix {
   };
 }
 
+export interface TopLevelSpecStemDelta {
+  sharedStems: string[];
+  v103OnlyStems: string[];
+  v20OnlyStems: string[];
+}
+
 function collectFilesRecursively(root: string): string[] {
   const entries = readdirSync(root, { withFileTypes: true });
   const files: string[] = [];
@@ -77,6 +83,30 @@ function normalizeVersionSpecificText(value: string): string {
     .replaceAll("v1_0_3", "<SPEC_DIR>")
     .replaceAll("4.1.6.4-Activity-Resource", "<ACTIVITY_RESOURCE_FILE>")
     .replaceAll("H.Communication2.5-ActivitiesResource", "<ACTIVITY_RESOURCE_FILE>");
+}
+
+function toNormalizedTopLevelStem(fileName: string): string {
+  const withoutExtension = fileName.replace(/\.js$/, "");
+
+  const withoutPrefix = withoutExtension
+    .replace(/^E\./, "")
+    .replace(/^H\.Communication\d+\.\d+-/, "")
+    .replace(/^Data\d+(?:\.\d+)+-/, "")
+    .replace(/^\d+\.\d+\.\d+\.\d+-/, "")
+    .replace(/^\d+\.\d+\.\d+-/, "")
+    .replace(/^\d+\.\d+-/, "")
+    .replace(/^\d+-/, "");
+
+  return withoutPrefix
+    .replaceAll("ActivitiesResource", "ActivityResource")
+    .replaceAll("Activity-Resource", "ActivityResource")
+    .replaceAll("Statement-Voiding", "StatementLifecycle")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replaceAll("-", " ")
+    .replaceAll("_", " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
 }
 
 function topLevelSpecFiles(versionRoot: string): string[] {
@@ -217,5 +247,17 @@ export function buildOriginalSuiteDeltaMatrix(): OriginalSuiteDeltaMatrix {
       v103Only: diffSorted(v103.requirementIds, v20.requirementIds),
       v20Only: diffSorted(v20.requirementIds, v103.requirementIds),
     },
+  };
+}
+
+export function buildTopLevelSpecStemDelta(): TopLevelSpecStemDelta {
+  const matrix = buildOriginalSuiteDeltaMatrix();
+  const v103Stems = matrix.v103.topLevelSpecFiles.map(toNormalizedTopLevelStem).sort();
+  const v20Stems = matrix.v20.topLevelSpecFiles.map(toNormalizedTopLevelStem).sort();
+
+  return {
+    sharedStems: intersectSorted(v103Stems, v20Stems),
+    v103OnlyStems: diffSorted(v103Stems, v20Stems),
+    v20OnlyStems: diffSorted(v20Stems, v103Stems),
   };
 }
