@@ -80,7 +80,8 @@ export const v2StatementsInvalidMboxSha1sumActorGroupCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Formatting"
+      "Statement Formatting",
+      "legacy note: XAPI-00039 upstream comment - An \"mbox_sha1sum\" property is a String An LRS rejects with 400 Bad Request if a statement uses the “mbox_sha1sum” IFI and it is not a valid string.",
     ]
   }
 } as unknown as CaseDefinition;

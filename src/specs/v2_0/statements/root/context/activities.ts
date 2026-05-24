@@ -89,7 +89,9 @@ export const v2ProofSliceStatementsContextActivitiesSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Context Activities"
+          "Statement Context Activities",
+          "legacy note: XAPI-00014 upstream comment - All Objects are well-created JSON Objects (Nature of Binding)",
+          "legacy note: XAPI-00014 upstream describe - All Objects are well-created JSON Objects (Nature of binding, Data 2.1, XAPI-00014) **Implicit**",
         ]
       }
     },
@@ -174,7 +176,9 @@ export const v2ProofSliceStatementsContextActivitiesSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Context Activities"
+          "Statement Context Activities",
+          "legacy note: XAPI-00014 upstream comment - All Objects are well-created JSON Objects (Nature of Binding)",
+          "legacy note: XAPI-00014 upstream describe - All Objects are well-created JSON Objects (Nature of binding, Data 2.1, XAPI-00014) **Implicit**",
         ]
       }
     },
@@ -259,7 +263,9 @@ export const v2ProofSliceStatementsContextActivitiesSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Context Activities"
+          "Statement Context Activities",
+          "legacy note: XAPI-00014 upstream comment - All Objects are well-created JSON Objects (Nature of Binding)",
+          "legacy note: XAPI-00014 upstream describe - All Objects are well-created JSON Objects (Nature of binding, Data 2.1, XAPI-00014) **Implicit**",
         ]
       }
     },
@@ -344,7 +350,9 @@ export const v2ProofSliceStatementsContextActivitiesSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Context Activities"
+          "Statement Context Activities",
+          "legacy note: XAPI-00014 upstream comment - All Objects are well-created JSON Objects (Nature of Binding)",
+          "legacy note: XAPI-00014 upstream describe - All Objects are well-created JSON Objects (Nature of binding, Data 2.1, XAPI-00014) **Implicit**",
         ]
       }
     },
@@ -443,7 +451,9 @@ export const v2ProofSliceStatementsContextActivitiesSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Context Activities"
+          "Statement Context Activities",
+          "legacy note: XAPI-00014 upstream comment - All Objects are well-created JSON Objects (Nature of Binding)",
+          "legacy note: XAPI-00014 upstream describe - All Objects are well-created JSON Objects (Nature of binding, Data 2.1, XAPI-00014) **Implicit**",
         ]
       }
     },
@@ -542,7 +552,9 @@ export const v2ProofSliceStatementsContextActivitiesSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Context Activities"
+          "Statement Context Activities",
+          "legacy note: XAPI-00014 upstream comment - All Objects are well-created JSON Objects (Nature of Binding)",
+          "legacy note: XAPI-00014 upstream describe - All Objects are well-created JSON Objects (Nature of binding, Data 2.1, XAPI-00014) **Implicit**",
         ]
       }
     },
@@ -641,7 +653,9 @@ export const v2ProofSliceStatementsContextActivitiesSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Context Activities"
+          "Statement Context Activities",
+          "legacy note: XAPI-00014 upstream comment - All Objects are well-created JSON Objects (Nature of Binding)",
+          "legacy note: XAPI-00014 upstream describe - All Objects are well-created JSON Objects (Nature of binding, Data 2.1, XAPI-00014) **Implicit**",
         ]
       }
     },
@@ -740,7 +754,9 @@ export const v2ProofSliceStatementsContextActivitiesSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Context Activities"
+          "Statement Context Activities",
+          "legacy note: XAPI-00014 upstream comment - All Objects are well-created JSON Objects (Nature of Binding)",
+          "legacy note: XAPI-00014 upstream describe - All Objects are well-created JSON Objects (Nature of binding, Data 2.1, XAPI-00014) **Implicit**",
         ]
       }
     },
@@ -824,7 +840,8 @@ export const v2ProofSliceStatementsContextActivitiesSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Context Activities"
+          "Statement Context Activities",
+          "legacy note: XAPI-00093 upstream comment - in contextactivities.js",
         ]
       }
     },
@@ -908,7 +925,8 @@ export const v2ProofSliceStatementsContextActivitiesSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Context Activities"
+          "Statement Context Activities",
+          "legacy note: XAPI-00093 upstream comment - in contextactivities.js",
         ]
       }
     },
@@ -992,7 +1010,8 @@ export const v2ProofSliceStatementsContextActivitiesSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Context Activities"
+          "Statement Context Activities",
+          "legacy note: XAPI-00093 upstream comment - in contextactivities.js",
         ]
       }
     },
@@ -1076,7 +1095,8 @@ export const v2ProofSliceStatementsContextActivitiesSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Context Activities"
+          "Statement Context Activities",
+          "legacy note: XAPI-00093 upstream comment - in contextactivities.js",
         ]
       }
     },
@@ -1174,7 +1194,8 @@ export const v2ProofSliceStatementsContextActivitiesSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Context Activities"
+          "Statement Context Activities",
+          "legacy note: XAPI-00093 upstream comment - in contextactivities.js",
         ]
       }
     },
@@ -1272,7 +1293,8 @@ export const v2ProofSliceStatementsContextActivitiesSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Context Activities"
+          "Statement Context Activities",
+          "legacy note: XAPI-00093 upstream comment - in contextactivities.js",
         ]
       }
     },
@@ -1370,7 +1392,8 @@ export const v2ProofSliceStatementsContextActivitiesSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Context Activities"
+          "Statement Context Activities",
+          "legacy note: XAPI-00093 upstream comment - in contextactivities.js",
         ]
       }
     },
@@ -1468,7 +1491,8 @@ export const v2ProofSliceStatementsContextActivitiesSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Context Activities"
+          "Statement Context Activities",
+          "legacy note: XAPI-00093 upstream comment - in contextactivities.js",
         ]
       }
     },
@@ -1564,7 +1588,8 @@ export const v2ProofSliceStatementsContextActivitiesSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Context Activities"
+          "Statement Context Activities",
+          "legacy note: XAPI-00093 upstream comment - in contextactivities.js",
         ]
       }
     },
@@ -1674,7 +1699,8 @@ export const v2ProofSliceStatementsContextActivitiesSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Context Activities"
+          "Statement Context Activities",
+          "legacy note: XAPI-00093 upstream comment - in contextactivities.js",
         ]
       }
     },
@@ -1759,7 +1785,8 @@ export const v2ProofSliceStatementsContextActivitiesSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Context Activities"
+          "Statement Context Activities",
+          "legacy note: XAPI-00093 upstream comment - in contextactivities.js",
         ]
       }
     },
@@ -1858,7 +1885,8 @@ export const v2ProofSliceStatementsContextActivitiesSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Context Activities"
+          "Statement Context Activities",
+          "legacy note: XAPI-00093 upstream comment - in contextactivities.js",
         ]
       }
     },
@@ -1944,7 +1972,8 @@ export const v2ProofSliceStatementsContextActivitiesSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Context Activities"
+          "Statement Context Activities",
+          "legacy note: XAPI-00094 upstream comment - in contextactivities.js",
         ]
       }
     },
@@ -2030,7 +2059,8 @@ export const v2ProofSliceStatementsContextActivitiesSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Context Activities"
+          "Statement Context Activities",
+          "legacy note: XAPI-00094 upstream comment - in contextactivities.js",
         ]
       }
     },
@@ -2116,7 +2146,8 @@ export const v2ProofSliceStatementsContextActivitiesSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Context Activities"
+          "Statement Context Activities",
+          "legacy note: XAPI-00094 upstream comment - in contextactivities.js",
         ]
       }
     },
@@ -2202,7 +2233,8 @@ export const v2ProofSliceStatementsContextActivitiesSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Context Activities"
+          "Statement Context Activities",
+          "legacy note: XAPI-00094 upstream comment - in contextactivities.js",
         ]
       }
     },
@@ -2302,7 +2334,8 @@ export const v2ProofSliceStatementsContextActivitiesSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Context Activities"
+          "Statement Context Activities",
+          "legacy note: XAPI-00094 upstream comment - in contextactivities.js",
         ]
       }
     },
@@ -2402,7 +2435,8 @@ export const v2ProofSliceStatementsContextActivitiesSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Context Activities"
+          "Statement Context Activities",
+          "legacy note: XAPI-00094 upstream comment - in contextactivities.js",
         ]
       }
     },
@@ -2502,7 +2536,8 @@ export const v2ProofSliceStatementsContextActivitiesSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Context Activities"
+          "Statement Context Activities",
+          "legacy note: XAPI-00094 upstream comment - in contextactivities.js",
         ]
       }
     },
@@ -2602,7 +2637,8 @@ export const v2ProofSliceStatementsContextActivitiesSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Context Activities"
+          "Statement Context Activities",
+          "legacy note: XAPI-00094 upstream comment - in contextactivities.js",
         ]
       }
     },
@@ -2690,7 +2726,8 @@ export const v2ProofSliceStatementsContextActivitiesSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Context Activities"
+          "Statement Context Activities",
+          "legacy note: XAPI-00094 upstream comment - in contextactivities.js",
         ]
       }
     },
@@ -2792,7 +2829,8 @@ export const v2ProofSliceStatementsContextActivitiesSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Context Activities"
+          "Statement Context Activities",
+          "legacy note: XAPI-00094 upstream comment - in contextactivities.js",
         ]
       }
     }

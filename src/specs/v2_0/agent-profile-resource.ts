@@ -16,7 +16,6 @@ import {
   omitQueryParam,
   parametersLegacySuiteFile,
   requestSequenceCase,
-  rfc1123HeaderPattern,
   singleRequestCase,
   specVersion,
   validSinceTimestamp,
@@ -155,7 +154,10 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
       },
     ],
     capabilityFlags: ["document", "retrieval", "agent-profile"],
-    notes: ["proof-slice agent profile roundtrip"],
+    notes: [
+      "proof-slice agent profile roundtrip",
+      'legacy note: XAPI-00269 upstream comment - An LRS\'s Agent Profile API upon processing a successful GET request with a valid Agent Object and valid "profileId" as a parameter returns the document satisfying the requirements of the GET and code 200 OK',
+    ],
   });
 
   const listCase = requestSequenceCase({
@@ -172,7 +174,10 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
     tags: ["v2.0.0", "agents-profile", "document", "list"],
     capabilityFlags: ["document", "list", "agent-profile"],
     legacyTraceSuiteFile: agentProfileLegacySuiteFile,
-    notes: ["proof-slice agent profile list"],
+    notes: [
+      "proof-slice agent profile list",
+      'legacy note: XAPI-00270 upstream comment - An LRS\'s Agent Profile API upon processing a successful GET request with a valid Agent Object and without "profileId" as a parameter returns an array of ids of agent profile documents satisfying the requirements of the GET and code 200 OK',
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", "agents-profile", profileListIdentity, {
@@ -212,7 +217,11 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
     tags: ["v2.0.0", "agents-profile", "document", "list", "since"],
     capabilityFlags: ["document", "list", "agent-profile", "since"],
     legacyTraceSuiteFile: agentProfileLegacySuiteFile,
-    notes: ["proof-slice agent profile since filtering"],
+    notes: [
+      "proof-slice agent profile since filtering",
+      'legacy note: XAPI-00268 upstream comment - An LRS\'s Agent Profile API can process a GET request with "since" as a parameter. Returning 200 OK and all matching profiles after the date/time of the “since” parameter',
+      'legacy note: XAPI-00275 upstream comment - The Agent Profile API\'s returned array of ids from a successful GET request all refer to documents stored after the TimeStamp in the "since" parameter of the GET request if such a parameter was present',
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", "agents-profile", profileSinceIdentity, {
@@ -257,7 +266,11 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
     assertion: {
       status: 400,
     },
-    notes: ["proof-slice agent profile invalid since"],
+    notes: [
+      "proof-slice agent profile invalid since",
+      'legacy note: XAPI-00260 upstream comment - An LRS\'s Agent Profile API rejects a GET request with "since" as a parameter if it is not a "TimeStamp", with error code 400 Bad Request',
+      'legacy note: XAPI-00260 upstream describe - An LRS\\\'s Agent Profile Resource rejects a GET request with "since" as a parameter if it is not a "TimeStamp", with error code 400 Bad Request',
+    ],
   });
 
   const invalidAgentQueryCase = singleRequestCase({
@@ -291,7 +304,10 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
     assertion: {
       status: 400,
     },
-    notes: ["proof-slice agent profile invalid agent query"],
+    notes: [
+      "proof-slice agent profile invalid agent query",
+      'legacy note: XAPI-00284 upstream comment - An LRS must reject with 400 Bad Request a POST request to the Activitiy Profile API which contains name/value pairs with invalid JSON and the Content-Type header is "application/json"',
+    ],
   });
 
   const mergeCase = requestSequenceCase({
@@ -308,7 +324,10 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
     tags: ["v2.0.0", "agents-profile", "document", "merge"],
     capabilityFlags: ["document", "merge", "agent-profile"],
     legacyTraceSuiteFile: agentProfileLegacySuiteFile,
-    notes: ["proof-slice agent profile merge"],
+    notes: [
+      "proof-slice agent profile merge",
+      'legacy note: XAPI-00279 upstream comment - An LRS\'s Agent Profile API performs a Document Merge if a profileId is found and both it and the document in the POST request have type "application/json" If the merge is successful, the LRS MUST respond with HTTP status code 204 No Content. not quite, but is this close enough??',
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", "agents-profile", profileMergeIdentity, {
@@ -366,6 +385,8 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
     notes: [
       "proof-slice agent profile non-json incoming merge rejection",
       "legacy note: merge rejection scenario case 1 (incoming POST body is non-JSON)",
+      "legacy note: XAPI-00278 upstream comment - An LRS's Agent Profile API, rejects a POST request if the document is found and either document's type is not \"application/json\" with error code 400 Bad Request",
+      'legacy note: XAPI-00278 upstream describe - An LRSs Agent Profile Resource, rejects a POST request if the document is found and either documents type is not "application/json" with error code 400 Bad Request',
     ],
     steps: [
       {
@@ -420,6 +441,8 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
     notes: [
       "proof-slice agent profile existing non-json merge rejection",
       "legacy note: merge rejection scenario case 2 (existing stored document is non-JSON)",
+      "legacy note: XAPI-00278 upstream comment - An LRS's Agent Profile API, rejects a POST request if the document is found and either document's type is not \"application/json\" with error code 400 Bad Request",
+      'legacy note: XAPI-00278 upstream describe - An LRSs Agent Profile Resource, rejects a POST request if the document is found and either documents type is not "application/json" with error code 400 Bad Request',
     ],
     steps: [
       {
@@ -471,7 +494,10 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
     tags: ["v2.0.0", "agents-profile", "document", "delete"],
     capabilityFlags: ["document", "delete", "agent-profile"],
     legacyTraceSuiteFile: agentProfileLegacySuiteFile,
-    notes: ["proof-slice agent profile delete"],
+    notes: [
+      "proof-slice agent profile delete",
+      "legacy note: XAPI-00271 upstream comment - An LRS's Agent Profile API upon processing a successful DELETE request deletes the associated profile and returns code 204 No Content",
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", "agents-profile", profileDeleteIdentity, {
@@ -518,7 +544,10 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
     assertion: {
       status: 204,
     },
-    notes: ["proof-slice agent profile put accepted"],
+    notes: [
+      "proof-slice agent profile put accepted",
+      "legacy note: XAPI-00273 upstream comment - An LRS's Agent Profile API upon processing a successful PUT request returns code 204 No Content",
+    ],
   });
 
   const postAcceptedCase = singleRequestCase({
@@ -544,7 +573,11 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
     assertion: {
       status: 204,
     },
-    notes: ["proof-slice agent profile post accepted"],
+    notes: [
+      "proof-slice agent profile post accepted",
+      "legacy note: XAPI-00272 upstream comment - An LRS's Agent Profile API upon processing a successful POST request returns code 204 No Content",
+      "legacy note: XAPI-00283 upstream comment - An LRS will accept a POST request to the Agent Profile API",
+    ],
   });
 
   const getAcceptedCase = documentRoundTripCase({
@@ -590,7 +623,13 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
       },
     ],
     capabilityFlags: ["document", "retrieval", "agent-profile"],
-    notes: ["proof-slice agent profile get accepted"],
+    notes: [
+      "proof-slice agent profile get accepted",
+      "legacy note: XAPI-00274 upstream comment - An LRS's Agent Profile API accepts valid GET requests with code 200 OK, Profile document",
+      "legacy note: XAPI-00259 upstream comment - The Agent Profile API MUST return 200 OK - Profile Content when a GET request is received with a valid agent JSON Object.",
+      'legacy note: XAPI-00282 upstream comment - An LRS has an Agent Profile API with endpoint "base IRI"+"/agents/profile"',
+      'legacy note: XAPI-00282 upstream describe - An LRS has an Agent Profile Resource with endpoint "base IRI"+"/agents/profile"',
+    ],
   });
 
   const sinceAcceptedCase = requestSequenceCase({
@@ -607,7 +646,10 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
     tags: ["v2.0.0", "agents-profile", "document", "list", "since"],
     capabilityFlags: ["document", "list", "agent-profile", "since"],
     legacyTraceSuiteFile: agentProfileLegacySuiteFile,
-    notes: ["proof-slice agent profile since accepted"],
+    notes: [
+      "proof-slice agent profile since accepted",
+      'legacy note: XAPI-00268 upstream comment - An LRS\'s Agent Profile API can process a GET request with "since" as a parameter. Returning 200 OK and all matching profiles after the date/time of the “since” parameter',
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", "agents-profile", profileSinceAcceptedIdentity, profileRequestBody),
@@ -642,7 +684,10 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
     tags: ["v2.0.0", "agents-profile", "document", "merge", "write"],
     capabilityFlags: ["document", "agent-profile", "write"],
     legacyTraceSuiteFile: agentProfileLegacySuiteFile,
-    notes: ["proof-slice agent profile post as put"],
+    notes: [
+      "proof-slice agent profile post as put",
+      "legacy note: XAPI-00280 upstream comment - An LRS's Agent Profile API, upon receiving a POST request for a document not currently in the LRS, treats it as a PUT request and store a new document.Returning 204 No Content",
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", "agents-profile", profilePostAsPutIdentity, profileRequestBody),
@@ -679,7 +724,10 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
     tags: ["v2.0.0", "agents-profile", "document", "merge", "invalid"],
     capabilityFlags: ["document", "merge", "agent-profile", "invalid"],
     legacyTraceSuiteFile: agentProfileLegacySuiteFile,
-    notes: ["proof-slice agent profile legacy non-json merge rejection"],
+    notes: [
+      "proof-slice agent profile legacy non-json merge rejection",
+      'legacy note: XAPI-00281 upstream comment - An LRS must reject with 400 Bad Request a POST request to the Activitiy Profile API which contains name/value pairs with invalid JSON and the Content-Type header is "application/json"',
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", "agents-profile", profileLegacyNonJsonRejectIdentity, {
@@ -733,6 +781,8 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
     notes: [
       "proof-slice agent profile invalid JSON merge rejection",
       "legacy note: merge rejection scenario case 3 (incoming JSON body is syntactically invalid)",
+      "legacy note: XAPI-00278 upstream comment - An LRS's Agent Profile API, rejects a POST request if the document is found and either document's type is not \"application/json\" with error code 400 Bad Request",
+      'legacy note: XAPI-00278 upstream describe - An LRSs Agent Profile Resource, rejects a POST request if the document is found and either documents type is not "application/json" with error code 400 Bad Request',
     ],
     steps: [
       {
@@ -898,6 +948,10 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
       tags: ["v2.0.0", "agents-profile", "validation", "agent"],
       capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
       legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00264 upstream comment - An LRS\'s Agent Profile API rejects a PUT request without "agent" as a parameter with error code 400 Bad Request',
+      ],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.agents-profile.validation.invalid-agent.put",
@@ -920,6 +974,11 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
       tags: ["v2.0.0", "agents-profile", "validation", "agent"],
       capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
       legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00257 upstream comment - An LRS\'s Agent Profile API rejects a PUT request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request',
+        'legacy note: XAPI-00257 upstream describe - An LRS\\\'s Agent Profile Resource rejects a PUT request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request',
+      ],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.agents-profile.validation.missing-agent.post",
@@ -939,6 +998,10 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
       tags: ["v2.0.0", "agents-profile", "validation", "agent"],
       capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
       legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00263 upstream comment - An LRS\'s Agent Profile API rejects a POST request without "agent" as a parameter with error code 400 Bad Request',
+      ],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.agents-profile.validation.invalid-agent.post",
@@ -961,6 +1024,10 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
       tags: ["v2.0.0", "agents-profile", "validation", "agent"],
       capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
       legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00256 upstream comment - An LRS\'s Agent Profile API rejects a POST request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request',
+      ],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.agents-profile.validation.missing-agent.get",
@@ -979,6 +1046,10 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
       tags: ["v2.0.0", "agents-profile", "validation", "agent"],
       capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
       legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00261 upstream comment - An LRS\'s Agent Profile API rejects a GET request without "agent" as a parameter with error code 400 Bad Request',
+      ],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.agents-profile.validation.invalid-agent.get",
@@ -1000,6 +1071,11 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
       tags: ["v2.0.0", "agents-profile", "validation", "agent"],
       capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
       legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00258 upstream comment - An LRS\'s Agent Profile API rejects a GET request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request',
+        'legacy note: XAPI-00258 upstream describe - An LRS\\\'s Agent Profile Resource rejects a GET request with "agent" as a parameter if it is a valid, in structure, Agent with error code 400 Bad Request',
+      ],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.agents-profile.validation.missing-agent.delete",
@@ -1018,6 +1094,10 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
       tags: ["v2.0.0", "agents-profile", "validation", "agent"],
       capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
       legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00262 upstream comment - An LRS\'s Agent Profile API rejects a DELETE request without "agent" as a parameter with error code 400 Bad Request',
+      ],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.agents-profile.validation.invalid-agent.delete",
@@ -1039,6 +1119,11 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
       tags: ["v2.0.0", "agents-profile", "validation", "agent"],
       capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
       legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00255 upstream comment - An LRS\'s Agent Profile API rejects a DELETE request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request',
+        'legacy note: XAPI-00255 upstream describe - An LRS\\\'s Agent Profile Resource rejects a DELETE request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request',
+      ],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.agents-profile.validation.missing-profileId.put",
@@ -1058,6 +1143,10 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
       tags: ["v2.0.0", "agents-profile", "validation", "profileId"],
       capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
       legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00267 upstream comment - An LRS\'s Agent Profile API rejects a PUT request without "profileId" as a parameter with error code 400 Bad Request',
+      ],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.agents-profile.validation.missing-profileId.post",
@@ -1077,6 +1166,10 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
       tags: ["v2.0.0", "agents-profile", "validation", "profileId"],
       capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
       legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00266 upstream comment - An LRS\'s Agent Profile API rejects a POST request without "profileId" as a parameter with error code 400 Bad Request',
+      ],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.agents-profile.validation.missing-profileId.delete",
@@ -1095,6 +1188,10 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
       tags: ["v2.0.0", "agents-profile", "validation", "profileId"],
       capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
       legacyTraceSuiteFile: agentProfileLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00265 upstream comment - An LRS\'s Agent Profile API rejects a DELETE request without "profileId" as a parameter with error code 400 Bad Request',
+      ],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.agents-profile.validation.invalid-profileId.put",
@@ -1118,6 +1215,8 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
       capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
       legacyTraceSuiteFile: parametersLegacySuiteFile,
       expectedStatus: 204,
+
+      notes: ["legacy note: XAPI-00277 upstream comment - in parameters folder"],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.agents-profile.validation.invalid-profileId.post",
@@ -1141,6 +1240,8 @@ export function createV20AgentProfileResourceProofSliceSuite(): SuiteDefinition 
       capabilityFlags: ["document", "agent-profile", "validation", "parameters"],
       legacyTraceSuiteFile: parametersLegacySuiteFile,
       expectedStatus: 204,
+
+      notes: ["legacy note: XAPI-00276 upstream comment - in parameters folder"],
     }),
   ];
 

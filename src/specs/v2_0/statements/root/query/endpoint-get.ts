@@ -47,7 +47,9 @@ export const v2StatementsQueryEndpointGetCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "proof-slice statement endpoint get exists"
+      "proof-slice statement endpoint get exists",
+      "legacy note: XAPI-00139 upstream comment - An LRS has a Statement API with endpoint \"base IRI\"+\"/statements\"",
+      "legacy note: XAPI-00139 upstream describe - An LRS has a Statement Resource with endpoint \"base IRI\"+\"/statements\"",
     ]
   }
 } as unknown as CaseDefinition;

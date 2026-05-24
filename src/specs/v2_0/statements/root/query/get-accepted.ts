@@ -47,7 +47,9 @@ export const v2StatementsQueryGetAcceptedCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "proof-slice statement get accepted"
+      "proof-slice statement get accepted",
+      "legacy note: XAPI-00159 upstream comment - An LRS's Statement API accepts GET requests",
+      "legacy note: XAPI-00159 upstream describe - LRS\\'s Statement Resource accepts GET requests",
     ]
   }
 } as unknown as CaseDefinition;

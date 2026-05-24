@@ -170,7 +170,13 @@ export function createV103AgentsResourceProofSliceSuite(): SuiteDefinition {
     tags: ["v1.0.3", "agents", "resource", "roundtrip"],
     capabilityFlags: ["agents", "retrieval"],
     legacyTraceSuiteFile: agentsResourceLegacySuiteFile,
-    notes: ["v1 proof-slice agents resource roundtrip"],
+    notes: [
+      "v1 proof-slice agents resource roundtrip",
+      "legacy note: XAPI-00245 upstream comment - An LRS has an Agents API with endpoint \"base IRI\" + /agents\"",
+      "legacy note: XAPI-00236 upstream comment - An LRS's Agents API accepts GET requests with response 200 OK, Person Object",
+      "legacy note: XAPI-00248 upstream comment - An LRS's Agents API upon processing a successful GET request returns a Person Object based on matched data from the \"agent\" parameter and code 200 OK",
+      "legacy note: XAPI-00246 upstream comment - same as 248 - The Agents Resource MUST have an endpoint which accepts GET requests and returns a special, Person Object where each attribute has an array value and it is legal to include multiple identifying properties.",
+    ],
     steps: [
       {
         request: buildStatementPostRequest(roundTripStatement),
@@ -221,7 +227,10 @@ export function createV103AgentsResourceProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 200,
     },
-    notes: ["v1 proof-slice agents resource endpoint exists"],
+    notes: [
+      "v1 proof-slice agents resource endpoint exists",
+      "legacy note: XAPI-00245 upstream comment - An LRS has an Agents API with endpoint \"base IRI\" + /agents\"",
+    ],
   });
 
   const acceptsGetCase = singleRequestCase({
@@ -245,7 +254,10 @@ export function createV103AgentsResourceProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 200,
     },
-    notes: ["v1 proof-slice agents resource accepts get"],
+    notes: [
+      "v1 proof-slice agents resource accepts get",
+      "legacy note: XAPI-00236 upstream comment - An LRS's Agents API accepts GET requests with response 200 OK, Person Object",
+    ],
   });
 
   const objectTypePersonCase = singleRequestCase({
@@ -275,7 +287,10 @@ export function createV103AgentsResourceProofSliceSuite(): SuiteDefinition {
         },
       ],
     },
-    notes: ["v1 proof-slice agents resource objectType person"],
+    notes: [
+      "v1 proof-slice agents resource objectType person",
+      "legacy note: XAPI-00237 upstream comment - A Person Object's \"objectType\" property is a String and is \"Person\" The LRS must return a valid “objectType” string.",
+    ],
   });
 
   const missingAgentCase = singleRequestCase({
@@ -296,7 +311,10 @@ export function createV103AgentsResourceProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 400,
     },
-    notes: ["v1 proof-slice agents resource missing agent"],
+    notes: [
+      "v1 proof-slice agents resource missing agent",
+      "legacy note: XAPI-00243 upstream comment - An LRS's Agents API rejects a GET request without \"agent\" as a parameter with error code 400 Bad Request",
+    ],
   });
 
   const invalidAgentCase = singleRequestCase({
@@ -317,7 +335,10 @@ export function createV103AgentsResourceProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 400,
     },
-    notes: ["v1 proof-slice agents resource invalid agent query"],
+    notes: [
+      "v1 proof-slice agents resource invalid agent query",
+      "legacy note: XAPI-00249 upstream comment - An LRSs Agents API rejects a GET request with \"agent\" as a parameter if it is not a valid (in structure) Agent with error code 400 Bad Request (XAPI-00249)",
+    ],
   });
 
   const nameArrayCase = requestSequenceCase({
@@ -337,6 +358,7 @@ export function createV103AgentsResourceProofSliceSuite(): SuiteDefinition {
     notes: [
       "v1 proof-slice agents resource name array",
       "legacy note: Person.name is array-valued in Agents resource responses",
+      "legacy note: XAPI-00238 upstream comment - A Person Object's \"name\" property is an Array of Strings. The LRS must return a “name” property with a valid Array of Strings, if present.",
     ],
     steps: [
       {
@@ -388,7 +410,11 @@ export function createV103AgentsResourceProofSliceSuite(): SuiteDefinition {
     tags: ["v1.0.3", "agents", "resource", "person"],
     capabilityFlags: ["agents", "retrieval", "person"],
     legacyTraceSuiteFile: agentsResourceLegacySuiteFile,
-    notes: ["v1 proof-slice agents resource mbox array"],
+    notes: [
+      "v1 proof-slice agents resource mbox array",
+      "legacy note: XAPI-00239 upstream comment - A Person Object's \"mbox\" property is an Array of IRIs. The LRS must return an “mbox” property with a valid array of IRIs, if present.",
+      "legacy note: XAPI-00244 upstream comment - A Person Object's \"mbox\" entries have the form \"mailto:emailaddress\". The LRS must return a Person Object which has a “mbox” value with the form \"mailto:emailaddress\"",
+    ],
     steps: [
       {
         request: buildStatementPostRequest(mboxStatement),
@@ -428,7 +454,10 @@ export function createV103AgentsResourceProofSliceSuite(): SuiteDefinition {
     tags: ["v1.0.3", "agents", "resource", "person"],
     capabilityFlags: ["agents", "retrieval", "person"],
     legacyTraceSuiteFile: agentsResourceLegacySuiteFile,
-    notes: ["v1 proof-slice agents resource mbox_sha1sum array"],
+    notes: [
+      "v1 proof-slice agents resource mbox_sha1sum array",
+      "legacy note: XAPI-00240 upstream comment - A Person Object's \"mbox_sha1sum\" property is an Array of Strings. The LRS must return a Person Object which has a “mbox_sha1sum” and is valid array of strings, if present.",
+    ],
     steps: [
       {
         request: buildStatementPostRequest(mboxSha1sumStatement),
@@ -468,7 +497,10 @@ export function createV103AgentsResourceProofSliceSuite(): SuiteDefinition {
     tags: ["v1.0.3", "agents", "resource", "person"],
     capabilityFlags: ["agents", "retrieval", "person"],
     legacyTraceSuiteFile: agentsResourceLegacySuiteFile,
-    notes: ["v1 proof-slice agents resource openid array"],
+    notes: [
+      "v1 proof-slice agents resource openid array",
+      "legacy note: XAPI-00241 upstream comment - A Person Object's \"openid\" property is an Array of Strings The LRS must return a “openid” value which is valid array of strings, if present.",
+    ],
     steps: [
       {
         request: buildStatementPostRequest(openIdStatement),
@@ -508,7 +540,10 @@ export function createV103AgentsResourceProofSliceSuite(): SuiteDefinition {
     tags: ["v1.0.3", "agents", "resource", "person"],
     capabilityFlags: ["agents", "retrieval", "person"],
     legacyTraceSuiteFile: agentsResourceLegacySuiteFile,
-    notes: ["v1 proof-slice agents resource account array"],
+    notes: [
+      "v1 proof-slice agents resource account array",
+      "legacy note: XAPI-00242 upstream comment - A Person Object's \"account\" property is an Array of Account Objects The LRS must return a Person Object with a “name” value which is a valid array of account objects, if present.",
+    ],
     steps: [
       {
         request: buildStatementPostRequest(accountStatement),
@@ -564,6 +599,7 @@ export function createV103AgentsResourceProofSliceSuite(): SuiteDefinition {
     notes: [
       "v1 proof-slice agents resource unknown agent fallback",
       "legacy note: endpoint still returns a Person object when no additional Agent data is known",
+      "legacy note: XAPI-00247 upstream comment - same as 248 - If an LRS does not have any additional information about an Agent to return from the Agents Resource, the LRS MUST still return a Person when queried, but that Person Object will only include the information associated with the requested Agent.",
     ],
   });
 

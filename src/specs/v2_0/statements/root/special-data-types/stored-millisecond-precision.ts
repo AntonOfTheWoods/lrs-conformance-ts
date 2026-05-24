@@ -90,6 +90,10 @@ export const v2StatementsSpecialDataTypesStoredMillisecondPrecisionCase = {
         expectedHeaderDateAfterStep: [],
       },
     ],
-    notes: ["proof-slice special data types stored precision"],
+    notes: [
+      "proof-slice special data types stored precision",
+      "legacy note: XAPI-00122 upstream comment - A Timestamp MUST preserve precision to at least milliseconds (3 decimal points beyond seconds). The LRS accepts a statement with a valid timestamp which has more than 3 decimal points beyond seconds and when recalled it returns at least 3 decimals points beyond seconds.",
+      "legacy note: XAPI-00122 upstream describe - A Timestamp MUST preserve precision to at least milliseconds, 3 decimal points beyond seconds.",
+    ],
   },
 } as unknown as CaseDefinition;

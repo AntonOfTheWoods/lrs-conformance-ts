@@ -12,8 +12,6 @@ import {
   SuiteDefinitionSchema,
   type SuiteDefinition,
 } from "../domain/contracts";
-import { LEGACY_XAPI_COMMENT_MAP } from "./legacyCommentMap";
-import { LEGACY_XAPI_DESCRIBE_MAP } from "./legacyDescribeMap";
 
 function formatRequirementNote(id: string, section: string, title?: string): string {
   if (!title || title.trim().length === 0) {
@@ -34,30 +32,6 @@ function enrichCaseRequirementNotes(node: RegistryNode): void {
   for (const note of requirementNotes) {
     if (!existing.has(note)) {
       node.assertion.notes.push(note);
-    }
-  }
-
-  for (const ref of node.requirementRefs) {
-    if (!/^XAPI-\d{5}$/.test(ref.id)) {
-      continue;
-    }
-
-    const comment = LEGACY_XAPI_COMMENT_MAP[ref.id];
-    if (!comment) {
-      continue;
-    }
-
-    const mappedLegacyNote = `legacy note: ${ref.id} upstream comment - ${comment}`;
-    if (!node.assertion.notes.includes(mappedLegacyNote)) {
-      node.assertion.notes.push(mappedLegacyNote);
-    }
-
-    const describeTexts = LEGACY_XAPI_DESCRIBE_MAP[ref.id] ?? [];
-    for (const describeText of describeTexts) {
-      const describeNote = `legacy note: ${ref.id} upstream describe - ${describeText}`;
-      if (!node.assertion.notes.includes(describeNote)) {
-        node.assertion.notes.push(describeNote);
-      }
     }
   }
 }

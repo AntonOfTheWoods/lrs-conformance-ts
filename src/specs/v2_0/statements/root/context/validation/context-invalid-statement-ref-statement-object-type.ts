@@ -77,7 +77,8 @@ export const v2StatementsContextInvalidStatementRefStatementObjectTypeCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Context"
+      "Statement Context",
+      "legacy note: XAPI-00092 upstream comment - in contexts.js",
     ]
   }
 } as unknown as CaseDefinition;

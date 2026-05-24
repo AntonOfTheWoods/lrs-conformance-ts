@@ -79,7 +79,9 @@ export const v2StatementsCaseSensitiveKeysObjectCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Formatting"
+      "Statement Formatting",
+      "legacy note: XAPI-00008 upstream comment - in formatting.js",
+      "legacy note: XAPI-00010 upstream comment - in formatting.js",
     ]
   }
 } as unknown as CaseDefinition;

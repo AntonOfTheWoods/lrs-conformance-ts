@@ -106,7 +106,9 @@ export const v2StatementsQueryStatementIdSingleStatementCase = {
       }
     ],
     "notes": [
-      "proof-slice statementId returns matching statement"
+      "proof-slice statementId returns matching statement",
+      "legacy note: XAPI-00156 upstream comment - An LRS's Statement API upon processing a successful GET request with a \"statementId\" parameter, returns code 200 OK and a single Statement with the corresponding \"id\".",
+      "legacy note: XAPI-00156 upstream describe - An LRS\\'s Statement Resource upon processing a successful GET request with a \"statementId\" parameter, returns code 200 OK and a single Statement with the corresponding \"id\".",
     ]
   }
 } as unknown as CaseDefinition;

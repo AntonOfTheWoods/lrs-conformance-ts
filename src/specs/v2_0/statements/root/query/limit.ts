@@ -180,7 +180,9 @@ export const v2StatementsQueryLimitCase = {
       }
     ],
     "notes": [
-      "proof-slice statement collection query"
+      "proof-slice statement collection query",
+      "legacy note: XAPI-00173 upstream comment - An LRS's Statement API can process a GET request with \"limit\" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with only the number of results set by the integer in the limit parameter. If the limit parameter is not present, the limit is defaulted to 0 which returns all results up to the server limit.",
+      "legacy note: XAPI-00173 upstream describe - An LRS\\'s Statement Resource can process a GET request with \"limit\" as a parameter",
     ]
   }
 } as unknown as CaseDefinition;

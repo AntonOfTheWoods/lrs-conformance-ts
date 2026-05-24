@@ -70,7 +70,8 @@ export const v2StatementsVerbIdIriStatementCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Formatting"
+      "Statement Formatting",
+      "legacy note: XAPI-00044 upstream comment - in verbs.js - two suites",
     ]
   }
 } as unknown as CaseDefinition;

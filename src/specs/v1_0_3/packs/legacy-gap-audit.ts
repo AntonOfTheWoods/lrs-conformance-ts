@@ -72,7 +72,32 @@ export function createV103LegacyGapAuditProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 200,
     },
-    notes: ["v1 legacy-gap audit anchor for remaining non-executable or upstream-commented requirement IDs"],
+    notes: [
+      "v1 legacy-gap audit anchor for remaining non-executable or upstream-commented requirement IDs",
+      "legacy note: XAPI-00021 upstream comment - these are all in Multiplicity folder, the community said this won't be a problem and do not test it. some are also covered in templating tests, usually in these cases post and 200 or 400.",
+      "legacy note: XAPI-00063 upstream comment - in activities.js",
+      "legacy note: XAPI-00095 upstream comment - removed per 02/08/2017 spec call",
+      "legacy note: XAPI-00112 upstream comment - duplicate of XAPI-00149 Communication 2.1.3 Statements GET",
+      "legacy note: XAPI-00136 upstream comment - there is no XAPI-00136",
+      "legacy note: XAPI-00137 upstream comment - removed",
+      "legacy note: XAPI-00138 upstream comment - removed",
+      "legacy note: XAPI-00140 upstream comment - generic and covered by other files - An LRS implements all of the Statement, State, Agent, and Activity Profile sub-APIs",
+      "legacy note: XAPI-00141 upstream comment - covered by XAPI-00195, XAPI-00275, XAPI-00294",
+      "legacy note: XAPI-00148 upstream comment - in H.Communication1.3-AlternateRequestSyntax.js",
+      "legacy note: XAPI-00152 upstream comment - removed per spec call 2/8/17",
+      "legacy note: XAPI-00185 upstream comment - untestable",
+      "legacy note: XAPI-00186 upstream comment - untestable",
+      "legacy note: XAPI-00205 upstream comment - No 'since' property with DELETE in the State Resource",
+      "legacy note: XAPI-00222 upstream comment - duplicate of XAPI-00195",
+      "legacy note: XAPI-00223 upstream comment - No 'since' property with DELETE in the State Resource",
+      "legacy note: XAPI-00320 upstream comment - bad test - extesion property is optional in spec",
+      "legacy note: XAPI-00323 upstream comment - not found yet - An LRS can only reject Statements using the error codes in this specification - what are we to test here??",
+      "legacy note: XAPI-00327 upstream comment - not found yet - An LRS rejects a Statement of insufficient permissions (credentials are valid, but not adequate) with error code 403 Forbidden",
+      "legacy note: XAPI-00328 upstream comment - An LRS rejects a Statement due to size if the Statement exceeds the size limit the LRS is configured to with error code 413 Request Entity Too Large. Held out for now. No upper limit constraint.",
+      "legacy note: XAPI-00329 upstream comment - not found yet - An LRS rejects a Statement due to network/server issues with an error code of 500 Internal Server Error",
+      "legacy note: XAPI-00336 upstream comment - The LRS MUST support the Alternate Request Syntax.",
+      "legacy note: XAPI-00336 upstream describe - The LRS MUST support the Alternate Request Syntax",
+    ],
   });
 
   return {

@@ -49,7 +49,8 @@ export const v2StatementsQueryAcceptsFormatCase = {
       "\"statements\""
     ],
     "notes": [
-      "proof-slice statement query acceptance direct trace"
+      "proof-slice statement query acceptance direct trace",
+      "legacy note: XAPI-00168 upstream comment - An LRS's Statement API can process a GET request with \"format\" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with results in the requested format or in “exact” if the “format” parameter is absent.",
     ]
   }
 } as unknown as CaseDefinition;

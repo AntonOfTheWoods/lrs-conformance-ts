@@ -76,7 +76,8 @@ export const v2StatementsLanguageTagsRejectedObjectNameCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Formatting"
+      "Statement Formatting",
+      "legacy note: XAPI-00013 upstream comment - in formatting.js",
     ]
   }
 } as unknown as CaseDefinition;

@@ -75,7 +75,8 @@ export const v2StatementsGroupMemberTypeActorGroupCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Formatting"
+      "Statement Formatting",
+      "legacy note: XAPI-00036 upstream comment - The \"member\" property is an array of Objects following Agent requirements. An LRS rejects with 400 Bad Request any group object which has a member property with anything other than a valid array of Agents as a value",
     ]
   }
 } as unknown as CaseDefinition;

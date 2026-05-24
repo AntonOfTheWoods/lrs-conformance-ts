@@ -86,7 +86,8 @@ export const v2StatementsAgentIfiAcceptanceSubstatementActorAgentMboxSha1sumCase
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Formatting"
+      "Statement Formatting",
+      "legacy note: XAPI-00034 upstream comment - An \"actor\" property with \"objectType\" as \"Agent\" uses exactly one of the following Inverse Functional Identifier properties: \"mbox\", \"mbox_sha1sum\", \"openid\", \"account\". An LRS rejects with 400 Bad Request any agent object: - Where the IFI property is absent - Where the IFI value is invalid - With more than one IFI",
     ]
   }
 } as unknown as CaseDefinition;

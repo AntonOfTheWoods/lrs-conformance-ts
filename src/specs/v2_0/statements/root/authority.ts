@@ -85,7 +85,10 @@ export const v2ProofSliceStatementsAuthoritySuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["Statement Authority"],
+        notes: [
+          "Statement Authority",
+          "legacy note: XAPI-00098 upstream comment - An \"authority\" property which is also a Group contains exactly two Agents. The LRS rejects with 400 Bad Request a statement which has an “authority” property with a “objectType” of “Group” with more or less than two Oauth Agents as values of the “member” property.",
+        ],
       },
     },
     {
@@ -194,7 +197,11 @@ export const v2ProofSliceStatementsAuthoritySuite = {
             expectedHeaderDateAfterStep: [],
           },
         ],
-        notes: ["proof-slice statement authority population"],
+        notes: [
+          "proof-slice statement authority population",
+          "legacy note: XAPI-00099 upstream comment - An LRS populates the \"authority\" property if it is not provided in the Statement",
+          "legacy note: XAPI-00099 upstream describe - An LRS populates the \"authority\" property if it is not provided in the Statement, based on header information with the Agent corresponding to the user (contained within the header)",
+        ],
       },
     },
     {
@@ -272,7 +279,10 @@ export const v2ProofSliceStatementsAuthoritySuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement authority non-oauth rejection"],
+        notes: [
+          "proof-slice statement authority non-oauth rejection",
+          "legacy note: XAPI-00100 upstream comment - An LRS rejects with error code 400 Bad Request, a Request whose \"authority\" is a Group having more than two Agents",
+        ],
       },
     },
     {
@@ -355,7 +365,10 @@ export const v2ProofSliceStatementsAuthoritySuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["Statement Authority"],
+        notes: [
+          "Statement Authority",
+          "legacy note: XAPI-00024 upstream comment - in authorities.js",
+        ],
       },
     },
     {
@@ -438,7 +451,10 @@ export const v2ProofSliceStatementsAuthoritySuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["Statement Authority"],
+        notes: [
+          "Statement Authority",
+          "legacy note: XAPI-00024 upstream comment - in authorities.js",
+        ],
       },
     },
     {
@@ -521,7 +537,10 @@ export const v2ProofSliceStatementsAuthoritySuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["Statement Authority"],
+        notes: [
+          "Statement Authority",
+          "legacy note: XAPI-00024 upstream comment - in authorities.js",
+        ],
       },
     },
     {
@@ -607,7 +626,10 @@ export const v2ProofSliceStatementsAuthoritySuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["Statement Authority"],
+        notes: [
+          "Statement Authority",
+          "legacy note: XAPI-00024 upstream comment - in authorities.js",
+        ],
       },
     },
     {
@@ -679,7 +701,10 @@ export const v2ProofSliceStatementsAuthoritySuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["Statement Authority"],
+        notes: [
+          "Statement Authority",
+          "legacy note: XAPI-00098 upstream comment - An \"authority\" property which is also a Group contains exactly two Agents. The LRS rejects with 400 Bad Request a statement which has an “authority” property with a “objectType” of “Group” with more or less than two Oauth Agents as values of the “member” property.",
+        ],
       },
     },
     {
@@ -755,7 +780,10 @@ export const v2ProofSliceStatementsAuthoritySuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["Statement Authority"],
+        notes: [
+          "Statement Authority",
+          "legacy note: XAPI-00098 upstream comment - An \"authority\" property which is also a Group contains exactly two Agents. The LRS rejects with 400 Bad Request a statement which has an “authority” property with a “objectType” of “Group” with more or less than two Oauth Agents as values of the “member” property.",
+        ],
       },
     },
     {
@@ -840,7 +868,10 @@ export const v2ProofSliceStatementsAuthoritySuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["Statement Authority"],
+        notes: [
+          "Statement Authority",
+          "legacy note: XAPI-00098 upstream comment - An \"authority\" property which is also a Group contains exactly two Agents. The LRS rejects with 400 Bad Request a statement which has an “authority” property with a “objectType” of “Group” with more or less than two Oauth Agents as values of the “member” property.",
+        ],
       },
     },
   ],

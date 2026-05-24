@@ -49,7 +49,9 @@ export const v2StatementsQueryAcceptsSinceCase = {
       "\"statements\""
     ],
     "notes": [
-      "proof-slice statement query acceptance direct trace"
+      "proof-slice statement query acceptance direct trace",
+      "legacy note: XAPI-00175 upstream comment - An LRS's Statement API can process a GET request with \"since\" as a parameter. The Statement API MUST return 200 OK, StatementResult Object containing all statements which have a stored timestamp after the since parameter timestamp in the query.",
+      "legacy note: XAPI-00175 upstream describe - An LRS\\'s Statement Resource can process a GET request with \"since\" as a parameter",
     ]
   }
 } as unknown as CaseDefinition;

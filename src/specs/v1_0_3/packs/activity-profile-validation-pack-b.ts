@@ -127,7 +127,10 @@ function createInvalidAgentParameterCase(): CaseDefinition {
     assertion: {
       status: 404,
     },
-    notes: ["v1 activity-profile rejects invalid agent parameter"],
+    notes: [
+      "v1 activity-profile rejects invalid agent parameter",
+      "legacy note: XAPI-00304 upstream comment - 'agent' is not a valid parameter in the Activity Profile Resource",
+    ],
   });
 }
 

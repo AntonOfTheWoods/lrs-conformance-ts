@@ -49,7 +49,9 @@ export const v2StatementsQueryAcceptsRegistrationCase = {
       "\"statements\""
     ],
     "notes": [
-      "proof-slice statement query acceptance direct trace"
+      "proof-slice statement query acceptance direct trace",
+      "legacy note: XAPI-00178 upstream comment - An LRS's Statement API can process a GET request with \"registration\" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with exact match registration results if the registration parameter is set with a valid registration UUID",
+      "legacy note: XAPI-00178 upstream describe - An LRS\\'s Statement Resource can process a GET request with \"registration\" as a parameter",
     ]
   }
 } as unknown as CaseDefinition;

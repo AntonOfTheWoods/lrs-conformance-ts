@@ -99,7 +99,8 @@ export const v2StatementsScoreMaxValidSubstatementBoundedCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Score"
+      "Statement Score",
+      "legacy note: XAPI-00080 upstream comment - If the \"score\" Object uses the \"max\" property, the value must be a decimal number more than the \"min\" property, if it is present. If \"min\" is not present \"max\" can be any number. The LRS rejects with 400 Bad Request a statement with a Result Object using the “max” property (if it is present) which is not a decimal number or is lesser than the value of the “min” property, if it is present. If this is the test, this will need to be moved, so that the result can be checked, oh no now that i read closer, no get and check it needed just a couple more tests sending in particular configurations of min and max and expecting 400's or 200's",
     ]
   }
 } as unknown as CaseDefinition;

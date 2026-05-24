@@ -57,7 +57,9 @@ export const v2ProofSliceStatementsQueryValidationSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Query Validation"
+          "Statement Query Validation",
+          "legacy note: XAPI-00012 upstream comment - The LRS rejects with error code 400 Bad Request parameter values which do not validate to the same standards required for values of the same types in Statements.",
+          "legacy note: XAPI-00012 upstream describe - The LRS rejects with error code 400 Bad Request parameter values which do not validate to the same standards required for values of the same types in Statements",
         ]
       }
     },
@@ -109,7 +111,9 @@ export const v2ProofSliceStatementsQueryValidationSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Query Validation"
+          "Statement Query Validation",
+          "legacy note: XAPI-00012 upstream comment - The LRS rejects with error code 400 Bad Request parameter values which do not validate to the same standards required for values of the same types in Statements.",
+          "legacy note: XAPI-00012 upstream describe - The LRS rejects with error code 400 Bad Request parameter values which do not validate to the same standards required for values of the same types in Statements",
         ]
       }
     },
@@ -161,7 +165,9 @@ export const v2ProofSliceStatementsQueryValidationSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Query Validation"
+          "Statement Query Validation",
+          "legacy note: XAPI-00012 upstream comment - The LRS rejects with error code 400 Bad Request parameter values which do not validate to the same standards required for values of the same types in Statements.",
+          "legacy note: XAPI-00012 upstream describe - The LRS rejects with error code 400 Bad Request parameter values which do not validate to the same standards required for values of the same types in Statements",
         ]
       }
     },
@@ -213,7 +219,9 @@ export const v2ProofSliceStatementsQueryValidationSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Query Validation"
+          "Statement Query Validation",
+          "legacy note: XAPI-00012 upstream comment - The LRS rejects with error code 400 Bad Request parameter values which do not validate to the same standards required for values of the same types in Statements.",
+          "legacy note: XAPI-00012 upstream describe - The LRS rejects with error code 400 Bad Request parameter values which do not validate to the same standards required for values of the same types in Statements",
         ]
       }
     },
@@ -265,7 +273,9 @@ export const v2ProofSliceStatementsQueryValidationSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Query Validation"
+          "Statement Query Validation",
+          "legacy note: XAPI-00012 upstream comment - The LRS rejects with error code 400 Bad Request parameter values which do not validate to the same standards required for values of the same types in Statements.",
+          "legacy note: XAPI-00012 upstream describe - The LRS rejects with error code 400 Bad Request parameter values which do not validate to the same standards required for values of the same types in Statements",
         ]
       }
     },
@@ -317,7 +327,9 @@ export const v2ProofSliceStatementsQueryValidationSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Query Validation"
+          "Statement Query Validation",
+          "legacy note: XAPI-00012 upstream comment - The LRS rejects with error code 400 Bad Request parameter values which do not validate to the same standards required for values of the same types in Statements.",
+          "legacy note: XAPI-00012 upstream describe - The LRS rejects with error code 400 Bad Request parameter values which do not validate to the same standards required for values of the same types in Statements",
         ]
       }
     }

@@ -159,7 +159,9 @@ export const v2StatementsRetrievalDirectStatementsAndMorePropertiesCase = {
       }
     ],
     "notes": [
-      "proof-slice retrieval direct properties"
+      "proof-slice retrieval direct properties",
+      "legacy note: XAPI-00113 upstream comment - An LRS's Statement API, upon processing a successful GET request, will return a single \"statements\" property and a single \"more\" property. A single \"more\" property must be present if there are additional results available.",
+      "legacy note: XAPI-00113 upstream describe - An LRS\\'s Statement API, upon processing a successful GET request, will return a single \"statements\" property and a single \"more\" property.",
     ]
   }
 } as unknown as CaseDefinition;

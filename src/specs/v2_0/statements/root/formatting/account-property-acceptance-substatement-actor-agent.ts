@@ -89,7 +89,8 @@ export const v2StatementsAccountPropertyAcceptanceSubstatementActorAgentCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Formatting"
+      "Statement Formatting",
+      "legacy note: XAPI-00041 upstream comment - An “account” property is an object. An LRS rejects with 400 Bad Request if a statement uses an invalid Account Object. A valid account is defined by the requirements listed in XAPI-I-63 and XAPI-I-66 Covers next suite",
     ]
   }
 } as unknown as CaseDefinition;

@@ -185,6 +185,8 @@ export const v2StatementsRetrievalDirectMoreRefersNextPageCase = {
     notes: [
       "proof-slice retrieval direct more refers next page",
       "legacy note: a non-empty more value identifies the next page of query results",
+      "legacy note: XAPI-00108 upstream comment - If not empty, the \"more\" property's IRL refers to a specific container object corresponding to the next page of results from the original GET request. To test make a GET request which will return a known number of statements and confirm the LRS returns a “more” property which has an IRL with a container of the remaining statements and that the IRL is valid.",
+      "legacy note: XAPI-00108 upstream describe - If not empty, the \"more\" property\\'s IRL refers to a specific container object corresponding to the next page of results from the orignal GET request",
     ],
   },
 } as unknown as CaseDefinition;

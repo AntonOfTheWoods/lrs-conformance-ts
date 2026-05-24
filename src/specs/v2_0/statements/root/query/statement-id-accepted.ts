@@ -99,7 +99,9 @@ export const v2StatementsQueryStatementIdAcceptedCase = {
       }
     ],
     "notes": [
-      "proof-slice statementId accepted"
+      "proof-slice statementId accepted",
+      "legacy note: XAPI-00158 upstream comment - An LRS's Statement API can process a GET request with \"statementId\" as a parameter",
+      "legacy note: XAPI-00158 upstream describe - An LRS\\'s Statement Resource can process a GET request with \"statementId\" as a parameter",
     ]
   }
 } as unknown as CaseDefinition;

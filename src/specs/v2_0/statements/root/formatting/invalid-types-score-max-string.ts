@@ -75,7 +75,8 @@ export const v2StatementsInvalidTypesScoreMaxStringCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Formatting"
+      "Statement Formatting",
+      "legacy note: XAPI-00006 upstream comment - in formatting.js",
     ]
   }
 } as unknown as CaseDefinition;

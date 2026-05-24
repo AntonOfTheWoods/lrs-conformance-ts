@@ -136,7 +136,9 @@ export const v2StatementsNumericPrecisionScoreRoundtripCase = {
     "queryJsonPathEqualsCaptured": [],
     "queryTextContains": [],
     "notes": [
-      "proof-slice numeric precision"
+      "proof-slice numeric precision",
+      "legacy note: XAPI-00002 upstream comment - An LRS stores 32-bit floating point numbers with at least the precision of IEEE 754",
+      "legacy note: XAPI-00002 upstream describe - An LRS stores 32-bit floating point numbers with at least the precision of IEEE 754",
     ]
   }
 } as unknown as CaseDefinition;

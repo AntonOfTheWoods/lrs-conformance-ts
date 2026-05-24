@@ -81,7 +81,8 @@ export const v2StatementsScoreTypeStatementNumericCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Score"
+      "Statement Score",
+      "legacy note: XAPI-00079 upstream comment - A \"score\" property is an Object. The LRS rejects with 400 Bad Request a “score” property which is not a valid object.",
     ]
   }
 } as unknown as CaseDefinition;

@@ -64,7 +64,8 @@ export const v2StatementsRequiredFieldsMissingActorCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Formatting"
+      "Statement Formatting",
+      "legacy note: XAPI-00003 upstream comment - in formatting.js",
     ]
   }
 } as unknown as CaseDefinition;

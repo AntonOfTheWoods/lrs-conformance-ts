@@ -186,7 +186,9 @@ export const v2StatementsQueryFilteringRegistrationCase = {
       }
     ],
     "notes": [
-      "proof-slice statement filtering criterion registration"
+      "proof-slice statement filtering criterion registration",
+      "legacy note: XAPI-00164 upstream comment - The Statements within the \"statements\" property will correspond to the filtering criterion sent in with the GET request",
+      "legacy note: XAPI-00164 upstream describe - The Statements within the \"statements\" property will correspond to the filtering criterion sent in with the GET request",
     ]
   }
 } as unknown as CaseDefinition;

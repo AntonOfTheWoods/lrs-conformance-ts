@@ -8,7 +8,6 @@ const repoRoot = resolve(import.meta.dir, "..");
 const require = createRequire(import.meta.url);
 const installedSuitePackageName = "adl-lrs-conformance-tests";
 const defaultNodeImage = "docker.io/library/node:22";
-const defaultLogDir = resolve(repoRoot, "tmp", "agents", "lrs-conformance");
 const repoMountTarget = "/workspace";
 const externalSuiteMountTarget = "/adl-suite";
 

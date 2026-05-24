@@ -148,7 +148,9 @@ export const v2StatementsQueryVoidedStatementIdWithAttachmentsAllowedCase = {
       }
     ],
     "notes": [
-      "proof-slice voidedStatementId attachments allowed"
+      "proof-slice voidedStatementId attachments allowed",
+      "legacy note: XAPI-00150 upstream comment - An LRS's Statement API rejects a GET request with both \"voidedStatementId\" and anything other than \"attachments\" or \"format\" as parameters with error code 400 Bad Request.",
+      "legacy note: XAPI-00150 upstream describe - An LRS\\'s Statement Resource rejects with error code 400 a GET request with both \"voidedStatementId\" and anything other than \"attachments\" or \"format\" as parameters",
     ]
   }
 } as unknown as CaseDefinition;

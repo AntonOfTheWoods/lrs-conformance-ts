@@ -93,7 +93,8 @@ export const v2ProofSliceStatementsResultAndObjectsSubstatementSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "SubStatements"
+          "SubStatements",
+          "legacy note: XAPI-00066 upstream comment - in substatements.js",
         ]
       }
     },
@@ -185,7 +186,8 @@ export const v2ProofSliceStatementsResultAndObjectsSubstatementSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "SubStatements"
+          "SubStatements",
+          "legacy note: XAPI-00066 upstream comment - in substatements.js",
         ]
       }
     },
@@ -289,7 +291,8 @@ export const v2ProofSliceStatementsResultAndObjectsSubstatementSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "SubStatements"
+          "SubStatements",
+          "legacy note: XAPI-00066 upstream comment - in substatements.js",
         ]
       }
     },
@@ -378,7 +381,8 @@ export const v2ProofSliceStatementsResultAndObjectsSubstatementSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "SubStatements"
+          "SubStatements",
+          "legacy note: XAPI-00066 upstream comment - in substatements.js",
         ]
       }
     },
@@ -468,7 +472,8 @@ export const v2ProofSliceStatementsResultAndObjectsSubstatementSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "SubStatements"
+          "SubStatements",
+          "legacy note: XAPI-00066 upstream comment - in substatements.js",
         ]
       }
     },
@@ -565,7 +570,8 @@ export const v2ProofSliceStatementsResultAndObjectsSubstatementSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "SubStatements"
+          "SubStatements",
+          "legacy note: XAPI-00066 upstream comment - in substatements.js",
         ]
       }
     },
@@ -655,7 +661,8 @@ export const v2ProofSliceStatementsResultAndObjectsSubstatementSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "SubStatements"
+          "SubStatements",
+          "legacy note: XAPI-01002 upstream comment - Rewrite parity requirement: statement metadata/header consistency remains covered in rewrite statement header/substatement cases.",
         ]
       }
     },
@@ -740,7 +747,8 @@ export const v2ProofSliceStatementsResultAndObjectsSubstatementSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "SubStatements"
+          "SubStatements",
+          "legacy note: XAPI-00066 upstream comment - in substatements.js",
         ]
       }
     },
@@ -824,7 +832,8 @@ export const v2ProofSliceStatementsResultAndObjectsSubstatementSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "SubStatements"
+          "SubStatements",
+          "legacy note: XAPI-00066 upstream comment - in substatements.js",
         ]
       }
     },
@@ -910,7 +919,8 @@ export const v2ProofSliceStatementsResultAndObjectsSubstatementSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "SubStatements"
+          "SubStatements",
+          "legacy note: XAPI-00066 upstream comment - in substatements.js",
         ]
       }
     },
@@ -1005,7 +1015,8 @@ export const v2ProofSliceStatementsResultAndObjectsSubstatementSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "SubStatements"
+          "SubStatements",
+          "legacy note: XAPI-00067 upstream comment - in substatements.js",
         ]
       }
     },
@@ -1096,7 +1107,8 @@ export const v2ProofSliceStatementsResultAndObjectsSubstatementSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "SubStatements"
+          "SubStatements",
+          "legacy note: XAPI-00068 upstream comment - in substatements.js",
         ]
       }
     },
@@ -1187,7 +1199,8 @@ export const v2ProofSliceStatementsResultAndObjectsSubstatementSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "SubStatements"
+          "SubStatements",
+          "legacy note: XAPI-00069 upstream comment - in substatements.js",
         ]
       }
     },
@@ -1278,7 +1291,8 @@ export const v2ProofSliceStatementsResultAndObjectsSubstatementSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "SubStatements"
+          "SubStatements",
+          "legacy note: XAPI-00070 upstream comment - in substatements.js",
         ]
       }
     },
@@ -1382,7 +1396,8 @@ export const v2ProofSliceStatementsResultAndObjectsSubstatementSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "SubStatements"
+          "SubStatements",
+          "legacy note: XAPI-00071 upstream comment - in substatements.js",
         ]
       }
     }

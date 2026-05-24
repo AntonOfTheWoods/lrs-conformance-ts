@@ -145,7 +145,9 @@ export const v2StatementsQueryVoidedStatementIdAcceptedCase = {
       }
     ],
     "notes": [
-      "proof-slice voidedStatementId accepted"
+      "proof-slice voidedStatementId accepted",
+      "legacy note: XAPI-00157 upstream comment - An LRS's Statement API can process a GET request with \"voidedStatementId\" as a parameter",
+      "legacy note: XAPI-00157 upstream describe - An LRS\\'s Statement Resource can process a GET request with \"voidedStatementId\" as a parameter",
     ]
   }
 } as unknown as CaseDefinition;

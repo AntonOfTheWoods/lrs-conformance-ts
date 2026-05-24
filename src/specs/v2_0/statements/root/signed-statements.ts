@@ -60,7 +60,9 @@ export const v2ProofSliceStatementsSignedStatementsSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "proof-slice signed statement missing signature part"
+          "proof-slice signed statement missing signature part",
+          "legacy note: XAPI-00115 upstream comment - A Signed Statement MUST include a JSON web signature (JWS) as defined here: http://tools.ietf.org/html/rfc7515, as an Attachment with a usageType of http://adlnet.gov/expapi/attachments/signature and a contentType of application/octet-stream. The LRS must reject with 400 a statement which has usageType of http://adlnet.gov/expapi/attachments/signature and a contentType of application/octet-stream but does not have a signature attached.",
+          "legacy note: XAPI-00115 upstream describe - A Signed Statement MUST include a JSON web signature, JWS",
         ]
       }
     },
@@ -116,7 +118,9 @@ export const v2ProofSliceStatementsSignedStatementsSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "proof-slice signed statement bad content type"
+          "proof-slice signed statement bad content type",
+          "legacy note: XAPI-00115 upstream comment - A Signed Statement MUST include a JSON web signature (JWS) as defined here: http://tools.ietf.org/html/rfc7515, as an Attachment with a usageType of http://adlnet.gov/expapi/attachments/signature and a contentType of application/octet-stream. The LRS must reject with 400 a statement which has usageType of http://adlnet.gov/expapi/attachments/signature and a contentType of application/octet-stream but does not have a signature attached.",
+          "legacy note: XAPI-00115 upstream describe - A Signed Statement MUST include a JSON web signature, JWS",
         ]
       }
     },
@@ -172,7 +176,9 @@ export const v2ProofSliceStatementsSignedStatementsSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "proof-slice signed statement invalid payload json"
+          "proof-slice signed statement invalid payload json",
+          "legacy note: XAPI-00116 upstream comment - The JWS signature MUST have a payload of a valid JSON serialization of the complete Statement before the signature was added.The LRS must reject with 400 a statement which does not have a valid JSON serialization.",
+          "legacy note: XAPI-00116 upstream describe - The JWS signature MUST have a payload of a valid JSON serialization of the complete Statement before the signature was added.",
         ]
       }
     },
@@ -227,7 +233,9 @@ export const v2ProofSliceStatementsSignedStatementsSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "proof-slice signed statement rs256"
+          "proof-slice signed statement rs256",
+          "legacy note: XAPI-00117 upstream comment - The JWS signature MUST use an algorithm of \"RS256\", \"RS384\", or \"RS512\". The LRS must reject with 400 a statement which does not use one of these algorithms or does not use one of these algorithms correctly.",
+          "legacy note: XAPI-00117 upstream describe - The JWS signature MUST use an algorithm of \"RS256\", \"RS384\", or \"RS512\".",
         ]
       }
     },
@@ -282,7 +290,9 @@ export const v2ProofSliceStatementsSignedStatementsSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "proof-slice signed statement rs384"
+          "proof-slice signed statement rs384",
+          "legacy note: XAPI-00117 upstream comment - The JWS signature MUST use an algorithm of \"RS256\", \"RS384\", or \"RS512\". The LRS must reject with 400 a statement which does not use one of these algorithms or does not use one of these algorithms correctly.",
+          "legacy note: XAPI-00117 upstream describe - The JWS signature MUST use an algorithm of \"RS256\", \"RS384\", or \"RS512\".",
         ]
       }
     },
@@ -337,7 +347,9 @@ export const v2ProofSliceStatementsSignedStatementsSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "proof-slice signed statement rs512"
+          "proof-slice signed statement rs512",
+          "legacy note: XAPI-00117 upstream comment - The JWS signature MUST use an algorithm of \"RS256\", \"RS384\", or \"RS512\". The LRS must reject with 400 a statement which does not use one of these algorithms or does not use one of these algorithms correctly.",
+          "legacy note: XAPI-00117 upstream describe - The JWS signature MUST use an algorithm of \"RS256\", \"RS384\", or \"RS512\".",
         ]
       }
     },
@@ -393,7 +405,9 @@ export const v2ProofSliceStatementsSignedStatementsSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "proof-slice signed statement hs256 rejection"
+          "proof-slice signed statement hs256 rejection",
+          "legacy note: XAPI-00117 upstream comment - The JWS signature MUST use an algorithm of \"RS256\", \"RS384\", or \"RS512\". The LRS must reject with 400 a statement which does not use one of these algorithms or does not use one of these algorithms correctly.",
+          "legacy note: XAPI-00117 upstream describe - The JWS signature MUST use an algorithm of \"RS256\", \"RS384\", or \"RS512\".",
         ]
       }
     }

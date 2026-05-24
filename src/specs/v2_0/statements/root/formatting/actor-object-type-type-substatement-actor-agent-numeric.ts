@@ -85,7 +85,8 @@ export const v2StatementsActorObjectTypeTypeSubstatementActorAgentNumericCase = 
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Formatting"
+      "Statement Formatting",
+      "legacy note: XAPI-00032 upstream comment - An \"objectType\" property is a String. If present, the LRS must validate and reject with 400 Bad Request if invalid",
     ]
   }
 } as unknown as CaseDefinition;

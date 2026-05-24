@@ -229,7 +229,9 @@ export const v2StatementsQueryVoidedTargetsRetainedLimitCase = {
       }
     ],
     "notes": [
-      "proof-slice voided target retrieval limit"
+      "proof-slice voided target retrieval limit",
+      "legacy note: XAPI-00162 upstream comment - An LRS's Statement API processes a successful GET request using a parameter (such as stored time) which includes a voided statement and unvoided statements targeting the voided statement. The API must return 200 Ok and the statement result object, containing statements which target a voided statement, but not the voided statement itself.",
+      "legacy note: XAPI-00162 upstream describe - An LRS\\'s Statement Resource, upon processing a successful GET request wishing to return a Voided Statement still returns Statements which target it",
     ]
   }
 } as unknown as CaseDefinition;

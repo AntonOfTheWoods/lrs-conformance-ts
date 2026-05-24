@@ -176,6 +176,7 @@ export const v2StatementsRetrievalDirectAdditionalPageContainerCase = {
     notes: [
       "proof-slice retrieval direct additional page container",
       "legacy note: pagination produces a new StatementResult container for each additional page",
+      "legacy note: XAPI-00114 upstream comment - A \"statements\" property result which is paginated will create a container for each additional page.",
     ],
   },
 } as unknown as CaseDefinition;

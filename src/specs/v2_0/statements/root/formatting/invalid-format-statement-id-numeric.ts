@@ -75,7 +75,9 @@ export const v2StatementsInvalidFormatStatementIdNumericCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Formatting"
+      "Statement Formatting",
+      "legacy note: XAPI-00007 upstream comment - in formatting.js",
+      "legacy note: XAPI-00028 upstream comment - in uuids.js",
     ]
   }
 } as unknown as CaseDefinition;

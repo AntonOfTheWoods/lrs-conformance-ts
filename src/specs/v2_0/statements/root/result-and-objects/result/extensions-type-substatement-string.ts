@@ -98,7 +98,8 @@ export const v2StatementsResultExtensionsTypeSubstatementStringCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Result"
+      "Statement Result",
+      "legacy note: XAPI-00078 upstream comment - An \"extensions\" property is an Object. The LRS rejects with 400 Bad Request a Statement which has a Result Object with aa “extensions” property which does not have a valid Extensions Object, if present.",
     ]
   }
 } as unknown as CaseDefinition;

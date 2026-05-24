@@ -18,7 +18,6 @@ import {
   omitQueryParam,
   parametersLegacySuiteFile,
   requestSequenceCase,
-  rfc1123HeaderPattern,
   singleRequestCase,
   specVersion,
   stateResourceLegacySuiteFile,
@@ -169,7 +168,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       },
     ],
     capabilityFlags: ["document", "retrieval", "state"],
-    notes: ["proof-slice activity state roundtrip"],
+    notes: [
+      "proof-slice activity state roundtrip",
+      'legacy note: XAPI-00192 upstream comment - An LRS\'s State API upon processing a successful GET request with a valid "stateId" as a parameter returns the document satisfying the requirements of the GET and code 200 OK NOTE: There is no requirement here that the LRS reacts to the "since" parameter in the case of a GET request with valid "stateId" - this is intentional',
+    ],
   });
 
   const stateListCase = requestSequenceCase({
@@ -186,7 +188,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "activities-state", "document", "list"],
     capabilityFlags: ["document", "list", "state"],
     legacyTraceSuiteFile: stateResourceLegacySuiteFile,
-    notes: ["proof-slice activity state list"],
+    notes: [
+      "proof-slice activity state list",
+      'legacy note: XAPI-00193 upstream comment - An LRS\'s State API upon processing a successful GET request without "stateId" as a parameter returns an array of ids of state data documents satisfying the requirements of the GET and code 200 OK',
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", "activities-state", stateListIdentity, {
@@ -226,7 +231,11 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "activities-state", "document", "list", "since"],
     capabilityFlags: ["document", "list", "state", "since"],
     legacyTraceSuiteFile: stateResourceLegacySuiteFile,
-    notes: ["proof-slice activity state since filtering"],
+    notes: [
+      "proof-slice activity state since filtering",
+      'legacy note: XAPI-00221 upstream comment - An LRS\'s State API can process a GET request with "since" as a parameter. Returning 200 OK and all matching profiles after the date/time of the “since” parameter.',
+      'legacy note: XAPI-00195 upstream comment - An LRS\'s returned array of ids from a successful GET request all refer to documents stored after the TimeStamp in the "since" parameter of the GET request',
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", "activities-state", stateSinceIdentity, {
@@ -272,7 +281,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 400,
     },
-    notes: ["proof-slice activity state invalid since"],
+    notes: [
+      "proof-slice activity state invalid since",
+      'legacy note: XAPI-00204 upstream comment - An LRS\'s State API rejects a GET request with "since" as a parameter if it is not a "TimeStamp", with error code 400 Bad Request',
+    ],
   });
 
   const stateInvalidAgentQueryCase = singleRequestCase({
@@ -306,7 +318,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 400,
     },
-    notes: ["proof-slice activity state invalid agent query"],
+    notes: [
+      "proof-slice activity state invalid agent query",
+      'legacy note: XAPI-00235 upstream comment - An LRS must reject with 400 Bad Request a POST request to the State API which contains name/value pairs with invalid JSON and the Content-Type header is "application/json"',
+    ],
   });
 
   const stateMergeCase = requestSequenceCase({
@@ -323,7 +338,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "activities-state", "document", "merge"],
     capabilityFlags: ["document", "merge", "state"],
     legacyTraceSuiteFile: stateResourceLegacySuiteFile,
-    notes: ["proof-slice activity state merge"],
+    notes: [
+      "proof-slice activity state merge",
+      'legacy note: XAPI-00234 upstream comment - An LRS\'s State API performs a Document Merge if a profileId is found and both it and the document in the POST request have type "application/json". If the merge is successful, the LRS MUST respond with HTTP status code 204 No Content.',
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", "activities-state", stateMergeIdentity, {
@@ -381,6 +399,8 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice activity state non-json incoming merge rejection",
       "legacy note: merge rejection scenario case 1 (incoming POST body is non-JSON)",
+      "legacy note: XAPI-00229 upstream comment - An LRS's State API, rejects a POST request if the document is found and either document is not a valid JSON Object",
+      "legacy note: XAPI-00229 upstream describe - An LRSs State Resource, rejects a POST request if the document is found and either document is not a valid JSON Object",
     ],
     steps: [
       {
@@ -435,6 +455,8 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice activity state existing non-json merge rejection",
       "legacy note: merge rejection scenario case 2 (existing stored document is non-JSON)",
+      "legacy note: XAPI-00229 upstream comment - An LRS's State API, rejects a POST request if the document is found and either document is not a valid JSON Object",
+      "legacy note: XAPI-00229 upstream describe - An LRSs State Resource, rejects a POST request if the document is found and either document is not a valid JSON Object",
     ],
     steps: [
       {
@@ -486,7 +508,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "activities-state", "document", "delete"],
     capabilityFlags: ["document", "delete", "state"],
     legacyTraceSuiteFile: stateResourceLegacySuiteFile,
-    notes: ["proof-slice activity state delete"],
+    notes: [
+      "proof-slice activity state delete",
+      'legacy note: XAPI-00194 upstream comment - An LRS\'s State API upon processing a successful DELETE request without "stateId" as a parameter deletes documents satisfying the requirements of the DELETE and code 204 No Content',
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", "activities-state", stateDeleteIdentity, {
@@ -531,7 +556,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 204,
     },
-    notes: ["proof-slice activity state endpoint"],
+    notes: [
+      "proof-slice activity state endpoint",
+      'legacy note: XAPI-00230 upstream comment - An LRS has a State API with endpoint "base IRI"+"/activities/state"',
+    ],
   });
 
   const statePutAcceptedCase = singleRequestCase({
@@ -552,7 +580,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 204,
     },
-    notes: ["proof-slice activity state put accepted"],
+    notes: [
+      "proof-slice activity state put accepted",
+      "legacy note: XAPI-00190 upstream comment - An LRS's State API upon processing a successful PUT request returns code 204 No Content",
+    ],
   });
 
   const statePostAcceptedCase = singleRequestCase({
@@ -582,6 +613,8 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       "proof-slice activity state post accepted",
       "legacy note: successful State POST returns 204 No Content",
       "legacy note: State API accepts POST requests",
+      "legacy note: XAPI-00189 upstream comment - An LRS's State API upon processing a successful POST request returns code 204 No Content",
+      "legacy note: XAPI-00231 upstream comment - An LRS will accept a POST request to the State API",
     ],
   });
 
@@ -622,7 +655,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       },
     ],
     capabilityFlags: ["document", "retrieval", "state"],
-    notes: ["proof-slice activity state get accepted"],
+    notes: [
+      "proof-slice activity state get accepted",
+      "legacy note: XAPI-00188 upstream comment - An LRS's State API upon processing a successful GET request returns 200 Ok, State Document",
+    ],
   });
 
   const stateGetByStateIdCase = documentRoundTripCase({
@@ -665,6 +701,7 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice activity state get with stateId accepted",
       "legacy note: no conformance requirement mandates additional since filtering behavior when GET includes a valid stateId",
+      'legacy note: XAPI-00217 upstream comment - An LRS\'s State API can process a GET request with "stateId" as a parameter',
     ],
   });
 
@@ -682,7 +719,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "activities-state", "document", "list", "since"],
     capabilityFlags: ["document", "list", "state", "since"],
     legacyTraceSuiteFile: stateResourceLegacySuiteFile,
-    notes: ["proof-slice activity state since accepted"],
+    notes: [
+      "proof-slice activity state since accepted",
+      'legacy note: XAPI-00221 upstream comment - An LRS\'s State API can process a GET request with "since" as a parameter. Returning 200 OK and all matching profiles after the date/time of the “since” parameter.',
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", "activities-state", stateSinceAcceptedIdentity, stateRequestBody),
@@ -718,7 +758,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "activities-state", "document", "merge", "write"],
     capabilityFlags: ["document", "state", "write"],
     legacyTraceSuiteFile: stateResourceLegacySuiteFile,
-    notes: ["proof-slice activity state post as put"],
+    notes: [
+      "proof-slice activity state post as put",
+      "legacy note: XAPI-00233 upstream comment - An LRS's State API, upon receiving a POST request for a document not currently in the LRS, treats it as a PUT request and store a new document. Returning 204 No Content",
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", "activities-state", statePostAsPutIdentity, stateRequestBody),
@@ -755,7 +798,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "activities-state", "document", "merge", "invalid"],
     capabilityFlags: ["document", "merge", "state", "invalid"],
     legacyTraceSuiteFile: stateResourceLegacySuiteFile,
-    notes: ["proof-slice activity state non-json type merge rejection"],
+    notes: [
+      "proof-slice activity state non-json type merge rejection",
+      "legacy note: XAPI-00232 upstream comment - An LRS's State API, rejects a POST request if the document is found and either document's type is not \"application/json\" with error code 400 Bad Request",
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", "activities-state", stateNonJsonTypeRejectIdentity, {
@@ -797,6 +843,8 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice activity state invalid JSON merge rejection",
       "legacy note: merge rejection scenario case 3 (incoming JSON body is syntactically invalid)",
+      "legacy note: XAPI-00229 upstream comment - An LRS's State API, rejects a POST request if the document is found and either document is not a valid JSON Object",
+      "legacy note: XAPI-00229 upstream describe - An LRSs State Resource, rejects a POST request if the document is found and either document is not a valid JSON Object",
     ],
     steps: [
       {
@@ -848,7 +896,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "activities-state", "document", "delete"],
     capabilityFlags: ["document", "delete", "state"],
     legacyTraceSuiteFile: stateResourceLegacySuiteFile,
-    notes: ["proof-slice activity state delete accepted"],
+    notes: [
+      "proof-slice activity state delete accepted",
+      "legacy note: XAPI-00187 upstream comment - An LRS's State API upon processing a successful DELETE request returns code 204 No Content",
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", "activities-state", stateDeleteAcceptedIdentity, stateRequestBody),
@@ -879,7 +930,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "activities-state", "document", "delete", "stateId"],
     capabilityFlags: ["document", "delete", "state", "stateId"],
     legacyTraceSuiteFile: stateResourceLegacySuiteFile,
-    notes: ["proof-slice activity state delete by stateId"],
+    notes: [
+      "proof-slice activity state delete by stateId",
+      'legacy note: XAPI-00191 upstream comment - An LRS\'s State API upon processing a successful DELETE request with a valid "stateId" as a parameter deletes the document satisfying the requirements of the DELETE and returns code 204 No Content NOTE: There is no requirement here that the LRS reacts to the "since" parameter in the case of a DELETE request with valid "stateId" - this is intentional',
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", "activities-state", stateDeleteByStateIdIdentity, stateRequestBody),
@@ -910,7 +964,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
     tags: ["v2.0.0", "activities-state", "document", "delete", "stateId"],
     capabilityFlags: ["document", "delete", "state", "stateId"],
     legacyTraceSuiteFile: stateResourceLegacySuiteFile,
-    notes: ["proof-slice activity state delete with stateId accepted"],
+    notes: [
+      "proof-slice activity state delete with stateId accepted",
+      'legacy note: XAPI-00216 upstream comment - An LRS\'s State API can process a DELETE request with "stateId" as a parameter',
+    ],
     steps: [
       {
         request: buildVersionedRequest(
@@ -1060,6 +1117,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       tags: ["v2.0.0", "activities-state", "validation", "activityId"],
       capabilityFlags: ["document", "state", "validation", "parameters"],
       legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00210 upstream comment - An LRS\'s State API rejects a PUT request without "activityId" as a parameter with error code 400 Bad Request',
+      ],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.activities-state.validation.missing-activityId.post",
@@ -1079,6 +1140,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       tags: ["v2.0.0", "activities-state", "validation", "activityId"],
       capabilityFlags: ["document", "state", "validation", "parameters"],
       legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00209 upstream comment - An LRS\'s State API rejects a POST request without "activityId" as a parameter with error code 400 Bad Request',
+      ],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.activities-state.validation.missing-activityId.get",
@@ -1097,6 +1162,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       tags: ["v2.0.0", "activities-state", "validation", "activityId"],
       capabilityFlags: ["document", "state", "validation", "parameters"],
       legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00208 upstream comment - An LRS\'s State API rejects a GET request without "activityId" as a parameter with error code 400 Bad Request',
+      ],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.activities-state.validation.missing-activityId.delete",
@@ -1115,6 +1184,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       tags: ["v2.0.0", "activities-state", "validation", "activityId"],
       capabilityFlags: ["document", "state", "validation", "parameters"],
       legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00207 upstream comment - An LRS\'s State API rejects a DELETE request without "activityId" as a parameter with error code 400 Bad Request',
+      ],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.activities-state.validation.missing-agent.put",
@@ -1134,6 +1207,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       tags: ["v2.0.0", "activities-state", "validation", "agent"],
       capabilityFlags: ["document", "state", "validation", "parameters"],
       legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00215 upstream comment - An LRS\'s State API rejects a PUT request without "agent" as a parameter with error code 400 Bad Request',
+      ],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.activities-state.validation.invalid-agent.put",
@@ -1156,6 +1233,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       tags: ["v2.0.0", "activities-state", "validation", "agent"],
       capabilityFlags: ["document", "state", "validation", "parameters"],
       legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00199 upstream comment - An LRS\'s State API rejects a PUT request with "agent" as a parameter if it is not in JSON format with error code 400 Bad Request',
+      ],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.activities-state.validation.missing-agent.post",
@@ -1175,6 +1256,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       tags: ["v2.0.0", "activities-state", "validation", "agent"],
       capabilityFlags: ["document", "state", "validation", "parameters"],
       legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00214 upstream comment - An LRS\'s State API rejects a POST request without "agent" as a parameter with error code 400 Bad Request',
+      ],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.activities-state.validation.invalid-agent.post",
@@ -1197,6 +1282,11 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       tags: ["v2.0.0", "activities-state", "validation", "agent"],
       capabilityFlags: ["document", "state", "validation", "parameters"],
       legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00198 upstream comment - An LRS\'s State API rejects a POST request with "agent" as a parameter if it is not in JSON format with error code 400 Bad Request',
+        'legacy note: XAPI-00198 upstream describe - An LRS\\\'s State Resource rejects a POST request with "agent" as a parameter if it is not in JSON format with error code 400 Bad Request',
+      ],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.activities-state.validation.missing-agent.get",
@@ -1215,6 +1305,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       tags: ["v2.0.0", "activities-state", "validation", "agent"],
       capabilityFlags: ["document", "state", "validation", "parameters"],
       legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00213 upstream comment - An LRS\'s State API rejects a GET request without "agent" as a parameter with error code 400 Bad Request',
+      ],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.activities-state.validation.invalid-agent.get",
@@ -1236,6 +1330,11 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       tags: ["v2.0.0", "activities-state", "validation", "agent"],
       capabilityFlags: ["document", "state", "validation", "parameters"],
       legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00197 upstream comment - An LRS\'s State API rejects a GET request with "agent" as a parameter if it is not in JSON format with error code 400 Bad Request',
+        'legacy note: XAPI-00197 upstream describe - An LRS\\\'s State Resource rejects a GET request with "agent" as a parameter if it is not in JSON format with error code 400 Bad Request',
+      ],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.activities-state.validation.missing-agent.delete",
@@ -1254,6 +1353,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       tags: ["v2.0.0", "activities-state", "validation", "agent"],
       capabilityFlags: ["document", "state", "validation", "parameters"],
       legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00212 upstream comment - An LRS\'s State API rejects a DELETE request without "agent" as a parameter with error code 400 Bad Request',
+      ],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.activities-state.validation.invalid-agent.delete",
@@ -1275,6 +1378,11 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       tags: ["v2.0.0", "activities-state", "validation", "agent"],
       capabilityFlags: ["document", "state", "validation", "parameters"],
       legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00196 upstream comment - An LRS\'s State API rejects a DELETE request with "agent" as a parameter if it is not in JSON format with error code 400 Bad Request',
+        'legacy note: XAPI-00196 upstream describe - An LRS\\\'s State Resource rejects a DELETE request with "agent" as a parameter if it is not in JSON format with error code 400 Bad Request',
+      ],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.activities-state.validation.invalid-registration.put",
@@ -1297,6 +1405,11 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       tags: ["v2.0.0", "activities-state", "validation", "registration"],
       capabilityFlags: ["document", "state", "validation", "parameters"],
       legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00203 upstream comment - An LRS\'s State API rejects a PUT request with "registration" as a parameter if it is not a UUID with error code 400 Bad Request',
+        'legacy note: XAPI-00203 upstream describe - An LRS\\\'s State Resource rejects a PUT request with "registration" as a parameter if it is not a UUID with error code 400 Bad Request',
+      ],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.activities-state.validation.invalid-registration.post",
@@ -1319,6 +1432,11 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       tags: ["v2.0.0", "activities-state", "validation", "registration"],
       capabilityFlags: ["document", "state", "validation", "parameters"],
       legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00202 upstream comment - An LRS\'s State API rejects a POST request with "registration" as a parameter if it is not a UUID with error code 400 Bad Request',
+        'legacy note: XAPI-00202 upstream describe - An LRS\\\'s State Resource rejects a POST request with "registration" as a parameter if it is not a UUID with error code 400 Bad Request',
+      ],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.activities-state.validation.invalid-registration.get",
@@ -1340,6 +1458,11 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       tags: ["v2.0.0", "activities-state", "validation", "registration"],
       capabilityFlags: ["document", "state", "validation", "parameters"],
       legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00201 upstream comment - An LRS\'s State API rejects a GET request with "registration" as a parameter if it is not a UUID with error code 400 Bad Request',
+        'legacy note: XAPI-00201 upstream describe - An LRS\\\'s State Resource rejects a GET request with "registration" as a parameter if it is not a UUID with error code 400 Bad Request',
+      ],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.activities-state.validation.invalid-registration.delete",
@@ -1361,6 +1484,11 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       tags: ["v2.0.0", "activities-state", "validation", "registration"],
       capabilityFlags: ["document", "state", "validation", "parameters"],
       legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00200 upstream comment - An LRS\'s State API rejects a DELETE request with "registration" as a parameter if it is not a UUID with error code 400 Bad Request',
+        'legacy note: XAPI-00200 upstream describe - An LRS\\\'s State Resource rejects a DELETE request with "registration" as a parameter if it is not a UUID with error code 400 Bad Request',
+      ],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.activities-state.validation.missing-stateId.put",
@@ -1380,6 +1508,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       tags: ["v2.0.0", "activities-state", "validation", "stateId"],
       capabilityFlags: ["document", "state", "validation", "parameters"],
       legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00206 upstream comment - An LRS\'s State API rejects a PUT request without "stateId" as a parameter with error code 400 Bad Request',
+      ],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.activities-state.validation.missing-stateId.post",
@@ -1399,6 +1531,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       tags: ["v2.0.0", "activities-state", "validation", "stateId"],
       capabilityFlags: ["document", "state", "validation", "parameters"],
       legacyTraceSuiteFile: stateResourceLegacySuiteFile,
+
+      notes: [
+        'legacy note: XAPI-00211 upstream comment - An LRS\'s State API rejects a POST request without "stateId" as a parameter with error code 400 Bad Request',
+      ],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.activities-state.validation.invalid-stateId.put",
@@ -1422,6 +1558,8 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       capabilityFlags: ["document", "state", "validation", "parameters"],
       legacyTraceSuiteFile: parametersLegacySuiteFile,
       expectedStatus: 204,
+
+      notes: ["legacy note: XAPI-00228 upstream comment - in Parameters folder"],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.activities-state.validation.invalid-stateId.post",
@@ -1445,6 +1583,8 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       capabilityFlags: ["document", "state", "validation", "parameters"],
       legacyTraceSuiteFile: parametersLegacySuiteFile,
       expectedStatus: 204,
+
+      notes: ["legacy note: XAPI-00226 upstream comment - in Parameters folder"],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.activities-state.validation.invalid-stateId.get",
@@ -1467,6 +1607,8 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       capabilityFlags: ["document", "state", "validation", "parameters"],
       legacyTraceSuiteFile: parametersLegacySuiteFile,
       expectedStatus: 404,
+
+      notes: ["legacy note: XAPI-00225 upstream comment - in Parameters folder"],
     }),
     buildDocumentResourceValidationCase({
       caseId: "v2.activities-state.validation.invalid-stateId.delete",
@@ -1489,6 +1631,8 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       capabilityFlags: ["document", "state", "validation", "parameters"],
       legacyTraceSuiteFile: parametersLegacySuiteFile,
       expectedStatus: 204,
+
+      notes: ["legacy note: XAPI-00224 upstream comment - in Parameters folder"],
     }),
   ];
 
@@ -1511,7 +1655,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       assertion: {
         status: 204,
       },
-      notes: ["proof-slice activity state registration PUT"],
+      notes: [
+        "proof-slice activity state registration PUT",
+        'legacy note: XAPI-00218 upstream comment - An LRS\'s State API can process a PUT request with "registration" as a parameter',
+      ],
     }),
     singleRequestCase({
       caseId: "v2.activities-state.registration.post",
@@ -1531,7 +1678,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       assertion: {
         status: 204,
       },
-      notes: ["proof-slice activity state registration POST"],
+      notes: [
+        "proof-slice activity state registration POST",
+        'legacy note: XAPI-00227 upstream comment - An LRS\'s State API can process a POST request with "registration" as a parameter',
+      ],
     }),
     requestSequenceCase({
       caseId: "v2.activities-state.registration.get",
@@ -1547,7 +1697,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       tags: ["v2.0.0", "activities-state", "registration"],
       capabilityFlags: ["document", "state", "registration", "retrieval"],
       legacyTraceSuiteFile: stateResourceLegacySuiteFile,
-      notes: ["proof-slice activity state registration GET"],
+      notes: [
+        "proof-slice activity state registration GET",
+        'legacy note: XAPI-00220 upstream comment - An LRS\'s State API can process a GET request with "registration" as a parameter',
+      ],
       steps: [
         {
           request: buildVersionedRequest("POST", "activities-state", stateRegistrationGetIdentity, stateRequestBody),
@@ -1583,7 +1736,10 @@ export function createV20StateResourceProofSliceSuite(): SuiteDefinition {
       tags: ["v2.0.0", "activities-state", "registration"],
       capabilityFlags: ["document", "state", "registration", "delete"],
       legacyTraceSuiteFile: stateResourceLegacySuiteFile,
-      notes: ["proof-slice activity state registration DELETE"],
+      notes: [
+        "proof-slice activity state registration DELETE",
+        'legacy note: XAPI-00219 upstream comment - An LRS\'s State API can process a DELETE request with "registration" as a parameter',
+      ],
       steps: [
         {
           request: buildVersionedRequest("POST", "activities-state", stateRegistrationDeleteIdentity, stateRequestBody),

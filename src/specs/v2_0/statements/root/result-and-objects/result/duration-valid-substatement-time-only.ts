@@ -104,7 +104,9 @@ export const v2StatementsResultDurationValidSubstatementTimeOnlyCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Result"
+      "Statement Result",
+      "legacy note: XAPI-00077 upstream comment - A \"duration\" property is a formatted to ISO 8601 durations (see Data 4.6). The LRS rejects with 400 Bad Request a Statement which has a Result Object with a “duration” property which does not have a valid ISO 8601 value, if present.",
+      "legacy note: XAPI-00124 upstream comment - in durations.js",
     ]
   }
 } as unknown as CaseDefinition;

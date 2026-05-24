@@ -92,7 +92,8 @@ export const v2StatementsActorNameTypeSubstatementContextInstructorAgentNumericC
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Formatting"
+      "Statement Formatting",
+      "legacy note: XAPI-00033 upstream comment - A \"name\" property is a String. If present, the LRS must validate and reject with 400 Bad Request if invalid.",
     ]
   }
 } as unknown as CaseDefinition;

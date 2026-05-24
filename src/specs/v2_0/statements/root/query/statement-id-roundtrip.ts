@@ -101,7 +101,8 @@ export const v2StatementsQueryStatementIdRoundtripCase = {
     "queryJsonPathEqualsCaptured": [],
     "queryTextContains": [],
     "notes": [
-      "proof-slice query retrieval"
+      "proof-slice query retrieval",
+      "legacy note: XAPI-01001 upstream comment - Rewrite parity requirement: statementId GET roundtrip behavior remains covered in rewrite statement query cases.",
     ]
   }
 } as unknown as CaseDefinition;

@@ -84,7 +84,8 @@ export const v2StatementsScoreScaledInvalidStatementAboveOneCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Score"
+      "Statement Score",
+      "legacy note: XAPI-00083 upstream comment - If the \"score\" Object uses the \"scaled\" property, the value must be a decimal number between -1 and 1. The LRS rejects with 400 Bad Request a statement with a Result Object using the “scaled” property (if it is present) which is not a decimal number or is greater than 1 or less than -1.",
     ]
   }
 } as unknown as CaseDefinition;

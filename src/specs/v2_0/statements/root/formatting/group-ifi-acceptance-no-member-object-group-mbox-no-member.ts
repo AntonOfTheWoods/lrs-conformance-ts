@@ -74,7 +74,8 @@ export const v2StatementsGroupIfiAcceptanceNoMemberObjectGroupMboxNoMemberCase =
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Formatting"
+      "Statement Formatting",
+      "legacy note: XAPI-00037 upstream comment - An \"actor\" property with \"objectType\" as \"Group\" uses exactly one of the following Inverse Functional Identifier properties: \"mbox\", \"mbox_sha1sum\", \"openid\", \"account\" or a member property with at least one Agent. An LRS rejects with 400 Bad Request any group object with: - no IFI and no member property - more than one IFI - an invalid IFI value The remaining 6 suites take care of XAPI-00037",
     ]
   }
 } as unknown as CaseDefinition;

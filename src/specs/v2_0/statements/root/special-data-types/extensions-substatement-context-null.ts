@@ -100,7 +100,10 @@ export const v2StatementsSpecialDataTypesExtensionsSubstatementContextNullCase =
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "proof-slice special data types substatement-context null"
+      "proof-slice special data types substatement-context null",
+      "legacy note: XAPI-00119 upstream comment - An Extension can be null, an empty string, objects with nothing in them. The LRS accepts with 200 if a PUT or 204 if a POST an otherwise valid statement which has any extension value including null, an empty string, or an empty object. Tests for other emptys and PUT",
+      "legacy note: XAPI-00119 upstream describe - An Extension can be null, an empty string, objects with nothing in them when using PUT.",
+      "legacy note: XAPI-00120 upstream comment - in extensions.js",
     ]
   }
 } as unknown as CaseDefinition;

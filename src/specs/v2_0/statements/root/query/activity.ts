@@ -179,7 +179,9 @@ export const v2StatementsQueryActivityCase = {
       }
     ],
     "notes": [
-      "proof-slice statement collection query"
+      "proof-slice statement collection query",
+      "legacy note: XAPI-00179 upstream comment - An LRS's Statement API can process a GET request with \"activity\" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with exact match activity results if the activity parameter is set with a valid activity IRI",
+      "legacy note: XAPI-00179 upstream describe - An LRS\\'s Statement Resource can process a GET request with \"activity\" as a parameter",
     ]
   }
 } as unknown as CaseDefinition;

@@ -215,6 +215,12 @@ export const v2StatementsRetrievalPaginationMoreContainerCase = {
       "proof-slice retrieval pagination containers",
       "legacy note: follow-up page retrieval should use the server-provided more reference",
       "legacy note: each additional page remains a StatementResult container with statements and more fields",
+      "legacy note: XAPI-00108 upstream comment - If not empty, the \"more\" property's IRL refers to a specific container object corresponding to the next page of results from the original GET request. To test make a GET request which will return a known number of statements and confirm the LRS returns a “more” property which has an IRL with a container of the remaining statements and that the IRL is valid.",
+      "legacy note: XAPI-00108 upstream describe - If not empty, the \"more\" property\\'s IRL refers to a specific container object corresponding to the next page of results from the orignal GET request",
+      "legacy note: XAPI-00111 upstream comment - A \"more\" property's referenced container object follows the same rules as the original GET request, originating with a single \"statements\" property and a single \"more\" property.",
+      "legacy note: XAPI-00113 upstream comment - An LRS's Statement API, upon processing a successful GET request, will return a single \"statements\" property and a single \"more\" property. A single \"more\" property must be present if there are additional results available.",
+      "legacy note: XAPI-00113 upstream describe - An LRS\\'s Statement API, upon processing a successful GET request, will return a single \"statements\" property and a single \"more\" property.",
+      "legacy note: XAPI-00114 upstream comment - A \"statements\" property result which is paginated will create a container for each additional page.",
     ],
   },
 } as unknown as CaseDefinition;

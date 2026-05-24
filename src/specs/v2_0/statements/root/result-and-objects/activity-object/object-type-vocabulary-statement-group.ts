@@ -79,7 +79,8 @@ export const v2StatementsObjectTypeVocabularyStatementGroupCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Activity And Object Typing"
+      "Statement Activity And Object Typing",
+      "legacy note: XAPI-00046 upstream comment - in objects.js",
     ]
   }
 } as unknown as CaseDefinition;

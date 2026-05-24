@@ -80,7 +80,9 @@ export const v2StatementsContextPlatformActivityOnlyStatementAgentCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Context"
+      "Statement Context",
+      "legacy note: XAPI-00085 upstream comment - in contexts.js",
+      "legacy note: XAPI-00090 upstream comment - in contexts.js",
     ]
   }
 } as unknown as CaseDefinition;

@@ -179,7 +179,9 @@ export const v2StatementsQueryAgentCase = {
       }
     ],
     "notes": [
-      "proof-slice statement collection query"
+      "proof-slice statement collection query",
+      "legacy note: XAPI-00181 upstream comment - An LRS's Statement API can process a GET request with \"agent\" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with exact match agent result if the agent parameter is set with a valid Agent IFI",
+      "legacy note: XAPI-00181 upstream describe - An LRS\\'s Statement Resource can process a GET request with \"agent\" as a parameter",
     ]
   }
 } as unknown as CaseDefinition;

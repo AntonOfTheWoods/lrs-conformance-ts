@@ -94,7 +94,8 @@ export const v2ProofSliceStatementsAttachmentsSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Attachments"
+          "Statement Attachments",
+          "legacy note: XAPI-00025 upstream comment - in attachments.js",
         ]
       }
     },
@@ -182,7 +183,8 @@ export const v2ProofSliceStatementsAttachmentsSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Attachments"
+          "Statement Attachments",
+          "legacy note: XAPI-00025 upstream comment - in attachments.js",
         ]
       }
     },
@@ -260,7 +262,8 @@ export const v2ProofSliceStatementsAttachmentsSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Attachments"
+          "Statement Attachments",
+          "legacy note: XAPI-00025 upstream comment - in attachments.js",
         ]
       }
     },
@@ -338,7 +341,8 @@ export const v2ProofSliceStatementsAttachmentsSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Attachments"
+          "Statement Attachments",
+          "legacy note: XAPI-00025 upstream comment - in attachments.js",
         ]
       }
     },
@@ -428,7 +432,8 @@ export const v2ProofSliceStatementsAttachmentsSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Attachments"
+          "Statement Attachments",
+          "legacy note: XAPI-00107 upstream comment - A \"usageType\" property is an IRI. The LRS rejects with 400 Bad Request a statement which does not have a \"usageType\" property or the \"usageType\" property value is not a valid IRI in the Attachment Object.",
         ]
       }
     },
@@ -518,7 +523,8 @@ export const v2ProofSliceStatementsAttachmentsSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Attachments"
+          "Statement Attachments",
+          "legacy note: XAPI-00105 upstream comment - A \"contentType\" property is an Internet Media/MIME type. The LRS rejects with 400 Bad Request a statement which does not have a “contentType” property or the “contentType” property value is not Internet Media/MIME in the Attachment Object.",
         ]
       }
     },
@@ -608,7 +614,8 @@ export const v2ProofSliceStatementsAttachmentsSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Attachments"
+          "Statement Attachments",
+          "legacy note: XAPI-00102 upstream comment - A \"length\" property is an Integer. The LRS rejects with 400 Bad Request a statement whichdoes not have a “length” property or the “length” property is not a valid integer in octets in the Attachment Object.",
         ]
       }
     },
@@ -698,7 +705,8 @@ export const v2ProofSliceStatementsAttachmentsSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Attachments"
+          "Statement Attachments",
+          "legacy note: XAPI-00103 upstream comment - A \"sha2\" property is a String. The LRS rejects with 400 Bad Request a statement which does not have a “sha2” property or the ”sha2” property is not a valid hash in the Attachment Object.",
         ]
       }
     },
@@ -788,7 +796,8 @@ export const v2ProofSliceStatementsAttachmentsSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Attachments"
+          "Statement Attachments",
+          "legacy note: XAPI-00104 upstream comment - A \"fileUrl\" property is an IRL. The LRS rejects with 400 Bad Request a statement the “fileURL” property if it is present and it is not a valid IRL in the Attachment Object.",
         ]
       }
     },
@@ -876,7 +885,8 @@ export const v2ProofSliceStatementsAttachmentsSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Attachments"
+          "Statement Attachments",
+          "legacy note: XAPI-00106 upstream comment - A \"display\" property is a Language Map. The LRS rejects with 400 Bad Request a statement which does not have a “display” property or the “display” property value is not a valid Language Map in the Attachment Object.",
         ]
       }
     },
@@ -964,7 +974,8 @@ export const v2ProofSliceStatementsAttachmentsSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Attachments"
+          "Statement Attachments",
+          "legacy note: XAPI-00106 upstream comment - A \"display\" property is a Language Map. The LRS rejects with 400 Bad Request a statement which does not have a “display” property or the “display” property value is not a valid Language Map in the Attachment Object.",
         ]
       }
     },
@@ -1052,7 +1063,8 @@ export const v2ProofSliceStatementsAttachmentsSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Attachments"
+          "Statement Attachments",
+          "legacy note: XAPI-00106 upstream comment - A \"display\" property is a Language Map. The LRS rejects with 400 Bad Request a statement which does not have a “display” property or the “display” property value is not a valid Language Map in the Attachment Object.",
         ]
       }
     },
@@ -1140,7 +1152,8 @@ export const v2ProofSliceStatementsAttachmentsSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Attachments"
+          "Statement Attachments",
+          "legacy note: XAPI-00106 upstream comment - A \"display\" property is a Language Map. The LRS rejects with 400 Bad Request a statement which does not have a “display” property or the “display” property value is not a valid Language Map in the Attachment Object.",
         ]
       }
     }

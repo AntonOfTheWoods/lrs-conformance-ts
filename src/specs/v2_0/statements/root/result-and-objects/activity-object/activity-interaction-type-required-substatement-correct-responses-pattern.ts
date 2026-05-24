@@ -90,7 +90,9 @@ export const v2StatementsActivityInteractionTypeRequiredSubstatementCorrectRespo
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Activity Objects"
+      "Statement Activity Objects",
+      "legacy note: XAPI-00064 upstream comment - An Activity Definition uses the \"interactionType\" property if correctResponsesPattern is present. An LRS rejects a statement with 400 Bad Request if a correctResponsePattern is present and interactionType is not.",
+      "legacy note: XAPI-00064 upstream describe - An Activity Definition uses the \"interactionType\" property if any of the correctResponsesPattern, choices, scale, source, target, or steps properties are used (Multiplicity, Data 2.4.4.1.s8, XAPI-00064) **Implicit**",
     ]
   }
 } as unknown as CaseDefinition;

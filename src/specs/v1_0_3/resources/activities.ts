@@ -117,7 +117,10 @@ export function createV103ActivitiesResourceProofSliceSuite(): SuiteDefinition {
     tags: ["v1.0.3", "activities", "resource", "basics"],
     capabilityFlags: ["activities", "retrieval"],
     legacyTraceSuiteFile: activitiesResourceLegacySuiteFile,
-    notes: ["v1 proof-slice activities resource endpoint exists"],
+    notes: [
+      "v1 proof-slice activities resource endpoint exists",
+      "legacy note: XAPI-00252 upstream comment - An LRS has an Activities API with endpoint \"base IRI\" + /activities\" (7.5) Implicit (in that it is not named this by the spec).",
+    ],
     steps: [
       {
         request: buildStatementPostRequest(
@@ -158,7 +161,10 @@ export function createV103ActivitiesResourceProofSliceSuite(): SuiteDefinition {
     tags: ["v1.0.3", "activities", "resource", "basics"],
     capabilityFlags: ["activities", "retrieval"],
     legacyTraceSuiteFile: activitiesResourceLegacySuiteFile,
-    notes: ["v1 proof-slice activities resource accepts get"],
+    notes: [
+      "v1 proof-slice activities resource accepts get",
+      "legacy note: XAPI-00253 upstream comment - An LRS's Activities API accepts GET requests.",
+    ],
     steps: [
       {
         request: buildStatementPostRequest(
@@ -199,7 +205,10 @@ export function createV103ActivitiesResourceProofSliceSuite(): SuiteDefinition {
     tags: ["v1.0.3", "activities", "resource", "roundtrip"],
     capabilityFlags: ["activities", "retrieval"],
     legacyTraceSuiteFile: activitiesResourceLegacySuiteFile,
-    notes: ["v1 proof-slice activities resource complete object"],
+    notes: [
+      "v1 proof-slice activities resource complete object",
+      "legacy note: XAPI-00251 upstream comment - An LRS's Activities API upon processing a successful GET request returns 200 OK and the complete Activity Object.",
+    ],
     steps: [
       {
         request: buildStatementPostRequest(
@@ -242,7 +251,10 @@ export function createV103ActivitiesResourceProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 400,
     },
-    notes: ["v1 proof-slice activities resource missing activityId"],
+    notes: [
+      "v1 proof-slice activities resource missing activityId",
+      "legacy note: XAPI-00250 upstream comment - An LRS's Activities API rejects a GET request without \"activityId\" as a parameter with error code 400 Bad Request.",
+    ],
   });
 
   const mergedDefinitionCase = requestSequenceCase({
@@ -259,7 +271,10 @@ export function createV103ActivitiesResourceProofSliceSuite(): SuiteDefinition {
     tags: ["v1.0.3", "activities", "resource", "merge"],
     capabilityFlags: ["activities", "retrieval", "merge"],
     legacyTraceSuiteFile: activitiesResourceLegacySuiteFile,
-    notes: ["v1 proof-slice activities resource definition merge"],
+    notes: [
+      "v1 proof-slice activities resource definition merge",
+      "legacy note: XAPI-00254 upstream comment - The Activity Object must contain all available information about an activity from any statements who target the same “activityId”. For example, LRS accepts two statements each with a different language description of an activity using the exact same “activityId”. The LRS must return both language descriptions when a GET request is made to the Activities endpoint for that “activityId”.",
+    ],
     steps: [
       {
         request: buildStatementPostRequest(

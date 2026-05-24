@@ -76,7 +76,8 @@ export const v2StatementsExtensionsLegacyInvalidKeyStatementResultCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Special Data Types"
+      "Statement Special Data Types",
+      "legacy note: XAPI-00118 upstream comment - in extensions.js",
     ]
   }
 } as unknown as CaseDefinition;

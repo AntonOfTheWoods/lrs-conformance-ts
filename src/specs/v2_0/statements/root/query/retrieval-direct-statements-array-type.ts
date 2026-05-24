@@ -171,7 +171,9 @@ export const v2StatementsRetrievalDirectStatementsArrayTypeCase = {
       }
     ],
     "notes": [
-      "proof-slice retrieval direct statements array"
+      "proof-slice retrieval direct statements array",
+      "legacy note: XAPI-00110 upstream comment - A \"statements\" property is an Array of Statements. Make a GET request which will return at least one statement and confirm the “statements” property is a valid Array of Statements.",
+      "legacy note: XAPI-00110 upstream describe - A \"statements\" property is an Array of Statements",
     ]
   }
 } as unknown as CaseDefinition;

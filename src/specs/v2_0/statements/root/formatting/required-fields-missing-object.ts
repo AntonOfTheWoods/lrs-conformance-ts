@@ -65,7 +65,8 @@ export const v2StatementsRequiredFieldsMissingObjectCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Formatting"
+      "Statement Formatting",
+      "legacy note: XAPI-00005 upstream comment - in formatting.js",
     ]
   }
 } as unknown as CaseDefinition;

@@ -176,6 +176,7 @@ export const v2StatementsRetrievalDirectMoreContainerRulesCase = {
     notes: [
       "proof-slice retrieval direct more container rules",
       "legacy note: a referenced more page follows the same StatementResult response rules as the originating request",
+      "legacy note: XAPI-00111 upstream comment - A \"more\" property's referenced container object follows the same rules as the original GET request, originating with a single \"statements\" property and a single \"more\" property.",
     ],
   },
 } as unknown as CaseDefinition;

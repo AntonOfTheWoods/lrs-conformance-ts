@@ -54,7 +54,9 @@ export const v2StatementsQueryCollectionStatementResultCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "proof-slice statement result collection"
+      "proof-slice statement result collection",
+      "legacy note: XAPI-00154 upstream comment - An LRS's Statement API upon processing a successful GET request with neither a \"statementId\" nor a \"voidedStatementId\" parameter, returns code 200 OK and a StatementResult Object.",
+      "legacy note: XAPI-00154 upstream describe - An LRS\\'s Statement Resource upon processing a successful GET request with neither a \"statementId\" nor a \"voidedStatementId\" parameter, returns code 200 OK and a StatementResult Object.",
     ]
   }
 } as unknown as CaseDefinition;

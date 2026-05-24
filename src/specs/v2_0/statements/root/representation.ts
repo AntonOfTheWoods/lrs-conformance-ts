@@ -132,7 +132,10 @@ export const v2ProofSliceStatementsRepresentationSuite = {
             expectedHeaderDateAfterStep: [],
           },
         ],
-        notes: ["proof-slice statement format absent defaults exact"],
+        notes: [
+          "proof-slice statement format absent defaults exact",
+          "legacy note: XAPI-00168 upstream comment - An LRS's Statement API can process a GET request with \"format\" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with results in the requested format or in “exact” if the “format” parameter is absent.",
+        ],
       },
     },
     {
@@ -261,7 +264,11 @@ export const v2ProofSliceStatementsRepresentationSuite = {
             expectedHeaderDateAfterStep: [],
           },
         ],
-        notes: ["proof-slice statement accept-language ignored without canonical"],
+        notes: [
+          "proof-slice statement accept-language ignored without canonical",
+          "legacy note: XAPI-00172 upstream comment - If the \"Accept-Language\" header is present as part of the GET request to the Statement API and the \"format\" parameter is set to \"canonical\", the LRS MUST apply this data to choose the matching language in the response.",
+          "legacy note: XAPI-00172 upstream describe - If the \"Accept-Language\" header is present as part of the GET request to the Statement API and the \"format\" parameter is set to \"canonical\", the LRS MUST apply this data to choose the matching language in the response.",
+        ],
       },
     },
     {
@@ -391,7 +398,10 @@ export const v2ProofSliceStatementsRepresentationSuite = {
             expectedHeaderDateAfterStep: [],
           },
         ],
-        notes: ["proof-slice statement exact format"],
+        notes: [
+          "proof-slice statement exact format",
+          "legacy note: XAPI-00170 upstream comment - An LRS's Statement API can process a GET request with \"format\" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with results in the requested format. If “exact”, return Agent, Activity, Verb and Group Objects populated exactly as they were when the Statement was received.",
+        ],
       },
     },
     {
@@ -523,7 +533,12 @@ export const v2ProofSliceStatementsRepresentationSuite = {
             expectedHeaderDateAfterStep: [],
           },
         ],
-        notes: ["proof-slice statement canonical format"],
+        notes: [
+          "proof-slice statement canonical format",
+          "legacy note: XAPI-00169 upstream comment - An LRS's Statement API can process a GET request with \"format\" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with results in the requested format. If “canonical”, return Activity Objects and Verbs populated with the canonical definition of the Activity Objects and Display of the Verbs as determined by the LRS, returning only one language.",
+          "legacy note: XAPI-00172 upstream comment - If the \"Accept-Language\" header is present as part of the GET request to the Statement API and the \"format\" parameter is set to \"canonical\", the LRS MUST apply this data to choose the matching language in the response.",
+          "legacy note: XAPI-00172 upstream describe - If the \"Accept-Language\" header is present as part of the GET request to the Statement API and the \"format\" parameter is set to \"canonical\", the LRS MUST apply this data to choose the matching language in the response.",
+        ],
       },
     },
     {
@@ -650,7 +665,10 @@ export const v2ProofSliceStatementsRepresentationSuite = {
             expectedHeaderDateAfterStep: [],
           },
         ],
-        notes: ["proof-slice statement ids format"],
+        notes: [
+          "proof-slice statement ids format",
+          "legacy note: XAPI-00171 upstream comment - An LRS's Statement API can process a GET request with \"format\" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with results in the requested format. If “ids”, only include identifiers for Agent, Activity, Verb, Group Objects, and members of Anonymous groups.",
+        ],
       },
     },
     {
@@ -779,7 +797,10 @@ export const v2ProofSliceStatementsRepresentationSuite = {
             expectedHeaderDateAfterStep: [],
           },
         ],
-        notes: ["proof-slice collection format absent direct trace"],
+        notes: [
+          "proof-slice collection format absent direct trace",
+          "legacy note: XAPI-00168 upstream comment - An LRS's Statement API can process a GET request with \"format\" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with results in the requested format or in “exact” if the “format” parameter is absent.",
+        ],
       },
     },
     {
@@ -914,7 +935,10 @@ export const v2ProofSliceStatementsRepresentationSuite = {
             expectedHeaderDateAfterStep: [],
           },
         ],
-        notes: ["proof-slice collection format canonical direct trace"],
+        notes: [
+          "proof-slice collection format canonical direct trace",
+          "legacy note: XAPI-00169 upstream comment - An LRS's Statement API can process a GET request with \"format\" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with results in the requested format. If “canonical”, return Activity Objects and Verbs populated with the canonical definition of the Activity Objects and Display of the Verbs as determined by the LRS, returning only one language.",
+        ],
       },
     },
     {
@@ -1044,7 +1068,10 @@ export const v2ProofSliceStatementsRepresentationSuite = {
             expectedHeaderDateAfterStep: [],
           },
         ],
-        notes: ["proof-slice collection format exact direct trace"],
+        notes: [
+          "proof-slice collection format exact direct trace",
+          "legacy note: XAPI-00170 upstream comment - An LRS's Statement API can process a GET request with \"format\" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with results in the requested format. If “exact”, return Agent, Activity, Verb and Group Objects populated exactly as they were when the Statement was received.",
+        ],
       },
     },
     {
@@ -1170,7 +1197,10 @@ export const v2ProofSliceStatementsRepresentationSuite = {
             expectedHeaderDateAfterStep: [],
           },
         ],
-        notes: ["proof-slice collection format ids direct trace"],
+        notes: [
+          "proof-slice collection format ids direct trace",
+          "legacy note: XAPI-00171 upstream comment - An LRS's Statement API can process a GET request with \"format\" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with results in the requested format. If “ids”, only include identifiers for Agent, Activity, Verb, Group Objects, and members of Anonymous groups.",
+        ],
       },
     },
     {
@@ -1293,7 +1323,11 @@ export const v2ProofSliceStatementsRepresentationSuite = {
             expectedHeaderDateAfterStep: [],
           },
         ],
-        notes: ["proof-slice collection canonical accept-language direct trace"],
+        notes: [
+          "proof-slice collection canonical accept-language direct trace",
+          "legacy note: XAPI-00172 upstream comment - If the \"Accept-Language\" header is present as part of the GET request to the Statement API and the \"format\" parameter is set to \"canonical\", the LRS MUST apply this data to choose the matching language in the response.",
+          "legacy note: XAPI-00172 upstream describe - If the \"Accept-Language\" header is present as part of the GET request to the Statement API and the \"format\" parameter is set to \"canonical\", the LRS MUST apply this data to choose the matching language in the response.",
+        ],
       },
     },
     {
@@ -1416,7 +1450,11 @@ export const v2ProofSliceStatementsRepresentationSuite = {
             expectedHeaderDateAfterStep: [],
           },
         ],
-        notes: ["proof-slice collection accept-language without format direct trace"],
+        notes: [
+          "proof-slice collection accept-language without format direct trace",
+          "legacy note: XAPI-00172 upstream comment - If the \"Accept-Language\" header is present as part of the GET request to the Statement API and the \"format\" parameter is set to \"canonical\", the LRS MUST apply this data to choose the matching language in the response.",
+          "legacy note: XAPI-00172 upstream describe - If the \"Accept-Language\" header is present as part of the GET request to the Statement API and the \"format\" parameter is set to \"canonical\", the LRS MUST apply this data to choose the matching language in the response.",
+        ],
       },
     },
     {
@@ -1504,7 +1542,11 @@ export const v2ProofSliceStatementsRepresentationSuite = {
             expectedHeaderDateAfterStep: [],
           },
         ],
-        notes: ["proof-slice statement multipart attachments"],
+        notes: [
+          "proof-slice statement multipart attachments",
+          "legacy note: XAPI-00167 upstream comment - An LRS's Statement API can process a GET request with \"attachments\" as a parameter. The Statement API MUST return 200 OK, StatementResult Object and use the multipart response format and include all attachments if the attachment parameter is set to true",
+          "legacy note: XAPI-00167 upstream describe - An LRS\\'s Statement Resource can process a GET request with \"attachments\" as a parameter",
+        ],
       },
     },
     {
@@ -1623,7 +1665,11 @@ export const v2ProofSliceStatementsRepresentationSuite = {
             expectedHeaderDateAfterStep: [],
           },
         ],
-        notes: ["proof-slice statement attachment json fallback"],
+        notes: [
+          "proof-slice statement attachment json fallback",
+          "legacy note: XAPI-00161 upstream comment - An LRS's Statement API not return attachment data and only return application/json if the \"attachment\" parameter set to \"false\"",
+          "legacy note: XAPI-00161 upstream describe - An LRSs Statement Resource does not return attachment data and only returns application/json if the \"attachment\" parameter set to \"false\"",
+        ],
       },
     },
     {
@@ -1706,7 +1752,11 @@ export const v2ProofSliceStatementsRepresentationSuite = {
             expectedHeaderDateAfterStep: [],
           },
         ],
-        notes: ["proof-slice statement attachments omitted json fallback"],
+        notes: [
+          "proof-slice statement attachments omitted json fallback",
+          "legacy note: XAPI-00161 upstream comment - An LRS's Statement API not return attachment data and only return application/json if the \"attachment\" parameter set to \"false\"",
+          "legacy note: XAPI-00161 upstream describe - An LRSs Statement Resource does not return attachment data and only returns application/json if the \"attachment\" parameter set to \"false\"",
+        ],
       },
     },
     {
@@ -1790,7 +1840,11 @@ export const v2ProofSliceStatementsRepresentationSuite = {
             expectedHeaderDateAfterStep: [],
           },
         ],
-        notes: ["proof-slice statement attachments false json fallback"],
+        notes: [
+          "proof-slice statement attachments false json fallback",
+          "legacy note: XAPI-00161 upstream comment - An LRS's Statement API not return attachment data and only return application/json if the \"attachment\" parameter set to \"false\"",
+          "legacy note: XAPI-00161 upstream describe - An LRSs Statement Resource does not return attachment data and only returns application/json if the \"attachment\" parameter set to \"false\"",
+        ],
       },
     },
     {
@@ -1837,7 +1891,11 @@ export const v2ProofSliceStatementsRepresentationSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement content-type header on get"],
+        notes: [
+          "proof-slice statement content-type header on get",
+          "legacy note: XAPI-00165 upstream comment - An LRS's Statement API, upon receiving a GET request, MUST have a \"Content-Type\" header",
+          "legacy note: XAPI-00165 upstream describe - An LRSs Statement Resource, upon receiving a GET request, MUST have a \"Content-Type\" header",
+        ],
       },
     },
     {
@@ -1936,7 +1994,10 @@ export const v2ProofSliceStatementsRepresentationSuite = {
             expectedHeaderDateAfterStep: [],
           },
         ],
-        notes: ["proof-slice statement last-modified header"],
+        notes: [
+          "proof-slice statement last-modified header",
+          "legacy note: XAPI-01002 upstream comment - Rewrite parity requirement: statement metadata/header consistency remains covered in rewrite statement header/substatement cases.",
+        ],
       },
     },
     {
@@ -1988,7 +2049,12 @@ export const v2ProofSliceStatementsRepresentationSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement consistent-through success header"],
+        notes: [
+          "proof-slice statement consistent-through success header",
+          "legacy note: XAPI-00153 upstream comment - An LRS's Statement API upon processing a GET request, returns a header with name \"X-Experience-API-Consistent-Through\" regardless of the code returned.",
+          "legacy note: XAPI-00153 upstream describe - An LRS\\'s Statement Resource upon processing a GET request, returns a header with name \"X-Experience-API-Consistent-Through\" regardless of the code returned.",
+          "legacy note: XAPI-00160 upstream comment - An LRS's \"X-Experience-API-Consistent-Through\" header is an ISO 8601 combined date and time",
+        ],
       },
     },
     {
@@ -2035,7 +2101,11 @@ export const v2ProofSliceStatementsRepresentationSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement consistent-through error header"],
+        notes: [
+          "proof-slice statement consistent-through error header",
+          "legacy note: XAPI-00153 upstream comment - An LRS's Statement API upon processing a GET request, returns a header with name \"X-Experience-API-Consistent-Through\" regardless of the code returned.",
+          "legacy note: XAPI-00153 upstream describe - An LRS\\'s Statement Resource upon processing a GET request, returns a header with name \"X-Experience-API-Consistent-Through\" regardless of the code returned.",
+        ],
       },
     },
     {
@@ -2082,7 +2152,11 @@ export const v2ProofSliceStatementsRepresentationSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement consistent-through presence agent"],
+        notes: [
+          "proof-slice statement consistent-through presence agent",
+          "legacy note: XAPI-00153 upstream comment - An LRS's Statement API upon processing a GET request, returns a header with name \"X-Experience-API-Consistent-Through\" regardless of the code returned.",
+          "legacy note: XAPI-00153 upstream describe - An LRS\\'s Statement Resource upon processing a GET request, returns a header with name \"X-Experience-API-Consistent-Through\" regardless of the code returned.",
+        ],
       },
     },
     {
@@ -2129,7 +2203,11 @@ export const v2ProofSliceStatementsRepresentationSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement consistent-through presence verb"],
+        notes: [
+          "proof-slice statement consistent-through presence verb",
+          "legacy note: XAPI-00153 upstream comment - An LRS's Statement API upon processing a GET request, returns a header with name \"X-Experience-API-Consistent-Through\" regardless of the code returned.",
+          "legacy note: XAPI-00153 upstream describe - An LRS\\'s Statement Resource upon processing a GET request, returns a header with name \"X-Experience-API-Consistent-Through\" regardless of the code returned.",
+        ],
       },
     },
     {
@@ -2176,7 +2254,11 @@ export const v2ProofSliceStatementsRepresentationSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement consistent-through presence activity"],
+        notes: [
+          "proof-slice statement consistent-through presence activity",
+          "legacy note: XAPI-00153 upstream comment - An LRS's Statement API upon processing a GET request, returns a header with name \"X-Experience-API-Consistent-Through\" regardless of the code returned.",
+          "legacy note: XAPI-00153 upstream describe - An LRS\\'s Statement Resource upon processing a GET request, returns a header with name \"X-Experience-API-Consistent-Through\" regardless of the code returned.",
+        ],
       },
     },
     {
@@ -2223,7 +2305,11 @@ export const v2ProofSliceStatementsRepresentationSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement consistent-through presence registration"],
+        notes: [
+          "proof-slice statement consistent-through presence registration",
+          "legacy note: XAPI-00153 upstream comment - An LRS's Statement API upon processing a GET request, returns a header with name \"X-Experience-API-Consistent-Through\" regardless of the code returned.",
+          "legacy note: XAPI-00153 upstream describe - An LRS\\'s Statement Resource upon processing a GET request, returns a header with name \"X-Experience-API-Consistent-Through\" regardless of the code returned.",
+        ],
       },
     },
     {
@@ -2272,7 +2358,11 @@ export const v2ProofSliceStatementsRepresentationSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement consistent-through presence related-activities"],
+        notes: [
+          "proof-slice statement consistent-through presence related-activities",
+          "legacy note: XAPI-00153 upstream comment - An LRS's Statement API upon processing a GET request, returns a header with name \"X-Experience-API-Consistent-Through\" regardless of the code returned.",
+          "legacy note: XAPI-00153 upstream describe - An LRS\\'s Statement Resource upon processing a GET request, returns a header with name \"X-Experience-API-Consistent-Through\" regardless of the code returned.",
+        ],
       },
     },
     {
@@ -2321,7 +2411,11 @@ export const v2ProofSliceStatementsRepresentationSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement consistent-through presence related-agents"],
+        notes: [
+          "proof-slice statement consistent-through presence related-agents",
+          "legacy note: XAPI-00153 upstream comment - An LRS's Statement API upon processing a GET request, returns a header with name \"X-Experience-API-Consistent-Through\" regardless of the code returned.",
+          "legacy note: XAPI-00153 upstream describe - An LRS\\'s Statement Resource upon processing a GET request, returns a header with name \"X-Experience-API-Consistent-Through\" regardless of the code returned.",
+        ],
       },
     },
     {
@@ -2368,7 +2462,11 @@ export const v2ProofSliceStatementsRepresentationSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement consistent-through presence since"],
+        notes: [
+          "proof-slice statement consistent-through presence since",
+          "legacy note: XAPI-00153 upstream comment - An LRS's Statement API upon processing a GET request, returns a header with name \"X-Experience-API-Consistent-Through\" regardless of the code returned.",
+          "legacy note: XAPI-00153 upstream describe - An LRS\\'s Statement Resource upon processing a GET request, returns a header with name \"X-Experience-API-Consistent-Through\" regardless of the code returned.",
+        ],
       },
     },
     {
@@ -2415,7 +2513,11 @@ export const v2ProofSliceStatementsRepresentationSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement consistent-through presence until"],
+        notes: [
+          "proof-slice statement consistent-through presence until",
+          "legacy note: XAPI-00153 upstream comment - An LRS's Statement API upon processing a GET request, returns a header with name \"X-Experience-API-Consistent-Through\" regardless of the code returned.",
+          "legacy note: XAPI-00153 upstream describe - An LRS\\'s Statement Resource upon processing a GET request, returns a header with name \"X-Experience-API-Consistent-Through\" regardless of the code returned.",
+        ],
       },
     },
     {
@@ -2462,7 +2564,11 @@ export const v2ProofSliceStatementsRepresentationSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement consistent-through presence limit"],
+        notes: [
+          "proof-slice statement consistent-through presence limit",
+          "legacy note: XAPI-00153 upstream comment - An LRS's Statement API upon processing a GET request, returns a header with name \"X-Experience-API-Consistent-Through\" regardless of the code returned.",
+          "legacy note: XAPI-00153 upstream describe - An LRS\\'s Statement Resource upon processing a GET request, returns a header with name \"X-Experience-API-Consistent-Through\" regardless of the code returned.",
+        ],
       },
     },
     {
@@ -2509,7 +2615,11 @@ export const v2ProofSliceStatementsRepresentationSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement consistent-through presence ascending"],
+        notes: [
+          "proof-slice statement consistent-through presence ascending",
+          "legacy note: XAPI-00153 upstream comment - An LRS's Statement API upon processing a GET request, returns a header with name \"X-Experience-API-Consistent-Through\" regardless of the code returned.",
+          "legacy note: XAPI-00153 upstream describe - An LRS\\'s Statement Resource upon processing a GET request, returns a header with name \"X-Experience-API-Consistent-Through\" regardless of the code returned.",
+        ],
       },
     },
     {
@@ -2556,7 +2666,11 @@ export const v2ProofSliceStatementsRepresentationSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement consistent-through presence format"],
+        notes: [
+          "proof-slice statement consistent-through presence format",
+          "legacy note: XAPI-00153 upstream comment - An LRS's Statement API upon processing a GET request, returns a header with name \"X-Experience-API-Consistent-Through\" regardless of the code returned.",
+          "legacy note: XAPI-00153 upstream describe - An LRS\\'s Statement Resource upon processing a GET request, returns a header with name \"X-Experience-API-Consistent-Through\" regardless of the code returned.",
+        ],
       },
     },
     {
@@ -2603,7 +2717,11 @@ export const v2ProofSliceStatementsRepresentationSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement consistent-through presence attachments"],
+        notes: [
+          "proof-slice statement consistent-through presence attachments",
+          "legacy note: XAPI-00153 upstream comment - An LRS's Statement API upon processing a GET request, returns a header with name \"X-Experience-API-Consistent-Through\" regardless of the code returned.",
+          "legacy note: XAPI-00153 upstream describe - An LRS\\'s Statement Resource upon processing a GET request, returns a header with name \"X-Experience-API-Consistent-Through\" regardless of the code returned.",
+        ],
       },
     },
     {
@@ -2651,7 +2769,10 @@ export const v2ProofSliceStatementsRepresentationSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement consistent-through iso agent"],
+        notes: [
+          "proof-slice statement consistent-through iso agent",
+          "legacy note: XAPI-00160 upstream comment - An LRS's \"X-Experience-API-Consistent-Through\" header is an ISO 8601 combined date and time",
+        ],
       },
     },
     {
@@ -2699,7 +2820,10 @@ export const v2ProofSliceStatementsRepresentationSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement consistent-through iso verb"],
+        notes: [
+          "proof-slice statement consistent-through iso verb",
+          "legacy note: XAPI-00160 upstream comment - An LRS's \"X-Experience-API-Consistent-Through\" header is an ISO 8601 combined date and time",
+        ],
       },
     },
     {
@@ -2747,7 +2871,10 @@ export const v2ProofSliceStatementsRepresentationSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement consistent-through iso activity"],
+        notes: [
+          "proof-slice statement consistent-through iso activity",
+          "legacy note: XAPI-00160 upstream comment - An LRS's \"X-Experience-API-Consistent-Through\" header is an ISO 8601 combined date and time",
+        ],
       },
     },
     {
@@ -2795,7 +2922,10 @@ export const v2ProofSliceStatementsRepresentationSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement consistent-through iso registration"],
+        notes: [
+          "proof-slice statement consistent-through iso registration",
+          "legacy note: XAPI-00160 upstream comment - An LRS's \"X-Experience-API-Consistent-Through\" header is an ISO 8601 combined date and time",
+        ],
       },
     },
     {
@@ -2844,7 +2974,10 @@ export const v2ProofSliceStatementsRepresentationSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement consistent-through iso related-activities"],
+        notes: [
+          "proof-slice statement consistent-through iso related-activities",
+          "legacy note: XAPI-00160 upstream comment - An LRS's \"X-Experience-API-Consistent-Through\" header is an ISO 8601 combined date and time",
+        ],
       },
     },
     {
@@ -2893,7 +3026,10 @@ export const v2ProofSliceStatementsRepresentationSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement consistent-through iso related-agents"],
+        notes: [
+          "proof-slice statement consistent-through iso related-agents",
+          "legacy note: XAPI-00160 upstream comment - An LRS's \"X-Experience-API-Consistent-Through\" header is an ISO 8601 combined date and time",
+        ],
       },
     },
     {
@@ -2941,7 +3077,10 @@ export const v2ProofSliceStatementsRepresentationSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement consistent-through iso since"],
+        notes: [
+          "proof-slice statement consistent-through iso since",
+          "legacy note: XAPI-00160 upstream comment - An LRS's \"X-Experience-API-Consistent-Through\" header is an ISO 8601 combined date and time",
+        ],
       },
     },
     {
@@ -2989,7 +3128,10 @@ export const v2ProofSliceStatementsRepresentationSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement consistent-through iso until"],
+        notes: [
+          "proof-slice statement consistent-through iso until",
+          "legacy note: XAPI-00160 upstream comment - An LRS's \"X-Experience-API-Consistent-Through\" header is an ISO 8601 combined date and time",
+        ],
       },
     },
     {
@@ -3037,7 +3179,10 @@ export const v2ProofSliceStatementsRepresentationSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement consistent-through iso limit"],
+        notes: [
+          "proof-slice statement consistent-through iso limit",
+          "legacy note: XAPI-00160 upstream comment - An LRS's \"X-Experience-API-Consistent-Through\" header is an ISO 8601 combined date and time",
+        ],
       },
     },
     {
@@ -3085,7 +3230,10 @@ export const v2ProofSliceStatementsRepresentationSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement consistent-through iso ascending"],
+        notes: [
+          "proof-slice statement consistent-through iso ascending",
+          "legacy note: XAPI-00160 upstream comment - An LRS's \"X-Experience-API-Consistent-Through\" header is an ISO 8601 combined date and time",
+        ],
       },
     },
     {
@@ -3133,7 +3281,10 @@ export const v2ProofSliceStatementsRepresentationSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement consistent-through iso format"],
+        notes: [
+          "proof-slice statement consistent-through iso format",
+          "legacy note: XAPI-00160 upstream comment - An LRS's \"X-Experience-API-Consistent-Through\" header is an ISO 8601 combined date and time",
+        ],
       },
     },
     {
@@ -3181,7 +3332,10 @@ export const v2ProofSliceStatementsRepresentationSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement consistent-through iso attachments"],
+        notes: [
+          "proof-slice statement consistent-through iso attachments",
+          "legacy note: XAPI-00160 upstream comment - An LRS's \"X-Experience-API-Consistent-Through\" header is an ISO 8601 combined date and time",
+        ],
       },
     },
   ],

@@ -102,7 +102,9 @@ export const v2StatementsActivityInteractionComponentsDescriptionTypeSubstatemen
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Activity Objects"
+      "Statement Activity Objects",
+      "legacy note: XAPI-00053 upstream comment - in activities.js",
+      "legacy note: XAPI-00062 upstream comment - in activities.js",
     ]
   }
 } as unknown as CaseDefinition;

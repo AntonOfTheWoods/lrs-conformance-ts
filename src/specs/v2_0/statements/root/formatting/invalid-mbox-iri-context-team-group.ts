@@ -85,7 +85,8 @@ export const v2StatementsInvalidMboxIriContextTeamGroupCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Formatting"
+      "Statement Formatting",
+      "legacy note: XAPI-00038 upstream comment - An \"mbox\" property has the form \"mailto:email address\" and is an IRI. An LRS rejects with 400 Bad Request if a statement that uses the “mbox” IFI is an invalid form.",
     ]
   }
 } as unknown as CaseDefinition;

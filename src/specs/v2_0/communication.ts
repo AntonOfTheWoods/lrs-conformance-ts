@@ -58,6 +58,10 @@ interface DocumentConcurrencySuiteOptions {
 }
 
 function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuiteOptions): SuiteDefinition {
+  const xapi00322LegacyNotes = [
+    "legacy note: XAPI-00322 upstream comment - An LRS must support HTTP/1.1 entity tags (ETags) to implement optimistic concurrency control when handling APIs where PUT may overwrite existing data (State, Agent Profile, and Activity Profile)",
+    "legacy note: XAPI-00322 upstream describe - An LRS must support HTTP/1.1 entity tags (ETags) to implement optimistic concurrency control when handling Resources where PUT may overwrite existing data",
+  ];
   const baseTags = ["v2.0.0", "communication", "concurrency", options.resourceTag];
   const staleEtag = '"stale-proof-etag"';
   const initialEtag = buildProofDocumentEtag(options.initialBody);
@@ -108,6 +112,7 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
         notes: [
           `proof-slice ${options.resourceTag} etag header`,
           "legacy note: mirrors upstream optimistic concurrency checks that document resources expose ETag values for conditional writes",
+          ...xapi00322LegacyNotes,
         ],
         steps: [
           {
@@ -156,6 +161,7 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
         notes: [
           `proof-slice ${options.resourceTag} etag header quoted`,
           "legacy note: mirrors upstream optimistic concurrency checks that ETag response values are quoted",
+          ...xapi00322LegacyNotes,
         ],
         steps: [
           {
@@ -198,6 +204,7 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
         notes: [
           `proof-slice ${options.resourceTag} put stale if-match`,
           "legacy note: mirrors upstream stale If-Match PUT rejection coverage for document resources",
+          ...xapi00322LegacyNotes,
         ],
         steps: [
           {
@@ -257,6 +264,7 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
         notes: [
           `proof-slice ${options.resourceTag} put stale preserves document`,
           "legacy note: mirrors upstream rollback expectation that stale If-Match PUT attempts do not modify stored documents",
+          ...xapi00322LegacyNotes,
         ],
         steps: [
           {
@@ -316,6 +324,7 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
         notes: [
           `proof-slice ${options.resourceTag} put current if-match`,
           "legacy note: mirrors upstream current ETag conditional PUT coverage in the document-resource concurrency suite",
+          ...xapi00322LegacyNotes,
         ],
         steps: [
           {
@@ -375,6 +384,7 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
         notes: [
           `proof-slice ${options.resourceTag} put requires if-match`,
           "legacy note: mirrors upstream conflict handling coverage when overwriting without If-Match",
+          ...xapi00322LegacyNotes,
         ],
         steps: [
           {
@@ -426,6 +436,7 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
         notes: [
           `proof-slice ${options.resourceTag} put requires if-match error message`,
           "legacy note: mirrors upstream messaging check that explains missing If-Match or If-None-Match headers",
+          ...xapi00322LegacyNotes,
         ],
         steps: [
           {
@@ -466,6 +477,7 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
         notes: [
           `proof-slice ${options.resourceTag} post stale if-match`,
           "legacy note: mirrors upstream stale If-Match POST merge rejection coverage for document resources",
+          ...xapi00322LegacyNotes,
         ],
         steps: [
           {
@@ -524,6 +536,7 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
         notes: [
           `proof-slice ${options.resourceTag} post stale preserves document`,
           "legacy note: mirrors upstream rollback expectation that stale If-Match POST merge attempts do not modify stored documents",
+          ...xapi00322LegacyNotes,
         ],
         steps: [
           {
@@ -582,6 +595,7 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
         notes: [
           `proof-slice ${options.resourceTag} post current if-match accepted`,
           "legacy note: mirrors upstream current ETag conditional POST merge coverage in the document-resource concurrency suite",
+          ...xapi00322LegacyNotes,
         ],
         steps: [
           {
@@ -628,6 +642,7 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
         notes: [
           `proof-slice ${options.resourceTag} post current if-match modifies`,
           "legacy note: mirrors upstream post-merge persistence checks when the current ETag is supplied",
+          ...xapi00322LegacyNotes,
         ],
         steps: [
           {
@@ -686,6 +701,7 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
         notes: [
           `proof-slice ${options.resourceTag} delete stale if-match`,
           "legacy note: mirrors upstream stale If-Match DELETE rejection coverage for document resources",
+          ...xapi00322LegacyNotes,
         ],
         steps: [
           {
@@ -736,6 +752,7 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
         notes: [
           `proof-slice ${options.resourceTag} delete stale preserves document`,
           "legacy note: mirrors upstream rollback expectation that stale If-Match DELETE attempts do not remove stored documents",
+          ...xapi00322LegacyNotes,
         ],
         steps: [
           {
@@ -786,6 +803,7 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
         notes: [
           `proof-slice ${options.resourceTag} delete current if-match`,
           "legacy note: mirrors upstream current ETag conditional DELETE coverage in the document-resource concurrency suite",
+          ...xapi00322LegacyNotes,
         ],
         steps: [
           {
@@ -898,6 +916,7 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice communication document resource rejected write rollback",
       "legacy note: mirrors upstream atomicity coverage where a mixed-validity statement batch is rejected without persisting any statements",
+      "legacy note: XAPI-00182 upstream comment - An LRS makes no modifications to stored data for any rejected request.",
     ],
     steps: [
       {
@@ -944,6 +963,7 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice communication document merge duplicate overwrite",
       "legacy note: mirrors upstream merge case where duplicate top-level keys are overwritten by newer values",
+      "legacy note: XAPI-00184 upstream comment - A Document Merge overwrites any duplicate values from the previous document with the new document.",
     ],
     steps: [
       {
@@ -1000,6 +1020,7 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice communication document merge shallow replacement",
       "legacy note: mirrors upstream one-level merge behavior where nested objects are replaced rather than deeply merged",
+      "legacy note: XAPI-00183 upstream comment - A Document Merge only performs overwrites at one level deep, although the entire object is replaced.",
     ],
     steps: [
       {
@@ -1097,6 +1118,7 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice error codes unrecognized statement query parameter",
       "legacy note: mirrors upstream Communication 3.2 check that unknown query parameters are rejected with 400",
+      "legacy note: XAPI-00324 upstream comment - An LRS rejects with error code 400 Bad Request any request to an API which uses a parameter not recognized by the LRS",
     ],
   });
 
@@ -1227,6 +1249,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
       notes: [
         `proof-slice error codes ${variant.caseId}`,
         "legacy note: mirrors upstream case-differing parameter checks that reject non-canonical query key casing with 400",
+        "legacy note: XAPI-00325 upstream comment - An LRS rejects with error code 400 Bad Request any request to an API which uses a parameter with differing case",
+        "legacy note: XAPI-00325 upstream describe - An LRS rejects with error code 400 Bad Request any request to an Resource which uses a parameter with differing case",
       ],
     }),
   );
@@ -1261,6 +1285,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice error codes case-differing StatementId PUT",
       "legacy note: mirrors upstream PUT coverage that StatementId (instead of statementId) is rejected with 400",
+      "legacy note: XAPI-00325 upstream comment - An LRS rejects with error code 400 Bad Request any request to an API which uses a parameter with differing case",
+      "legacy note: XAPI-00325 upstream describe - An LRS rejects with error code 400 Bad Request any request to an Resource which uses a parameter with differing case",
     ],
   });
 
@@ -1286,6 +1312,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice head activities",
       "legacy note: upstream HEAD coverage in this block is marked for future spec removal",
+      "legacy note: XAPI-00126 upstream comment - An LRS accepts HEAD requests.",
+      "legacy note: XAPI-00126 upstream describe - An LRS accepts HEAD requests",
+      "legacy note: XAPI-00125 upstream comment - An LRS responds to a HEAD request in the same way as a GET request, but without the message-body. This means run ALL GET tests with HEAD",
+      "legacy note: XAPI-00125 upstream describe - An LRS responds to a HEAD request in the same way as a GET request, but without the message-body (Communication 1.1.s3.b1, XAPI-00125) **This means run ALL GET tests with HEAD**",
     ],
     steps: [
       {
@@ -1334,6 +1364,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice head activities profile",
       "legacy note: upstream HEAD coverage in this block is marked for future spec removal",
+      "legacy note: XAPI-00126 upstream comment - An LRS accepts HEAD requests.",
+      "legacy note: XAPI-00126 upstream describe - An LRS accepts HEAD requests",
+      "legacy note: XAPI-00125 upstream comment - An LRS responds to a HEAD request in the same way as a GET request, but without the message-body. This means run ALL GET tests with HEAD",
+      "legacy note: XAPI-00125 upstream describe - An LRS responds to a HEAD request in the same way as a GET request, but without the message-body (Communication 1.1.s3.b1, XAPI-00125) **This means run ALL GET tests with HEAD**",
     ],
     steps: [
       {
@@ -1377,6 +1411,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice head activities state",
       "legacy note: upstream HEAD coverage in this block is marked for future spec removal",
+      "legacy note: XAPI-00126 upstream comment - An LRS accepts HEAD requests.",
+      "legacy note: XAPI-00126 upstream describe - An LRS accepts HEAD requests",
+      "legacy note: XAPI-00125 upstream comment - An LRS responds to a HEAD request in the same way as a GET request, but without the message-body. This means run ALL GET tests with HEAD",
+      "legacy note: XAPI-00125 upstream describe - An LRS responds to a HEAD request in the same way as a GET request, but without the message-body (Communication 1.1.s3.b1, XAPI-00125) **This means run ALL GET tests with HEAD**",
     ],
     steps: [
       {
@@ -1420,6 +1458,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice head agents",
       "legacy note: upstream HEAD coverage in this block is marked for future spec removal",
+      "legacy note: XAPI-00126 upstream comment - An LRS accepts HEAD requests.",
+      "legacy note: XAPI-00126 upstream describe - An LRS accepts HEAD requests",
+      "legacy note: XAPI-00125 upstream comment - An LRS responds to a HEAD request in the same way as a GET request, but without the message-body. This means run ALL GET tests with HEAD",
+      "legacy note: XAPI-00125 upstream describe - An LRS responds to a HEAD request in the same way as a GET request, but without the message-body (Communication 1.1.s3.b1, XAPI-00125) **This means run ALL GET tests with HEAD**",
     ],
     steps: [
       {
@@ -1462,6 +1504,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice head agents profile",
       "legacy note: upstream HEAD coverage in this block is marked for future spec removal",
+      "legacy note: XAPI-00126 upstream comment - An LRS accepts HEAD requests.",
+      "legacy note: XAPI-00126 upstream describe - An LRS accepts HEAD requests",
+      "legacy note: XAPI-00125 upstream comment - An LRS responds to a HEAD request in the same way as a GET request, but without the message-body. This means run ALL GET tests with HEAD",
+      "legacy note: XAPI-00125 upstream describe - An LRS responds to a HEAD request in the same way as a GET request, but without the message-body (Communication 1.1.s3.b1, XAPI-00125) **This means run ALL GET tests with HEAD**",
     ],
     steps: [
       {
@@ -1510,6 +1556,10 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice head statements",
       "legacy note: upstream HEAD coverage in this block is marked for future spec removal",
+      "legacy note: XAPI-00126 upstream comment - An LRS accepts HEAD requests.",
+      "legacy note: XAPI-00126 upstream describe - An LRS accepts HEAD requests",
+      "legacy note: XAPI-00125 upstream comment - An LRS responds to a HEAD request in the same way as a GET request, but without the message-body. This means run ALL GET tests with HEAD",
+      "legacy note: XAPI-00125 upstream describe - An LRS responds to a HEAD request in the same way as a GET request, but without the message-body (Communication 1.1.s3.b1, XAPI-00125) **This means run ALL GET tests with HEAD**",
     ],
   });
 
@@ -1628,6 +1678,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice head activities accepted",
       "legacy note: upstream HEAD coverage in this block is marked for future spec removal",
+      "legacy note: XAPI-00126 upstream comment - An LRS accepts HEAD requests.",
+      "legacy note: XAPI-00126 upstream describe - An LRS accepts HEAD requests",
     ],
     steps: [
       {
@@ -1670,6 +1722,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice head activities profile accepted",
       "legacy note: upstream HEAD coverage in this block is marked for future spec removal",
+      "legacy note: XAPI-00126 upstream comment - An LRS accepts HEAD requests.",
+      "legacy note: XAPI-00126 upstream describe - An LRS accepts HEAD requests",
     ],
     steps: [
       {
@@ -1707,6 +1761,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice head activities state accepted",
       "legacy note: upstream HEAD coverage in this block is marked for future spec removal",
+      "legacy note: XAPI-00126 upstream comment - An LRS accepts HEAD requests.",
+      "legacy note: XAPI-00126 upstream describe - An LRS accepts HEAD requests",
     ],
     steps: [
       {
@@ -1744,6 +1800,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice head agents accepted",
       "legacy note: upstream HEAD coverage in this block is marked for future spec removal",
+      "legacy note: XAPI-00126 upstream comment - An LRS accepts HEAD requests.",
+      "legacy note: XAPI-00126 upstream describe - An LRS accepts HEAD requests",
     ],
     steps: [
       {
@@ -1780,6 +1838,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice head agents profile accepted",
       "legacy note: upstream HEAD coverage in this block is marked for future spec removal",
+      "legacy note: XAPI-00126 upstream comment - An LRS accepts HEAD requests.",
+      "legacy note: XAPI-00126 upstream describe - An LRS accepts HEAD requests",
     ],
     steps: [
       {
@@ -1821,6 +1881,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice head statements accepted",
       "legacy note: upstream HEAD coverage in this block is marked for future spec removal",
+      "legacy note: XAPI-00126 upstream comment - An LRS accepts HEAD requests.",
+      "legacy note: XAPI-00126 upstream describe - An LRS accepts HEAD requests",
     ],
   });
 
@@ -1856,6 +1918,7 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice versioning response header",
       "legacy note: mirrors upstream check that statement responses include X-Experience-API-Version with an allowed patch value after 1.0.0",
+      'legacy note: XAPI-00333 upstream comment - An LRS sends a header response with "X-Experience-API-Version" as the name and latest patch version after 1.0.0 as the value',
     ],
     steps: [
       {
@@ -1896,6 +1959,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice versioning statement shape preserved",
       "legacy note: mirrors upstream guard that retrieval does not rewrite actor, verb, or object into an older version format",
+      'legacy note: XAPI-00330 upstream comment - An LRS will not modify Statements based on a "version" before "1.0.1"',
+      'legacy note: XAPI-00330 upstream describe - An LRS will not modify Statements based on a "version" before "1.0.1"',
     ],
     steps: [
       {
@@ -1944,6 +2009,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice versioning missing header get",
       "legacy note: equivalent to upstream missing-version-header GET checks for non-About resources",
+      'legacy note: XAPI-00331 upstream comment - An LRS rejects with error code 400 Bad Request, a Request which the "X-Experience-API-Version" header\'s value is anything but "2.0" or "2.0.x", where x is the semantic versioning number to any API except the About API.',
+      'legacy note: XAPI-00331 upstream describe - An LRS rejects with error code 400 Bad Request, a Request which does not use a "X-Experience-API-Version" header name to any Resource except the About Resource',
     ],
     steps: [
       {
@@ -1991,6 +2058,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice versioning missing header post",
       "legacy note: equivalent to upstream missing-version-header POST checks for non-About resources",
+      'legacy note: XAPI-00331 upstream comment - An LRS rejects with error code 400 Bad Request, a Request which the "X-Experience-API-Version" header\'s value is anything but "2.0" or "2.0.x", where x is the semantic versioning number to any API except the About API.',
+      'legacy note: XAPI-00331 upstream describe - An LRS rejects with error code 400 Bad Request, a Request which does not use a "X-Experience-API-Version" header name to any Resource except the About Resource',
     ],
   });
 
@@ -2024,6 +2093,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice versioning missing header put",
       "legacy note: equivalent to upstream missing-version-header PUT checks for non-About resources",
+      'legacy note: XAPI-00331 upstream comment - An LRS rejects with error code 400 Bad Request, a Request which the "X-Experience-API-Version" header\'s value is anything but "2.0" or "2.0.x", where x is the semantic versioning number to any API except the About API.',
+      'legacy note: XAPI-00331 upstream describe - An LRS rejects with error code 400 Bad Request, a Request which does not use a "X-Experience-API-Version" header name to any Resource except the About Resource',
     ],
   });
 
@@ -2044,6 +2115,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice versioning invalid header get",
       "legacy note: equivalent to upstream invalid-version-header GET checks for non-About resources",
+      'legacy note: XAPI-00331 upstream comment - An LRS rejects with error code 400 Bad Request, a Request which the "X-Experience-API-Version" header\'s value is anything but "2.0" or "2.0.x", where x is the semantic versioning number to any API except the About API.',
+      'legacy note: XAPI-00331 upstream describe - An LRS rejects with error code 400 Bad Request, a Request which does not use a "X-Experience-API-Version" header name to any Resource except the About Resource',
     ],
     steps: [
       {
@@ -2086,6 +2159,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice versioning invalid header post",
       "legacy note: equivalent to upstream invalid-version-header POST checks for non-About resources",
+      'legacy note: XAPI-00331 upstream comment - An LRS rejects with error code 400 Bad Request, a Request which the "X-Experience-API-Version" header\'s value is anything but "2.0" or "2.0.x", where x is the semantic versioning number to any API except the About API.',
+      'legacy note: XAPI-00331 upstream describe - An LRS rejects with error code 400 Bad Request, a Request which does not use a "X-Experience-API-Version" header name to any Resource except the About Resource',
     ],
   });
 
@@ -2112,6 +2187,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice versioning invalid header put",
       "legacy note: equivalent to upstream invalid-version-header PUT checks for non-About resources",
+      'legacy note: XAPI-00331 upstream comment - An LRS rejects with error code 400 Bad Request, a Request which the "X-Experience-API-Version" header\'s value is anything but "2.0" or "2.0.x", where x is the semantic versioning number to any API except the About API.',
+      'legacy note: XAPI-00331 upstream describe - An LRS rejects with error code 400 Bad Request, a Request which does not use a "X-Experience-API-Version" header name to any Resource except the About Resource',
     ],
   });
 
@@ -2140,6 +2217,7 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice authentication basic accepted",
       "legacy note: mirrors upstream Communication 4.0 basic-auth acceptance coverage",
+      "legacy note: XAPI-00335 upstream comment - An LRS must support HTTP Basic Authentication",
     ],
   });
 
@@ -2166,6 +2244,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice authentication bad basic rejected",
       "legacy note: mirrors upstream bad-credentials rejection coverage and keeps the auth-only 401 path explicit",
+      "legacy note: XAPI-00334 upstream comment - An LRS rejects a Statement of bad authorization (either authentication needed or failed credentials) with error code 401 Unauthorized",
+      "legacy note: XAPI-00334 upstream describe - An LRS rejects a Statement of bad authorization, either authentication needed or failed credentials, with error code 401 Unauthorized",
     ],
   });
 
@@ -2192,6 +2272,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice authentication malformed basic rejected",
       "legacy note: mirrors upstream malformed Authorization header rejection coverage and keeps the auth-only 401 path explicit",
+      "legacy note: XAPI-00334 upstream comment - An LRS rejects a Statement of bad authorization (either authentication needed or failed credentials) with error code 401 Unauthorized",
+      "legacy note: XAPI-00334 upstream describe - An LRS rejects a Statement of bad authorization, either authentication needed or failed credentials, with error code 401 Unauthorized",
     ],
   });
 
@@ -2227,6 +2309,7 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice utf8 roundtrip",
       "legacy note: this requirement stays in Communication encoding coverage because the upstream suite treats UTF-8 interpretation as the key check here",
+      "legacy note: XAPI-00015 upstream comment - in Communication 1.4 - should stay in Comm 1.4 Encoding",
     ],
     steps: [
       {
@@ -2363,6 +2446,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice content types json fileUrl",
       "legacy note: mirrors upstream success path when fileUrl attachments are posted as application/json",
+      'legacy note: XAPI-00127 upstream comment - An LRS rejects with error code 400 Bad Request, a PUT or POST Request which does not have a "Content-Type" header with value "application/json" or "multipart/mixed"',
+      'legacy note: XAPI-00127 upstream describe - An LRS rejects with error code 400 Bad Request, a Request which uses Attachments and does not have a "Content-Type" header with value "application/json" or "multipart/mixed"',
     ],
   });
 
@@ -2394,6 +2479,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice content types multipart fileUrl",
       "legacy note: mirrors upstream success path when fileUrl attachments are sent via multipart/mixed",
+      'legacy note: XAPI-00127 upstream comment - An LRS rejects with error code 400 Bad Request, a PUT or POST Request which does not have a "Content-Type" header with value "application/json" or "multipart/mixed"',
+      'legacy note: XAPI-00127 upstream describe - An LRS rejects with error code 400 Bad Request, a Request which uses Attachments and does not have a "Content-Type" header with value "application/json" or "multipart/mixed"',
     ],
   });
 
@@ -2431,6 +2518,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice content types multipart raw attachment",
       "legacy note: mirrors upstream success path for raw attachment binaries sent in multipart/mixed",
+      'legacy note: XAPI-00127 upstream comment - An LRS rejects with error code 400 Bad Request, a PUT or POST Request which does not have a "Content-Type" header with value "application/json" or "multipart/mixed"',
+      'legacy note: XAPI-00127 upstream describe - An LRS rejects with error code 400 Bad Request, a Request which uses Attachments and does not have a "Content-Type" header with value "application/json" or "multipart/mixed"',
     ],
   });
 
@@ -2455,6 +2544,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice content types json fileUrl repeat",
       "legacy note: preserves upstream duplicate fileUrl-application/json acceptance coverage",
+      'legacy note: XAPI-00127 upstream comment - An LRS rejects with error code 400 Bad Request, a PUT or POST Request which does not have a "Content-Type" header with value "application/json" or "multipart/mixed"',
+      'legacy note: XAPI-00127 upstream describe - An LRS rejects with error code 400 Bad Request, a Request which uses Attachments and does not have a "Content-Type" header with value "application/json" or "multipart/mixed"',
     ],
   });
 
@@ -2484,6 +2575,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice content types multipart without attachments",
       "legacy note: mirrors upstream success path where multipart/mixed is accepted even when no attachments are present",
+      'legacy note: XAPI-00127 upstream comment - An LRS rejects with error code 400 Bad Request, a PUT or POST Request which does not have a "Content-Type" header with value "application/json" or "multipart/mixed"',
+      'legacy note: XAPI-00127 upstream describe - An LRS rejects with error code 400 Bad Request, a Request which uses Attachments and does not have a "Content-Type" header with value "application/json" or "multipart/mixed"',
     ],
   });
 
@@ -2508,6 +2601,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice content types json raw attachment rejected",
       "legacy note: mirrors upstream rejection when raw attachment metadata is sent without multipart binary parts",
+      "legacy note: XAPI-00129 upstream comment - An LRS rejects with error code 400 Bad Request, a PUT or POST Request which is missing multi-part sections for non-fileURL attachments must be rejected.",
+      'legacy note: XAPI-00129 upstream describe - An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content-Type" header with value "application/json", and has a discrepancy in the number of Attachments vs. the number of fileURL members',
     ],
   });
 
@@ -2540,6 +2635,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice content types form-data fileUrl rejected",
       "legacy note: mirrors upstream rejection of multipart/form-data for statement attachment requests",
+      'legacy note: XAPI-00127 upstream comment - An LRS rejects with error code 400 Bad Request, a PUT or POST Request which does not have a "Content-Type" header with value "application/json" or "multipart/mixed"',
+      'legacy note: XAPI-00127 upstream describe - An LRS rejects with error code 400 Bad Request, a Request which uses Attachments and does not have a "Content-Type" header with value "application/json" or "multipart/mixed"',
     ],
   });
 
@@ -2578,6 +2675,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice content types form-data raw rejected",
       "legacy note: mirrors upstream rejection of raw attachment submissions when using multipart/form-data",
+      'legacy note: XAPI-00127 upstream comment - An LRS rejects with error code 400 Bad Request, a PUT or POST Request which does not have a "Content-Type" header with value "application/json" or "multipart/mixed"',
+      'legacy note: XAPI-00127 upstream describe - An LRS rejects with error code 400 Bad Request, a Request which uses Attachments and does not have a "Content-Type" header with value "application/json" or "multipart/mixed"',
     ],
   });
 
@@ -2622,6 +2721,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice content types extra multipart section rejected",
       "legacy note: equivalent to upstream check that excess multipart sections beyond declared attachments are rejected",
+      "legacy note: XAPI-00128 upstream comment - An LRS rejects with error code 400 Bad Request, a PUT or POST Request which has excess multi-part sections that are not attachments.",
+      "legacy note: XAPI-00128 upstream describe - An LRS rejects with error code 400 Bad Request, a PUT or POST Request which has excess multi-part sections that are not attachments.",
     ],
   });
 
@@ -2646,6 +2747,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice content types missing initial boundary rejected",
       "legacy note: equivalent to upstream boundary validation where malformed multipart bodies are rejected",
+      'legacy note: XAPI-00131 upstream comment - An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and does not have a body header named "boundary"',
+      'legacy note: XAPI-00131 upstream describe - An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and does not have a body header named "boundary"',
     ],
   });
 
@@ -2670,6 +2773,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice content types missing boundary between parts rejected",
       "legacy note: equivalent to upstream boundary validation when multipart delimiters between parts are missing",
+      'legacy note: XAPI-00130 upstream comment - An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and does not have a Boundary before each "Content-Type" header',
+      'legacy note: XAPI-00130 upstream describe - An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and does not have a Boundary before each "Content-Type" header',
     ],
   });
 
@@ -2694,6 +2799,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice content types missing boundary header rejected",
       "legacy note: equivalent to upstream rejection when Content-Type omits the multipart boundary parameter",
+      'legacy note: XAPI-00130 upstream comment - An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and does not have a Boundary before each "Content-Type" header',
+      'legacy note: XAPI-00130 upstream describe - An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and does not have a Boundary before each "Content-Type" header',
     ],
   });
 
@@ -2718,6 +2825,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice content types first part not json rejected",
       "legacy note: equivalent to upstream requirement that the first multipart section is application/json statement data",
+      'legacy note: XAPI-00134 upstream comment - An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and does not the first document part with a "Content-Type" header with a value of "application/json"',
+      'legacy note: XAPI-00134 upstream describe - An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and does not the first document part with a "Content-Type" header with a value of "application/json"',
     ],
   });
 
@@ -2742,6 +2851,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice content types split statements across parts rejected",
       "legacy note: equivalent to upstream rejection when statement JSON is split across multiple multipart sections",
+      'legacy note: XAPI-00133 upstream comment - An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and does not have all of the Statements in the first document part',
+      'legacy note: XAPI-00133 upstream describe - An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and does not have all of the Statements in the first document part',
     ],
   });
 
@@ -2779,6 +2890,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice content types missing attachment hash rejected",
       "legacy note: equivalent to upstream rejection when attachment sections omit X-Experience-API-Hash",
+      'legacy note: XAPI-00132 upstream comment - An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and for any part except the first does not have a Header named "X-Experience-API-Hash" with a value of one of those found in a "sha2" property of a Statement in the first part of this document',
+      'legacy note: XAPI-00132 upstream describe - An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and for any part except the first does not have a Header named "X-Experience-API-Hash" with a value of one of those found in a "sha2" property of a Statement in the first part of this document',
     ],
   });
 
@@ -2815,6 +2928,8 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice content types mismatched attachment hash rejected",
       "legacy note: equivalent to upstream rejection when attachment hashes do not match statement sha2 entries",
+      'legacy note: XAPI-00132 upstream comment - An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and for any part except the first does not have a Header named "X-Experience-API-Hash" with a value of one of those found in a "sha2" property of a Statement in the first part of this document',
+      'legacy note: XAPI-00132 upstream describe - An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and for any part except the first does not have a Header named "X-Experience-API-Hash" with a value of one of those found in a "sha2" property of a Statement in the first part of this document',
     ],
   });
 
@@ -2852,6 +2967,7 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice content types invalid transfer encoding rejected",
       "legacy note: equivalent to upstream rejection when attachment parts are not sent with binary transfer encoding",
+      'legacy note: XAPI-00135 upstream comment - An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and for any part except the first does not have a Header named "Content-Transfer-Encoding" with a value of "binary"',
     ],
   });
 

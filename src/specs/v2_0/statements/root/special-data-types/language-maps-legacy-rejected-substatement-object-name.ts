@@ -83,6 +83,9 @@ export const v2StatementsLanguageMapsLegacyRejectedSubstatementObjectNameCase = 
     jsonPathEquals: [],
     jsonPathNotEquals: [],
     textContains: [],
-    notes: ["Statement Special Data Types"],
+    notes: [
+      "Statement Special Data Types",
+      "legacy note: XAPI-00121 upstream comment - in languages.js",
+    ],
   },
 } as unknown as CaseDefinition;

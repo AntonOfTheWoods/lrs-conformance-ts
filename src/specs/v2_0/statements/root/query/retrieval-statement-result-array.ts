@@ -208,7 +208,11 @@ export const v2StatementsRetrievalStatementResultArrayCase = {
       }
     ],
     "notes": [
-      "proof-slice retrieval statements array and empty more"
+      "proof-slice retrieval statements array and empty more",
+      "legacy note: XAPI-00110 upstream comment - A \"statements\" property is an Array of Statements. Make a GET request which will return at least one statement and confirm the “statements” property is a valid Array of Statements.",
+      "legacy note: XAPI-00110 upstream describe - A \"statements\" property is an Array of Statements",
+      "legacy note: XAPI-00109 upstream comment - The \"more\" property is absent or an empty string (no whitespace) if the entire results of the original GET request have been returned. To test make a GET request which will return a known number of statements and check to make sure the LRS either returns an empty string or the more property is absent.",
+      "legacy note: XAPI-00109 upstream describe - The \"more\" property is absent or an empty string (no whitespace) if the entire results of the original GET request have been returned.",
     ]
   }
 } as unknown as CaseDefinition;

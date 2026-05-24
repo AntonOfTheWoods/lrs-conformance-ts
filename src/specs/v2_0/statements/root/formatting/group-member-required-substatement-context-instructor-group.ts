@@ -91,7 +91,8 @@ export const v2StatementsGroupMemberRequiredSubstatementContextInstructorGroupCa
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Formatting"
+      "Statement Formatting",
+      "legacy note: XAPI-00035 upstream comment - A Group uses the \"member\" property. An LRS rejects with 400 Bad Request if the \"member\" property is present anywhere but in a group object (Actor or team).",
     ]
   }
 } as unknown as CaseDefinition;

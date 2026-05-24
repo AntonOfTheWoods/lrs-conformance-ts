@@ -80,6 +80,9 @@ export function createV103StateResourceProofSliceSuite(): SuiteDefinition {
       "v1 proof-slice state resource endpoint and post acceptance",
       "legacy note: successful State POST returns 204 No Content",
       "legacy note: State API accepts POST requests",
+      "legacy note: XAPI-00230 upstream comment - An LRS has a State API with endpoint \"base IRI\"+\"/activities/state\"",
+      "legacy note: XAPI-00189 upstream comment - An LRS's State API upon processing a successful POST request returns code 204 No Content",
+      "legacy note: XAPI-00231 upstream comment - An LRS will accept a POST request to the State API",
     ],
   });
 
@@ -108,7 +111,10 @@ export function createV103StateResourceProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 204,
     },
-    notes: ["v1 proof-slice state resource put accepted"],
+    notes: [
+      "v1 proof-slice state resource put accepted",
+      "legacy note: XAPI-00190 upstream comment - An LRS's State API upon processing a successful PUT request returns code 204 No Content",
+    ],
   });
 
   const getRoundTripCase = requestSequenceCase({
@@ -133,6 +139,8 @@ export function createV103StateResourceProofSliceSuite(): SuiteDefinition {
     notes: [
       "v1 proof-slice state resource get roundtrip",
       "legacy note: no conformance requirement mandates additional since filtering behavior when GET includes a valid stateId",
+      "legacy note: XAPI-00188 upstream comment - An LRS's State API upon processing a successful GET request returns 200 Ok, State Document",
+      "legacy note: XAPI-00192 upstream comment - An LRS's State API upon processing a successful GET request with a valid \"stateId\" as a parameter returns the document satisfying the requirements of the GET and code 200 OK NOTE: There is no requirement here that the LRS reacts to the \"since\" parameter in the case of a GET request with valid \"stateId\" - this is intentional",
     ],
     steps: [
       {
@@ -175,7 +183,11 @@ export function createV103StateResourceProofSliceSuite(): SuiteDefinition {
     tags: ["v1.0.3", "activities-state", "resource", "delete"],
     capabilityFlags: ["document", "state", "delete"],
     legacyTraceSuiteFile: stateResourceLegacySuiteFile,
-    notes: ["v1 proof-slice state resource delete accepted"],
+    notes: [
+      "v1 proof-slice state resource delete accepted",
+      "legacy note: XAPI-00187 upstream comment - An LRS's State API upon processing a successful DELETE request returns code 204 No Content",
+      "legacy note: XAPI-00191 upstream comment - An LRS's State API upon processing a successful DELETE request with a valid \"stateId\" as a parameter deletes the document satisfying the requirements of the DELETE and returns code 204 No Content NOTE: There is no requirement here that the LRS reacts to the \"since\" parameter in the case of a DELETE request with valid \"stateId\" - this is intentional",
+    ],
     steps: [
       {
         request: buildVersionedRequest(
@@ -226,7 +238,12 @@ export function createV103StateResourceProofSliceSuite(): SuiteDefinition {
     tags: ["v1.0.3", "activities-state", "resource", "list", "since"],
     capabilityFlags: ["document", "state", "list", "since"],
     legacyTraceSuiteFile: stateResourceLegacySuiteFile,
-    notes: ["v1 proof-slice state resource list and since"],
+    notes: [
+      "v1 proof-slice state resource list and since",
+      "legacy note: XAPI-00193 upstream comment - An LRS's State API upon processing a successful GET request without \"stateId\" as a parameter returns an array of ids of state data documents satisfying the requirements of the GET and code 200 OK",
+      "legacy note: XAPI-00221 upstream comment - An LRS's State API can process a GET request with \"since\" as a parameter. Returning 200 OK and all matching profiles after the date/time of the “since” parameter.",
+      "legacy note: XAPI-00195 upstream comment - An LRS's returned array of ids from a successful GET request all refer to documents stored after the TimeStamp in the \"since\" parameter of the GET request",
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", stateListIdentity, stateDocument),
@@ -284,7 +301,10 @@ export function createV103StateResourceProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 400,
     },
-    notes: ["v1 proof-slice state resource invalid since"],
+    notes: [
+      "v1 proof-slice state resource invalid since",
+      "legacy note: XAPI-00204 upstream comment - An LRS's State API rejects a GET request with \"since\" as a parameter if it is not a \"TimeStamp\", with error code 400 Bad Request",
+    ],
   });
 
   const missingActivityIdValidationCase = singleRequestCase({
@@ -323,7 +343,13 @@ export function createV103StateResourceProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 400,
     },
-    notes: ["v1 proof-slice state resource missing activityId validation"],
+    notes: [
+      "v1 proof-slice state resource missing activityId validation",
+      "legacy note: XAPI-00207 upstream comment - An LRS's State API rejects a DELETE request without \"activityId\" as a parameter with error code 400 Bad Request",
+      "legacy note: XAPI-00208 upstream comment - An LRS's State API rejects a GET request without \"activityId\" as a parameter with error code 400 Bad Request",
+      "legacy note: XAPI-00209 upstream comment - An LRS's State API rejects a POST request without \"activityId\" as a parameter with error code 400 Bad Request",
+      "legacy note: XAPI-00210 upstream comment - An LRS's State API rejects a PUT request without \"activityId\" as a parameter with error code 400 Bad Request",
+    ],
   });
 
   const missingAgentValidationCase = singleRequestCase({
@@ -356,7 +382,11 @@ export function createV103StateResourceProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 400,
     },
-    notes: ["v1 proof-slice state resource missing agent validation"],
+    notes: [
+      "v1 proof-slice state resource missing agent validation",
+      "legacy note: XAPI-00214 upstream comment - An LRS's State API rejects a POST request without \"agent\" as a parameter with error code 400 Bad Request",
+      "legacy note: XAPI-00215 upstream comment - An LRS's State API rejects a PUT request without \"agent\" as a parameter with error code 400 Bad Request",
+    ],
   });
 
   const invalidAgentQueryCase = singleRequestCase({
@@ -390,7 +420,11 @@ export function createV103StateResourceProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 400,
     },
-    notes: ["v1 proof-slice state resource invalid agent query validation"],
+    notes: [
+      "v1 proof-slice state resource invalid agent query validation",
+      "legacy note: XAPI-00199 upstream comment - An LRS's State API rejects a PUT request with \"agent\" as a parameter if it is not in JSON format with error code 400 Bad Request",
+      "legacy note: XAPI-00235 upstream comment - An LRS must reject with 400 Bad Request a POST request to the State API which contains name/value pairs with invalid JSON and the Content-Type header is \"application/json\"",
+    ],
   });
 
   const mergeCase = requestSequenceCase({
@@ -407,7 +441,10 @@ export function createV103StateResourceProofSliceSuite(): SuiteDefinition {
     tags: ["v1.0.3", "activities-state", "resource", "merge"],
     capabilityFlags: ["document", "state", "merge"],
     legacyTraceSuiteFile: stateResourceLegacySuiteFile,
-    notes: ["v1 proof-slice state resource merge"],
+    notes: [
+      "v1 proof-slice state resource merge",
+      "legacy note: XAPI-00234 upstream comment - An LRS's State API performs a Document Merge if a profileId is found and both it and the document in the POST request have type \"application/json\". If the merge is successful, the LRS MUST respond with HTTP status code 204 No Content.",
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", stateMergeIdentity, { car: "Honda" }),

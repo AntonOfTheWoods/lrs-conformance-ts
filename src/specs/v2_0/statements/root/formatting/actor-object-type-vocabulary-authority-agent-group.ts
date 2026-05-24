@@ -76,7 +76,8 @@ export const v2StatementsActorObjectTypeVocabularyAuthorityAgentGroupCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Formatting"
+      "Statement Formatting",
+      "legacy note: XAPI-00031 upstream comment - An \"actor\" property's \"objectType\" property is either \"Agent\" or \"Group\" An LRS rejects with 400 Bad Request an actor with an “objectType” which is not “Agent” or “Group”",
     ]
   }
 } as unknown as CaseDefinition;

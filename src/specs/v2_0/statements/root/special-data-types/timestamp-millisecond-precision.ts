@@ -99,6 +99,8 @@ export const v2StatementsSpecialDataTypesTimestampMillisecondPrecisionCase = {
       "proof-slice special data types timestamp precision",
       "legacy note: timestamp recall remains ISO 8601 formatted",
       "legacy note: precision must be at least milliseconds",
+      "legacy note: XAPI-00122 upstream comment - A Timestamp MUST preserve precision to at least milliseconds (3 decimal points beyond seconds). The LRS accepts a statement with a valid timestamp which has more than 3 decimal points beyond seconds and when recalled it returns at least 3 decimals points beyond seconds.",
+      "legacy note: XAPI-00122 upstream describe - A Timestamp MUST preserve precision to at least milliseconds, 3 decimal points beyond seconds.",
     ],
   },
 } as unknown as CaseDefinition;

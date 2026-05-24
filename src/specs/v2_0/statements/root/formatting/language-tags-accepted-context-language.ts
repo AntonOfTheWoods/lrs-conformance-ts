@@ -79,7 +79,9 @@ export const v2StatementsLanguageTagsAcceptedContextLanguageCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Formatting"
+      "Statement Formatting",
+      "legacy note: XAPI-00013 upstream comment - in formatting.js",
+      "legacy note: XAPI-00091 upstream comment - in contexts.js",
     ]
   }
 } as unknown as CaseDefinition;

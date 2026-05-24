@@ -49,7 +49,9 @@ export const v2StatementsQueryAcceptsAttachmentsCase = {
       "\"statements\""
     ],
     "notes": [
-      "proof-slice statement query acceptance direct trace"
+      "proof-slice statement query acceptance direct trace",
+      "legacy note: XAPI-00167 upstream comment - An LRS's Statement API can process a GET request with \"attachments\" as a parameter. The Statement API MUST return 200 OK, StatementResult Object and use the multipart response format and include all attachments if the attachment parameter is set to true",
+      "legacy note: XAPI-00167 upstream describe - An LRS\\'s Statement Resource can process a GET request with \"attachments\" as a parameter",
     ]
   }
 } as unknown as CaseDefinition;

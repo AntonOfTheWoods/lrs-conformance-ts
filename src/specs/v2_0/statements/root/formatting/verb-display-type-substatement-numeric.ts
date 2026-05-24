@@ -83,7 +83,8 @@ export const v2StatementsVerbDisplayTypeSubstatementNumericCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Formatting"
+      "Statement Formatting",
+      "legacy note: XAPI-00045 upstream comment - in verbs.js",
     ]
   }
 } as unknown as CaseDefinition;

@@ -79,7 +79,8 @@ export const v2StatementsAccountNameMissingContextInstructorAgentCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Formatting"
+      "Statement Formatting",
+      "legacy note: XAPI-00043 upstream comment - An Account Object \"name\" property is a String. An LRS rejects with 400 Bad Request if a statement uses the “account” IFI and the “name” property is absent or has an invalid string.",
     ]
   }
 } as unknown as CaseDefinition;

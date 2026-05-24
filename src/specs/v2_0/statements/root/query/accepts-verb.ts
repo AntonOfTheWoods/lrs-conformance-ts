@@ -49,7 +49,9 @@ export const v2StatementsQueryAcceptsVerbCase = {
       "\"statements\""
     ],
     "notes": [
-      "proof-slice statement query acceptance direct trace"
+      "proof-slice statement query acceptance direct trace",
+      "legacy note: XAPI-00180 upstream comment - An LRS's Statement API can process a GET request with \"verb\" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with exact match verb results if the verb parameter is set with a valid Verb IRI",
+      "legacy note: XAPI-00180 upstream describe - An LRS\\'s Statement Resource can process a GET request with \"verb\" as a parameter",
     ]
   }
 } as unknown as CaseDefinition;

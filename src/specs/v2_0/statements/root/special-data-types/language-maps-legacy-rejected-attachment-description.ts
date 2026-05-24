@@ -87,7 +87,8 @@ export const v2StatementsLanguageMapsLegacyRejectedAttachmentDescriptionCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Special Data Types"
+      "Statement Special Data Types",
+      "legacy note: XAPI-00121 upstream comment - in languages.js",
     ]
   }
 } as unknown as CaseDefinition;

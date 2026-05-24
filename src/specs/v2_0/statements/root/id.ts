@@ -117,7 +117,8 @@ export const v2ProofSliceStatementsIdSuite = {
         ],
         "queryTextContains": [],
         "notes": [
-          "proof-slice generated statement id roundtrip"
+          "proof-slice generated statement id roundtrip",
+          "legacy note: XAPI-00026 upstream comment - An LRS generates the \"id\" property of a Statement if none is provided (Modify, 4.1.1.a)",
         ]
       }
     },
@@ -193,7 +194,8 @@ export const v2ProofSliceStatementsIdSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Id Requirements"
+          "Statement Id Requirements",
+          "legacy note: XAPI-00029 upstream comment - in uuids.js",
         ]
       }
     },
@@ -271,7 +273,8 @@ export const v2ProofSliceStatementsIdSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Id Requirements"
+          "Statement Id Requirements",
+          "legacy note: XAPI-00029 upstream comment - in uuids.js",
         ]
       }
     },
@@ -361,7 +364,8 @@ export const v2ProofSliceStatementsIdSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Id Requirements"
+          "Statement Id Requirements",
+          "legacy note: XAPI-00029 upstream comment - in uuids.js",
         ]
       }
     },
@@ -453,7 +457,8 @@ export const v2ProofSliceStatementsIdSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Id Requirements"
+          "Statement Id Requirements",
+          "legacy note: XAPI-00029 upstream comment - in uuids.js",
         ]
       }
     },
@@ -529,7 +534,8 @@ export const v2ProofSliceStatementsIdSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Id Requirements"
+          "Statement Id Requirements",
+          "legacy note: XAPI-00030 upstream comment - in uuids.js",
         ]
       }
     },
@@ -605,7 +611,8 @@ export const v2ProofSliceStatementsIdSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Id Requirements"
+          "Statement Id Requirements",
+          "legacy note: XAPI-00030 upstream comment - in uuids.js",
         ]
       }
     },
@@ -695,7 +702,8 @@ export const v2ProofSliceStatementsIdSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Id Requirements"
+          "Statement Id Requirements",
+          "legacy note: XAPI-00030 upstream comment - in uuids.js",
         ]
       }
     },
@@ -785,7 +793,8 @@ export const v2ProofSliceStatementsIdSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Id Requirements"
+          "Statement Id Requirements",
+          "legacy note: XAPI-00030 upstream comment - in uuids.js",
         ]
       }
     },
@@ -865,7 +874,8 @@ export const v2ProofSliceStatementsIdSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Id Requirements"
+          "Statement Id Requirements",
+          "legacy note: XAPI-00029 upstream comment - in uuids.js",
         ]
       }
     },
@@ -947,7 +957,8 @@ export const v2ProofSliceStatementsIdSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Id Requirements"
+          "Statement Id Requirements",
+          "legacy note: XAPI-00029 upstream comment - in uuids.js",
         ]
       }
     },
@@ -1041,7 +1052,8 @@ export const v2ProofSliceStatementsIdSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Id Requirements"
+          "Statement Id Requirements",
+          "legacy note: XAPI-00029 upstream comment - in uuids.js",
         ]
       }
     },
@@ -1137,7 +1149,8 @@ export const v2ProofSliceStatementsIdSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Id Requirements"
+          "Statement Id Requirements",
+          "legacy note: XAPI-00029 upstream comment - in uuids.js",
         ]
       }
     },
@@ -1217,7 +1230,8 @@ export const v2ProofSliceStatementsIdSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Id Requirements"
+          "Statement Id Requirements",
+          "legacy note: XAPI-00030 upstream comment - in uuids.js",
         ]
       }
     },
@@ -1297,7 +1311,8 @@ export const v2ProofSliceStatementsIdSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Id Requirements"
+          "Statement Id Requirements",
+          "legacy note: XAPI-00030 upstream comment - in uuids.js",
         ]
       }
     },
@@ -1391,7 +1406,8 @@ export const v2ProofSliceStatementsIdSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Id Requirements"
+          "Statement Id Requirements",
+          "legacy note: XAPI-00030 upstream comment - in uuids.js",
         ]
       }
     },
@@ -1485,7 +1501,8 @@ export const v2ProofSliceStatementsIdSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Id Requirements"
+          "Statement Id Requirements",
+          "legacy note: XAPI-00030 upstream comment - in uuids.js",
         ]
       }
     },
@@ -1568,7 +1585,8 @@ export const v2ProofSliceStatementsIdSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Id Requirements"
+          "Statement Id Requirements",
+          "legacy note: XAPI-00029 upstream comment - in uuids.js",
         ]
       }
     },
@@ -1653,7 +1671,8 @@ export const v2ProofSliceStatementsIdSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Id Requirements"
+          "Statement Id Requirements",
+          "legacy note: XAPI-00029 upstream comment - in uuids.js",
         ]
       }
     },
@@ -1750,7 +1769,8 @@ export const v2ProofSliceStatementsIdSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Id Requirements"
+          "Statement Id Requirements",
+          "legacy note: XAPI-00029 upstream comment - in uuids.js",
         ]
       }
     },
@@ -1849,7 +1869,8 @@ export const v2ProofSliceStatementsIdSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Id Requirements"
+          "Statement Id Requirements",
+          "legacy note: XAPI-00029 upstream comment - in uuids.js",
         ]
       }
     },
@@ -1932,7 +1953,8 @@ export const v2ProofSliceStatementsIdSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Id Requirements"
+          "Statement Id Requirements",
+          "legacy note: XAPI-00030 upstream comment - in uuids.js",
         ]
       }
     },
@@ -2015,7 +2037,8 @@ export const v2ProofSliceStatementsIdSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Id Requirements"
+          "Statement Id Requirements",
+          "legacy note: XAPI-00030 upstream comment - in uuids.js",
         ]
       }
     },
@@ -2112,7 +2135,8 @@ export const v2ProofSliceStatementsIdSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Id Requirements"
+          "Statement Id Requirements",
+          "legacy note: XAPI-00030 upstream comment - in uuids.js",
         ]
       }
     },
@@ -2209,7 +2233,8 @@ export const v2ProofSliceStatementsIdSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Id Requirements"
+          "Statement Id Requirements",
+          "legacy note: XAPI-00030 upstream comment - in uuids.js",
         ]
       }
     }

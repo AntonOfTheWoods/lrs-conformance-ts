@@ -70,7 +70,11 @@ export const v2ProofSliceStatementsTransportSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement endpoint post exists"],
+        notes: [
+          "proof-slice statement endpoint post exists",
+          "legacy note: XAPI-00139 upstream comment - An LRS has a Statement API with endpoint \"base IRI\"+\"/statements\"",
+          "legacy note: XAPI-00139 upstream describe - An LRS has a Statement Resource with endpoint \"base IRI\"+\"/statements\"",
+        ],
       },
     },
     {
@@ -139,7 +143,11 @@ export const v2ProofSliceStatementsTransportSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement endpoint put exists"],
+        notes: [
+          "proof-slice statement endpoint put exists",
+          "legacy note: XAPI-00139 upstream comment - An LRS has a Statement API with endpoint \"base IRI\"+\"/statements\"",
+          "legacy note: XAPI-00139 upstream describe - An LRS has a Statement Resource with endpoint \"base IRI\"+\"/statements\"",
+        ],
       },
     },
     {
@@ -208,7 +216,11 @@ export const v2ProofSliceStatementsTransportSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement put accepted with statementId"],
+        notes: [
+          "proof-slice statement put accepted with statementId",
+          "legacy note: XAPI-00144 upstream comment - An LRS's Statement API accepts PUT requests only if it contains a \"statementId\" parameter, returning 204 No Content",
+          "legacy note: XAPI-00144 upstream describe - An LRS\\'s Statement Resource accepts PUT requests only if it contains a \"statementId\" parameter",
+        ],
       },
     },
     {
@@ -321,6 +333,8 @@ export const v2ProofSliceStatementsTransportSuite = {
         notes: [
           "proof-slice statement PUT roundtrip",
           "legacy note: PUT with statementId persists the statement and enables statementId retrieval",
+          "legacy note: XAPI-00143 upstream comment - An LRS's Statement API upon processing a valid PUT request successfully returns code 204 No Content",
+          "legacy note: XAPI-00143 upstream describe - An LRS\\'s Statement Resource upon processing a successful PUT request returns code 204 No Content",
         ],
       },
     },
@@ -388,7 +402,11 @@ export const v2ProofSliceStatementsTransportSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement PUT requires statementId"],
+        notes: [
+          "proof-slice statement PUT requires statementId",
+          "legacy note: XAPI-00145 upstream comment - An LRS's Statement API rejects a PUT request which does not have a \"statementId\" parameter, returning 400 Bad Request",
+          "legacy note: XAPI-00145 upstream describe - An LRS\\'s Statement Resource accepts PUT requests only if it contains a \"statementId\" parameter",
+        ],
       },
     },
     {
@@ -540,6 +558,8 @@ export const v2ProofSliceStatementsTransportSuite = {
         notes: [
           "proof-slice statement PUT immutability",
           "legacy note: PUT cannot modify an existing statement with the same statementId",
+          "legacy note: XAPI-00142 upstream comment - An LRS cannot modify a Statement in the event it receives a Statement with statementID equal to a Statement in the LRS already. To test: Send one statement with a particular statement ID. Send a second statement with the same statement ID but everything else different. Retrieve the statement before the second statement and after and both retrieved statements MUST match.",
+          "legacy note: XAPI-00142 upstream describe - An LRS cannot modify a Statement, state, or Object in the event it receives a Statement with statementID equal to a Statement in the LRS already.",
         ],
       },
     },
@@ -607,7 +627,11 @@ export const v2ProofSliceStatementsTransportSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement post accepted"],
+        notes: [
+          "proof-slice statement post accepted",
+          "legacy note: XAPI-00147 upstream comment - An LRS's Statement API accepts POST requests",
+          "legacy note: XAPI-00147 upstream describe - An LRS\\'s Statement Resource accepts POST requests",
+        ],
       },
     },
     {
@@ -680,7 +704,11 @@ export const v2ProofSliceStatementsTransportSuite = {
         ],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement single POST success"],
+        notes: [
+          "proof-slice statement single POST success",
+          "legacy note: XAPI-00146 upstream comment - An LRS's Statement API upon processing a successful POST request returns code 200 OK and all Statement UUIDs within the POST",
+          "legacy note: XAPI-00146 upstream describe - An LRS\\'s Statement Resource upon processing a successful POST request returns code 200 OK and all Statement UUIDs within the POST **Implicit**",
+        ],
       },
     },
     {
@@ -773,7 +801,11 @@ export const v2ProofSliceStatementsTransportSuite = {
         ],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement batch success"],
+        notes: [
+          "proof-slice statement batch success",
+          "legacy note: XAPI-00146 upstream comment - An LRS's Statement API upon processing a successful POST request returns code 200 OK and all Statement UUIDs within the POST",
+          "legacy note: XAPI-00146 upstream describe - An LRS\\'s Statement Resource upon processing a successful POST request returns code 200 OK and all Statement UUIDs within the POST **Implicit**",
+        ],
       },
     },
     {
@@ -861,7 +893,11 @@ export const v2ProofSliceStatementsTransportSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice statement batch duplicate-id rejection"],
+        notes: [
+          "proof-slice statement batch duplicate-id rejection",
+          "legacy note: XAPI-00326 upstream comment - An LRS rejects with a 400 Bad Request any batch of Statements in which one or more Statements is rejected and if necessary, restores the LRS to the state in which it was before the batch began processing. The response may identify the first statementId which failed.",
+          "legacy note: XAPI-00326 upstream describe - An LRS does not process any batch of Statements in which one or more Statements is rejected and if necessary, restores the LRS to the state in which it was before the batch began processing",
+        ],
       },
     },
     {
@@ -976,7 +1012,11 @@ export const v2ProofSliceStatementsTransportSuite = {
             expectedHeaderDateAfterStep: [],
           },
         ],
-        notes: ["proof-slice statement batch rollback"],
+        notes: [
+          "proof-slice statement batch rollback",
+          "legacy note: XAPI-00326 upstream comment - An LRS rejects with a 400 Bad Request any batch of Statements in which one or more Statements is rejected and if necessary, restores the LRS to the state in which it was before the batch began processing. The response may identify the first statementId which failed.",
+          "legacy note: XAPI-00326 upstream describe - An LRS does not process any batch of Statements in which one or more Statements is rejected and if necessary, restores the LRS to the state in which it was before the batch began processing",
+        ],
       },
     },
     {
@@ -1054,7 +1094,11 @@ export const v2ProofSliceStatementsTransportSuite = {
         ],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice missing target voiding acceptance"],
+        notes: [
+          "proof-slice missing target voiding acceptance",
+          "legacy note: XAPI-00019 upstream comment - in voiding.js",
+          "legacy note: XAPI-00020 upstream comment - in voiding.js",
+        ],
       },
     },
     {
@@ -1122,7 +1166,10 @@ export const v2ProofSliceStatementsTransportSuite = {
         jsonPathEquals: [],
         jsonPathNotEquals: [],
         textContains: [],
-        notes: ["proof-slice invalid voiding object rejection"],
+        notes: [
+          "proof-slice invalid voiding object rejection",
+          "legacy note: XAPI-00017 upstream comment - in voiding.js",
+        ],
       },
     },
     {
@@ -1326,7 +1373,13 @@ export const v2ProofSliceStatementsTransportSuite = {
             expectedHeaderDateAfterStep: [],
           },
         ],
-        notes: ["proof-slice repeated voiding is ignored"],
+        notes: [
+          "proof-slice repeated voiding is ignored",
+          "legacy note: 4.2.4.1 LRS Rejection Cases Update for 2.0 Never reject a stateemnt for using the voided verb.",
+          "legacy note: XAPI-00016 upstream comment - A Voiding Statement cannot Target another Voiding Statement. LRS behavior this new VOIDING statement MAY be rejected. If the LRS accepts that statement, the violating VOIDING statement SHOULD be ignored. Adjust this test accordingly",
+          "legacy note: XAPI-00016 upstream describe - A Voiding Statement cannot Target another Voiding Statement",
+          "legacy note: XAPI-00016 upstream describe - An LRS SHALL NOT reject a voided statement because it cannot find the ID of the Object of that statement, nor does the LRS have to try to find it.",
+        ],
       },
     },
     {
@@ -1530,7 +1583,13 @@ export const v2ProofSliceStatementsTransportSuite = {
             expectedHeaderDateAfterStep: [],
           },
         ],
-        notes: ["proof-slice voiding statements remain visible when targeted"],
+        notes: [
+          "proof-slice voiding statements remain visible when targeted",
+          "legacy note: 4.2.4.1 LRS Rejection Cases Update for 2.0 Never reject a stateemnt for using the voided verb.",
+          "legacy note: XAPI-00016 upstream comment - A Voiding Statement cannot Target another Voiding Statement. LRS behavior this new VOIDING statement MAY be rejected. If the LRS accepts that statement, the violating VOIDING statement SHOULD be ignored. Adjust this test accordingly",
+          "legacy note: XAPI-00016 upstream describe - A Voiding Statement cannot Target another Voiding Statement",
+          "legacy note: XAPI-00016 upstream describe - An LRS SHALL NOT reject a voided statement because it cannot find the ID of the Object of that statement, nor does the LRS have to try to find it.",
+        ],
       },
     },
     {
@@ -1682,6 +1741,10 @@ export const v2ProofSliceStatementsTransportSuite = {
         notes: [
           "proof-slice voided statement retrieval",
           "legacy note: A Voided Statement is defined as a Statement that is not a Voiding Statement and is the Target of a Voiding Statement within the LRS",
+          "legacy note: XAPI-00018 upstream comment - An LRS MUST consider a Statement it contains voided if the Statement is not itself a voiding Statement and the LRS also contains a voiding Statement referring to the first Statement. Test: Void a statement and then send a GET for that statement which uses “statementId” instead of “voidedStatementId.” The statement should then not be returned in the GET request, which should return a 404.",
+          "legacy note: XAPI-00018 upstream describe - A Voided Statement is defined as a Statement that is not a Voiding Statement and is the Target of a Voiding Statement within the LRS",
+          "legacy note: XAPI-00155 upstream comment - An LRS's Statement API upon processing a successful GET request with a \"voidedStatementId\" parameter, returns code 200 OK and a single Statement with the corresponding \"id\".",
+          "legacy note: XAPI-00155 upstream describe - An LRS\\'s Statement Resource upon processing a successful GET request with a \"voidedStatementId\" parameter, returns code 200 OK and a single Statement with the corresponding \"id\".",
         ],
       },
     },
@@ -1829,6 +1892,10 @@ export const v2ProofSliceStatementsTransportSuite = {
         notes: [
           "proof-slice hidden voided statement lookup",
           "legacy note: A Voided Statement is defined as a Statement that is not a Voiding Statement and is the Target of a Voiding Statement within the LRS",
+          "legacy note: XAPI-00018 upstream comment - An LRS MUST consider a Statement it contains voided if the Statement is not itself a voiding Statement and the LRS also contains a voiding Statement referring to the first Statement. Test: Void a statement and then send a GET for that statement which uses “statementId” instead of “voidedStatementId.” The statement should then not be returned in the GET request, which should return a 404.",
+          "legacy note: XAPI-00018 upstream describe - A Voided Statement is defined as a Statement that is not a Voiding Statement and is the Target of a Voiding Statement within the LRS",
+          "legacy note: XAPI-00163 upstream comment - An LRS's Statement API, upon processing a successful GET request, can only return a Voided Statement if that Statement is specified in the voidedStatementId parameter of that request",
+          "legacy note: XAPI-00163 upstream describe - An LRS\\'s Statement Resource, upon processing a successful GET request, can only return a Voided Statement if that Statement is specified in the voidedStatementId parameter of that request",
         ],
       },
     },

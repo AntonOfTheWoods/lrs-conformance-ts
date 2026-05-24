@@ -86,7 +86,8 @@ export const v2StatementsResultSuccessTypeStatementTrueStringCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Result"
+      "Statement Result",
+      "legacy note: XAPI-00074 upstream comment - A \"success\" property is a Boolean. The LRS rejects with 400 Bad Request a Statement which has a Result Object with a “success” property which does not have a valid Boolean value, if present.",
     ]
   }
 } as unknown as CaseDefinition;

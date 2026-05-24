@@ -200,7 +200,8 @@ export const v2StatementsQueryRelatedActivitiesCase = {
       }
     ],
     "notes": [
-      "proof-slice statement collection query"
+      "proof-slice statement collection query",
+      "legacy note: XAPI-00177 upstream comment - An LRS's Statement API can process a GET request with \"related_activities\" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with exact match activity results if the activity parameter is set with a valid Verb IRI unless the related_activities parameter is set to true. If set to true it MUST return 200 OK, StatementResult Object with activity ID matches in the Statement Object, and Context Objects and SubStatement Objects.",
     ]
   }
 } as unknown as CaseDefinition;

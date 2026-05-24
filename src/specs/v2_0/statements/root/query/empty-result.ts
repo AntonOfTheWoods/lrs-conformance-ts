@@ -54,7 +54,9 @@ export const v2StatementsQueryEmptyResultCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "proof-slice empty statement query result"
+      "proof-slice empty statement query result",
+      "legacy note: XAPI-00149 upstream comment - The LRS will NOT reject a GET request which returns an empty \"statements\" property. Send a GET request which will not return any results and check that a 200 Ok and an empty StatementResult Object is returned.",
+      "legacy note: XAPI-00149 upstream describe - The LRS will NOT reject a GET request which returns an empty \"statements\" property",
     ]
   }
 } as unknown as CaseDefinition;

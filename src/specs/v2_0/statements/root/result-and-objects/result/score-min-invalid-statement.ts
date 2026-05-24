@@ -86,7 +86,8 @@ export const v2StatementsScoreMinInvalidStatementCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Score"
+      "Statement Score",
+      "legacy note: XAPI-00081 upstream comment - If the \"score\" Object uses the \"min\" property, the value must be a decimal number less than the \"max\" property, if it is present. If \"max\" is not present \"min\" can be any number. The LRS rejects with 400 Bad Request a statement with a Result Object using the “min” property (if it is present) which is not a decimal number or is greater than the value of the “max” property, if it is present.",
     ]
   }
 } as unknown as CaseDefinition;

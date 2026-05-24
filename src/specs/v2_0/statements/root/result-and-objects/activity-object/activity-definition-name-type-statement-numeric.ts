@@ -75,7 +75,8 @@ export const v2StatementsActivityDefinitionNameTypeStatementNumericCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Activity Objects"
+      "Statement Activity Objects",
+      "legacy note: XAPI-00056 upstream comment - in activities.js",
     ]
   }
 } as unknown as CaseDefinition;

@@ -70,7 +70,8 @@ export const v2StatementsInvalidValuesObjectIdNullCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Formatting"
+      "Statement Formatting",
+      "legacy note: XAPI-00001 upstream comment - in formatting.js",
     ]
   }
 } as unknown as CaseDefinition;

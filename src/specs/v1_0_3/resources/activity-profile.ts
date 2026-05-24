@@ -80,7 +80,13 @@ export function createV103ActivityProfileResourceProofSliceSuite(): SuiteDefinit
     assertion: {
       status: 204,
     },
-    notes: ["v1 proof-slice activity profile endpoint and post acceptance"],
+    notes: [
+      "v1 proof-slice activity profile endpoint and post acceptance",
+      "legacy note: XAPI-00311 upstream comment - An LRS has an Activity Profile API with endpoint \"base IRI\"+\"/activities/profile\"",
+      "legacy note: XAPI-00312 upstream comment - An LRS will accept a POST request to the Activity Profile API",
+      "legacy note: XAPI-00286 upstream comment - An LRS's Activity Profile API upon processing a successful POST request returns code 204 No Content",
+      "legacy note: XAPI-00292 upstream comment - An LRS's Activity Profile API accepts POST requests",
+    ],
   });
 
   const putAcceptedCase = singleRequestCase({
@@ -113,7 +119,13 @@ export function createV103ActivityProfileResourceProofSliceSuite(): SuiteDefinit
     assertion: {
       status: 204,
     },
-    notes: ["v1 proof-slice activity profile put accepted"],
+    notes: [
+      "v1 proof-slice activity profile put accepted",
+      "legacy note: XAPI-00287 upstream comment - An LRS's Activity Profile API upon processing a successful PUT request returns code 204 No Content",
+      "legacy note: XAPI-00287 upstream describe - An LRS\\'s Activity Profile Resource accepts PUT requests",
+      "legacy note: XAPI-00293 upstream comment - An LRS's Activity Profile API accepts PUT requests",
+      "legacy note: XAPI-00293 upstream describe - An LRS\\'s Activity Profile Resource accepts PUT requests",
+    ],
   });
 
   const deleteAcceptedCase = singleRequestCase({
@@ -149,7 +161,13 @@ export function createV103ActivityProfileResourceProofSliceSuite(): SuiteDefinit
     assertion: {
       status: 204,
     },
-    notes: ["v1 proof-slice activity profile delete accepted"],
+    notes: [
+      "v1 proof-slice activity profile delete accepted",
+      "legacy note: XAPI-00285 upstream comment - An LRS's Activity Profile API upon processing a successful DELETE request deletes the associated profile and returns code 204 No Content",
+      "legacy note: XAPI-00291 upstream comment - An LRS's Activity Profile API accepts DELETE requests",
+      "legacy note: XAPI-00297 upstream comment - An LRS's Activity Profile API rejects a DELETE request without \"activityId\" as a parameter with error code 400 Bad Request",
+      "legacy note: XAPI-00300 upstream comment - An LRS's Activity Profile API rejects a DELETE request without \"profileId\" as a parameter with error code 400 Bad Request",
+    ],
   });
 
   const getRoundTripCase = requestSequenceCase({
@@ -171,7 +189,11 @@ export function createV103ActivityProfileResourceProofSliceSuite(): SuiteDefinit
     tags: ["v1.0.3", "activities-profile", "resource", "roundtrip"],
     capabilityFlags: ["document", "activity-profile", "retrieval"],
     legacyTraceSuiteFile: activityProfileLegacySuiteFile,
-    notes: ["v1 proof-slice activity profile get roundtrip"],
+    notes: [
+      "v1 proof-slice activity profile get roundtrip",
+      "legacy note: XAPI-00290 upstream comment - An LRS's Activity Profile API accepts GET requests",
+      "legacy note: XAPI-00288 upstream comment - An LRS's Activity Profile API upon processing a successful GET request with a valid \"profileId\" as a parameter returns the document satisfying the requirements of the GET and code 200 OK",
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", profileIdentity, profileDocument),
@@ -218,7 +240,12 @@ export function createV103ActivityProfileResourceProofSliceSuite(): SuiteDefinit
     tags: ["v1.0.3", "activities-profile", "resource", "list", "since"],
     capabilityFlags: ["document", "activity-profile", "list", "since"],
     legacyTraceSuiteFile: activityProfileLegacySuiteFile,
-    notes: ["v1 proof-slice activity profile list and since"],
+    notes: [
+      "v1 proof-slice activity profile list and since",
+      "legacy note: XAPI-00289 upstream comment - An LRS's Activity Profile API upon processing a successful GET request without \"profileId\" as a parameter returns an array of ids of activity profile documents satisfying the requirements of the GET and code 200 OK",
+      "legacy note: XAPI-00303 upstream comment - An LRS's Activity Profile API can process a GET request with \"since\" as a parameter. Returning 200 OK and all matching profiles after the date/time of the “since” parameter.",
+      "legacy note: XAPI-00294 upstream comment - The Activity Profile API's returned array of ids from a successful GET request all refer to documents stored after the TimeStamp in the \"since\" parameter of the GET request if such a parameter was present",
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", profileListIdentity, profileDocument),
@@ -273,7 +300,11 @@ export function createV103ActivityProfileResourceProofSliceSuite(): SuiteDefinit
     assertion: {
       status: 400,
     },
-    notes: ["v1 proof-slice activity profile invalid since"],
+    notes: [
+      "v1 proof-slice activity profile invalid since",
+      "legacy note: XAPI-00295 upstream comment - An LRS's Activity Profile API rejects a GET request with \"since\" as a parameter if it is not a \"TimeStamp\", with error code 400 Bad Request",
+      "legacy note: XAPI-00295 upstream describe - An LRS\\'s Activity Profile Resource rejects a GET request with \"since\" as a parameter if it is not a \"TimeStamp\", with error code 400 Bad Request",
+    ],
   });
 
   const mergeCase = requestSequenceCase({
@@ -300,7 +331,13 @@ export function createV103ActivityProfileResourceProofSliceSuite(): SuiteDefinit
     tags: ["v1.0.3", "activities-profile", "resource", "merge"],
     capabilityFlags: ["document", "activity-profile", "merge"],
     legacyTraceSuiteFile: activityProfileLegacySuiteFile,
-    notes: ["v1 proof-slice activity profile merge"],
+    notes: [
+      "v1 proof-slice activity profile merge",
+      "legacy note: XAPI-00308 upstream comment - An LRS's Activity Profile API performs a Document Merge if a activityId is found and both it and the document in the POST request have type \"application/json\" If the merge is successful, the LRS MUST respond with HTTP status code 204 No Content. activityId??",
+      "legacy note: XAPI-00313 upstream comment - An LRS's Activity Profile API, rejects a POST request if the document is found and either doucment is not a valid JSON Object",
+      "legacy note: XAPI-00313 upstream describe - An LRS\\'s Activity Profile Resource, rejects a POST request if the document is found and either document is not a valid JSON Object",
+      "legacy note: XAPI-00314 upstream comment - An LRS's must reject, with 400 Bad Request, a POST request to the Activity Profile API which contains name/value pairs with invalid JSON and the Content-Type header is \"application/json\"",
+    ],
     steps: [
       {
         request: buildVersionedRequest("POST", profileIdentity, { car: "Honda" }),

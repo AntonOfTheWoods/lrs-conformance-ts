@@ -91,7 +91,8 @@ export const v2StatementsActivityInteractionTypeAcceptanceSubstatementFillInCase
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Activity Objects"
+      "Statement Activity Objects",
+      "legacy note: XAPI-00049 upstream comment - in activities.js",
     ]
   }
 } as unknown as CaseDefinition;

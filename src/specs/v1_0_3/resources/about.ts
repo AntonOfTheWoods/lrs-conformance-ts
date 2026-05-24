@@ -39,7 +39,10 @@ export function createV103AboutResourceProofSliceSuite(): SuiteDefinition {
     assertion: {
       status: 200,
     },
-    notes: ["v1 proof-slice about resource endpoint exists"],
+    notes: [
+      "v1 proof-slice about resource endpoint exists",
+      "legacy note: XAPI-00315 upstream comment - An LRS has an About API with endpoint \"base IRI\"+\"/about\"",
+    ],
   });
 
   const versionPropertyCase = singleRequestCase({
@@ -66,7 +69,10 @@ export function createV103AboutResourceProofSliceSuite(): SuiteDefinition {
         },
       ],
     },
-    notes: ["v1 proof-slice about resource version property"],
+    notes: [
+      "v1 proof-slice about resource version property",
+      "legacy note: XAPI-00319 upstream comment - An LRS's About Resource accepts GET requests. Upon processing a successful GET request returns a version property and code 200 OK",
+    ],
   });
 
   const versionArrayTypeCase = singleRequestCase({
@@ -93,7 +99,10 @@ export function createV103AboutResourceProofSliceSuite(): SuiteDefinition {
         },
       ],
     },
-    notes: ["v1 proof-slice about resource version array type"],
+    notes: [
+      "v1 proof-slice about resource version array type",
+      "legacy note: XAPI-00318 upstream comment - An LRS's About API's version property is an array of strings",
+    ],
   });
 
   const versionValuesCase = singleRequestCase({
@@ -125,7 +134,11 @@ export function createV103AboutResourceProofSliceSuite(): SuiteDefinition {
         },
       ],
     },
-    notes: ["v1 proof-slice about resource version values"],
+    notes: [
+      "v1 proof-slice about resource version values",
+      "legacy note: XAPI-00316 upstream comment - An LRS's About API's version property can only have values of \"0.9\", \"0.95\", \"1.0.0\", or “1.0.x” with",
+      "legacy note: XAPI-00317 upstream comment - An LRS's About API's version property contains at least one string of \"1.0.x\"",
+    ],
   });
 
   const nonAboutMissingVersionHeaderCase = singleRequestCase({
@@ -152,7 +165,11 @@ export function createV103AboutResourceProofSliceSuite(): SuiteDefinition {
         },
       ],
     },
-    notes: ["v1 proof-slice about non-about missing version header"],
+    notes: [
+      "v1 proof-slice about non-about missing version header",
+      "legacy note: XAPI-00321 upstream comment - An LRS rejects with error code 400 Bad Request, a Request which does not use a \"X-Experience-API-Version\" header name to any API except the About API",
+      "legacy note: XAPI-00321 upstream describe - An LRS rejects with error code 400 Bad Request, a Request which does not use a \"X-Experience-API-Version\" header name to any Resource except the About Resource",
+    ],
   });
 
   return {

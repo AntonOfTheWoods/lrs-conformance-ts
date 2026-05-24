@@ -75,7 +75,10 @@ export const v2StatementsInvalidIriSchemesObjectIdNoSchemeCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Formatting"
+      "Statement Formatting",
+      "legacy note: XAPI-00011 upstream comment - An LRS rejects with error code 400 Bad Request a Statement containing IRL or IRI values without a scheme.",
+      "legacy note: XAPI-00011 upstream describe - An LRS rejects with error code 400 Bad Request a Statement containing IRL or IRI values without a scheme.",
+      "legacy note: XAPI-00061 upstream comment - in activities.js",
     ]
   }
 } as unknown as CaseDefinition;

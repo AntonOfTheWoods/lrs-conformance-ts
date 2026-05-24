@@ -50,7 +50,9 @@ export const v2StatementsQueryAcceptsRelatedAgentsCase = {
       "\"statements\""
     ],
     "notes": [
-      "proof-slice statement query acceptance direct trace"
+      "proof-slice statement query acceptance direct trace",
+      "legacy note: XAPI-00176 upstream comment - An LRS's Statement API can process a GET request with \"related_agents\" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with exact match agent results if the agent parameter is set with a valid Agent or Identified Group JSON Object unless the related_agents parameter is set to true. If set to true it MUST return 200 OK, StatementResult Object with agent matches in the Actor, Object, authority, instructor, team, or any of these properties in a contained SubStatement",
+      "legacy note: XAPI-00176 upstream describe - An LRS\\'s Statement Resource can process a GET request with \"related_agents\" as a parameter",
     ]
   }
 } as unknown as CaseDefinition;

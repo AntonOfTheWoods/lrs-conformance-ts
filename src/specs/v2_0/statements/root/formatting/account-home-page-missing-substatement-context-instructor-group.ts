@@ -101,7 +101,8 @@ export const v2StatementsAccountHomePageMissingSubstatementContextInstructorGrou
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Formatting"
+      "Statement Formatting",
+      "legacy note: XAPI-00042 upstream comment - An Account Object's homePage\" property is an IRL. An LRS rejects with 400 Bad Request if a statement uses the “account” IFI and the “homePage” property is absent or has an invalid IRL.",
     ]
   }
 } as unknown as CaseDefinition;

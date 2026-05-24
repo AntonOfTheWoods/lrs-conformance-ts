@@ -128,7 +128,9 @@ export const v2ProofSliceStatementsContextRoundtripSuite = {
         "queryJsonPathEqualsCaptured": [],
         "queryTextContains": [],
         "notes": [
-          "proof-slice contextActivities retrieval returns arrays"
+          "proof-slice contextActivities retrieval returns arrays",
+          "legacy note: XAPI-00096 upstream comment - An LRS's Statement Resource returns a ContextActivity in an array, even if only a single ContextActivity is returned.",
+          "legacy note: XAPI-00096 upstream describe - An LRS returns a ContextActivity in an array, even if only a single ContextActivity is returned",
         ]
       }
     },
@@ -252,7 +254,9 @@ export const v2ProofSliceStatementsContextRoundtripSuite = {
         "queryJsonPathEqualsCaptured": [],
         "queryTextContains": [],
         "notes": [
-          "proof-slice contextActivities retrieval returns arrays"
+          "proof-slice contextActivities retrieval returns arrays",
+          "legacy note: XAPI-00096 upstream comment - An LRS's Statement Resource returns a ContextActivity in an array, even if only a single ContextActivity is returned.",
+          "legacy note: XAPI-00096 upstream describe - An LRS returns a ContextActivity in an array, even if only a single ContextActivity is returned",
         ]
       }
     },
@@ -376,7 +380,9 @@ export const v2ProofSliceStatementsContextRoundtripSuite = {
         "queryJsonPathEqualsCaptured": [],
         "queryTextContains": [],
         "notes": [
-          "proof-slice contextActivities retrieval returns arrays"
+          "proof-slice contextActivities retrieval returns arrays",
+          "legacy note: XAPI-00096 upstream comment - An LRS's Statement Resource returns a ContextActivity in an array, even if only a single ContextActivity is returned.",
+          "legacy note: XAPI-00096 upstream describe - An LRS returns a ContextActivity in an array, even if only a single ContextActivity is returned",
         ]
       }
     },
@@ -500,7 +506,9 @@ export const v2ProofSliceStatementsContextRoundtripSuite = {
         "queryJsonPathEqualsCaptured": [],
         "queryTextContains": [],
         "notes": [
-          "proof-slice contextActivities retrieval returns arrays"
+          "proof-slice contextActivities retrieval returns arrays",
+          "legacy note: XAPI-00096 upstream comment - An LRS's Statement Resource returns a ContextActivity in an array, even if only a single ContextActivity is returned.",
+          "legacy note: XAPI-00096 upstream describe - An LRS returns a ContextActivity in an array, even if only a single ContextActivity is returned",
         ]
       }
     },
@@ -639,7 +647,9 @@ export const v2ProofSliceStatementsContextRoundtripSuite = {
         "queryJsonPathEqualsCaptured": [],
         "queryTextContains": [],
         "notes": [
-          "proof-slice contextActivities retrieval returns arrays"
+          "proof-slice contextActivities retrieval returns arrays",
+          "legacy note: XAPI-00096 upstream comment - An LRS's Statement Resource returns a ContextActivity in an array, even if only a single ContextActivity is returned.",
+          "legacy note: XAPI-00096 upstream describe - An LRS returns a ContextActivity in an array, even if only a single ContextActivity is returned",
         ]
       }
     },
@@ -778,7 +788,9 @@ export const v2ProofSliceStatementsContextRoundtripSuite = {
         "queryJsonPathEqualsCaptured": [],
         "queryTextContains": [],
         "notes": [
-          "proof-slice contextActivities retrieval returns arrays"
+          "proof-slice contextActivities retrieval returns arrays",
+          "legacy note: XAPI-00096 upstream comment - An LRS's Statement Resource returns a ContextActivity in an array, even if only a single ContextActivity is returned.",
+          "legacy note: XAPI-00096 upstream describe - An LRS returns a ContextActivity in an array, even if only a single ContextActivity is returned",
         ]
       }
     },
@@ -917,7 +929,9 @@ export const v2ProofSliceStatementsContextRoundtripSuite = {
         "queryJsonPathEqualsCaptured": [],
         "queryTextContains": [],
         "notes": [
-          "proof-slice contextActivities retrieval returns arrays"
+          "proof-slice contextActivities retrieval returns arrays",
+          "legacy note: XAPI-00096 upstream comment - An LRS's Statement Resource returns a ContextActivity in an array, even if only a single ContextActivity is returned.",
+          "legacy note: XAPI-00096 upstream describe - An LRS returns a ContextActivity in an array, even if only a single ContextActivity is returned",
         ]
       }
     },
@@ -1056,7 +1070,9 @@ export const v2ProofSliceStatementsContextRoundtripSuite = {
         "queryJsonPathEqualsCaptured": [],
         "queryTextContains": [],
         "notes": [
-          "proof-slice contextActivities retrieval returns arrays"
+          "proof-slice contextActivities retrieval returns arrays",
+          "legacy note: XAPI-00096 upstream comment - An LRS's Statement Resource returns a ContextActivity in an array, even if only a single ContextActivity is returned.",
+          "legacy note: XAPI-00096 upstream describe - An LRS returns a ContextActivity in an array, even if only a single ContextActivity is returned",
         ]
       }
     }

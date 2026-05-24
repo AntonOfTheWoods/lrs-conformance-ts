@@ -78,7 +78,8 @@ export const v2StatementsContextInvalidTeamStatementAgentCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Context"
+      "Statement Context",
+      "legacy note: XAPI-00087 upstream comment - 1 - in contexts.js",
     ]
   }
 } as unknown as CaseDefinition;

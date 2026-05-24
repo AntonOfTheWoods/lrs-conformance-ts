@@ -101,7 +101,9 @@ export const v2StatementsContextRevisionActivityOnlySubstatementGroupCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Context"
+      "Statement Context",
+      "legacy note: XAPI-00084 upstream comment - in contexts.js",
+      "legacy note: XAPI-00089 upstream comment - in contexts.js",
     ]
   }
 } as unknown as CaseDefinition;

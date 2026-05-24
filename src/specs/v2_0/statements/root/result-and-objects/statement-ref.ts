@@ -84,7 +84,9 @@ export const v2ProofSliceStatementsResultAndObjectsStatementRefSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement References"
+          "Statement References",
+          "legacy note: XAPI-00072 upstream comment - in statementrefs.js",
+          "legacy note: XAPI-00073 upstream comment - in statementrefs.js",
         ]
       }
     },
@@ -178,7 +180,9 @@ export const v2ProofSliceStatementsResultAndObjectsStatementRefSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement References"
+          "Statement References",
+          "legacy note: XAPI-00072 upstream comment - in statementrefs.js",
+          "legacy note: XAPI-00073 upstream comment - in statementrefs.js",
         ]
       }
     },
@@ -259,7 +263,9 @@ export const v2ProofSliceStatementsResultAndObjectsStatementRefSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement References"
+          "Statement References",
+          "legacy note: XAPI-00072 upstream comment - in statementrefs.js",
+          "legacy note: XAPI-00073 upstream comment - in statementrefs.js",
         ]
       }
     },
@@ -354,7 +360,9 @@ export const v2ProofSliceStatementsResultAndObjectsStatementRefSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement References"
+          "Statement References",
+          "legacy note: XAPI-00072 upstream comment - in statementrefs.js",
+          "legacy note: XAPI-00073 upstream comment - in statementrefs.js",
         ]
       }
     },
@@ -434,7 +442,9 @@ export const v2ProofSliceStatementsResultAndObjectsStatementRefSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement References"
+          "Statement References",
+          "legacy note: XAPI-00072 upstream comment - in statementrefs.js",
+          "legacy note: XAPI-00073 upstream comment - in statementrefs.js",
         ]
       }
     },
@@ -528,7 +538,9 @@ export const v2ProofSliceStatementsResultAndObjectsStatementRefSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement References"
+          "Statement References",
+          "legacy note: XAPI-00072 upstream comment - in statementrefs.js",
+          "legacy note: XAPI-00073 upstream comment - in statementrefs.js",
         ]
       }
     },
@@ -609,7 +621,9 @@ export const v2ProofSliceStatementsResultAndObjectsStatementRefSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement References"
+          "Statement References",
+          "legacy note: XAPI-00072 upstream comment - in statementrefs.js",
+          "legacy note: XAPI-00073 upstream comment - in statementrefs.js",
         ]
       }
     },
@@ -704,7 +718,9 @@ export const v2ProofSliceStatementsResultAndObjectsStatementRefSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement References"
+          "Statement References",
+          "legacy note: XAPI-00072 upstream comment - in statementrefs.js",
+          "legacy note: XAPI-00073 upstream comment - in statementrefs.js",
         ]
       }
     }

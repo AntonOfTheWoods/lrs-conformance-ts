@@ -85,7 +85,8 @@ export const v2StatementsInvalidOpenidSubstatementActorAgentCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Formatting"
+      "Statement Formatting",
+      "legacy note: XAPI-00040 upstream comment - An \"openid\" property is a URI. An LRS rejects with 400 Bad Request if a statement uses the “openID” IFI and the URI is invalid.",
     ]
   }
 } as unknown as CaseDefinition;

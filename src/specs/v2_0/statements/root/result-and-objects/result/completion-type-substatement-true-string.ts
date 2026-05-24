@@ -100,7 +100,8 @@ export const v2StatementsResultCompletionTypeSubstatementTrueStringCase = {
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Result"
+      "Statement Result",
+      "legacy note: XAPI-00075 upstream comment - A \"completion\" property is a Boolean. The LRS rejects with 400 Bad Request a Statement which has a Result Object with a “completion” property which does not have a valid Boolean value, if present.",
     ]
   }
 } as unknown as CaseDefinition;

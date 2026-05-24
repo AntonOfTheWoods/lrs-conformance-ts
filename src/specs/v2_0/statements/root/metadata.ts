@@ -79,7 +79,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Metadata"
+          "Statement Metadata",
+          "legacy note: XAPI-00022 upstream comment - in timestamp_property.js",
         ]
       }
     },
@@ -154,7 +155,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Metadata"
+          "Statement Metadata",
+          "legacy note: XAPI-00022 upstream comment - in timestamp_property.js",
         ]
       }
     },
@@ -244,7 +246,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Metadata"
+          "Statement Metadata",
+          "legacy note: XAPI-00022 upstream comment - in timestamp_property.js",
         ]
       }
     },
@@ -334,7 +337,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Metadata"
+          "Statement Metadata",
+          "legacy note: XAPI-00022 upstream comment - in timestamp_property.js",
         ]
       }
     },
@@ -409,7 +413,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Metadata"
+          "Statement Metadata",
+          "legacy note: XAPI-00022 upstream comment - in timestamp_property.js",
         ]
       }
     },
@@ -499,7 +504,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Metadata"
+          "Statement Metadata",
+          "legacy note: XAPI-00022 upstream comment - in timestamp_property.js",
         ]
       }
     },
@@ -574,7 +580,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Metadata"
+          "Statement Metadata",
+          "legacy note: XAPI-00123 upstream comment - in timestamps.js",
         ]
       }
     },
@@ -649,7 +656,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Metadata"
+          "Statement Metadata",
+          "legacy note: XAPI-00123 upstream comment - in timestamps.js",
         ]
       }
     },
@@ -724,7 +732,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Metadata"
+          "Statement Metadata",
+          "legacy note: XAPI-00123 upstream comment - in timestamps.js",
         ]
       }
     },
@@ -814,7 +823,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Metadata"
+          "Statement Metadata",
+          "legacy note: XAPI-00123 upstream comment - in timestamps.js",
         ]
       }
     },
@@ -904,7 +914,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Metadata"
+          "Statement Metadata",
+          "legacy note: XAPI-00123 upstream comment - in timestamps.js",
         ]
       }
     },
@@ -994,7 +1005,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Metadata"
+          "Statement Metadata",
+          "legacy note: XAPI-00123 upstream comment - in timestamps.js",
         ]
       }
     },
@@ -1070,7 +1082,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Metadata"
+          "Statement Metadata",
+          "legacy note: XAPI-00123 upstream comment - in timestamps.js",
         ]
       }
     },
@@ -1161,7 +1174,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Metadata"
+          "Statement Metadata",
+          "legacy note: XAPI-00123 upstream comment - in timestamps.js",
         ]
       }
     },
@@ -1237,7 +1251,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Metadata"
+          "Statement Metadata",
+          "legacy note: XAPI-00101 upstream comment - An LRS rejects with error code 400 Bad Request, a Request which uses \"version\" and has the value set to anything but \"1.0\" or \"1.0.x\", where x is the semantic versioning number",
         ]
       }
     },
@@ -1313,7 +1328,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Metadata"
+          "Statement Metadata",
+          "legacy note: XAPI-00101 upstream comment - An LRS rejects with error code 400 Bad Request, a Request which uses \"version\" and has the value set to anything but \"1.0\" or \"1.0.x\", where x is the semantic versioning number",
         ]
       }
     },
@@ -1389,7 +1405,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Metadata"
+          "Statement Metadata",
+          "legacy note: XAPI-00101 upstream comment - An LRS rejects with error code 400 Bad Request, a Request which uses \"version\" and has the value set to anything but \"1.0\" or \"1.0.x\", where x is the semantic versioning number",
         ]
       }
     },
@@ -1465,7 +1482,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Metadata"
+          "Statement Metadata",
+          "legacy note: XAPI-00101 upstream comment - An LRS rejects with error code 400 Bad Request, a Request which uses \"version\" and has the value set to anything but \"1.0\" or \"1.0.x\", where x is the semantic versioning number",
         ]
       }
     },
@@ -1541,7 +1559,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
         "jsonPathNotEquals": [],
         "textContains": [],
         "notes": [
-          "Statement Metadata"
+          "Statement Metadata",
+          "legacy note: XAPI-00101 upstream comment - An LRS rejects with error code 400 Bad Request, a Request which uses \"version\" and has the value set to anything but \"1.0\" or \"1.0.x\", where x is the semantic versioning number",
         ]
       }
     },
@@ -1650,7 +1669,8 @@ export const v2ProofSliceStatementsMetadataSuite = {
         "queryJsonPathEqualsCaptured": [],
         "queryTextContains": [],
         "notes": [
-          "proof-slice statement version roundtrip"
+          "proof-slice statement version roundtrip",
+          "legacy note: XAPI-00332 upstream comment - in Data 2.4.10 Statements Version Property",
         ]
       }
     },
@@ -1776,7 +1796,11 @@ export const v2ProofSliceStatementsMetadataSuite = {
           }
         ],
         "notes": [
-          "proof-slice stored property overwrite on POST"
+          "proof-slice stored property overwrite on POST",
+          "legacy note: XAPI-00097 upstream comment - An LRS MUST assign the \"stored\" property timestamp upon receiving a statement.",
+          "legacy note: XAPI-00097 upstream describe - An LRS MUST accept statements with the stored property",
+          "legacy note: XAPI-00023 upstream comment - in Data 2.4.8 Stored Property",
+          "legacy note: XAPI-00023 upstream describe - A stored property must be a TimeStamp",
         ]
       }
     },
@@ -1897,7 +1921,11 @@ export const v2ProofSliceStatementsMetadataSuite = {
           }
         ],
         "notes": [
-          "proof-slice stored property overwrite on PUT"
+          "proof-slice stored property overwrite on PUT",
+          "legacy note: XAPI-00097 upstream comment - An LRS MUST assign the \"stored\" property timestamp upon receiving a statement.",
+          "legacy note: XAPI-00097 upstream describe - An LRS MUST accept statements with the stored property",
+          "legacy note: XAPI-00023 upstream comment - in Data 2.4.8 Stored Property",
+          "legacy note: XAPI-00023 upstream describe - A stored property must be a TimeStamp",
         ]
       }
     }

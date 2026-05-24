@@ -49,7 +49,9 @@ export const v2StatementsQueryAcceptsUntilCase = {
       "\"statements\""
     ],
     "notes": [
-      "proof-slice statement query acceptance direct trace"
+      "proof-slice statement query acceptance direct trace",
+      "legacy note: XAPI-00174 upstream comment - An LRS's Statement API can process a GET request with \"until\" as a parameter. The Statement API MUST return 200 OK, StatementResult Object containing all statements which have a stored timestamp at or before the specified until parameter timestamp.",
+      "legacy note: XAPI-00174 upstream describe - An LRS\\'s Statement Resource can process a GET request with \"until\" as a parameter",
     ]
   }
 } as unknown as CaseDefinition;

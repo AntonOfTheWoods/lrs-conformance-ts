@@ -93,7 +93,9 @@ export const v2StatementsObjectAgentGroupRequiresObjectTypeSubstatementGroupCase
     "jsonPathNotEquals": [],
     "textContains": [],
     "notes": [
-      "Statement Activity And Object Typing"
+      "Statement Activity And Object Typing",
+      "legacy note: XAPI-00065 upstream comment - Statements that use an Agent or Group as an Object MUST specify an \"objectType\" property. The LRS rejects with 400 Bad Request if the “objectType” property is absent and the Object is an Agent Object or Group Object.",
+      "legacy note: XAPI-00065 upstream describe - Statements that use an Agent or Group as an Object MUST specify an \"objectType\" property.",
     ]
   }
 } as unknown as CaseDefinition;
