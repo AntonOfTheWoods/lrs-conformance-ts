@@ -406,8 +406,14 @@ describe("Proof slice registry", () => {
     const registry = createV103Registry();
     const v103Suites = registry.versions["1.0.3"];
 
-    expect(v103Suites.length).toBe(2);
-    expect(v103Suites.map((suite) => suite.id)).toEqual(["v1.proof-slice.about", "v1.proof-slice.activities"]);
+    expect(v103Suites.length).toBe(5);
+    expect(v103Suites.map((suite) => suite.id)).toEqual([
+      "v1.proof-slice.about",
+      "v1.proof-slice.activities",
+      "v1.proof-slice.activities-profile",
+      "v1.proof-slice.agents",
+      "v1.proof-slice.agents-profile",
+    ]);
   });
 
   test("includes the first migrated xAPI 1.0.3 requirement IDs", () => {
@@ -434,11 +440,64 @@ describe("Proof slice registry", () => {
     }
 
     expect([...ids].sort()).toEqual([
+      "XAPI-00236",
+      "XAPI-00237",
+      "XAPI-00238",
+      "XAPI-00239",
+      "XAPI-00240",
+      "XAPI-00241",
+      "XAPI-00242",
+      "XAPI-00243",
+      "XAPI-00244",
+      "XAPI-00245",
+      "XAPI-00246",
+      "XAPI-00247",
+      "XAPI-00248",
+      "XAPI-00249",
       "XAPI-00250",
       "XAPI-00251",
       "XAPI-00252",
       "XAPI-00253",
       "XAPI-00254",
+      "XAPI-00255",
+      "XAPI-00258",
+      "XAPI-00259",
+      "XAPI-00260",
+      "XAPI-00261",
+      "XAPI-00262",
+      "XAPI-00265",
+      "XAPI-00268",
+      "XAPI-00269",
+      "XAPI-00270",
+      "XAPI-00271",
+      "XAPI-00272",
+      "XAPI-00273",
+      "XAPI-00274",
+      "XAPI-00275",
+      "XAPI-00278",
+      "XAPI-00279",
+      "XAPI-00282",
+      "XAPI-00283",
+      "XAPI-00284",
+      "XAPI-00285",
+      "XAPI-00286",
+      "XAPI-00287",
+      "XAPI-00288",
+      "XAPI-00289",
+      "XAPI-00290",
+      "XAPI-00291",
+      "XAPI-00292",
+      "XAPI-00293",
+      "XAPI-00294",
+      "XAPI-00295",
+      "XAPI-00297",
+      "XAPI-00300",
+      "XAPI-00303",
+      "XAPI-00308",
+      "XAPI-00311",
+      "XAPI-00312",
+      "XAPI-00313",
+      "XAPI-00314",
       "XAPI-00315",
       "XAPI-00316",
       "XAPI-00317",
