@@ -4,6 +4,7 @@
 
 - Validation gate: `bun run check` is green.
 - Source-of-truth baseline: `/home/anton/dev/tmp/lrs-conformance-test-suite-orig`.
+- xAPI 2.0 status: closed and audit-reconciled against the upstream-original baseline.
 - xAPI 2.0 upstream conformance count: 1435 tests in the original upstream batteries artifact.
 - xAPI 2.0 upstream batteries rendered leaf count: 1429 leaf nodes, with a legacy summary delta of 6 above rendered leaves.
 - xAPI 2.0 legacy batteries delta root cause: the upstream runner declares 1435 tests, but three `4.1.4-Concurrency.js` `before all` failures collapse nine declared ETag concurrency tests into three empty serialized suite leaves, yielding the published `1435 - 1429 = 6` gap.
@@ -16,7 +17,7 @@
 ## Current interpretation
 
 - The rewrite appears to have direct proof-slice trace coverage for every legacy `test/v2_0` suite owner, including Additional Data Types, Signed Statements, and Special Data Types And Rules, and the `legacyTrace` suite/config constants now point at the upstream-original baseline instead of the local fork.
-- That suite-owner closure is not yet enough to claim upstream parity. The original upstream battery still reports 1435 2.0 conformance tests, so the rewrite's 1429-case manifest should currently be treated as a lower-granularity proof surface, not full one-to-one upstream test parity.
+- xAPI 2.0 is now closed at the parity-audit level: the rewrite matches the full rendered upstream batteries tree, the legacy `+6` summary delta is explained from the original runner/event pipeline, and the remaining 22 upstream `XAPI-xxxxx` ids are all explicitly classified as stale, duplicate, comment-only, removed, untestable, held-out audit-only, or the upstream `XAPI-00021` Multiplicity-folder note that the original suite itself says not to execute from `test/v2_0`.
 - Verify-template parity tranche: added 51 direct acceptance cases from upstream-original `configs/verify.js`, covering the default statement template, default verb templates, the activity-template matrix, activity-definition property acceptance, default result and context templates, single-Activity `contextActivities` templates, and the language-template acceptance slice.
 - Verify actor/group template tranche: added the 14-case upstream-original agent and group placement matrix from `configs/verify.js`, including authority-safe group templates. That closes the rendered 2.0 batteries leaf gap exactly; the only remaining upstream count delta is the legacy `+6` summary difference baked into the published batteries artifact.
 - Legacy batteries delta root cause: after installing and running the original upstream clone, the prior pending-test theory was falsified (`PENDING_COUNT=0`). The real source is the upstream `4.1.4-Concurrency.js` ETag setup path: three `before all` failures on the Activity State, Activity Profile, and Agents Profile `If a PUT request is received without either header for a resource that already exists` suites prevent nine declared child tests from ever emitting `test start`, while the published batteries artifact still serializes those three parent suites as empty leaves. That turns the raw upstream `1435` total into `1426` started tests plus `3` empty suite leaves, matching the published `1429` leaf count and explaining the net `+6` summary delta exactly.
@@ -44,17 +45,19 @@
 
 ## Remaining xAPI 2.0 backlog
 
-- The upstream-baseline gap is now explicitly decomposed: `6 = 6` legacy batteries summary delta `+ 0` rendered-leaf gap.
-- That `+6` is now explained rather than inferred: upstream declares `1435` tests, but the published batteries tree renders `1426` started tests plus `3` empty concurrency suite placeholders after `before all` hook failures block `9` child test starts.
+- No executable xAPI 2.0 backlog remains.
+- The upstream-baseline gap is fully decomposed: `6 = 6` legacy batteries summary delta `+ 0` rendered-leaf gap.
+- That `+6` is explained rather than inferred: upstream declares `1435` tests, but the published batteries tree renders `1426` started tests plus `3` empty concurrency suite placeholders after `before all` hook failures block `9` child test starts.
 - The rendered-leaf gap is closed: the remaining `11`-leaf statement shortfall is fully offset by the existing `11`-case rewrite resource/communication surplus.
-- The prior dominant executable hotspot across State/Profile/HEAD/Content Types is closed. Remaining 2.0 work is now limited to the explicit 22-id audited exception set and direct-trace cleanup beyond the batteries leaf count, not an unidentified executable suite hole.
+- The parity-audit remainder is closed as well: the explicit 22-id exception set contains no remaining executable 2.0 proof targets.
 
 ## Unique Requirement-ID Audit
 
 - `test/v2-parity-audit.test.ts` now pins the remaining unreferenced upstream-original `XAPI-xxxxx` ids from `test/v2_0` to this exact audited set: `XAPI-00021`, `XAPI-00063`, `XAPI-00095`, `XAPI-00112`, `XAPI-00136`, `XAPI-00137`, `XAPI-00138`, `XAPI-00140`, `XAPI-00141`, `XAPI-00148`, `XAPI-00152`, `XAPI-00185`, `XAPI-00186`, `XAPI-00205`, `XAPI-00222`, `XAPI-00223`, `XAPI-00304`, `XAPI-00320`, `XAPI-00323`, `XAPI-00327`, `XAPI-00328`, and `XAPI-00329`.
 - Removed, nonexistent, stale, or bad upstream refs: `XAPI-00063`, `XAPI-00095`, `XAPI-00136`, `XAPI-00137`, `XAPI-00138`, `XAPI-00152`, and `XAPI-00320` are explicitly marked stale, removed, nonexistent, or bad in the upstream sources.
 - Duplicate, comment-only, untestable, or audit-only refs: `XAPI-00112`, `XAPI-00140`, `XAPI-00141`, `XAPI-00148`, `XAPI-00185`, `XAPI-00186`, `XAPI-00205`, `XAPI-00222`, `XAPI-00223`, `XAPI-00304`, `XAPI-00323`, `XAPI-00327`, `XAPI-00328`, and `XAPI-00329` are called out by upstream comments as duplicates, notes, untestable requirements, or held-out audit-only references rather than direct executable leaves.
-- The only remaining out-of-band 2.0 note in this area is `XAPI-00021`, which the upstream ID Requirements suite explicitly points to the separate Multiplicity surface instead of an executable `test/v2_0` leaf.
+- The only remaining out-of-band 2.0 note in this area is `XAPI-00021`, which the upstream ID Requirements suite explicitly points to the separate Multiplicity surface and says not to execute from `test/v2_0`.
+- The parity audit now also asserts that none of these 22 audited ids remain actionable executable 2.0 parity work.
 
 ## Batteries Count Audit
 
@@ -69,5 +72,4 @@
 
 ## After 2.0
 
-- Do not treat xAPI 2.0 as fully closed until the upstream-original baseline gap is reconciled.
 - Once the upstream-original 2.0 gap is reconciled, resume the first substantial `1.0.3` migration pass from the upstream clone, not the modernized local fork.

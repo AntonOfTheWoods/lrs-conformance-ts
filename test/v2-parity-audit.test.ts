@@ -36,6 +36,9 @@ const auditedMissingV20RequirementIds = {
   "XAPI-00329": "Audited as a non-executable Error Codes reference rather than a direct proof target.",
 } as const;
 
+const nonExecutableReasonPattern =
+  /not executed|stale|removed|duplicate|no-op|untestable|comment-only|bad upstream|non-executable|held-out|folder-only note|marked in the upstream|covered by|nonexistent/i;
+
 function collectFiles(root: string): string[] {
   return readdirSync(root, { withFileTypes: true }).flatMap((entry) => {
     const filePath = join(root, entry.name);
@@ -96,5 +99,19 @@ describe("xAPI 2.0 parity audit", () => {
     const missingIds = [...upstreamIds].filter((id) => !proofIds.has(id)).sort();
 
     expect(missingIds).toEqual(Object.keys(auditedMissingV20RequirementIds).sort());
+  });
+
+  test("shows the remaining upstream-original v2.0 requirement ids are all audited as non-executable or out-of-band", () => {
+    const upstreamIds = new Set(collectUpstreamRequirementIds());
+    const proofIds = new Set(collectProofRequirementIds());
+    const missingIds = [...upstreamIds].filter((id) => !proofIds.has(id)).sort();
+    const actionableMissingIds = missingIds.filter(
+      (id) =>
+        !nonExecutableReasonPattern.test(
+          auditedMissingV20RequirementIds[id as keyof typeof auditedMissingV20RequirementIds],
+        ),
+    );
+
+    expect(actionableMissingIds).toEqual([]);
   });
 });
