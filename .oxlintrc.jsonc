@@ -35,6 +35,8 @@
     },
   },
   "ignorePatterns": [
+    "archive/",
+    "tmp/",
     "dist/",
     "build/",
     ".output/",

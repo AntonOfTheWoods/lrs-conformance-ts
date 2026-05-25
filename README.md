@@ -6,15 +6,20 @@ To install dependencies:
 bun install
 ```
 
-To run:
+To run the active upstream-helper checks:
 
 ```bash
-bun run index.ts
+bun run test
 ```
 
 This project was created using `bun init` in bun v1.3.14. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
 
 ## Parity Notes
 
-- LRSQL parity and divergence notes are tracked in `rewrite/docs/PARITY-LEDGER.md`.
-- Latest run-aligned summary: see `LRSQL pass-mode parity note (2026-05-24)` in `rewrite/docs/PARITY-LEDGER.md`.
+- Historical LRSQL parity notes for the archived proof-slice runtime live in `archive/deprecated-rewrite/rewrite/docs/PARITY-LEDGER.md`.
+
+## Rewrite Helpers
+
+- The `rewrite/` directory is active helper/validator tooling for running and comparing the original upstream JS suite.
+- `rewrite:*` package scripts are intentionally kept when they operate on upstream-original artifacts or comparisons.
+- The deprecated proof-slice runtime has been moved under `archive/deprecated-rewrite/` and no root-level package script invokes it.
