@@ -4,7 +4,10 @@ import type { DescribeRuntimeContext } from "../../describe-runtime/suite-contex
 
 import { actorPropertyGroups } from "./actor-property-groups.ts";
 
-export function registerActorPropertyRequirementsSuite(runtime: DescribeRuntime, context: DescribeRuntimeContext): void {
+export function registerActorPropertyRequirementsSuite(
+  runtime: DescribeRuntime,
+  context: DescribeRuntimeContext,
+): void {
   runtime.describe("Actor Property Requirements (Data 2.4.2)", () => {
     /**  Matchup with Conformance Requirements Document
      * XAPI-00031 - in actors.js
