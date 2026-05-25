@@ -1,7 +1,37 @@
 import { registerStatementPostConfigSuite } from "../../describe-runtime/config-suite.ts";
 import type { DescribeRuntime } from "../../describe-runtime/runtime.ts";
 import type { DescribeRuntimeContext } from "../../describe-runtime/suite-context.ts";
-import { formattingMissingPropertyGroups } from "../shared/formatting-missing-properties.ts";
+import {
+  formattingMissingPropertyGroups,
+  formattingParameterValidationCases,
+  formattingWrongTypeGroups,
+} from "../shared/formatting-missing-properties.ts";
+
+function registerFormattingParameterValidationSuite(runtime: DescribeRuntime, context: DescribeRuntimeContext): void {
+  /**  XAPI-00012
+   * The LRS rejects with error code 400 Bad Request parameter values which do not validate to the same standards required for values of the same types in Statements.
+   */
+  runtime.describe(
+    "The LRS rejects with error code 400 Bad Request parameter values which do not validate to the same standards required for values of the same types in Statements (Data 2.2.s4.b4, XAPI-00012)",
+    () => {
+      for (const testCase of formattingParameterValidationCases) {
+        runtime.it(testCase.name, async () => {
+          const response = await context.sendRequest({
+            method: "GET",
+            path: context.getEndpointStatements(),
+            query: testCase.query,
+          });
+
+          if (response.status !== testCase.expect) {
+            throw new Error(
+              `Expected status ${testCase.expect} for "${testCase.name}" but received ${response.status}.`,
+            );
+          }
+        });
+      }
+    },
+  );
+}
 
 /**
  * Description : This is a test suite that tests an LRS endpoint based on the testing requirements document
@@ -31,5 +61,7 @@ export function registerFormattingRequirementsSuite(runtime: DescribeRuntime, co
      * XAPI-00015 - in Communication 1.4 - should stay in Comm 1.4 Encoding
      */
     registerStatementPostConfigSuite(runtime, context, formattingMissingPropertyGroups);
+    registerStatementPostConfigSuite(runtime, context, formattingWrongTypeGroups);
+    registerFormattingParameterValidationSuite(runtime, context);
   });
 }
