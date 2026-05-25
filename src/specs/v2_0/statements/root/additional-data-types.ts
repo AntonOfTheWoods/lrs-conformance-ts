@@ -21,8 +21,7 @@ export const v2ProofSliceStatementsAdditionalDataTypesSuite = {
       tags: ["v2.0.0", "statements", "additional-data-types", "iri"],
       capabilityFlags: ["activities", "retrieval", "iri"],
       legacyTrace: {
-        suiteFile:
-          "test/v2_0/4.2.7-Additional-Requirements-for-Data-Types.js",
+        suiteFile: "test/v2_0/4.2.7-Additional-Requirements-for-Data-Types.js",
       },
       execution: {
         kind: "request-sequence",
@@ -146,8 +145,7 @@ export const v2ProofSliceStatementsAdditionalDataTypesSuite = {
       tags: ["v2.0.0", "statements", "additional-data-types", "duration"],
       capabilityFlags: ["duration", "validation"],
       legacyTrace: {
-        suiteFile:
-          "test/v2_0/4.2.7-Additional-Requirements-for-Data-Types.js",
+        suiteFile: "test/v2_0/4.2.7-Additional-Requirements-for-Data-Types.js",
       },
       execution: {
         kind: "single-request",
@@ -229,8 +227,7 @@ export const v2ProofSliceStatementsAdditionalDataTypesSuite = {
       tags: ["v2.0.0", "statements", "additional-data-types", "duration", "retrieval"],
       capabilityFlags: ["duration", "retrieval"],
       legacyTrace: {
-        suiteFile:
-          "test/v2_0/4.2.7-Additional-Requirements-for-Data-Types.js",
+        suiteFile: "test/v2_0/4.2.7-Additional-Requirements-for-Data-Types.js",
       },
       execution: {
         kind: "request-sequence",
@@ -344,8 +341,7 @@ export const v2ProofSliceStatementsAdditionalDataTypesSuite = {
       tags: ["v2.0.0", "statements", "additional-data-types", "duration", "signed"],
       capabilityFlags: ["duration", "signed"],
       legacyTrace: {
-        suiteFile:
-          "test/v2_0/4.2.7-Additional-Requirements-for-Data-Types.js",
+        suiteFile: "test/v2_0/4.2.7-Additional-Requirements-for-Data-Types.js",
       },
       execution: {
         kind: "single-request",
@@ -391,8 +387,7 @@ export const v2ProofSliceStatementsAdditionalDataTypesSuite = {
       tags: ["v2.0.0", "statements", "additional-data-types", "timestamp"],
       capabilityFlags: ["timestamp", "retrieval"],
       legacyTrace: {
-        suiteFile:
-          "test/v2_0/4.2.7-Additional-Requirements-for-Data-Types.js",
+        suiteFile: "test/v2_0/4.2.7-Additional-Requirements-for-Data-Types.js",
       },
       execution: {
         kind: "request-sequence",
