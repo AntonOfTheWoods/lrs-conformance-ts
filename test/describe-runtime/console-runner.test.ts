@@ -55,6 +55,8 @@ const allowedInteractionTypes = new Set([
 
 const allowedActorObjectTypes = new Set(["Agent", "Group"]);
 const allowedObjectObjectTypes = new Set(["Activity", "Agent", "Group", "SubStatement", "StatementRef"]);
+const contextActivityTypes = ["parent", "grouping", "category", "other"] as const;
+const allowedContextActivityKeys = new Set(contextActivityTypes);
 
 const languageTagPattern =
   /^[A-Za-z]{2,3}(?:-[A-Za-z]{4})?(?:-(?:[A-Za-z]{2}|\d{3}))?(?:-(?:[A-Za-z0-9]{5,8}|\d[A-Za-z0-9]{3}))*$/;
@@ -134,6 +136,18 @@ function determineStatementStatus(body: unknown): number {
   }
 
   if (hasInvalidObject(body)) {
+    return 400;
+  }
+
+  if (hasInvalidContext(body)) {
+    return 400;
+  }
+
+  if (hasInvalidAuthority(body)) {
+    return 400;
+  }
+
+  if (hasInvalidAttachments(body)) {
     return 400;
   }
 
@@ -588,6 +602,249 @@ function hasInvalidActivityRecord(value: Record<string, unknown>): boolean {
   return usesInteractionComponents(definition) && typeof definition.interactionType !== "string";
 }
 
+function hasInvalidContext(statement: Record<string, unknown>): boolean {
+  if (hasInvalidContextContainer(statement)) {
+    return true;
+  }
+
+  const object = statement.object;
+  return isObjectRecord(object) && isSubStatementRecord(object) && hasInvalidContextContainer(object);
+}
+
+function hasInvalidContextContainer(container: Record<string, unknown>): boolean {
+  const context = container.context;
+  if (typeof context === "undefined") {
+    return false;
+  }
+
+  if (!isObjectRecord(context)) {
+    return true;
+  }
+
+  return hasInvalidContextRecord(context, container.object);
+}
+
+function hasInvalidContextRecord(context: Record<string, unknown>, object: unknown): boolean {
+  if (
+    context.registration !== undefined &&
+    (typeof context.registration !== "string" || !isUuidLike(context.registration))
+  ) {
+    return true;
+  }
+
+  if (
+    context.instructor !== undefined &&
+    (!isObjectRecord(context.instructor) || hasInvalidActorRecord(context.instructor, "Either"))
+  ) {
+    return true;
+  }
+
+  if (context.team !== undefined && (!isObjectRecord(context.team) || hasInvalidActorRecord(context.team, "Group"))) {
+    return true;
+  }
+
+  if (context.contextActivities !== undefined && hasInvalidContextActivities(context.contextActivities)) {
+    return true;
+  }
+
+  if (context.revision !== undefined && typeof context.revision !== "string") {
+    return true;
+  }
+
+  if (context.platform !== undefined && typeof context.platform !== "string") {
+    return true;
+  }
+
+  if (context.language !== undefined && typeof context.language !== "string") {
+    return true;
+  }
+
+  if (
+    context.statement !== undefined &&
+    (!isObjectRecord(context.statement) ||
+      context.statement.objectType !== "StatementRef" ||
+      hasInvalidStatementRefRecord(context.statement))
+  ) {
+    return true;
+  }
+
+  if ((context.revision !== undefined || context.platform !== undefined) && !isActivityObjectOrOmittedType(object)) {
+    return true;
+  }
+
+  if (context.contextAgents !== undefined && hasInvalidContextAgents(context.contextAgents)) {
+    return true;
+  }
+
+  if (context.contextGroups !== undefined && hasInvalidContextGroups(context.contextGroups)) {
+    return true;
+  }
+
+  return false;
+}
+
+function hasInvalidContextActivities(value: unknown): boolean {
+  if (!isObjectRecord(value)) {
+    return true;
+  }
+
+  return Object.entries(value).some(([key, activityValue]) => {
+    return (
+      !allowedContextActivityKeys.has(key as (typeof contextActivityTypes)[number]) ||
+      hasInvalidContextActivityValue(activityValue)
+    );
+  });
+}
+
+function hasInvalidContextActivityValue(value: unknown): boolean {
+  if (Array.isArray(value)) {
+    return value.some((item) => hasInvalidContextActivityValue(item));
+  }
+
+  if (!isObjectRecord(value)) {
+    return true;
+  }
+
+  if (value.objectType !== undefined && value.objectType !== "Activity") {
+    return true;
+  }
+
+  return hasInvalidActivityRecord(value);
+}
+
+function hasInvalidContextAgents(value: unknown): boolean {
+  return !Array.isArray(value) || value.some((item) => hasInvalidContextAgentRecord(item));
+}
+
+function hasInvalidContextAgentRecord(value: unknown): boolean {
+  if (!isObjectRecord(value) || value.objectType !== "contextAgent") {
+    return true;
+  }
+
+  return (
+    !isObjectRecord(value.agent) ||
+    hasInvalidActorRecord(value.agent, "Agent") ||
+    hasInvalidRelevantTypes(value.relevantTypes)
+  );
+}
+
+function hasInvalidContextGroups(value: unknown): boolean {
+  return !Array.isArray(value) || value.some((item) => hasInvalidContextGroupRecord(item));
+}
+
+function hasInvalidContextGroupRecord(value: unknown): boolean {
+  if (!isObjectRecord(value) || value.objectType !== "contextGroup") {
+    return true;
+  }
+
+  return (
+    !isObjectRecord(value.group) ||
+    hasInvalidActorRecord(value.group, "Group") ||
+    hasInvalidRelevantTypes(value.relevantTypes)
+  );
+}
+
+function hasInvalidRelevantTypes(value: unknown): boolean {
+  if (typeof value === "undefined") {
+    return false;
+  }
+
+  return (
+    !Array.isArray(value) || value.length === 0 || value.some((item) => typeof item !== "string" || !hasScheme(item))
+  );
+}
+
+function isActivityObjectOrOmittedType(value: unknown): boolean {
+  if (!isObjectRecord(value)) {
+    return false;
+  }
+
+  if (isSubStatementRecord(value) || isActorCandidateRecord(value)) {
+    return false;
+  }
+
+  return value.objectType === undefined || value.objectType === "Activity";
+}
+
+function hasInvalidAuthority(statement: Record<string, unknown>): boolean {
+  const authority = statement.authority;
+  if (typeof authority === "undefined") {
+    return false;
+  }
+
+  return !isObjectRecord(authority) || hasInvalidAuthorityRecord(authority);
+}
+
+function hasInvalidAuthorityRecord(value: Record<string, unknown>): boolean {
+  const role = inferActorRole(value, "Either");
+  if (role === "Agent") {
+    return hasInvalidActorRecord(value, "Agent");
+  }
+
+  if (hasInvalidActorRecord(value, "Group")) {
+    return true;
+  }
+
+  if (countActorIfis(value) !== 0) {
+    return true;
+  }
+
+  if (!Array.isArray(value.member) || value.member.length !== 2) {
+    return true;
+  }
+
+  return value.member.some((member) => !isObjectRecord(member) || hasInvalidActorRecord(member, "Agent"));
+}
+
+function hasInvalidAttachments(statement: Record<string, unknown>): boolean {
+  const attachments = statement.attachments;
+  if (typeof attachments === "undefined") {
+    return false;
+  }
+
+  return !Array.isArray(attachments) || attachments.some((attachment) => hasInvalidAttachmentRecord(attachment));
+}
+
+function hasInvalidAttachmentRecord(value: unknown): boolean {
+  if (!isObjectRecord(value)) {
+    return true;
+  }
+
+  if (typeof value.usageType !== "string" || !hasScheme(value.usageType)) {
+    return true;
+  }
+
+  if (!isObjectRecord(value.display)) {
+    return true;
+  }
+
+  if (value.description !== undefined && !isObjectRecord(value.description)) {
+    return true;
+  }
+
+  if (!isValidContentType(value.contentType)) {
+    return true;
+  }
+
+  if (typeof value.length !== "number" || !Number.isInteger(value.length) || value.length < 0) {
+    return true;
+  }
+
+  if (typeof value.sha2 !== "string") {
+    return true;
+  }
+
+  if (value.fileUrl !== undefined && (typeof value.fileUrl !== "string" || !hasScheme(value.fileUrl))) {
+    return true;
+  }
+
+  return false;
+}
+
+function isValidContentType(value: unknown): value is string {
+  return typeof value === "string" && /^[^\s/;]+\/[^\s/;]+(?:\s*;.+)?$/.test(value);
+}
+
 function usesInteractionComponents(definition: Record<string, unknown>): boolean {
   return (
     "correctResponsesPattern" in definition ||
@@ -730,6 +987,47 @@ function createStoredTimestamp(): string {
   }
 
   return `${timestamp.toISOString().slice(0, -1)}000000Z`;
+}
+
+function createDefaultAuthority(): Record<string, unknown> {
+  return {
+    objectType: "Agent",
+    mbox: "mailto:default-authority@example.com",
+  };
+}
+
+function normalizeContextActivitiesInContainer(container: Record<string, unknown>): void {
+  const context = container.context;
+  if (!isObjectRecord(context) || !isObjectRecord(context.contextActivities)) {
+    return;
+  }
+
+  for (const type of contextActivityTypes) {
+    const value = context.contextActivities[type];
+    if (typeof value !== "undefined" && !Array.isArray(value)) {
+      context.contextActivities[type] = [structuredClone(value)];
+    }
+  }
+}
+
+function createStoredStatement(statement: Record<string, unknown>, statementId: string): Record<string, unknown> {
+  const storedStatement: Record<string, unknown> = structuredClone({
+    ...statement,
+    id: statementId,
+    stored: createStoredTimestamp(),
+  });
+
+  if (typeof storedStatement.authority === "undefined") {
+    storedStatement.authority = createDefaultAuthority();
+  }
+
+  normalizeContextActivitiesInContainer(storedStatement);
+
+  if (isObjectRecord(storedStatement.object) && isSubStatementRecord(storedStatement.object)) {
+    normalizeContextActivitiesInContainer(storedStatement.object);
+  }
+
+  return storedStatement;
 }
 
 function hasMissingIriScheme(value: unknown, path: readonly string[] = []): boolean {
@@ -906,11 +1204,7 @@ function startMockLrs() {
         const status = determineStatementStatus(body);
         if (status === 200 && isObjectRecord(body)) {
           const statementId = typeof body.id === "string" ? body.id : crypto.randomUUID();
-          storedStatements.set(statementId, {
-            ...body,
-            id: statementId,
-            stored: createStoredTimestamp(),
-          });
+          storedStatements.set(statementId, createStoredStatement(body, statementId));
 
           return Response.json([statementId], { status });
         }
@@ -926,11 +1220,7 @@ function startMockLrs() {
 
         const status = determineStatementStatus(body);
         if (status === 200 && isObjectRecord(body)) {
-          storedStatements.set(statementId, {
-            ...body,
-            id: statementId,
-            stored: createStoredTimestamp(),
-          });
+          storedStatements.set(statementId, createStoredStatement(body, statementId));
 
           return new Response(null, { status: 204 });
         }
@@ -995,20 +1285,20 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 784,
-        passed: 784,
+        total: 913,
+        passed: 913,
         failed: 0,
         version: "2.0.0",
       });
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "POST"),
-      ).toHaveLength(766);
+      ).toHaveLength(895);
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "PUT"),
       ).toHaveLength(12);
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "GET"),
-      ).toHaveLength(13);
+      ).toHaveLength(22);
       expect(harness.requests.every((request) => request.version === "2.0.0")).toBe(true);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-v2.log"), "utf8")) as {
@@ -1017,8 +1307,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 784,
-        passed: 784,
+        total: 913,
+        passed: 913,
         failed: 0,
         version: "2.0.0",
       });
@@ -1032,6 +1322,9 @@ describe("console runner entrypoint", () => {
         "Result Property Requirements (Data 2.4.5)",
         "Actor Property Requirements (Data 2.4.2)",
         "Object Property Requirements (Data 2.4.4)",
+        "Context Property Requirements (Data 2.4.6)",
+        "Authority Property Requirements (Data 2.4.9)",
+        "Attachments Property Requirements (Data 2.4.11)",
       ]);
       expect(writtenRecord.log.tests[0]?.tests.map((suite) => suite.title)).toEqual([
         "An LRS stores 32-bit floating point numbers with at least the precision of IEEE 754 (Data 2.2.s4.b3, XAPI-00002)",
@@ -1113,12 +1406,12 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("1.0.3");
       expect(execution.runRecord.summary).toEqual({
-        total: 784,
-        passed: 784,
+        total: 893,
+        passed: 893,
         failed: 0,
         version: "1.0.3",
       });
-      expect(harness.requests).toHaveLength(791);
+      expect(harness.requests).toHaveLength(909);
       expect(harness.requests.every((request) => request.version === "1.0.3")).toBe(true);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-v103.log"), "utf8")) as {
@@ -1126,8 +1419,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 784,
-        passed: 784,
+        total: 893,
+        passed: 893,
         failed: 0,
         version: "1.0.3",
       });
@@ -1151,12 +1444,12 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Parameters", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 812,
-        passed: 812,
+        total: 941,
+        passed: 941,
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(791);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(929);
       expect(harness.requests.filter((request) => request.path === "/xapi/activities/state")).toHaveLength(13);
       expect(harness.requests.filter((request) => request.path === "/xapi/agents/profile")).toHaveLength(6);
       expect(harness.requests.filter((request) => request.path === "/xapi/activities/profile")).toHaveLength(9);
@@ -1167,8 +1460,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 812,
-        passed: 812,
+        total: 941,
+        passed: 941,
         failed: 0,
         version: "2.0.0",
       });
@@ -1195,12 +1488,12 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Multiplicity", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 866,
-        passed: 866,
+        total: 995,
+        passed: 995,
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(791);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(929);
       expect(harness.requests.filter((request) => request.path !== "/xapi/statements")).toHaveLength(0);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-multiplicity-v2.log"), "utf8")) as {
@@ -1209,8 +1502,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 866,
-        passed: 866,
+        total: 995,
+        passed: 995,
         failed: 0,
         version: "2.0.0",
       });
@@ -1225,6 +1518,9 @@ describe("console runner entrypoint", () => {
         "Result Property Requirements (Data 2.4.5)",
         "Actor Property Requirements (Data 2.4.2)",
         "Object Property Requirements (Data 2.4.4)",
+        "Context Property Requirements (Data 2.4.6)",
+        "Authority Property Requirements (Data 2.4.9)",
+        "Attachments Property Requirements (Data 2.4.11)",
       ]);
     } finally {
       await harness.server.stop(true);

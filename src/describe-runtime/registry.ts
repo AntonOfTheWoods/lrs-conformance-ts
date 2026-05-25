@@ -1,4 +1,7 @@
 import { registerActorPropertyRequirementsSuite as registerActorPropertyRequirementsV103 } from "../specs/v1_0_3/Data2.4.2-ActorProperty.ts";
+import { registerAttachmentsPropertyRequirementsSuite as registerAttachmentsPropertyRequirementsV103 } from "../specs/v1_0_3/E.Data2.4.11-AttachmentsProperty.ts";
+import { registerAuthorityPropertyRequirementsSuite as registerAuthorityPropertyRequirementsV103 } from "../specs/v1_0_3/Data2.4.9-AuthorityProperty.ts";
+import { registerContextPropertyRequirementsSuite as registerContextPropertyRequirementsV103 } from "../specs/v1_0_3/Data2.4.6-ContextProperty.ts";
 import { registerFormattingRequirementsSuite as registerFormattingRequirementsV103 } from "../specs/v1_0_3/Data2.2-FormattingRequirements.ts";
 import { registerVerbPropertyRequirementsSuite as registerVerbPropertyRequirementsV103 } from "../specs/v1_0_3/Data2.4.3-VerbProperty.ts";
 import { registerIdPropertyRequirementsSuite as registerIdPropertyRequirementsV103 } from "../specs/v1_0_3/Data2.4.1-IDProperty.ts";
@@ -8,6 +11,9 @@ import { registerStoredPropertyRequirementsSuite as registerStoredPropertyRequir
 import { registerTimestampPropertyRequirementsSuite as registerTimestampPropertyRequirementsV103 } from "../specs/v1_0_3/Data2.4.7-TimestampProperty.ts";
 import { registerVersionPropertyRequirementsSuite as registerVersionPropertyRequirementsV103 } from "../specs/v1_0_3/E.Data2.4.10-VersionProperty.ts";
 import { registerActorPropertyRequirementsSuite as registerActorPropertyRequirementsV20 } from "../specs/v2_0/4.2.2.1-Actor-Requirements.ts";
+import { registerAttachmentsPropertyRequirementsSuite as registerAttachmentsPropertyRequirementsV20 } from "../specs/v2_0/4.2.2.6-Attachment-Requirements.ts";
+import { registerAuthorityPropertyRequirementsSuite as registerAuthorityPropertyRequirementsV20 } from "../specs/v2_0/4.2.4.2-Authority-Requirements.ts";
+import { registerContextPropertyRequirementsSuite as registerContextPropertyRequirementsV20 } from "../specs/v2_0/4.2.2.5-Context-Requirements.ts";
 import { registerFormattingRequirementsSuite as registerFormattingRequirementsV20 } from "../specs/v2_0/Data2.2-FormattingRequirements.ts";
 import { registerVerbPropertyRequirementsSuite as registerVerbPropertyRequirementsV20 } from "../specs/v2_0/4.2.2.2-Verb-Requirements.ts";
 import { registerIdPropertyRequirementsSuite as registerIdPropertyRequirementsV20 } from "../specs/v2_0/4.2.4.2-ID-Requirements.ts";
@@ -37,6 +43,9 @@ const registrarsByDirectory: Readonly<Record<string, readonly SuiteRegistrar[]>>
     registerResultPropertyRequirementsV103,
     registerActorPropertyRequirementsV103,
     registerObjectPropertyRequirementsV103,
+    registerContextPropertyRequirementsV103,
+    registerAuthorityPropertyRequirementsV103,
+    registerAttachmentsPropertyRequirementsV103,
   ],
   v2_0: [
     registerFormattingRequirementsV20,
@@ -48,6 +57,9 @@ const registrarsByDirectory: Readonly<Record<string, readonly SuiteRegistrar[]>>
     registerResultPropertyRequirementsV20,
     registerActorPropertyRequirementsV20,
     registerObjectPropertyRequirementsV20,
+    registerContextPropertyRequirementsV20,
+    registerAuthorityPropertyRequirementsV20,
+    registerAttachmentsPropertyRequirementsV20,
   ],
 };
 
