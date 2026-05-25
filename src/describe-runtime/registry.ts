@@ -1,5 +1,6 @@
 import { registerFormattingRequirementsSuite as registerFormattingRequirementsV103 } from "../specs/v1_0_3/Data2.2-FormattingRequirements.ts";
 import { registerFormattingRequirementsSuite as registerFormattingRequirementsV20 } from "../specs/v2_0/Data2.2-FormattingRequirements.ts";
+import { registerMultiplicityTestingSuite } from "../specs/Multiplicity/testing.ts";
 import { registerParametersTestingSuite } from "../specs/Parameters/testing.ts";
 import type { NormalizedRunnerOptions } from "./options.ts";
 import type { DescribeRuntime } from "./runtime.ts";
@@ -8,6 +9,7 @@ import { createDescribeRuntimeContext, type DescribeRuntimeContext } from "./sui
 type SuiteRegistrar = (runtime: DescribeRuntime, context: DescribeRuntimeContext) => void;
 
 const registrarsByDirectory: Readonly<Record<string, readonly SuiteRegistrar[]>> = {
+  Multiplicity: [registerMultiplicityTestingSuite],
   Parameters: [registerParametersTestingSuite],
   v1_0_3: [registerFormattingRequirementsV103],
   v2_0: [registerFormattingRequirementsV20],

@@ -35,6 +35,10 @@ function determineStatementStatus(body: unknown): number {
     return 400;
   }
 
+  if ("id" in body && !isUuidLike(typeof body.id === "string" ? body.id : null)) {
+    return 400;
+  }
+
   const result = body.result;
   if (isObjectRecord(result)) {
     const score = result.score;
@@ -51,7 +55,51 @@ function determineStatementStatus(body: unknown): number {
     }
   }
 
+  if (hasInvalidNullOutsideExtensions(body, false)) {
+    return 400;
+  }
+
+  if (hasInvalidAccountName(body)) {
+    return 400;
+  }
+
   return 200;
+}
+
+function hasInvalidNullOutsideExtensions(value: unknown, insideExtensions: boolean): boolean {
+  if (value === null) {
+    return !insideExtensions;
+  }
+
+  if (Array.isArray(value)) {
+    return value.some((item) => hasInvalidNullOutsideExtensions(item, insideExtensions));
+  }
+
+  if (!isObjectRecord(value)) {
+    return false;
+  }
+
+  return Object.entries(value).some(([key, childValue]) => {
+    const childInsideExtensions = insideExtensions || key === "extensions";
+    return hasInvalidNullOutsideExtensions(childValue, childInsideExtensions);
+  });
+}
+
+function hasInvalidAccountName(value: unknown): boolean {
+  if (Array.isArray(value)) {
+    return value.some((item) => hasInvalidAccountName(item));
+  }
+
+  if (!isObjectRecord(value)) {
+    return false;
+  }
+
+  const account = value.account;
+  if (isObjectRecord(account) && "name" in account && typeof account.name !== "string") {
+    return true;
+  }
+
+  return Object.values(value).some((childValue) => hasInvalidAccountName(childValue));
 }
 
 function isUuidLike(value: string | null): boolean {
@@ -243,14 +291,14 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 13,
-        passed: 13,
+        total: 41,
+        passed: 41,
         failed: 0,
         version: "2.0.0",
       });
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "POST"),
-      ).toHaveLength(8);
+      ).toHaveLength(36);
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "GET"),
       ).toHaveLength(7);
@@ -262,8 +310,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 13,
-        passed: 13,
+        total: 41,
+        passed: 41,
         failed: 0,
         version: "2.0.0",
       });
@@ -272,7 +320,9 @@ describe("console runner entrypoint", () => {
         'A Statement contains an "actor" property (Multiplicity, Data 2.2.s2.b3, XAPI-00003)',
         'A Statement contains a "verb" property (Multiplicity, Data 2.2.s2.b3, XAPI-00004)',
         'A Statement contains an "object" property (Multiplicity, Data 2.2.s2.b3, XAPI-00005)',
+        'An LRS rejects with error code 400 Bad Request any Statement having a property whose value is set to "null", except in an "extensions" property (Data 2.2.s4.b1.b1, XAPI-00001)',
         "An LRS rejects with error code 400 Bad Request a Statement which uses the wrong data type (Data 2.2.s4.b2, XAPI-00006)",
+        "An LRS rejects with error code 400 Bad Request a Statement which uses any non-format-following key or value, including the empty string, where a string with a particular format, such as mailto IRI, UUID, or IRI, is required. (Data 2.2.s4.b4, XAPI-00007)",
         "The LRS rejects with error code 400 Bad Request parameter values which do not validate to the same standards required for values of the same types in Statements (Data 2.2.s4.b4, XAPI-00012)",
       ]);
     } finally {
@@ -294,12 +344,12 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("1.0.3");
       expect(execution.runRecord.summary).toEqual({
-        total: 13,
-        passed: 13,
+        total: 41,
+        passed: 41,
         failed: 0,
         version: "1.0.3",
       });
-      expect(harness.requests).toHaveLength(15);
+      expect(harness.requests).toHaveLength(43);
       expect(harness.requests.every((request) => request.version === "1.0.3")).toBe(true);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-v103.log"), "utf8")) as {
@@ -307,8 +357,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 13,
-        passed: 13,
+        total: 41,
+        passed: 41,
         failed: 0,
         version: "1.0.3",
       });
@@ -332,12 +382,12 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Parameters", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 41,
-        passed: 41,
+        total: 69,
+        passed: 69,
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(15);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(43);
       expect(harness.requests.filter((request) => request.path === "/xapi/activities/state")).toHaveLength(13);
       expect(harness.requests.filter((request) => request.path === "/xapi/agents/profile")).toHaveLength(6);
       expect(harness.requests.filter((request) => request.path === "/xapi/activities/profile")).toHaveLength(9);
@@ -348,11 +398,57 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 41,
-        passed: 41,
+        total: 69,
+        passed: 69,
         failed: 0,
         version: "2.0.0",
       });
+    } finally {
+      await harness.server.stop(true);
+    }
+  });
+
+  test("runs the Multiplicity slice alongside v2_0 without adding HTTP traffic", async () => {
+    const harness = startMockLrs();
+    const logDirectory = join(import.meta.dir, "..", "..", "tmp", "agents", crypto.randomUUID());
+
+    try {
+      const execution = await runConsoleRunnerArgv(
+        ["--endpoint", harness.endpoint, "--directory", "Multiplicity,v2_0"],
+        {
+          createUuid: () => "run-multiplicity-v2",
+          logDirectory,
+          logger: silentLogger,
+          now: createNowSequence([400, 470]),
+        },
+      );
+
+      expect(execution.normalizedOptions.directory).toEqual(["Multiplicity", "v2_0"]);
+      expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
+      expect(execution.runRecord.summary).toEqual({
+        total: 123,
+        passed: 123,
+        failed: 0,
+        version: "2.0.0",
+      });
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(43);
+      expect(harness.requests.filter((request) => request.path !== "/xapi/statements")).toHaveLength(0);
+
+      const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-multiplicity-v2.log"), "utf8")) as {
+        log: { tests: Array<{ title: string }> };
+        summary: { failed: number; passed: number; total: number; version: string };
+      };
+
+      expect(writtenRecord.summary).toEqual({
+        total: 123,
+        passed: 123,
+        failed: 0,
+        version: "2.0.0",
+      });
+      expect(writtenRecord.log.tests.map((suite) => suite.title)).toEqual([
+        "Welcome to Multiplicity Testing.  A Statement, Object or Verb's properties are used at most one time",
+        "Formatting Requirements (Data 2.2)",
+      ]);
     } finally {
       await harness.server.stop(true);
     }

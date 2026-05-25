@@ -3,7 +3,9 @@ import type { DescribeRuntime } from "../../describe-runtime/runtime.ts";
 import type { DescribeRuntimeContext } from "../../describe-runtime/suite-context.ts";
 import {
   formattingMissingPropertyGroups,
+  formattingNullPropertyGroups,
   formattingParameterValidationCases,
+  formattingRequiredFormatGroups,
   formattingWrongTypeGroups,
 } from "../shared/formatting-missing-properties.ts";
 
@@ -61,7 +63,9 @@ export function registerFormattingRequirementsSuite(runtime: DescribeRuntime, co
      * XAPI-00015 - in Communication 1.4 - should stay in Comm 1.4 Encoding
      */
     registerStatementPostConfigSuite(runtime, context, formattingMissingPropertyGroups);
+    registerStatementPostConfigSuite(runtime, context, formattingNullPropertyGroups);
     registerStatementPostConfigSuite(runtime, context, formattingWrongTypeGroups);
+    registerStatementPostConfigSuite(runtime, context, formattingRequiredFormatGroups);
     registerFormattingParameterValidationSuite(runtime, context);
   });
 }
