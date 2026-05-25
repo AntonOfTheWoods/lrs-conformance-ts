@@ -1,13 +1,95 @@
 import { registerStatementPostConfigSuite } from "../../describe-runtime/config-suite.ts";
 import type { DescribeRuntime } from "../../describe-runtime/runtime.ts";
 import type { DescribeRuntimeContext } from "../../describe-runtime/suite-context.ts";
+import type { JsonObject } from "../../describe-runtime/templates.ts";
 import {
+  formattingEnumeratedValueCaseGroups,
+  formattingIriSchemeCases,
+  formattingKeyCaseGroups,
+  formattingLanguageTagGroups,
   formattingMissingPropertyGroups,
   formattingNullPropertyGroups,
   formattingParameterValidationCases,
   formattingRequiredFormatGroups,
+  formattingVerifyTemplateGroups,
   formattingWrongTypeGroups,
 } from "../shared/formatting-missing-properties.ts";
+
+function isJsonObject(value: unknown): value is JsonObject {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function registerFormattingIriSchemeSuite(runtime: DescribeRuntime, context: DescribeRuntimeContext): void {
+  /**  XAPI-00011
+   * An LRS rejects with error code 400 Bad Request a Statement containing IRL or IRI values without a scheme.
+   */
+  runtime.describe(
+    "An LRS rejects with error code 400 Bad Request a Statement containing IRL or IRI values without a scheme. (Data 2.2.s4.b1.b8, XAPI-00011)",
+    () => {
+      for (const testCase of formattingIriSchemeCases) {
+        runtime.it(testCase.name, async () => {
+          const payload = await context.createFromTemplate(testCase.templates);
+          const statement = payload.statement;
+          if (!isJsonObject(statement)) {
+            throw new Error(`Expected the statement payload to resolve to an object for "${testCase.name}".`);
+          }
+
+          const statementId = context.generateUuid();
+          statement.id = statementId;
+          testCase.mutate(statement);
+
+          const response = await context.sendJsonRequest({
+            method: "PUT",
+            path: context.getEndpointStatements(),
+            query: {
+              statementId,
+            },
+            json: statement,
+          });
+
+          if (response.status !== 400) {
+            throw new Error(`Expected status 400 for "${testCase.name}" but received ${response.status}.`);
+          }
+        });
+      }
+    },
+  );
+}
+
+function registerFormattingMalformedObjectSuite(runtime: DescribeRuntime, context: DescribeRuntimeContext): void {
+  /**  XAPI-00014
+   * All Objects are well-created JSON Objects (Nature of Binding)
+   */
+  runtime.describe(
+    "All Objects are well-created JSON Objects (Nature of binding, Data 2.1, XAPI-00014) **Implicit**",
+    () => {
+      runtime.it("An LRS rejects a not well-created JSON Object", async () => {
+        const payload = await context.createFromTemplate([{ statement: "{{statements.default}}" }]);
+        const statement = payload.statement;
+        if (!isJsonObject(statement)) {
+          throw new Error("Expected the malformed-object statement payload to resolve to an object.");
+        }
+
+        const actor = statement.actor;
+        if (!isJsonObject(actor)) {
+          throw new Error("Expected the malformed-object statement actor to resolve to an object.");
+        }
+
+        actor.objectType = '"objectType": "Agent"';
+
+        const response = await context.sendJsonRequest({
+          method: "POST",
+          path: context.getEndpointStatements(),
+          json: statement,
+        });
+
+        if (response.status !== 400) {
+          throw new Error(`Expected status 400 for malformed JSON object case but received ${response.status}.`);
+        }
+      });
+    },
+  );
+}
 
 function registerFormattingParameterValidationSuite(runtime: DescribeRuntime, context: DescribeRuntimeContext): void {
   /**  XAPI-00012
@@ -66,6 +148,12 @@ export function registerFormattingRequirementsSuite(runtime: DescribeRuntime, co
     registerStatementPostConfigSuite(runtime, context, formattingNullPropertyGroups);
     registerStatementPostConfigSuite(runtime, context, formattingWrongTypeGroups);
     registerStatementPostConfigSuite(runtime, context, formattingRequiredFormatGroups);
+    registerStatementPostConfigSuite(runtime, context, formattingKeyCaseGroups);
+    registerStatementPostConfigSuite(runtime, context, formattingEnumeratedValueCaseGroups);
+    registerStatementPostConfigSuite(runtime, context, formattingLanguageTagGroups);
+    registerStatementPostConfigSuite(runtime, context, formattingVerifyTemplateGroups);
+    registerFormattingMalformedObjectSuite(runtime, context);
+    registerFormattingIriSchemeSuite(runtime, context);
     registerFormattingParameterValidationSuite(runtime, context);
   });
 }

@@ -26,6 +26,40 @@ function isObjectRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+const allowedStatementKeys = new Set([
+  "id",
+  "actor",
+  "verb",
+  "object",
+  "result",
+  "context",
+  "timestamp",
+  "stored",
+  "authority",
+  "version",
+  "attachments",
+]);
+
+const allowedInteractionTypes = new Set([
+  "true-false",
+  "choice",
+  "fill-in",
+  "long-fill-in",
+  "matching",
+  "performance",
+  "sequencing",
+  "likert",
+  "numeric",
+  "other",
+]);
+
+const allowedActorObjectTypes = new Set(["Agent", "Group"]);
+
+const languageTagPattern =
+  /^[A-Za-z]{2,3}(?:-[A-Za-z]{4})?(?:-(?:[A-Za-z]{2}|\d{3}))?(?:-(?:[A-Za-z0-9]{5,8}|\d[A-Za-z0-9]{3}))*$/;
+
+const interactionComponentParents = new Set(["choices", "scale", "source", "target", "steps"]);
+
 function determineStatementStatus(body: unknown): number {
   if (!isObjectRecord(body)) {
     return 400;
@@ -36,6 +70,10 @@ function determineStatementStatus(body: unknown): number {
   }
 
   if ("id" in body && !isUuidLike(typeof body.id === "string" ? body.id : null)) {
+    return 400;
+  }
+
+  if (Object.keys(body).some((key) => !allowedStatementKeys.has(key))) {
     return 400;
   }
 
@@ -60,6 +98,22 @@ function determineStatementStatus(body: unknown): number {
   }
 
   if (hasInvalidAccountName(body)) {
+    return 400;
+  }
+
+  if (hasInvalidInteractionType(body)) {
+    return 400;
+  }
+
+  if (hasInvalidLanguageTag(body)) {
+    return 400;
+  }
+
+  if (hasInvalidActorObjectType(body)) {
+    return 400;
+  }
+
+  if (hasMissingIriScheme(body)) {
     return 400;
   }
 
@@ -100,6 +154,153 @@ function hasInvalidAccountName(value: unknown): boolean {
   }
 
   return Object.values(value).some((childValue) => hasInvalidAccountName(childValue));
+}
+
+function hasInvalidInteractionType(value: unknown): boolean {
+  if (Array.isArray(value)) {
+    return value.some((item) => hasInvalidInteractionType(item));
+  }
+
+  if (!isObjectRecord(value)) {
+    return false;
+  }
+
+  const definition = value.definition;
+  if (isObjectRecord(definition) && typeof definition.interactionType === "string") {
+    if (!allowedInteractionTypes.has(definition.interactionType)) {
+      return true;
+    }
+  }
+
+  return Object.values(value).some((childValue) => hasInvalidInteractionType(childValue));
+}
+
+function isLanguageMapPath(path: readonly string[]): boolean {
+  const last = path.at(-1);
+  if (!last) {
+    return false;
+  }
+
+  if (last === "display" && path.at(-2) === "verb") {
+    return true;
+  }
+
+  if ((last === "display" || last === "description") && path.at(-3) === "attachments") {
+    return true;
+  }
+
+  if ((last === "name" || last === "description") && path.at(-2) === "definition") {
+    return true;
+  }
+
+  if (last === "description" && interactionComponentParents.has(path.at(-3) ?? "")) {
+    return true;
+  }
+
+  return false;
+}
+
+function isValidLanguageTag(value: string): boolean {
+  return languageTagPattern.test(value);
+}
+
+function hasInvalidLanguageTag(value: unknown, path: readonly string[] = []): boolean {
+  if (typeof value === "string") {
+    return path.at(-1) === "language" && path.at(-2) === "context" && !isValidLanguageTag(value);
+  }
+
+  if (Array.isArray(value)) {
+    return value.some((item, index) => hasInvalidLanguageTag(item, [...path, String(index)]));
+  }
+
+  if (!isObjectRecord(value)) {
+    return false;
+  }
+
+  if (isLanguageMapPath(path)) {
+    return Object.keys(value).some((key) => !isValidLanguageTag(key));
+  }
+
+  return Object.entries(value).some(([key, childValue]) => hasInvalidLanguageTag(childValue, [...path, key]));
+}
+
+function hasInvalidActorObjectType(value: unknown, path: readonly string[] = []): boolean {
+  if (Array.isArray(value)) {
+    return value.some((item, index) => hasInvalidActorObjectType(item, [...path, String(index)]));
+  }
+
+  if (!isObjectRecord(value)) {
+    return false;
+  }
+
+  if (isActorLikePath(path)) {
+    const objectType = value.objectType;
+    if (objectType !== undefined && (typeof objectType !== "string" || !allowedActorObjectTypes.has(objectType))) {
+      return true;
+    }
+  }
+
+  return Object.entries(value).some(([key, childValue]) => hasInvalidActorObjectType(childValue, [...path, key]));
+}
+
+function isActorLikePath(path: readonly string[]): boolean {
+  const last = path.at(-1);
+  return last === "actor" || last === "authority" || last === "instructor" || last === "team";
+}
+
+function hasMissingIriScheme(value: unknown, path: readonly string[] = []): boolean {
+  if (typeof value === "string") {
+    const last = path.at(-1);
+    if (!last) {
+      return false;
+    }
+
+    if (last === "openid") {
+      return !hasScheme(value);
+    }
+
+    if (last === "homePage" && path.at(-2) === "account") {
+      return !hasScheme(value);
+    }
+
+    if (last === "id" && path.at(-2) === "verb") {
+      return !hasScheme(value);
+    }
+
+    if ((last === "type" || last === "moreInfo") && path.at(-2) === "definition") {
+      return !hasScheme(value);
+    }
+
+    if ((last === "usageType" || last === "fileUrl") && path.at(-3) === "attachments") {
+      return !hasScheme(value);
+    }
+
+    return false;
+  }
+
+  if (Array.isArray(value)) {
+    return value.some((item, index) => hasMissingIriScheme(item, [...path, String(index)]));
+  }
+
+  if (!isObjectRecord(value)) {
+    return false;
+  }
+
+  if (path.at(-1) === "object" && typeof value.id === "string") {
+    const objectType = typeof value.objectType === "string" ? value.objectType : "Activity";
+    if (objectType !== "StatementRef" && !hasScheme(value.id)) {
+      return true;
+    }
+  }
+
+  if (
+    path.at(-1) === "extensions" &&
+    (path.at(-2) === "definition" || path.at(-2) === "context" || path.at(-2) === "result")
+  ) {
+    return Object.keys(value).some((key) => !hasScheme(key));
+  }
+
+  return Object.entries(value).some(([key, childValue]) => hasMissingIriScheme(childValue, [...path, key]));
 }
 
 function isUuidLike(value: string | null): boolean {
@@ -234,6 +435,27 @@ function startMockLrs() {
         );
       }
 
+      if (request.method === "PUT" && url.pathname === "/xapi/statements") {
+        if (!isUuidLike(url.searchParams.get("statementId"))) {
+          return Response.json({ ok: false }, { status: 400 });
+        }
+
+        const status = determineStatementStatus(body);
+        if (status === 200 && isObjectRecord(body) && typeof body.id === "string") {
+          storedStatements.set(body.id, {
+            ...body,
+            stored: new Date().toISOString(),
+          });
+        }
+
+        return Response.json(
+          { ok: true },
+          {
+            status,
+          },
+        );
+      }
+
       if (request.method === "GET" && url.pathname === "/xapi/statements") {
         const validationStatus = validateStatementQuery(url.searchParams);
         if (validationStatus) {
@@ -291,14 +513,17 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 41,
-        passed: 41,
+        total: 155,
+        passed: 155,
         failed: 0,
         version: "2.0.0",
       });
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "POST"),
-      ).toHaveLength(36);
+      ).toHaveLength(139);
+      expect(
+        harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "PUT"),
+      ).toHaveLength(11);
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "GET"),
       ).toHaveLength(7);
@@ -310,8 +535,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 41,
-        passed: 41,
+        total: 155,
+        passed: 155,
         failed: 0,
         version: "2.0.0",
       });
@@ -323,6 +548,19 @@ describe("console runner entrypoint", () => {
         'An LRS rejects with error code 400 Bad Request any Statement having a property whose value is set to "null", except in an "extensions" property (Data 2.2.s4.b1.b1, XAPI-00001)',
         "An LRS rejects with error code 400 Bad Request a Statement which uses the wrong data type (Data 2.2.s4.b2, XAPI-00006)",
         "An LRS rejects with error code 400 Bad Request a Statement which uses any non-format-following key or value, including the empty string, where a string with a particular format, such as mailto IRI, UUID, or IRI, is required. (Data 2.2.s4.b4, XAPI-00007)",
+        "An LRS rejects with error code 400 Bad Request a Statement where the case of a key does not match the case specified in this specification. (Data 2.2.s4.b1.b5, XAPI-00008, XAPI-00010)",
+        "An LRS rejects with error code 400 Bad Request a Statement where the case of a value restricted to enumerated values does not match an enumerated value given in this specification exactly. (Data 2.2.s4.b1.b6, XAPI-00009)",
+        "The LRS rejects with error code 400 Bad Request a token with does not validate as matching the RFC 5646 standard in the sequence of token lengths for language map keys. (Format, Data 2.2.s4.b2, Data 2.4.6.s3.table1.row7, RFC5646, XAPI-00013)",
+        "Statements Verify Templates",
+        "Agents Verify Templates",
+        "Groups Verify Templates",
+        'A Group is defined by "objectType" of an "actor" property or "object" property with value "Group" (Data 2.4.2.2.s2.table2.row1)',
+        'An Anonymous Group is defined by "objectType" of an "actor" or "object" with value "Group" and by none of "mbox", "mbox_sha1sum", "openid", or "account" being used (Data 2.4.2.2.s2.table1.row1)',
+        "Verbs Verify Templates",
+        "Objects Verify Templates",
+        "Activities Verify Templates",
+        "All Objects are well-created JSON Objects (Nature of binding, Data 2.1, XAPI-00014) **Implicit**",
+        "An LRS rejects with error code 400 Bad Request a Statement containing IRL or IRI values without a scheme. (Data 2.2.s4.b1.b8, XAPI-00011)",
         "The LRS rejects with error code 400 Bad Request parameter values which do not validate to the same standards required for values of the same types in Statements (Data 2.2.s4.b4, XAPI-00012)",
       ]);
     } finally {
@@ -344,12 +582,12 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("1.0.3");
       expect(execution.runRecord.summary).toEqual({
-        total: 41,
-        passed: 41,
+        total: 155,
+        passed: 155,
         failed: 0,
         version: "1.0.3",
       });
-      expect(harness.requests).toHaveLength(43);
+      expect(harness.requests).toHaveLength(157);
       expect(harness.requests.every((request) => request.version === "1.0.3")).toBe(true);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-v103.log"), "utf8")) as {
@@ -357,8 +595,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 41,
-        passed: 41,
+        total: 155,
+        passed: 155,
         failed: 0,
         version: "1.0.3",
       });
@@ -382,12 +620,12 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Parameters", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 69,
-        passed: 69,
+        total: 183,
+        passed: 183,
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(43);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(157);
       expect(harness.requests.filter((request) => request.path === "/xapi/activities/state")).toHaveLength(13);
       expect(harness.requests.filter((request) => request.path === "/xapi/agents/profile")).toHaveLength(6);
       expect(harness.requests.filter((request) => request.path === "/xapi/activities/profile")).toHaveLength(9);
@@ -398,8 +636,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 69,
-        passed: 69,
+        total: 183,
+        passed: 183,
         failed: 0,
         version: "2.0.0",
       });
@@ -426,12 +664,12 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Multiplicity", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 123,
-        passed: 123,
+        total: 237,
+        passed: 237,
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(43);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(157);
       expect(harness.requests.filter((request) => request.path !== "/xapi/statements")).toHaveLength(0);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-multiplicity-v2.log"), "utf8")) as {
@@ -440,8 +678,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 123,
-        passed: 123,
+        total: 237,
+        passed: 237,
         failed: 0,
         version: "2.0.0",
       });
