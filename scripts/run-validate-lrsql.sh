@@ -29,11 +29,13 @@ if (!run || typeof run !== "object") {
   throw new Error(`validation artifact missing run payload: ${filePath}`);
 }
 const events = Array.isArray(run.events) ? run.events.length : null;
+const scope = parsed?.scope;
 console.log(JSON.stringify({
   mode: "validation",
   target: "lrsql",
   xapiVersion: run.version ?? process.env.XAPI_VERSION ?? null,
   artifact: filePath,
+  scopeMode: scope && typeof scope === "object" ? scope.mode ?? null : null,
   status: run.status ?? null,
   events,
 }, null, 2));'
