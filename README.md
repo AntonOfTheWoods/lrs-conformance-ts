@@ -12,6 +12,15 @@ To run the active upstream-helper checks:
 bun run test
 ```
 
+To run the new Bun-native describe runtime slice against an LRS endpoint:
+
+```bash
+bun run describe:run -- --endpoint http://localhost:8000/xapi
+```
+
+The current rewrite slice registers the first config-driven cases from `Data2.2-FormattingRequirements.ts`
+for both `v1_0_3` and `v2_0`, and writes an upstream-shaped JSON run log to `logs/<uuid>.log`.
+
 This project was created using `bun init` in bun v1.3.14. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
 
 ## Parity Notes
