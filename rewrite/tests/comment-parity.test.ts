@@ -2,8 +2,8 @@ import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 
 import type { RegistryNode } from "../../src/domain/contracts";
-import { LEGACY_XAPI_COMMENT_MAP } from "../../src/registry/legacyCommentMap";
-import { LEGACY_XAPI_DESCRIBE_MAP } from "../../src/registry/legacyDescribeMap";
+import { LEGACY_XAPI_COMMENT_MAP } from "../legacyCommentMap";
+import { LEGACY_XAPI_DESCRIBE_MAP } from "../legacyDescribeMap";
 import { resolveUpstreamPath } from "../../src/specs/migration/upstream-root";
 import { createProofSliceRegistry as createV20Registry } from "../../src/specs/v2_0/proof-slice";
 import { createV103ProofSliceRegistry as createV103Registry } from "../../src/specs/v1_0_3/proof-slice";

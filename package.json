@@ -31,7 +31,7 @@
     "rewrite:report:compare": "bun ./rewrite/scripts/analyze-compare-output.ts",
     "rewrite:diagnose:scope": "bun ./rewrite/scripts/diagnose-scope.ts",
     "rewrite:compare": "bun ./rewrite/scripts/compare-parity.ts",
-    "inline:legacy-notes:statements": "bun ./scripts/inline-legacy-notes.ts --scope=statements --apply",
+    "inline:legacy-notes:statements": "bun ./rewrite/scripts/inline-legacy-notes.ts --scope=statements --apply",
     "check": "bun run typecheck && bun run lint && bun test"
   },
   "devDependencies": {

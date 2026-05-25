@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 
-import { LEGACY_XAPI_COMMENT_MAP } from "../src/registry/legacyCommentMap";
-import { LEGACY_XAPI_DESCRIBE_MAP } from "../src/registry/legacyDescribeMap";
+import { LEGACY_XAPI_COMMENT_MAP } from "../legacyCommentMap";
+import { LEGACY_XAPI_DESCRIBE_MAP } from "../legacyDescribeMap";
 
 function findMatchingDelimiter(text: string, startIndex: number, open: string, close: string): number {
   let depth = 0;
