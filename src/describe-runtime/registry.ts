@@ -2,6 +2,7 @@ import { registerActorPropertyRequirementsSuite as registerActorPropertyRequirem
 import { registerFormattingRequirementsSuite as registerFormattingRequirementsV103 } from "../specs/v1_0_3/Data2.2-FormattingRequirements.ts";
 import { registerVerbPropertyRequirementsSuite as registerVerbPropertyRequirementsV103 } from "../specs/v1_0_3/Data2.4.3-VerbProperty.ts";
 import { registerIdPropertyRequirementsSuite as registerIdPropertyRequirementsV103 } from "../specs/v1_0_3/Data2.4.1-IDProperty.ts";
+import { registerObjectPropertyRequirementsSuite as registerObjectPropertyRequirementsV103 } from "../specs/v1_0_3/Data2.4.4-ObjectProperty.ts";
 import { registerResultPropertyRequirementsSuite as registerResultPropertyRequirementsV103 } from "../specs/v1_0_3/Data2.4.5-ResultProperty.ts";
 import { registerStoredPropertyRequirementsSuite as registerStoredPropertyRequirementsV103 } from "../specs/v1_0_3/Data2.4.8-StoredProperty.ts";
 import { registerTimestampPropertyRequirementsSuite as registerTimestampPropertyRequirementsV103 } from "../specs/v1_0_3/Data2.4.7-TimestampProperty.ts";
@@ -10,6 +11,7 @@ import { registerActorPropertyRequirementsSuite as registerActorPropertyRequirem
 import { registerFormattingRequirementsSuite as registerFormattingRequirementsV20 } from "../specs/v2_0/Data2.2-FormattingRequirements.ts";
 import { registerVerbPropertyRequirementsSuite as registerVerbPropertyRequirementsV20 } from "../specs/v2_0/4.2.2.2-Verb-Requirements.ts";
 import { registerIdPropertyRequirementsSuite as registerIdPropertyRequirementsV20 } from "../specs/v2_0/4.2.4.2-ID-Requirements.ts";
+import { registerObjectPropertyRequirementsSuite as registerObjectPropertyRequirementsV20 } from "../specs/v2_0/4.2.2.3-Object-Requirements.ts";
 import { registerResultPropertyRequirementsSuite as registerResultPropertyRequirementsV20 } from "../specs/v2_0/4.2.2.4-Result-Requirements.ts";
 import { registerStoredPropertyRequirementsSuite as registerStoredPropertyRequirementsV20 } from "../specs/v2_0/4.2.4.2-Stored-Requirements.ts";
 import { registerTimestampPropertyRequirementsSuite as registerTimestampPropertyRequirementsV20 } from "../specs/v2_0/4.2.4.2-Timestamp-Requirements.ts";
@@ -34,6 +36,7 @@ const registrarsByDirectory: Readonly<Record<string, readonly SuiteRegistrar[]>>
     registerVersionPropertyRequirementsV103,
     registerResultPropertyRequirementsV103,
     registerActorPropertyRequirementsV103,
+    registerObjectPropertyRequirementsV103,
   ],
   v2_0: [
     registerFormattingRequirementsV20,
@@ -44,6 +47,7 @@ const registrarsByDirectory: Readonly<Record<string, readonly SuiteRegistrar[]>>
     registerVersionPropertyRequirementsV20,
     registerResultPropertyRequirementsV20,
     registerActorPropertyRequirementsV20,
+    registerObjectPropertyRequirementsV20,
   ],
 };
 

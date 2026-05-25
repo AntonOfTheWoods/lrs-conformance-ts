@@ -54,6 +54,7 @@ const allowedInteractionTypes = new Set([
 ]);
 
 const allowedActorObjectTypes = new Set(["Agent", "Group"]);
+const allowedObjectObjectTypes = new Set(["Activity", "Agent", "Group", "SubStatement", "StatementRef"]);
 
 const languageTagPattern =
   /^[A-Za-z]{2,3}(?:-[A-Za-z]{4})?(?:-(?:[A-Za-z]{2}|\d{3}))?(?:-(?:[A-Za-z0-9]{5,8}|\d[A-Za-z0-9]{3}))*$/;
@@ -129,6 +130,10 @@ function determineStatementStatus(body: unknown): number {
   }
 
   if (hasInvalidActor(body)) {
+    return 400;
+  }
+
+  if (hasInvalidObject(body)) {
     return 400;
   }
 
@@ -478,6 +483,120 @@ function isValidActorAccount(value: unknown): boolean {
   }
 
   return typeof value.homePage === "string" && hasScheme(value.homePage) && typeof value.name === "string";
+}
+
+function hasInvalidObject(value: unknown, path: readonly string[] = []): boolean {
+  if (Array.isArray(value)) {
+    return value.some((item, index) => hasInvalidObject(item, [...path, String(index)]));
+  }
+
+  if (!isObjectRecord(value)) {
+    return false;
+  }
+
+  if (path.at(-1) === "object" && hasInvalidObjectRecord(value, path)) {
+    return true;
+  }
+
+  return Object.entries(value).some(([key, childValue]) => hasInvalidObject(childValue, [...path, key]));
+}
+
+function hasInvalidObjectRecord(value: Record<string, unknown>, path: readonly string[]): boolean {
+  const objectType = value.objectType;
+  if (objectType !== undefined && (typeof objectType !== "string" || !allowedObjectObjectTypes.has(objectType))) {
+    return true;
+  }
+
+  if (isSubStatementRecord(value)) {
+    return hasInvalidSubStatementRecord(value, path);
+  }
+
+  if (objectType === "StatementRef") {
+    return hasInvalidStatementRefRecord(value);
+  }
+
+  if (isActorCandidateRecord(value)) {
+    return objectType === undefined;
+  }
+
+  return hasInvalidActivityRecord(value);
+}
+
+function isSubStatementRecord(value: Record<string, unknown>): boolean {
+  return value.objectType === "SubStatement" || ("actor" in value && "verb" in value && "object" in value);
+}
+
+function hasInvalidSubStatementRecord(value: Record<string, unknown>, path: readonly string[]): boolean {
+  if (value.objectType !== "SubStatement") {
+    return true;
+  }
+
+  if (!("actor" in value) || !("verb" in value) || !("object" in value)) {
+    return true;
+  }
+
+  if ("id" in value || "stored" in value || "version" in value || "authority" in value) {
+    return true;
+  }
+
+  if (path.slice(0, -1).includes("object")) {
+    return true;
+  }
+
+  const nestedObject = value.object;
+  if (!isObjectRecord(nestedObject)) {
+    return true;
+  }
+
+  return isSubStatementRecord(nestedObject);
+}
+
+function hasInvalidStatementRefRecord(value: Record<string, unknown>): boolean {
+  return typeof value.id !== "string" || !isUuidLike(value.id);
+}
+
+function hasInvalidActivityRecord(value: Record<string, unknown>): boolean {
+  if (typeof value.id !== "string" || !hasScheme(value.id)) {
+    return true;
+  }
+
+  const definition = value.definition;
+  if (definition === undefined) {
+    return false;
+  }
+
+  if (!isObjectRecord(definition)) {
+    return true;
+  }
+
+  if (definition.type !== undefined && typeof definition.type !== "string") {
+    return true;
+  }
+
+  if (definition.moreInfo !== undefined && typeof definition.moreInfo !== "string") {
+    return true;
+  }
+
+  if (definition.interactionType !== undefined && typeof definition.interactionType !== "string") {
+    return true;
+  }
+
+  if (definition.extensions !== undefined && !isObjectRecord(definition.extensions)) {
+    return true;
+  }
+
+  return usesInteractionComponents(definition) && typeof definition.interactionType !== "string";
+}
+
+function usesInteractionComponents(definition: Record<string, unknown>): boolean {
+  return (
+    "correctResponsesPattern" in definition ||
+    "choices" in definition ||
+    "scale" in definition ||
+    "source" in definition ||
+    "target" in definition ||
+    "steps" in definition
+  );
 }
 
 function isFiniteNumber(value: unknown): value is number {
@@ -876,14 +995,14 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 687,
-        passed: 687,
+        total: 784,
+        passed: 784,
         failed: 0,
         version: "2.0.0",
       });
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "POST"),
-      ).toHaveLength(669);
+      ).toHaveLength(766);
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "PUT"),
       ).toHaveLength(12);
@@ -898,8 +1017,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 687,
-        passed: 687,
+        total: 784,
+        passed: 784,
         failed: 0,
         version: "2.0.0",
       });
@@ -912,6 +1031,7 @@ describe("console runner entrypoint", () => {
         "Version Property Requirements (Data 2.4.10)",
         "Result Property Requirements (Data 2.4.5)",
         "Actor Property Requirements (Data 2.4.2)",
+        "Object Property Requirements (Data 2.4.4)",
       ]);
       expect(writtenRecord.log.tests[0]?.tests.map((suite) => suite.title)).toEqual([
         "An LRS stores 32-bit floating point numbers with at least the precision of IEEE 754 (Data 2.2.s4.b3, XAPI-00002)",
@@ -993,12 +1113,12 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("1.0.3");
       expect(execution.runRecord.summary).toEqual({
-        total: 687,
-        passed: 687,
+        total: 784,
+        passed: 784,
         failed: 0,
         version: "1.0.3",
       });
-      expect(harness.requests).toHaveLength(694);
+      expect(harness.requests).toHaveLength(791);
       expect(harness.requests.every((request) => request.version === "1.0.3")).toBe(true);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-v103.log"), "utf8")) as {
@@ -1006,8 +1126,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 687,
-        passed: 687,
+        total: 784,
+        passed: 784,
         failed: 0,
         version: "1.0.3",
       });
@@ -1031,12 +1151,12 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Parameters", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 715,
-        passed: 715,
+        total: 812,
+        passed: 812,
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(694);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(791);
       expect(harness.requests.filter((request) => request.path === "/xapi/activities/state")).toHaveLength(13);
       expect(harness.requests.filter((request) => request.path === "/xapi/agents/profile")).toHaveLength(6);
       expect(harness.requests.filter((request) => request.path === "/xapi/activities/profile")).toHaveLength(9);
@@ -1047,8 +1167,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 715,
-        passed: 715,
+        total: 812,
+        passed: 812,
         failed: 0,
         version: "2.0.0",
       });
@@ -1075,12 +1195,12 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Multiplicity", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 769,
-        passed: 769,
+        total: 866,
+        passed: 866,
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(694);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(791);
       expect(harness.requests.filter((request) => request.path !== "/xapi/statements")).toHaveLength(0);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-multiplicity-v2.log"), "utf8")) as {
@@ -1089,8 +1209,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 769,
-        passed: 769,
+        total: 866,
+        passed: 866,
         failed: 0,
         version: "2.0.0",
       });
@@ -1104,6 +1224,7 @@ describe("console runner entrypoint", () => {
         "Version Property Requirements (Data 2.4.10)",
         "Result Property Requirements (Data 2.4.5)",
         "Actor Property Requirements (Data 2.4.2)",
+        "Object Property Requirements (Data 2.4.4)",
       ]);
     } finally {
       await harness.server.stop(true);
