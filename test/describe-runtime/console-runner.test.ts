@@ -65,6 +65,8 @@ const interactionComponentParents = new Set(["choices", "scale", "source", "targ
 
 const isoTimestampPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/;
 
+type ActorRole = "Agent" | "Group" | "Either";
+
 function determineStatementStatus(body: unknown): number {
   if (!isObjectRecord(body)) {
     return 400;
@@ -123,6 +125,10 @@ function determineStatementStatus(body: unknown): number {
   }
 
   if (hasInvalidVersion(body)) {
+    return 400;
+  }
+
+  if (hasInvalidActor(body)) {
     return 400;
   }
 
@@ -301,6 +307,177 @@ function hasInvalidVersion(value: unknown, path: readonly string[] = []): boolea
   }
 
   return Object.entries(value).some(([key, childValue]) => hasInvalidVersion(childValue, [...path, key]));
+}
+
+function hasInvalidActor(value: unknown, path: readonly string[] = []): boolean {
+  if (Array.isArray(value)) {
+    return value.some((item, index) => hasInvalidActor(item, [...path, String(index)]));
+  }
+
+  if (!isObjectRecord(value)) {
+    return false;
+  }
+
+  const expectedRole = getExpectedActorRole(value, path);
+  if (expectedRole && hasInvalidActorRecord(value, expectedRole)) {
+    return true;
+  }
+
+  return Object.entries(value).some(([key, childValue]) => hasInvalidActor(childValue, [...path, key]));
+}
+
+function getExpectedActorRole(value: Record<string, unknown>, path: readonly string[]): ActorRole | undefined {
+  if (path.at(-2) === "member") {
+    return "Agent";
+  }
+
+  const last = path.at(-1);
+  if (last === "team") {
+    return "Group";
+  }
+
+  if (last === "actor" || last === "authority" || last === "instructor") {
+    return "Either";
+  }
+
+  if (last === "object" && isActorCandidateRecord(value)) {
+    return "Either";
+  }
+
+  return undefined;
+}
+
+function isActorCandidateRecord(value: Record<string, unknown>): boolean {
+  if (value.objectType === "Agent" || value.objectType === "Group") {
+    return true;
+  }
+
+  return "mbox" in value || "mbox_sha1sum" in value || "openid" in value || "account" in value || "member" in value;
+}
+
+function hasInvalidActorRecord(value: Record<string, unknown>, expectedRole: ActorRole): boolean {
+  const objectType = value.objectType;
+  if (objectType !== undefined && (typeof objectType !== "string" || !allowedActorObjectTypes.has(objectType))) {
+    return true;
+  }
+
+  if (value.name !== undefined && typeof value.name !== "string") {
+    return true;
+  }
+
+  if ("mbox" in value && !isValidActorMbox(value.mbox)) {
+    return true;
+  }
+
+  if ("mbox_sha1sum" in value && !isValidActorMboxSha1sum(value.mbox_sha1sum)) {
+    return true;
+  }
+
+  if ("openid" in value && !isValidActorOpenId(value.openid)) {
+    return true;
+  }
+
+  if ("account" in value && !isValidActorAccount(value.account)) {
+    return true;
+  }
+
+  const actorRole = inferActorRole(value, expectedRole);
+  const ifiCount = countActorIfis(value);
+
+  if (actorRole === "Group") {
+    if (value.objectType !== "Group") {
+      return true;
+    }
+
+    if ("member" in value) {
+      if (!Array.isArray(value.member) || value.member.length === 0) {
+        return true;
+      }
+    }
+
+    if (ifiCount > 1) {
+      return true;
+    }
+
+    if (ifiCount === 0 && (!Array.isArray(value.member) || value.member.length === 0)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  if ("member" in value) {
+    return true;
+  }
+
+  if (value.objectType !== undefined && value.objectType !== "Agent") {
+    return true;
+  }
+
+  return ifiCount !== 1;
+}
+
+function inferActorRole(value: Record<string, unknown>, expectedRole: ActorRole): Exclude<ActorRole, "Either"> {
+  if (expectedRole !== "Either") {
+    return expectedRole;
+  }
+
+  if (value.objectType === "Group" || "member" in value) {
+    return "Group";
+  }
+
+  return "Agent";
+}
+
+function countActorIfis(value: Record<string, unknown>): number {
+  let count = 0;
+
+  if ("mbox" in value) {
+    count += 1;
+  }
+
+  if ("mbox_sha1sum" in value) {
+    count += 1;
+  }
+
+  if ("openid" in value) {
+    count += 1;
+  }
+
+  if ("account" in value) {
+    count += 1;
+  }
+
+  return count;
+}
+
+function isValidActorMbox(value: unknown): boolean {
+  return typeof value === "string" && /^mailto:[^@\s]+@[^@\s]+$/.test(value);
+}
+
+function isValidActorMboxSha1sum(value: unknown): boolean {
+  return typeof value === "string" && /^[0-9a-f]{40}$/i.test(value);
+}
+
+function isValidActorOpenId(value: unknown): boolean {
+  if (typeof value !== "string" || !hasScheme(value)) {
+    return false;
+  }
+
+  try {
+    new URL(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function isValidActorAccount(value: unknown): boolean {
+  if (!isObjectRecord(value)) {
+    return false;
+  }
+
+  return typeof value.homePage === "string" && hasScheme(value.homePage) && typeof value.name === "string";
 }
 
 function isFiniteNumber(value: unknown): value is number {
@@ -699,14 +876,14 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 263,
-        passed: 263,
+        total: 687,
+        passed: 687,
         failed: 0,
         version: "2.0.0",
       });
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "POST"),
-      ).toHaveLength(245);
+      ).toHaveLength(669);
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "PUT"),
       ).toHaveLength(12);
@@ -721,8 +898,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 263,
-        passed: 263,
+        total: 687,
+        passed: 687,
         failed: 0,
         version: "2.0.0",
       });
@@ -734,6 +911,7 @@ describe("console runner entrypoint", () => {
         "Verb Property Requirements (Data 2.4.3)",
         "Version Property Requirements (Data 2.4.10)",
         "Result Property Requirements (Data 2.4.5)",
+        "Actor Property Requirements (Data 2.4.2)",
       ]);
       expect(writtenRecord.log.tests[0]?.tests.map((suite) => suite.title)).toEqual([
         "An LRS stores 32-bit floating point numbers with at least the precision of IEEE 754 (Data 2.2.s4.b3, XAPI-00002)",
@@ -815,12 +993,12 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("1.0.3");
       expect(execution.runRecord.summary).toEqual({
-        total: 263,
-        passed: 263,
+        total: 687,
+        passed: 687,
         failed: 0,
         version: "1.0.3",
       });
-      expect(harness.requests).toHaveLength(270);
+      expect(harness.requests).toHaveLength(694);
       expect(harness.requests.every((request) => request.version === "1.0.3")).toBe(true);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-v103.log"), "utf8")) as {
@@ -828,8 +1006,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 263,
-        passed: 263,
+        total: 687,
+        passed: 687,
         failed: 0,
         version: "1.0.3",
       });
@@ -853,12 +1031,12 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Parameters", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 291,
-        passed: 291,
+        total: 715,
+        passed: 715,
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(270);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(694);
       expect(harness.requests.filter((request) => request.path === "/xapi/activities/state")).toHaveLength(13);
       expect(harness.requests.filter((request) => request.path === "/xapi/agents/profile")).toHaveLength(6);
       expect(harness.requests.filter((request) => request.path === "/xapi/activities/profile")).toHaveLength(9);
@@ -869,8 +1047,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 291,
-        passed: 291,
+        total: 715,
+        passed: 715,
         failed: 0,
         version: "2.0.0",
       });
@@ -897,12 +1075,12 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Multiplicity", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 345,
-        passed: 345,
+        total: 769,
+        passed: 769,
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(270);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(694);
       expect(harness.requests.filter((request) => request.path !== "/xapi/statements")).toHaveLength(0);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-multiplicity-v2.log"), "utf8")) as {
@@ -911,8 +1089,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 345,
-        passed: 345,
+        total: 769,
+        passed: 769,
         failed: 0,
         version: "2.0.0",
       });
@@ -925,6 +1103,7 @@ describe("console runner entrypoint", () => {
         "Verb Property Requirements (Data 2.4.3)",
         "Version Property Requirements (Data 2.4.10)",
         "Result Property Requirements (Data 2.4.5)",
+        "Actor Property Requirements (Data 2.4.2)",
       ]);
     } finally {
       await harness.server.stop(true);

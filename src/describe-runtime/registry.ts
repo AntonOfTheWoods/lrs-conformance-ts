@@ -1,3 +1,4 @@
+import { registerActorPropertyRequirementsSuite as registerActorPropertyRequirementsV103 } from "../specs/v1_0_3/Data2.4.2-ActorProperty.ts";
 import { registerFormattingRequirementsSuite as registerFormattingRequirementsV103 } from "../specs/v1_0_3/Data2.2-FormattingRequirements.ts";
 import { registerVerbPropertyRequirementsSuite as registerVerbPropertyRequirementsV103 } from "../specs/v1_0_3/Data2.4.3-VerbProperty.ts";
 import { registerIdPropertyRequirementsSuite as registerIdPropertyRequirementsV103 } from "../specs/v1_0_3/Data2.4.1-IDProperty.ts";
@@ -5,6 +6,7 @@ import { registerResultPropertyRequirementsSuite as registerResultPropertyRequir
 import { registerStoredPropertyRequirementsSuite as registerStoredPropertyRequirementsV103 } from "../specs/v1_0_3/Data2.4.8-StoredProperty.ts";
 import { registerTimestampPropertyRequirementsSuite as registerTimestampPropertyRequirementsV103 } from "../specs/v1_0_3/Data2.4.7-TimestampProperty.ts";
 import { registerVersionPropertyRequirementsSuite as registerVersionPropertyRequirementsV103 } from "../specs/v1_0_3/E.Data2.4.10-VersionProperty.ts";
+import { registerActorPropertyRequirementsSuite as registerActorPropertyRequirementsV20 } from "../specs/v2_0/4.2.2.1-Actor-Requirements.ts";
 import { registerFormattingRequirementsSuite as registerFormattingRequirementsV20 } from "../specs/v2_0/Data2.2-FormattingRequirements.ts";
 import { registerVerbPropertyRequirementsSuite as registerVerbPropertyRequirementsV20 } from "../specs/v2_0/4.2.2.2-Verb-Requirements.ts";
 import { registerIdPropertyRequirementsSuite as registerIdPropertyRequirementsV20 } from "../specs/v2_0/4.2.4.2-ID-Requirements.ts";
@@ -31,6 +33,7 @@ const registrarsByDirectory: Readonly<Record<string, readonly SuiteRegistrar[]>>
     registerVerbPropertyRequirementsV103,
     registerVersionPropertyRequirementsV103,
     registerResultPropertyRequirementsV103,
+    registerActorPropertyRequirementsV103,
   ],
   v2_0: [
     registerFormattingRequirementsV20,
@@ -40,6 +43,7 @@ const registrarsByDirectory: Readonly<Record<string, readonly SuiteRegistrar[]>>
     registerVerbPropertyRequirementsV20,
     registerVersionPropertyRequirementsV20,
     registerResultPropertyRequirementsV20,
+    registerActorPropertyRequirementsV20,
   ],
 };
 
