@@ -82,8 +82,8 @@ export function createV103AgentProfileResourceProofSliceSuite(): SuiteDefinition
     },
     notes: [
       "v1 proof-slice agent profile endpoint and post acceptance",
-      "legacy note: XAPI-00282 upstream comment - An LRS has an Agent Profile API with endpoint \"base IRI\"+\"/agents/profile\"",
-      "legacy note: XAPI-00282 upstream describe - An LRS has an Agent Profile Resource with endpoint \"base IRI\"+\"/agents/profile\"",
+      'legacy note: XAPI-00282 upstream comment - An LRS has an Agent Profile API with endpoint "base IRI"+"/agents/profile"',
+      'legacy note: XAPI-00282 upstream describe - An LRS has an Agent Profile Resource with endpoint "base IRI"+"/agents/profile"',
       "legacy note: XAPI-00283 upstream comment - An LRS will accept a POST request to the Agent Profile API",
       "legacy note: XAPI-00272 upstream comment - An LRS's Agent Profile API upon processing a successful POST request returns code 204 No Content",
     ],
@@ -148,7 +148,7 @@ export function createV103AgentProfileResourceProofSliceSuite(): SuiteDefinition
       "v1 proof-slice agent profile get roundtrip",
       "legacy note: XAPI-00274 upstream comment - An LRS's Agent Profile API accepts valid GET requests with code 200 OK, Profile document",
       "legacy note: XAPI-00259 upstream comment - The Agent Profile API MUST return 200 OK - Profile Content when a GET request is received with a valid agent JSON Object.",
-      "legacy note: XAPI-00269 upstream comment - An LRS's Agent Profile API upon processing a successful GET request with a valid Agent Object and valid \"profileId\" as a parameter returns the document satisfying the requirements of the GET and code 200 OK",
+      'legacy note: XAPI-00269 upstream comment - An LRS\'s Agent Profile API upon processing a successful GET request with a valid Agent Object and valid "profileId" as a parameter returns the document satisfying the requirements of the GET and code 200 OK',
     ],
     steps: [
       {
@@ -198,9 +198,9 @@ export function createV103AgentProfileResourceProofSliceSuite(): SuiteDefinition
     legacyTraceSuiteFile: agentProfileLegacySuiteFile,
     notes: [
       "v1 proof-slice agent profile list and since",
-      "legacy note: XAPI-00270 upstream comment - An LRS's Agent Profile API upon processing a successful GET request with a valid Agent Object and without \"profileId\" as a parameter returns an array of ids of agent profile documents satisfying the requirements of the GET and code 200 OK",
-      "legacy note: XAPI-00268 upstream comment - An LRS's Agent Profile API can process a GET request with \"since\" as a parameter. Returning 200 OK and all matching profiles after the date/time of the “since” parameter",
-      "legacy note: XAPI-00275 upstream comment - The Agent Profile API's returned array of ids from a successful GET request all refer to documents stored after the TimeStamp in the \"since\" parameter of the GET request if such a parameter was present",
+      'legacy note: XAPI-00270 upstream comment - An LRS\'s Agent Profile API upon processing a successful GET request with a valid Agent Object and without "profileId" as a parameter returns an array of ids of agent profile documents satisfying the requirements of the GET and code 200 OK',
+      'legacy note: XAPI-00268 upstream comment - An LRS\'s Agent Profile API can process a GET request with "since" as a parameter. Returning 200 OK and all matching profiles after the date/time of the “since” parameter',
+      'legacy note: XAPI-00275 upstream comment - The Agent Profile API\'s returned array of ids from a successful GET request all refer to documents stored after the TimeStamp in the "since" parameter of the GET request if such a parameter was present',
     ],
     steps: [
       {
@@ -258,8 +258,8 @@ export function createV103AgentProfileResourceProofSliceSuite(): SuiteDefinition
     },
     notes: [
       "v1 proof-slice agent profile invalid since",
-      "legacy note: XAPI-00260 upstream comment - An LRS's Agent Profile API rejects a GET request with \"since\" as a parameter if it is not a \"TimeStamp\", with error code 400 Bad Request",
-      "legacy note: XAPI-00260 upstream describe - An LRS\\'s Agent Profile Resource rejects a GET request with \"since\" as a parameter if it is not a \"TimeStamp\", with error code 400 Bad Request",
+      'legacy note: XAPI-00260 upstream comment - An LRS\'s Agent Profile API rejects a GET request with "since" as a parameter if it is not a "TimeStamp", with error code 400 Bad Request',
+      'legacy note: XAPI-00260 upstream describe - An LRS\\\'s Agent Profile Resource rejects a GET request with "since" as a parameter if it is not a "TimeStamp", with error code 400 Bad Request',
     ],
   });
 
@@ -295,10 +295,10 @@ export function createV103AgentProfileResourceProofSliceSuite(): SuiteDefinition
     },
     notes: [
       "v1 proof-slice agent profile missing and invalid agent validation",
-      "legacy note: XAPI-00261 upstream comment - An LRS's Agent Profile API rejects a GET request without \"agent\" as a parameter with error code 400 Bad Request",
-      "legacy note: XAPI-00284 upstream comment - An LRS must reject with 400 Bad Request a POST request to the Activitiy Profile API which contains name/value pairs with invalid JSON and the Content-Type header is \"application/json\"",
-      "legacy note: XAPI-00258 upstream comment - An LRS's Agent Profile API rejects a GET request with \"agent\" as a parameter if it is not an Agent Object with error code 400 Bad Request",
-      "legacy note: XAPI-00258 upstream describe - An LRS\\'s Agent Profile Resource rejects a GET request with \"agent\" as a parameter if it is a valid, in structure, Agent with error code 400 Bad Request",
+      'legacy note: XAPI-00261 upstream comment - An LRS\'s Agent Profile API rejects a GET request without "agent" as a parameter with error code 400 Bad Request',
+      'legacy note: XAPI-00284 upstream comment - An LRS must reject with 400 Bad Request a POST request to the Activitiy Profile API which contains name/value pairs with invalid JSON and the Content-Type header is "application/json"',
+      'legacy note: XAPI-00258 upstream comment - An LRS\'s Agent Profile API rejects a GET request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request',
+      'legacy note: XAPI-00258 upstream describe - An LRS\\\'s Agent Profile Resource rejects a GET request with "agent" as a parameter if it is a valid, in structure, Agent with error code 400 Bad Request',
     ],
   });
 
@@ -323,9 +323,9 @@ export function createV103AgentProfileResourceProofSliceSuite(): SuiteDefinition
     legacyTraceSuiteFile: agentProfileLegacySuiteFile,
     notes: [
       "v1 proof-slice agent profile merge",
-      "legacy note: XAPI-00279 upstream comment - An LRS's Agent Profile API performs a Document Merge if a profileId is found and both it and the document in the POST request have type \"application/json\" If the merge is successful, the LRS MUST respond with HTTP status code 204 No Content. not quite, but is this close enough??",
+      'legacy note: XAPI-00279 upstream comment - An LRS\'s Agent Profile API performs a Document Merge if a profileId is found and both it and the document in the POST request have type "application/json" If the merge is successful, the LRS MUST respond with HTTP status code 204 No Content. not quite, but is this close enough??',
       "legacy note: XAPI-00278 upstream comment - An LRS's Agent Profile API, rejects a POST request if the document is found and either document's type is not \"application/json\" with error code 400 Bad Request",
-      "legacy note: XAPI-00278 upstream describe - An LRSs Agent Profile Resource, rejects a POST request if the document is found and either documents type is not \"application/json\" with error code 400 Bad Request",
+      'legacy note: XAPI-00278 upstream describe - An LRSs Agent Profile Resource, rejects a POST request if the document is found and either documents type is not "application/json" with error code 400 Bad Request',
     ],
     steps: [
       {
@@ -395,10 +395,10 @@ export function createV103AgentProfileResourceProofSliceSuite(): SuiteDefinition
     notes: [
       "v1 proof-slice agent profile delete accepted",
       "legacy note: XAPI-00271 upstream comment - An LRS's Agent Profile API upon processing a successful DELETE request deletes the associated profile and returns code 204 No Content",
-      "legacy note: XAPI-00262 upstream comment - An LRS's Agent Profile API rejects a DELETE request without \"agent\" as a parameter with error code 400 Bad Request",
-      "legacy note: XAPI-00265 upstream comment - An LRS's Agent Profile API rejects a DELETE request without \"profileId\" as a parameter with error code 400 Bad Request",
-      "legacy note: XAPI-00255 upstream comment - An LRS's Agent Profile API rejects a DELETE request with \"agent\" as a parameter if it is not an Agent Object with error code 400 Bad Request",
-      "legacy note: XAPI-00255 upstream describe - An LRS\\'s Agent Profile Resource rejects a DELETE request with \"agent\" as a parameter if it is not an Agent Object with error code 400 Bad Request",
+      'legacy note: XAPI-00262 upstream comment - An LRS\'s Agent Profile API rejects a DELETE request without "agent" as a parameter with error code 400 Bad Request',
+      'legacy note: XAPI-00265 upstream comment - An LRS\'s Agent Profile API rejects a DELETE request without "profileId" as a parameter with error code 400 Bad Request',
+      'legacy note: XAPI-00255 upstream comment - An LRS\'s Agent Profile API rejects a DELETE request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request',
+      'legacy note: XAPI-00255 upstream describe - An LRS\\\'s Agent Profile Resource rejects a DELETE request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request',
     ],
   });
 

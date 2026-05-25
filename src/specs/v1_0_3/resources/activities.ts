@@ -119,7 +119,7 @@ export function createV103ActivitiesResourceProofSliceSuite(): SuiteDefinition {
     legacyTraceSuiteFile: activitiesResourceLegacySuiteFile,
     notes: [
       "v1 proof-slice activities resource endpoint exists",
-      "legacy note: XAPI-00252 upstream comment - An LRS has an Activities API with endpoint \"base IRI\" + /activities\" (7.5) Implicit (in that it is not named this by the spec).",
+      'legacy note: XAPI-00252 upstream comment - An LRS has an Activities API with endpoint "base IRI" + /activities" (7.5) Implicit (in that it is not named this by the spec).',
     ],
     steps: [
       {
@@ -253,7 +253,7 @@ export function createV103ActivitiesResourceProofSliceSuite(): SuiteDefinition {
     },
     notes: [
       "v1 proof-slice activities resource missing activityId",
-      "legacy note: XAPI-00250 upstream comment - An LRS's Activities API rejects a GET request without \"activityId\" as a parameter with error code 400 Bad Request.",
+      'legacy note: XAPI-00250 upstream comment - An LRS\'s Activities API rejects a GET request without "activityId" as a parameter with error code 400 Bad Request.',
     ],
   });
 

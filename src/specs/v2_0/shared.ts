@@ -34,116 +34,65 @@ import {
 } from "../../registry/families";
 
 export const specVersion = "2.0.0" as const;
-export const formattingLegacySuiteFile =
-  "test/v2_0/Data2.2-FormattingRequirements.js";
-export const formattingLegacyConfigFile =
-  "test/v2_0/configs/formatting.js";
+export const formattingLegacySuiteFile = "test/v2_0/Data2.2-FormattingRequirements.js";
+export const formattingLegacyConfigFile = "test/v2_0/configs/formatting.js";
 export const verifyLegacyConfigFile = "test/v2_0/configs/verify.js";
-export const actorRequirementsLegacySuiteFile =
-  "test/v2_0/4.2.2.1-Actor-Requirements.js";
-export const verbRequirementsLegacySuiteFile =
-  "test/v2_0/4.2.2.2-Verb-Requirements.js";
-export const contextLegacySuiteFile =
-  "test/v2_0/4.2.2.5-Context-Requirements.js";
-export const contextsLegacyConfigFile =
-  "test/v2_0/configs/contexts.js";
-export const contextActivitiesLegacyConfigFile =
-  "test/v2_0/configs/contextactivities.js";
-export const objectRequirementsLegacySuiteFile =
-  "test/v2_0/4.2.2.3-Object-Requirements.js";
-export const resultRequirementsLegacySuiteFile =
-  "test/v2_0/4.2.2.4-Result-Requirements.js";
-export const attachmentRequirementsLegacySuiteFile =
-  "test/v2_0/4.2.2.6-Attachment-Requirements.js";
-export const idRequirementsLegacySuiteFile =
-  "test/v2_0/4.2.4.2-ID-Requirements.js";
-export const storedRequirementsLegacySuiteFile =
-  "test/v2_0/4.2.4.2-Stored-Requirements.js";
-export const timestampRequirementsLegacySuiteFile =
-  "test/v2_0/4.2.4.2-Timestamp-Requirements.js";
-export const versionRequirementsLegacySuiteFile =
-  "test/v2_0/4.2.4.3-Version-Requirements.js";
-export const additionalDataTypesLegacySuiteFile =
-  "test/v2_0/4.2.7-Additional-Requirements-for-Data-Types.js";
-export const retrievalOfStatementsLegacySuiteFile =
-  "test/v2_0/E.Data2.5-RetrievalofStatements.js";
-export const signedStatementsLegacySuiteFile =
-  "test/v2_0/E.Data2.6-SignedStatements.js";
-export const specialDataTypesLegacySuiteFile =
-  "test/v2_0/E.Data4.0-SpecialDataTypesAndRules.js";
-export const statementResourceLegacySuiteFile =
-  "test/v2_0/4.1.6.1-Statement-Resource.js";
-export const errorCodesLegacySuiteFile =
-  "test/v2_0/H.Communication3.2-ErrorCodes.js";
-export const stateResourceLegacySuiteFile =
-  "test/v2_0/4.1.6.2-State-Resource.js";
-export const agentsResourceLegacySuiteFile =
-  "test/v2_0/4.1.6.3-Agents-Resource.js";
-export const activitiesResourceLegacySuiteFile =
-  "test/v2_0/4.1.6.4-Activity-Resource.js";
-export const agentProfileLegacySuiteFile =
-  "test/v2_0/4.1.6.5-Agent-Profile-Resource.js";
-export const activityProfileLegacySuiteFile =
-  "test/v2_0/4.1.6.6-Activity-Profile-Resource.js";
-export const aboutResourceLegacySuiteFile =
-  "test/v2_0/4.1.6.7-About-Resource.js";
-export const headRequestsLegacySuiteFile =
-  "test/v2_0/H.Communication1.1-HeadRequestImplementation.js";
-export const contentTypesLegacySuiteFile =
-  "test/v2_0/4.1.3-Content-Types.js";
-export const concurrencyLegacySuiteFile =
-  "test/v2_0/4.1.4-Concurrency.js";
-export const encodingLegacySuiteFile =
-  "test/v2_0/H.Communication1.4-Encoding.js";
-export const versioningLegacySuiteFile =
-  "test/v2_0/H.Communication3.3-Versioning.js";
-export const authenticationLegacySuiteFile =
-  "test/v2_0/H.Communication4.0-Authentication.js";
-export const documentResourcesLegacySuiteFile =
-  "test/v2_0/H.Communication2.2-DocumentResources.js";
-export const parametersLegacySuiteFile =
-  "test/Parameters/testing.js";
+export const actorRequirementsLegacySuiteFile = "test/v2_0/4.2.2.1-Actor-Requirements.js";
+export const verbRequirementsLegacySuiteFile = "test/v2_0/4.2.2.2-Verb-Requirements.js";
+export const contextLegacySuiteFile = "test/v2_0/4.2.2.5-Context-Requirements.js";
+export const contextsLegacyConfigFile = "test/v2_0/configs/contexts.js";
+export const contextActivitiesLegacyConfigFile = "test/v2_0/configs/contextactivities.js";
+export const objectRequirementsLegacySuiteFile = "test/v2_0/4.2.2.3-Object-Requirements.js";
+export const resultRequirementsLegacySuiteFile = "test/v2_0/4.2.2.4-Result-Requirements.js";
+export const attachmentRequirementsLegacySuiteFile = "test/v2_0/4.2.2.6-Attachment-Requirements.js";
+export const idRequirementsLegacySuiteFile = "test/v2_0/4.2.4.2-ID-Requirements.js";
+export const storedRequirementsLegacySuiteFile = "test/v2_0/4.2.4.2-Stored-Requirements.js";
+export const timestampRequirementsLegacySuiteFile = "test/v2_0/4.2.4.2-Timestamp-Requirements.js";
+export const versionRequirementsLegacySuiteFile = "test/v2_0/4.2.4.3-Version-Requirements.js";
+export const additionalDataTypesLegacySuiteFile = "test/v2_0/4.2.7-Additional-Requirements-for-Data-Types.js";
+export const retrievalOfStatementsLegacySuiteFile = "test/v2_0/E.Data2.5-RetrievalofStatements.js";
+export const signedStatementsLegacySuiteFile = "test/v2_0/E.Data2.6-SignedStatements.js";
+export const specialDataTypesLegacySuiteFile = "test/v2_0/E.Data4.0-SpecialDataTypesAndRules.js";
+export const statementResourceLegacySuiteFile = "test/v2_0/4.1.6.1-Statement-Resource.js";
+export const errorCodesLegacySuiteFile = "test/v2_0/H.Communication3.2-ErrorCodes.js";
+export const stateResourceLegacySuiteFile = "test/v2_0/4.1.6.2-State-Resource.js";
+export const agentsResourceLegacySuiteFile = "test/v2_0/4.1.6.3-Agents-Resource.js";
+export const activitiesResourceLegacySuiteFile = "test/v2_0/4.1.6.4-Activity-Resource.js";
+export const agentProfileLegacySuiteFile = "test/v2_0/4.1.6.5-Agent-Profile-Resource.js";
+export const activityProfileLegacySuiteFile = "test/v2_0/4.1.6.6-Activity-Profile-Resource.js";
+export const aboutResourceLegacySuiteFile = "test/v2_0/4.1.6.7-About-Resource.js";
+export const headRequestsLegacySuiteFile = "test/v2_0/H.Communication1.1-HeadRequestImplementation.js";
+export const contentTypesLegacySuiteFile = "test/v2_0/4.1.3-Content-Types.js";
+export const concurrencyLegacySuiteFile = "test/v2_0/4.1.4-Concurrency.js";
+export const encodingLegacySuiteFile = "test/v2_0/H.Communication1.4-Encoding.js";
+export const versioningLegacySuiteFile = "test/v2_0/H.Communication3.3-Versioning.js";
+export const authenticationLegacySuiteFile = "test/v2_0/H.Communication4.0-Authentication.js";
+export const documentResourcesLegacySuiteFile = "test/v2_0/H.Communication2.2-DocumentResources.js";
+export const parametersLegacySuiteFile = "test/Parameters/testing.js";
 export const ifisLegacyConfigFile = "test/v2_0/configs/ifis.js";
 export const actorsLegacyConfigFile = "test/v2_0/configs/actors.js";
 export const agentsLegacyConfigFile = "test/v2_0/configs/agents.js";
-export const attachmentsLegacyConfigFile =
-  "test/v2_0/configs/attachments.js";
+export const attachmentsLegacyConfigFile = "test/v2_0/configs/attachments.js";
 export const groupsLegacyConfigFile = "test/v2_0/configs/groups.js";
 export const verbsLegacyConfigFile = "test/v2_0/configs/verbs.js";
-export const voidingLegacyConfigFile =
-  "test/v2_0/configs/voiding.js";
-export const authoritiesLegacySuiteFile =
-  "test/v2_0/4.2.4.2-Authority-Requirements.js";
-export const authoritiesLegacyConfigFile =
-  "test/v2_0/configs/authorities.js";
-export const statementLifecycleLegacySuiteFile =
-  "test/v2_0/4.2.5-Statement-Voiding.js";
-export const accountObjectsLegacyConfigFile =
-  "test/v2_0/configs/accountobjects.js";
-export const activitiesLegacyConfigFile =
-  "test/v2_0/configs/activities.js";
-export const objectsLegacyConfigFile =
-  "test/v2_0/configs/objects.js";
-export const resultsLegacyConfigFile =
-  "test/v2_0/configs/results.js";
-export const durationsLegacyConfigFile =
-  "test/v2_0/configs/durations.js";
+export const voidingLegacyConfigFile = "test/v2_0/configs/voiding.js";
+export const authoritiesLegacySuiteFile = "test/v2_0/4.2.4.2-Authority-Requirements.js";
+export const authoritiesLegacyConfigFile = "test/v2_0/configs/authorities.js";
+export const statementLifecycleLegacySuiteFile = "test/v2_0/4.2.5-Statement-Voiding.js";
+export const accountObjectsLegacyConfigFile = "test/v2_0/configs/accountobjects.js";
+export const activitiesLegacyConfigFile = "test/v2_0/configs/activities.js";
+export const objectsLegacyConfigFile = "test/v2_0/configs/objects.js";
+export const resultsLegacyConfigFile = "test/v2_0/configs/results.js";
+export const durationsLegacyConfigFile = "test/v2_0/configs/durations.js";
 export const scoresLegacyConfigFile = "test/v2_0/configs/scores.js";
-export const timestampPropertyLegacyConfigFile =
-  "test/v2_0/configs/timestamp_property.js";
-export const timestampsLegacyConfigFile =
-  "test/v2_0/configs/timestamps.js";
+export const timestampPropertyLegacyConfigFile = "test/v2_0/configs/timestamp_property.js";
+export const timestampsLegacyConfigFile = "test/v2_0/configs/timestamps.js";
 export const uuidsLegacyConfigFile = "test/v2_0/configs/uuids.js";
-export const versionPropertyLegacyConfigFile =
-  "test/v2_0/configs/version.js";
-export const statementRefsLegacyConfigFile =
-  "test/v2_0/configs/statementrefs.js";
-export const subStatementsLegacyConfigFile =
-  "test/v2_0/configs/substatements.js";
-export const extensionsLegacyConfigFile =
-  "test/v2_0/configs/extensions.js";
-export const languagesLegacyConfigFile =
-  "test/v2_0/configs/languages.js";
+export const versionPropertyLegacyConfigFile = "test/v2_0/configs/version.js";
+export const statementRefsLegacyConfigFile = "test/v2_0/configs/statementrefs.js";
+export const subStatementsLegacyConfigFile = "test/v2_0/configs/substatements.js";
+export const extensionsLegacyConfigFile = "test/v2_0/configs/extensions.js";
+export const languagesLegacyConfigFile = "test/v2_0/configs/languages.js";
 
 export const proofUuidPrefix = "33333333-3333-4333-8333-";
 export const multipartStatementRequestBoundary = "mock-proof-statement-request";
