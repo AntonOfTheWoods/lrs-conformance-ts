@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "bun test ./test/describe-runtime.test.ts ./rewrite/tests/parity-comparison.test.ts ./rewrite/tests/v1-v2-delta-matrix.test.ts",
+    "test": "bun test ./test/describe-runtime.test.ts ./test/describe-runtime-http.test.ts ./rewrite/tests/parity-comparison.test.ts ./rewrite/tests/v1-v2-delta-matrix.test.ts",
     "typecheck": "tsgo --noEmit",
     "lint": "oxlint --config .oxlintrc.jsonc .",
     "format": "oxfmt --config .oxfmtrc.jsonc --write .",

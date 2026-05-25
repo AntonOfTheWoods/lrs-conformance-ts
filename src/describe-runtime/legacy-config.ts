@@ -232,3 +232,25 @@ export function expandLegacyCasePayload(version: LegacyVersionFolder, legacyCase
 
   throw new Error(`Invalid legacy case: ${legacyCase.name}`);
 }
+
+export function resolveLegacyCaseRequestBody(version: LegacyVersionFolder, legacyCase: LegacyConfigCase): unknown {
+  if (legacyCase.templates) {
+    const expanded = expandLegacyCasePayload(version, legacyCase);
+    if (!isPlainObject(expanded)) {
+      throw new Error(`Legacy template case did not expand to an object: ${legacyCase.name}`);
+    }
+
+    const keys = Object.keys(expanded);
+    if (keys.length !== 1) {
+      throw new Error(`Legacy template case expected exactly one root key: ${legacyCase.name}`);
+    }
+
+    return cloneValue(expanded[keys[0]!] as unknown);
+  }
+
+  if (legacyCase.json !== undefined) {
+    return cloneValue(legacyCase.json);
+  }
+
+  throw new Error(`Invalid legacy case: ${legacyCase.name}`);
+}
