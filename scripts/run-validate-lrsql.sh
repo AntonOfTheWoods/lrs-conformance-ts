@@ -2,7 +2,7 @@
 set -euo pipefail
 
 XAPI_VERSION="${XAPI_VERSION:-2.0.0}"
-LIVE_RUN_OUT="${LIVE_RUN_OUT:-tmp/agents/lrsql-live-run-${XAPI_VERSION}.json}"
+VALIDATE_RUN_OUT="${VALIDATE_RUN_OUT:-tmp/agents/validate-run-${XAPI_VERSION}.json}"
 
 if [[ "${XAPI_VERSION}" == "1.0.3" ]]; then
   export LRSQL_SUPPORTED_VERSIONS="1.0.3"
@@ -17,12 +17,12 @@ XAPI_VERSION="${XAPI_VERSION}" bun run lrsql:wait
 XAPI_VERSION="${XAPI_VERSION}" bun run lrsql:auth:check >/dev/null
 XAPI_VERSION="${XAPI_VERSION}" bun run lrsql:wait
 set +e
-LIVE_RUN_OUT="${LIVE_RUN_OUT}" XAPI_VERSION="${XAPI_VERSION}" bun run validate:export:lrsql
+VALIDATE_RUN_OUT="${VALIDATE_RUN_OUT}" XAPI_VERSION="${XAPI_VERSION}" bun run validate:export:lrsql
 export_exit_code=$?
 set -e
 
-LIVE_RUN_OUT="${LIVE_RUN_OUT}" bun -e 'import { readFileSync } from "node:fs";
-const filePath = process.env.LIVE_RUN_OUT;
+VALIDATE_RUN_OUT="${VALIDATE_RUN_OUT}" bun -e 'import { readFileSync } from "node:fs";
+const filePath = process.env.VALIDATE_RUN_OUT;
 const parsed = JSON.parse(readFileSync(filePath, "utf8"));
 const run = parsed?.run;
 if (!run || typeof run !== "object") {

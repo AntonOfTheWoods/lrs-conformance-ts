@@ -1,9 +1,9 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
-import { runRegistryVersion } from "../../src/execution/runner";
-import { createV103ProofSliceRegistry } from "../../src/specs/v1_0_3/proof-slice";
-import { createProofSliceRegistry } from "../../src/specs/v2_0/proof-slice";
+import { runRegistryVersion } from "../src/execution/runner";
+import { createV103ProofSliceRegistry } from "../src/specs/v1_0_3/proof-slice";
+import { createProofSliceRegistry } from "../src/specs/v2_0/proof-slice";
 
 type SupportedSpecVersion = "2.0.0" | "1.0.3";
 
@@ -27,18 +27,18 @@ function getFlagValue(args: string[], flag: string): string | undefined {
 function usage(): string {
   return [
     "Usage:",
-    "  bun run export:run -- --base-url <url> [--version 2.0.0|1.0.3] [--out <path>] [--username <user> --password <pass>]",
+    "  bun run validate:export:run -- --base-url <url> [--version 2.0.0|1.0.3] [--out <path>] [--username <user> --password <pass>]",
     "",
     "Examples:",
-    "  bun run export:run -- --base-url http://localhost:8080/xapi --username janedoe --password supersecret --out tmp/agents/lrsql-run.json",
-    "  bun run export:run -- --base-url http://localhost:8080/xapi --version 1.0.3 --out tmp/agents/lrsql-v103-run.json",
+    "  bun run validate:export:run -- --base-url http://localhost:8080/xapi --username janedoe --password supersecret --out tmp/agents/lrsql-run.json",
+    "  bun run validate:export:run -- --base-url http://localhost:8080/xapi --version 1.0.3 --out tmp/agents/lrsql-v103-run.json",
   ].join("\n");
 }
 
 function parseConfig(args: string[]): ExportRunConfig | undefined {
   const baseUrl = getFlagValue(args, "--base-url");
   const versionFlag = getFlagValue(args, "--version") ?? "2.0.0";
-  const outputPath = getFlagValue(args, "--out") ?? "tmp/agents/live-run.json";
+  const outputPath = getFlagValue(args, "--out") ?? "tmp/agents/validate-run.json";
   const username = getFlagValue(args, "--username");
   const password = getFlagValue(args, "--password");
 
