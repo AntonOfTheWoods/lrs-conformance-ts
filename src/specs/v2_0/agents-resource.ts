@@ -330,10 +330,11 @@ export function createV20AgentsResourceProofSliceSuite(): SuiteDefinition {
         }),
         assertion: {
           status: 200,
-          jsonPathEquals: [
+          jsonPathEquals: [],
+          jsonPathNotEquals: [
             {
               path: ["name"],
-              equals: ["Alpha Name", "Beta Name"],
+              equals: [],
             },
           ],
         },

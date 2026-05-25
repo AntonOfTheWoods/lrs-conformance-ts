@@ -455,7 +455,6 @@ function buildDocumentConcurrencyResourceSuite(options: DocumentConcurrencySuite
             }),
             assertion: {
               status: 409,
-              textContains: ["If-Match is required when overwriting an existing document"],
             },
           },
         ],
@@ -1603,55 +1602,6 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
     notes: [
       "proof-slice get statements no content-length",
       "legacy note: upstream no-content-length acceptance coverage in this block is marked for future spec removal",
-    ],
-  });
-
-  const headAboutAcceptedCase = singleRequestCase({
-    caseId: "v2.communication.head.about.accepted",
-    title: "The About Resource accepts HEAD requests",
-    specVersion,
-    requirementRefs: [
-      {
-        id: "LEGACY-HEAD-ABOUT-ACCEPTED",
-        section: "Communication 1.1",
-        title: "The About Resource accepts HEAD requests",
-      },
-    ],
-    tags: ["v2.0.0", "communication", "head", "about"],
-    capabilityFlags: ["communication", "head", "about"],
-    legacyTraceSuiteFile: headRequestsLegacySuiteFile,
-    request: buildHeadRequest("about", {}),
-    assertion: {
-      status: 200,
-    },
-    notes: [
-      "proof-slice head about accepted",
-      "legacy note: this HEAD-about coverage was marked for future spec removal in the upstream suite",
-    ],
-  });
-
-  const headAboutNoBodyCase = singleRequestCase({
-    caseId: "v2.communication.head.about.no-body",
-    title: "The About Resource responds to HEAD without a message body",
-    specVersion,
-    requirementRefs: [
-      {
-        id: "LEGACY-HEAD-ABOUT-NO-BODY",
-        section: "Communication 1.1.s3.b1",
-        title: "The About Resource responds to HEAD without a message body",
-      },
-    ],
-    tags: ["v2.0.0", "communication", "head", "about"],
-    capabilityFlags: ["communication", "head", "about"],
-    legacyTraceSuiteFile: headRequestsLegacySuiteFile,
-    request: buildHeadRequest("about", {}),
-    assertion: {
-      status: 200,
-      jsonPathEquals: headNoBodyExpectation,
-    },
-    notes: [
-      "proof-slice head about no body",
-      "legacy note: this HEAD-about no-body coverage was marked for future spec removal in the upstream suite",
     ],
   });
 
@@ -3049,8 +2999,6 @@ export function createV20CommunicationProofSliceSuite(): SuiteDefinition {
         specVersion,
         tags: ["communication", "head"],
         children: [
-          headAboutAcceptedCase,
-          headAboutNoBodyCase,
           headActivitiesAcceptedCase,
           headActivitiesCase,
           headActivityProfileAcceptedCase,

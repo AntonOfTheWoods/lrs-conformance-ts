@@ -592,7 +592,8 @@ export function buildProofStoredTimestamp(second: number): string {
 
 export function buildProofDocumentEtag(body: unknown, mediaType = "application/json"): string {
   const serialized = typeof body === "string" ? body : (JSON.stringify(body) ?? "");
-  return `"${createHash("sha1").update(`${mediaType}:${serialized}`).digest("hex")}"`;
+  void mediaType;
+  return `"${createHash("sha1").update(serialized).digest("hex")}"`;
 }
 
 export function buildFormatProofStatement(sequence: number, actorMbox: string): StatementFixture {
