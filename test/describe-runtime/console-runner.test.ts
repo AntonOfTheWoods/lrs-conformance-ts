@@ -57,6 +57,24 @@ const allowedActorObjectTypes = new Set(["Agent", "Group"]);
 const allowedObjectObjectTypes = new Set(["Activity", "Agent", "Group", "SubStatement", "StatementRef"]);
 const contextActivityTypes = ["parent", "grouping", "category", "other"] as const;
 const allowedContextActivityKeys = new Set(contextActivityTypes);
+const allowedStatementQueryKeys = new Set([
+  "activity",
+  "agent",
+  "ascending",
+  "attachments",
+  "format",
+  "limit",
+  "offset",
+  "registration",
+  "related_activities",
+  "related_agents",
+  "since",
+  "statementId",
+  "until",
+  "verb",
+  "voidedStatementId",
+]);
+const singleStatementAllowedKeys = new Set(["attachments", "format", "statementId", "voidedStatementId"]);
 
 const languageTagPattern =
   /^[A-Za-z]{2,3}(?:-[A-Za-z]{4})?(?:-(?:[A-Za-z]{2}|\d{3}))?(?:-(?:[A-Za-z0-9]{5,8}|\d[A-Za-z0-9]{3}))*$/;
@@ -67,6 +85,9 @@ const isoDurationPattern =
 const interactionComponentParents = new Set(["choices", "scale", "source", "target", "steps"]);
 
 const isoTimestampPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/;
+const voidedVerbSuffix = "voided";
+
+type StatementResponseFormat = "canonical" | "exact" | "ids";
 
 type ActorRole = "Agent" | "Group" | "Either";
 
@@ -148,6 +169,10 @@ function determineStatementStatus(body: unknown): number {
   }
 
   if (hasInvalidAttachments(body)) {
+    return 400;
+  }
+
+  if (hasInvalidStatementLifecycle(body)) {
     return 400;
   }
 
@@ -841,6 +866,20 @@ function hasInvalidAttachmentRecord(value: unknown): boolean {
   return false;
 }
 
+function hasInvalidStatementLifecycle(statement: Record<string, unknown>): boolean {
+  if (!isVoidingStatement(statement)) {
+    return false;
+  }
+
+  const object = statement.object;
+  return !isObjectRecord(object) || object.objectType !== "StatementRef";
+}
+
+function isVoidingStatement(statement: Record<string, unknown>): boolean {
+  const verb = statement.verb;
+  return isObjectRecord(verb) && typeof verb.id === "string" && verb.id.endsWith(voidedVerbSuffix);
+}
+
 function isValidContentType(value: unknown): value is string {
   return typeof value === "string" && /^[^\s/;]+\/[^\s/;]+(?:\s*;.+)?$/.test(value);
 }
@@ -1030,6 +1069,34 @@ function createStoredStatement(statement: Record<string, unknown>, statementId: 
   return storedStatement;
 }
 
+function recomputeVoidedStatementIds(storedStatements: Map<string, Record<string, unknown>>): Set<string> {
+  const voidedStatementIds = new Set<string>();
+
+  for (const statement of storedStatements.values()) {
+    if (!isVoidingStatement(statement)) {
+      continue;
+    }
+
+    const statementObject = statement.object;
+    if (
+      !isObjectRecord(statementObject) ||
+      statementObject.objectType !== "StatementRef" ||
+      typeof statementObject.id !== "string"
+    ) {
+      continue;
+    }
+
+    const target = storedStatements.get(statementObject.id);
+    if (!target || isVoidingStatement(target) || voidedStatementIds.has(statementObject.id)) {
+      continue;
+    }
+
+    voidedStatementIds.add(statementObject.id);
+  }
+
+  return voidedStatementIds;
+}
+
 function hasMissingIriScheme(value: unknown, path: readonly string[] = []): boolean {
   if (typeof value === "string") {
     const last = path.at(-1);
@@ -1096,6 +1163,472 @@ function hasScheme(value: string | null): boolean {
   return typeof value === "string" && /^[a-zA-Z][a-zA-Z0-9+.-]*:.+/.test(value);
 }
 
+function parseBooleanQuery(value: string | null): boolean | undefined {
+  if (value === "true") {
+    return true;
+  }
+
+  if (value === "false") {
+    return false;
+  }
+
+  return undefined;
+}
+
+function normalizeStoredTimestampForDate(value: string): string {
+  return value.replace(/\.(\d{3})\d+Z$/, ".$1Z");
+}
+
+function parseStoredDate(value: unknown): number | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const parsed = Date.parse(normalizeStoredTimestampForDate(value));
+  return Number.isNaN(parsed) ? undefined : parsed;
+}
+
+function createConsistentThroughHeader(): string {
+  return new Date().toISOString();
+}
+
+function createLastModifiedHeader(statement: Record<string, unknown>): string | undefined {
+  const stored = statement.stored;
+  if (typeof stored !== "string") {
+    return undefined;
+  }
+
+  return new Date(normalizeStoredTimestampForDate(stored)).toUTCString();
+}
+
+function createStatementGetHeaders(statement?: Record<string, unknown>): Record<string, string> {
+  const headers: Record<string, string> = {
+    "X-Experience-API-Consistent-Through": createConsistentThroughHeader(),
+  };
+
+  if (statement) {
+    const lastModified = createLastModifiedHeader(statement);
+    if (lastModified) {
+      headers["Last-Modified"] = lastModified;
+    }
+  }
+
+  return headers;
+}
+
+function createStatementJsonResponse(body: unknown, status: number, statement?: Record<string, unknown>): Response {
+  return Response.json(body, {
+    status,
+    headers: createStatementGetHeaders(statement),
+  });
+}
+
+function selectLanguageKey(keys: string[], acceptLanguage: string | null): string | undefined {
+  const normalizedKeys = new Set(keys);
+  const preferredLanguages = (acceptLanguage ?? "")
+    .split(",")
+    .map((entry) => entry.split(";")[0]?.trim())
+    .filter((entry): entry is string => Boolean(entry));
+
+  for (const preferredLanguage of preferredLanguages) {
+    if (normalizedKeys.has(preferredLanguage)) {
+      return preferredLanguage;
+    }
+
+    const baseLanguage = preferredLanguage.split("-")[0];
+    if (!baseLanguage) {
+      continue;
+    }
+
+    const fallback = keys.find((key) => key.toLowerCase().startsWith(`${baseLanguage.toLowerCase()}-`));
+    if (fallback) {
+      return fallback;
+    }
+  }
+
+  return keys[0];
+}
+
+function applyCanonicalFormat(value: unknown, acceptLanguage: string | null, path: readonly string[] = []): unknown {
+  if (Array.isArray(value)) {
+    return value.map((item, index) => applyCanonicalFormat(item, acceptLanguage, [...path, String(index)]));
+  }
+
+  if (!isObjectRecord(value)) {
+    return value;
+  }
+
+  if (isLanguageMapPath(path)) {
+    const selectedKey = selectLanguageKey(Object.keys(value), acceptLanguage);
+    if (!selectedKey) {
+      return {};
+    }
+
+    return { [selectedKey]: value[selectedKey] };
+  }
+
+  const formatted: Record<string, unknown> = {};
+  for (const [key, childValue] of Object.entries(value)) {
+    formatted[key] = applyCanonicalFormat(childValue, acceptLanguage, [...path, key]);
+  }
+
+  return formatted;
+}
+
+function isActivityLikeRecord(value: Record<string, unknown>): boolean {
+  if (isActorCandidateRecord(value) || isSubStatementRecord(value)) {
+    return false;
+  }
+
+  return (
+    typeof value.id === "string" &&
+    (value.objectType === undefined || value.objectType === "Activity" || "definition" in value)
+  );
+}
+
+function createIdsActor(value: Record<string, unknown>): Record<string, unknown> {
+  if (value.objectType === "Group") {
+    const group: Record<string, unknown> = { objectType: "Group" };
+
+    if (typeof value.mbox === "string") {
+      group.mbox = value.mbox;
+      return group;
+    }
+
+    if (typeof value.mbox_sha1sum === "string") {
+      group.mbox_sha1sum = value.mbox_sha1sum;
+      return group;
+    }
+
+    if (typeof value.openid === "string") {
+      group.openid = value.openid;
+      return group;
+    }
+
+    if (isObjectRecord(value.account)) {
+      group.account = structuredClone(value.account);
+      return group;
+    }
+
+    if (Array.isArray(value.member)) {
+      group.member = value.member.map((member) => {
+        return isObjectRecord(member) ? createIdsActor(member) : member;
+      });
+    }
+
+    return group;
+  }
+
+  const actor: Record<string, unknown> = {};
+  if (value.objectType === "Agent") {
+    actor.objectType = "Agent";
+  }
+
+  if (typeof value.mbox === "string") {
+    actor.mbox = value.mbox;
+  } else if (typeof value.mbox_sha1sum === "string") {
+    actor.mbox_sha1sum = value.mbox_sha1sum;
+  } else if (typeof value.openid === "string") {
+    actor.openid = value.openid;
+  } else if (isObjectRecord(value.account)) {
+    actor.account = structuredClone(value.account);
+  }
+
+  return actor;
+}
+
+function applyIdsFormat(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map((item) => applyIdsFormat(item));
+  }
+
+  if (!isObjectRecord(value)) {
+    return value;
+  }
+
+  if (isActorCandidateRecord(value)) {
+    return createIdsActor(value);
+  }
+
+  if (isSubStatementRecord(value)) {
+    const formatted: Record<string, unknown> = {
+      objectType: "SubStatement",
+    };
+
+    for (const [key, childValue] of Object.entries(value)) {
+      if (key === "objectType") {
+        continue;
+      }
+
+      formatted[key] = applyIdsFormat(childValue);
+    }
+
+    return formatted;
+  }
+
+  if (value.objectType === "StatementRef") {
+    return {
+      objectType: "StatementRef",
+      id: value.id,
+    };
+  }
+
+  if (isActivityLikeRecord(value)) {
+    return {
+      id: value.id,
+    };
+  }
+
+  if (typeof value.id === "string" && isObjectRecord(value.display)) {
+    return {
+      id: value.id,
+    };
+  }
+
+  const formatted: Record<string, unknown> = {};
+  for (const [key, childValue] of Object.entries(value)) {
+    formatted[key] = applyIdsFormat(childValue);
+  }
+
+  return formatted;
+}
+
+function getStatementResponseFormat(searchParams: URLSearchParams): StatementResponseFormat {
+  const format = searchParams.get("format");
+  if (format === "canonical" || format === "ids") {
+    return format;
+  }
+
+  return "exact";
+}
+
+function formatStatementForResponse(
+  statement: Record<string, unknown>,
+  format: StatementResponseFormat,
+  acceptLanguage: string | null,
+): Record<string, unknown> {
+  const cloned = structuredClone(statement);
+  if (format === "canonical") {
+    return applyCanonicalFormat(cloned, acceptLanguage) as Record<string, unknown>;
+  }
+
+  if (format === "ids") {
+    return applyIdsFormat(cloned) as Record<string, unknown>;
+  }
+
+  return cloned;
+}
+
+function isMatchingAgent(candidate: Record<string, unknown>, queryAgent: Record<string, unknown>): boolean {
+  if (typeof queryAgent.mbox === "string") {
+    return candidate.mbox === queryAgent.mbox;
+  }
+
+  if (typeof queryAgent.mbox_sha1sum === "string") {
+    return candidate.mbox_sha1sum === queryAgent.mbox_sha1sum;
+  }
+
+  if (typeof queryAgent.openid === "string") {
+    return candidate.openid === queryAgent.openid;
+  }
+
+  if (isObjectRecord(queryAgent.account) && isObjectRecord(candidate.account)) {
+    return (
+      candidate.account.homePage === queryAgent.account.homePage && candidate.account.name === queryAgent.account.name
+    );
+  }
+
+  return false;
+}
+
+function addContextActors(context: unknown, actors: Record<string, unknown>[]): void {
+  if (!isObjectRecord(context)) {
+    return;
+  }
+
+  if (isObjectRecord(context.instructor)) {
+    actors.push(context.instructor);
+  }
+
+  if (isObjectRecord(context.team)) {
+    actors.push(context.team);
+  }
+}
+
+function collectAgentCandidates(
+  statement: Record<string, unknown>,
+  includeRelated: boolean,
+): Record<string, unknown>[] {
+  const actors: Record<string, unknown>[] = [];
+
+  if (isObjectRecord(statement.actor)) {
+    actors.push(statement.actor);
+  }
+
+  if (isObjectRecord(statement.object) && isActorCandidateRecord(statement.object)) {
+    actors.push(statement.object);
+  }
+
+  if (isObjectRecord(statement.authority)) {
+    actors.push(statement.authority);
+  }
+
+  if (includeRelated) {
+    addContextActors(statement.context, actors);
+
+    if (isObjectRecord(statement.object) && isSubStatementRecord(statement.object)) {
+      if (isObjectRecord(statement.object.actor)) {
+        actors.push(statement.object.actor);
+      }
+
+      if (isObjectRecord(statement.object.object) && isActorCandidateRecord(statement.object.object)) {
+        actors.push(statement.object.object);
+      }
+
+      addContextActors(statement.object.context, actors);
+    }
+  }
+
+  return actors;
+}
+
+function collectContextActivities(context: unknown, activities: Record<string, unknown>[]): void {
+  if (!isObjectRecord(context) || !isObjectRecord(context.contextActivities)) {
+    return;
+  }
+
+  for (const activityValue of Object.values(context.contextActivities)) {
+    if (Array.isArray(activityValue)) {
+      for (const item of activityValue) {
+        if (isObjectRecord(item)) {
+          activities.push(item);
+        }
+      }
+      continue;
+    }
+
+    if (isObjectRecord(activityValue)) {
+      activities.push(activityValue);
+    }
+  }
+}
+
+function collectActivityCandidates(
+  statement: Record<string, unknown>,
+  includeRelated: boolean,
+): Record<string, unknown>[] {
+  const activities: Record<string, unknown>[] = [];
+
+  if (isObjectRecord(statement.object) && isActivityLikeRecord(statement.object)) {
+    activities.push(statement.object);
+  }
+
+  if (includeRelated) {
+    collectContextActivities(statement.context, activities);
+
+    if (isObjectRecord(statement.object) && isSubStatementRecord(statement.object)) {
+      if (isObjectRecord(statement.object.object) && isActivityLikeRecord(statement.object.object)) {
+        activities.push(statement.object.object);
+      }
+
+      collectContextActivities(statement.object.context, activities);
+    }
+  }
+
+  return activities;
+}
+
+function getCollectionResults(
+  storedStatements: Map<string, Record<string, unknown>>,
+  voidedStatementIds: Set<string>,
+  searchParams: URLSearchParams,
+  acceptLanguage: string | null,
+): { more: string; statements: Record<string, unknown>[] } {
+  let results = Array.from(storedStatements.values()).filter((statement) => {
+    return typeof statement.id === "string" && !voidedStatementIds.has(statement.id);
+  });
+
+  const statementFormat = getStatementResponseFormat(searchParams);
+
+  const agentParam = searchParams.get("agent");
+  if (agentParam) {
+    const queryAgent = JSON.parse(agentParam) as Record<string, unknown>;
+    const includeRelatedAgents = parseBooleanQuery(searchParams.get("related_agents")) === true;
+    results = results.filter((statement) => {
+      return collectAgentCandidates(statement, includeRelatedAgents).some((candidate) => {
+        return isMatchingAgent(candidate, queryAgent);
+      });
+    });
+  }
+
+  const verb = searchParams.get("verb");
+  if (verb) {
+    results = results.filter((statement) => isObjectRecord(statement.verb) && statement.verb.id === verb);
+  }
+
+  const activity = searchParams.get("activity");
+  if (activity) {
+    const includeRelatedActivities = parseBooleanQuery(searchParams.get("related_activities")) === true;
+    results = results.filter((statement) => {
+      return collectActivityCandidates(statement, includeRelatedActivities).some(
+        (candidate) => candidate.id === activity,
+      );
+    });
+  }
+
+  const registration = searchParams.get("registration");
+  if (registration) {
+    results = results.filter((statement) => {
+      return isObjectRecord(statement.context) && statement.context.registration === registration;
+    });
+  }
+
+  const since = searchParams.get("since");
+  if (since) {
+    const sinceDate = Date.parse(since);
+    results = results.filter((statement) => {
+      const storedDate = parseStoredDate(statement.stored);
+      return typeof storedDate === "number" && storedDate > sinceDate;
+    });
+  }
+
+  const until = searchParams.get("until");
+  if (until) {
+    const untilDate = Date.parse(until);
+    results = results.filter((statement) => {
+      const storedDate = parseStoredDate(statement.stored);
+      return typeof storedDate === "number" && storedDate <= untilDate;
+    });
+  }
+
+  results.sort((left, right) => (parseStoredDate(left.stored) ?? 0) - (parseStoredDate(right.stored) ?? 0));
+  if (parseBooleanQuery(searchParams.get("ascending")) !== true) {
+    results.reverse();
+  }
+
+  const limit = Number.parseInt(searchParams.get("limit") ?? "", 10);
+  const offset = Number.parseInt(searchParams.get("offset") ?? "0", 10);
+  const normalizedOffset = Number.isFinite(offset) && offset > 0 ? offset : 0;
+
+  let statements = results;
+  let more = "";
+  if (Number.isFinite(limit) && limit > 0) {
+    statements = results.slice(normalizedOffset, normalizedOffset + limit);
+    const nextOffset = normalizedOffset + limit;
+    if (nextOffset < results.length) {
+      const nextQuery = new URLSearchParams(searchParams);
+      nextQuery.set("limit", String(limit));
+      nextQuery.set("offset", String(nextOffset));
+      more = `?${nextQuery.toString()}`;
+    }
+  }
+
+  return {
+    statements: statements.map((statement) => formatStatementForResponse(statement, statementFormat, acceptLanguage)),
+    more,
+  };
+}
+
 function isAgentQueryValid(value: string | null): boolean {
   if (typeof value !== "string") {
     return false;
@@ -1110,6 +1643,16 @@ function isAgentQueryValid(value: string | null): boolean {
 }
 
 function validateStatementQuery(searchParams: URLSearchParams): number | undefined {
+  for (const key of searchParams.keys()) {
+    if (!allowedStatementQueryKeys.has(key)) {
+      return 400;
+    }
+  }
+
+  if (searchParams.has("statementId") && searchParams.has("voidedStatementId")) {
+    return 400;
+  }
+
   if (searchParams.has("statementId") && !isUuidLike(searchParams.get("statementId"))) {
     return 400;
   }
@@ -1132,6 +1675,73 @@ function validateStatementQuery(searchParams: URLSearchParams): number | undefin
 
   if (searchParams.has("registration") && !isUuidLike(searchParams.get("registration"))) {
     return 400;
+  }
+
+  if (searchParams.has("since") && !isIsoTimestamp(searchParams.get("since") ?? "")) {
+    return 400;
+  }
+
+  if (searchParams.has("until") && !isIsoTimestamp(searchParams.get("until") ?? "")) {
+    return 400;
+  }
+
+  if (searchParams.has("ascending") && typeof parseBooleanQuery(searchParams.get("ascending")) === "undefined") {
+    return 400;
+  }
+
+  if (
+    searchParams.has("related_activities") &&
+    typeof parseBooleanQuery(searchParams.get("related_activities")) === "undefined"
+  ) {
+    return 400;
+  }
+
+  if (
+    searchParams.has("related_agents") &&
+    typeof parseBooleanQuery(searchParams.get("related_agents")) === "undefined"
+  ) {
+    return 400;
+  }
+
+  if (searchParams.has("attachments") && typeof parseBooleanQuery(searchParams.get("attachments")) === "undefined") {
+    return 400;
+  }
+
+  if (searchParams.has("format")) {
+    const format = searchParams.get("format");
+    if (format !== "canonical" && format !== "exact" && format !== "ids") {
+      return 400;
+    }
+  }
+
+  if (searchParams.has("limit")) {
+    const limit = Number.parseInt(searchParams.get("limit") ?? "", 10);
+    if (!Number.isFinite(limit) || limit <= 0) {
+      return 400;
+    }
+  }
+
+  if (searchParams.has("offset")) {
+    const offset = Number.parseInt(searchParams.get("offset") ?? "", 10);
+    if (!Number.isFinite(offset) || offset < 0) {
+      return 400;
+    }
+  }
+
+  if (searchParams.has("statementId")) {
+    for (const key of searchParams.keys()) {
+      if (!singleStatementAllowedKeys.has(key)) {
+        return 400;
+      }
+    }
+  }
+
+  if (searchParams.has("voidedStatementId")) {
+    for (const key of searchParams.keys()) {
+      if (!singleStatementAllowedKeys.has(key)) {
+        return 400;
+      }
+    }
   }
 
   return undefined;
@@ -1184,6 +1794,7 @@ function validateAgentProfileQuery(searchParams: URLSearchParams): number {
 function startMockLrs() {
   const requests: CapturedRequest[] = [];
   const storedStatements = new Map<string, Record<string, unknown>>();
+  let voidedStatementIds = new Set<string>();
 
   const server = Bun.serve({
     port: 0,
@@ -1201,10 +1812,49 @@ function startMockLrs() {
       });
 
       if (request.method === "POST" && url.pathname === "/xapi/statements") {
+        if (Array.isArray(body)) {
+          const seenIds = new Set<string>();
+          if (
+            body.length === 0 ||
+            body.some((statement) => {
+              if (!isObjectRecord(statement) || determineStatementStatus(statement) !== 200) {
+                return true;
+              }
+
+              if (typeof statement.id === "string") {
+                if (seenIds.has(statement.id)) {
+                  return true;
+                }
+
+                seenIds.add(statement.id);
+              }
+
+              return false;
+            })
+          ) {
+            return Response.json({ ok: false }, { status: 400 });
+          }
+
+          const statementIds: string[] = [];
+          for (const statement of body) {
+            const statementId = typeof statement.id === "string" ? statement.id : crypto.randomUUID();
+            statementIds.push(statementId);
+            if (!storedStatements.has(statementId)) {
+              storedStatements.set(statementId, createStoredStatement(statement, statementId));
+            }
+          }
+
+          voidedStatementIds = recomputeVoidedStatementIds(storedStatements);
+          return Response.json(statementIds, { status: 200 });
+        }
+
         const status = determineStatementStatus(body);
         if (status === 200 && isObjectRecord(body)) {
           const statementId = typeof body.id === "string" ? body.id : crypto.randomUUID();
-          storedStatements.set(statementId, createStoredStatement(body, statementId));
+          if (!storedStatements.has(statementId)) {
+            storedStatements.set(statementId, createStoredStatement(body, statementId));
+          }
+          voidedStatementIds = recomputeVoidedStatementIds(storedStatements);
 
           return Response.json([statementId], { status });
         }
@@ -1220,7 +1870,10 @@ function startMockLrs() {
 
         const status = determineStatementStatus(body);
         if (status === 200 && isObjectRecord(body)) {
-          storedStatements.set(statementId, createStoredStatement(body, statementId));
+          if (!storedStatements.has(statementId)) {
+            storedStatements.set(statementId, createStoredStatement(body, statementId));
+          }
+          voidedStatementIds = recomputeVoidedStatementIds(storedStatements);
 
           return new Response(null, { status: 204 });
         }
@@ -1231,20 +1884,56 @@ function startMockLrs() {
       if (request.method === "GET" && url.pathname === "/xapi/statements") {
         const validationStatus = validateStatementQuery(url.searchParams);
         if (validationStatus) {
-          return Response.json({ ok: false }, { status: validationStatus });
+          return createStatementJsonResponse({ ok: false }, validationStatus);
         }
+
+        const statementFormat = getStatementResponseFormat(url.searchParams);
 
         const statementId = url.searchParams.get("statementId");
         if (statementId) {
-          const storedStatement = storedStatements.get(statementId);
-          if (storedStatement) {
-            return Response.json(storedStatement, { status: 200 });
+          if (voidedStatementIds.has(statementId)) {
+            return createStatementJsonResponse({ ok: false }, 404);
           }
 
-          return Response.json({ ok: false }, { status: 404 });
+          const storedStatement = storedStatements.get(statementId);
+          if (storedStatement) {
+            return createStatementJsonResponse(
+              formatStatementForResponse(storedStatement, statementFormat, request.headers.get("Accept-Language")),
+              200,
+              storedStatement,
+            );
+          }
+
+          return createStatementJsonResponse({ ok: false }, 404);
         }
 
-        return Response.json({ statements: Array.from(storedStatements.values()) }, { status: 200 });
+        const voidedStatementId = url.searchParams.get("voidedStatementId");
+        if (voidedStatementId) {
+          if (!voidedStatementIds.has(voidedStatementId)) {
+            return createStatementJsonResponse({ ok: false }, 404);
+          }
+
+          const storedStatement = storedStatements.get(voidedStatementId);
+          if (storedStatement) {
+            return createStatementJsonResponse(
+              formatStatementForResponse(storedStatement, statementFormat, request.headers.get("Accept-Language")),
+              200,
+              storedStatement,
+            );
+          }
+
+          return createStatementJsonResponse({ ok: false }, 404);
+        }
+
+        return createStatementJsonResponse(
+          getCollectionResults(
+            storedStatements,
+            voidedStatementIds,
+            url.searchParams,
+            request.headers.get("Accept-Language"),
+          ),
+          200,
+        );
       }
 
       if (url.pathname === "/xapi/activities/state") {
@@ -1285,20 +1974,20 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 913,
-        passed: 913,
+        total: 1012,
+        passed: 1012,
         failed: 0,
         version: "2.0.0",
       });
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "POST"),
-      ).toHaveLength(895);
+      ).toHaveLength(992);
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "PUT"),
-      ).toHaveLength(12);
+      ).toHaveLength(18);
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "GET"),
-      ).toHaveLength(22);
+      ).toHaveLength(111);
       expect(harness.requests.every((request) => request.version === "2.0.0")).toBe(true);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-v2.log"), "utf8")) as {
@@ -1307,8 +1996,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 913,
-        passed: 913,
+        total: 1012,
+        passed: 1012,
         failed: 0,
         version: "2.0.0",
       });
@@ -1325,6 +2014,9 @@ describe("console runner entrypoint", () => {
         "Context Property Requirements (Data 2.4.6)",
         "Authority Property Requirements (Data 2.4.9)",
         "Attachments Property Requirements (Data 2.4.11)",
+        "Statement Lifecycle Requirements (Data 2.3)",
+        "Retrieval of Statements (Data 2.5)",
+        "Statement Resource Requirements (Communication 2.1)",
       ]);
       expect(writtenRecord.log.tests[0]?.tests.map((suite) => suite.title)).toEqual([
         "An LRS stores 32-bit floating point numbers with at least the precision of IEEE 754 (Data 2.2.s4.b3, XAPI-00002)",
@@ -1406,12 +2098,12 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("1.0.3");
       expect(execution.runRecord.summary).toEqual({
-        total: 893,
-        passed: 893,
+        total: 989,
+        passed: 989,
         failed: 0,
         version: "1.0.3",
       });
-      expect(harness.requests).toHaveLength(909);
+      expect(harness.requests).toHaveLength(1097);
       expect(harness.requests.every((request) => request.version === "1.0.3")).toBe(true);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-v103.log"), "utf8")) as {
@@ -1419,8 +2111,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 893,
-        passed: 893,
+        total: 989,
+        passed: 989,
         failed: 0,
         version: "1.0.3",
       });
@@ -1444,12 +2136,12 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Parameters", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 941,
-        passed: 941,
+        total: 1040,
+        passed: 1040,
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(929);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1121);
       expect(harness.requests.filter((request) => request.path === "/xapi/activities/state")).toHaveLength(13);
       expect(harness.requests.filter((request) => request.path === "/xapi/agents/profile")).toHaveLength(6);
       expect(harness.requests.filter((request) => request.path === "/xapi/activities/profile")).toHaveLength(9);
@@ -1460,8 +2152,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 941,
-        passed: 941,
+        total: 1040,
+        passed: 1040,
         failed: 0,
         version: "2.0.0",
       });
@@ -1488,12 +2180,12 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Multiplicity", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 995,
-        passed: 995,
+        total: 1094,
+        passed: 1094,
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(929);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1121);
       expect(harness.requests.filter((request) => request.path !== "/xapi/statements")).toHaveLength(0);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-multiplicity-v2.log"), "utf8")) as {
@@ -1502,8 +2194,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 995,
-        passed: 995,
+        total: 1094,
+        passed: 1094,
         failed: 0,
         version: "2.0.0",
       });
@@ -1521,6 +2213,9 @@ describe("console runner entrypoint", () => {
         "Context Property Requirements (Data 2.4.6)",
         "Authority Property Requirements (Data 2.4.9)",
         "Attachments Property Requirements (Data 2.4.11)",
+        "Statement Lifecycle Requirements (Data 2.3)",
+        "Retrieval of Statements (Data 2.5)",
+        "Statement Resource Requirements (Communication 2.1)",
       ]);
     } finally {
       await harness.server.stop(true);

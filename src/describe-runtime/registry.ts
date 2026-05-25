@@ -7,6 +7,9 @@ import { registerVerbPropertyRequirementsSuite as registerVerbPropertyRequiremen
 import { registerIdPropertyRequirementsSuite as registerIdPropertyRequirementsV103 } from "../specs/v1_0_3/Data2.4.1-IDProperty.ts";
 import { registerObjectPropertyRequirementsSuite as registerObjectPropertyRequirementsV103 } from "../specs/v1_0_3/Data2.4.4-ObjectProperty.ts";
 import { registerResultPropertyRequirementsSuite as registerResultPropertyRequirementsV103 } from "../specs/v1_0_3/Data2.4.5-ResultProperty.ts";
+import { registerRetrievalOfStatementsSuite as registerRetrievalOfStatementsV103 } from "../specs/v1_0_3/E.Data2.5-RetrievalofStatements.ts";
+import { registerStatementResourceRequirementsSuite as registerStatementResourceRequirementsV103 } from "../specs/v1_0_3/H.Communication2.1-StatementResource.ts";
+import { registerStatementLifecycleRequirementsSuite as registerStatementLifecycleRequirementsV103 } from "../specs/v1_0_3/Data2.3-StatementLifecycle.ts";
 import { registerStoredPropertyRequirementsSuite as registerStoredPropertyRequirementsV103 } from "../specs/v1_0_3/Data2.4.8-StoredProperty.ts";
 import { registerTimestampPropertyRequirementsSuite as registerTimestampPropertyRequirementsV103 } from "../specs/v1_0_3/Data2.4.7-TimestampProperty.ts";
 import { registerVersionPropertyRequirementsSuite as registerVersionPropertyRequirementsV103 } from "../specs/v1_0_3/E.Data2.4.10-VersionProperty.ts";
@@ -19,6 +22,9 @@ import { registerVerbPropertyRequirementsSuite as registerVerbPropertyRequiremen
 import { registerIdPropertyRequirementsSuite as registerIdPropertyRequirementsV20 } from "../specs/v2_0/4.2.4.2-ID-Requirements.ts";
 import { registerObjectPropertyRequirementsSuite as registerObjectPropertyRequirementsV20 } from "../specs/v2_0/4.2.2.3-Object-Requirements.ts";
 import { registerResultPropertyRequirementsSuite as registerResultPropertyRequirementsV20 } from "../specs/v2_0/4.2.2.4-Result-Requirements.ts";
+import { registerRetrievalOfStatementsSuite as registerRetrievalOfStatementsV20 } from "../specs/v2_0/E.Data2.5-RetrievalofStatements.ts";
+import { registerStatementResourceRequirementsSuite as registerStatementResourceRequirementsV20 } from "../specs/v2_0/4.1.6.1-Statement-Resource.ts";
+import { registerStatementLifecycleRequirementsSuite as registerStatementLifecycleRequirementsV20 } from "../specs/v2_0/4.2.5-Statement-Voiding.ts";
 import { registerStoredPropertyRequirementsSuite as registerStoredPropertyRequirementsV20 } from "../specs/v2_0/4.2.4.2-Stored-Requirements.ts";
 import { registerTimestampPropertyRequirementsSuite as registerTimestampPropertyRequirementsV20 } from "../specs/v2_0/4.2.4.2-Timestamp-Requirements.ts";
 import { registerVersionPropertyRequirementsSuite as registerVersionPropertyRequirementsV20 } from "../specs/v2_0/4.2.4.3-Version-Requirements.ts";
@@ -46,6 +52,9 @@ const registrarsByDirectory: Readonly<Record<string, readonly SuiteRegistrar[]>>
     registerContextPropertyRequirementsV103,
     registerAuthorityPropertyRequirementsV103,
     registerAttachmentsPropertyRequirementsV103,
+    registerStatementLifecycleRequirementsV103,
+    registerRetrievalOfStatementsV103,
+    registerStatementResourceRequirementsV103,
   ],
   v2_0: [
     registerFormattingRequirementsV20,
@@ -60,6 +69,9 @@ const registrarsByDirectory: Readonly<Record<string, readonly SuiteRegistrar[]>>
     registerContextPropertyRequirementsV20,
     registerAuthorityPropertyRequirementsV20,
     registerAttachmentsPropertyRequirementsV20,
+    registerStatementLifecycleRequirementsV20,
+    registerRetrievalOfStatementsV20,
+    registerStatementResourceRequirementsV20,
   ],
 };
 
