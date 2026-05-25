@@ -5,7 +5,7 @@ import {
   compareParityTrees,
   compareRuntimeRunOutputs,
   normalizeParityTree,
-} from "../src/parity/comparison";
+} from "../comparison";
 
 describe("parity comparison normalizer", () => {
   test("normalizes rewrite-style trees into canonical case paths", () => {

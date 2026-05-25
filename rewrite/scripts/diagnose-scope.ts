@@ -38,7 +38,7 @@ function getFlagValue(args: string[], flag: string): string | undefined {
 function usage(): string {
   return [
     "Usage:",
-    "  bun ./scripts/diagnose-scope.ts [--upstream <path>] [--live <path>]",
+    "  bun ./rewrite/scripts/diagnose-scope.ts [--upstream <path>] [--live <path>]",
     "",
     "Defaults:",
     "  --upstream tmp/agents/upstream-run.json",

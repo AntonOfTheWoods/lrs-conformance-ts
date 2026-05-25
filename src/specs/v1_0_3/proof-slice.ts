@@ -29,7 +29,6 @@ import {
   createV103ActivityProfileValidationPackAProofSliceSuite,
   createV103ActivityProfileValidationPackBProofSliceSuite,
   createV103AgentProfileValidationPackAProofSliceSuite,
-  createV103LegacyGapAuditProofSliceSuite,
   createV103StateResourceValidationPackAProofSliceSuite,
 } from "./packs";
 import { specVersion } from "./shared";
@@ -52,7 +51,6 @@ export function createV103ProofSliceRegistry(): RegistryDefinition {
   builder.addSuite(specVersion, createV103StatementQueryProofSliceSuite());
   builder.addSuite(specVersion, createV103CommunicationProofSliceSuite());
   builder.addSuite(specVersion, createV103AboutResourceProofSliceSuite());
-  builder.addSuite(specVersion, createV103LegacyGapAuditProofSliceSuite());
   builder.addSuite(specVersion, createV103ActivitiesResourceProofSliceSuite());
   builder.addSuite(specVersion, createV103StateResourceProofSliceSuite());
   builder.addSuite(specVersion, createV103StateResourceValidationPackAProofSliceSuite());
@@ -75,7 +73,6 @@ export {
   createV103AgentProfileValidationPackAProofSliceSuite,
   createV103AgentsResourceProofSliceSuite,
   createV103CommunicationProofSliceSuite,
-  createV103LegacyGapAuditProofSliceSuite,
   createV103StatementQueryProofSliceSuite,
   createV103StatementResourceProofSliceSuite,
   createV103StateResourceProofSliceSuite,

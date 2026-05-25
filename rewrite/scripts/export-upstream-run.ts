@@ -41,7 +41,7 @@ function getFlagValue(args: string[], flag: string): string | undefined {
 function usage(): string {
   return [
     "Usage:",
-    "  bun run export:upstream:lrsql -- [--base-url <url>] [--username <user>] [--password <pass>] [--version 2.0.0|1.0.3] [--out <path>] [--grep <pattern>] [--directory <csv>] [--suite-dir <path>] [--log-dir <path>] [--node-image <ref>]",
+    "  bun run rewrite:export:upstream:lrsql -- [--base-url <url>] [--username <user>] [--password <pass>] [--version 2.0.0|1.0.3] [--out <path>] [--grep <pattern>] [--directory <csv>] [--suite-dir <path>] [--log-dir <path>] [--node-image <ref>]",
     "",
     "Defaults:",
     "  --base-url http://localhost:8080/xapi",

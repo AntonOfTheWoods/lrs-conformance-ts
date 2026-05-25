@@ -17,7 +17,7 @@ XAPI_VERSION="${XAPI_VERSION}" bun run lrsql:wait
 XAPI_VERSION="${XAPI_VERSION}" bun run lrsql:auth:check >/dev/null
 XAPI_VERSION="${XAPI_VERSION}" bun run lrsql:wait
 set +e
-LIVE_RUN_OUT="${LIVE_RUN_OUT}" XAPI_VERSION="${XAPI_VERSION}" bun run export:run:lrsql
+LIVE_RUN_OUT="${LIVE_RUN_OUT}" XAPI_VERSION="${XAPI_VERSION}" bun run rewrite:export:run:lrsql
 export_exit_code=$?
 set -e
 

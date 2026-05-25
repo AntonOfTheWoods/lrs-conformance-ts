@@ -200,16 +200,23 @@ function versionHeaderExpectations(specVersion: SpecVersion): Array<{ key: strin
   ];
 }
 
+function normalizeLegacyTraceRef(value: string): string {
+  return value.trim().replaceAll("\\", "/").replace(/^\.\//, "");
+}
+
 function buildLegacyTrace(options: LegacyTraceOptions): CaseDefinition["legacyTrace"] {
+  const suiteFile = normalizeLegacyTraceRef(options.legacyTraceSuiteFile);
+  const configFile = options.legacyTraceConfigFile ? normalizeLegacyTraceRef(options.legacyTraceConfigFile) : undefined;
+
   if (!options.legacyTraceConfigFile) {
     return {
-      suiteFile: options.legacyTraceSuiteFile,
+      suiteFile,
     };
   }
 
   return {
-    suiteFile: options.legacyTraceSuiteFile,
-    configFile: options.legacyTraceConfigFile,
+    suiteFile,
+    configFile,
   };
 }
 

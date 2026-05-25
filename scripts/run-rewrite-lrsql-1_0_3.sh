@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-set -euo pipefail
-
-XAPI_VERSION="1.0.3" bun run run:rewrite:lrsql

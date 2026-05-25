@@ -2,9 +2,9 @@ import { describe, expect, test } from "bun:test";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import type { RegistryNode } from "../src/domain/contracts";
-import { resolveUpstreamTestRoot } from "../src/specs/migration/upstream-root";
-import { createProofSliceRegistry } from "../src/specs/v2_0/proof-slice";
+import type { RegistryNode } from "../../src/domain/contracts";
+import { resolveUpstreamTestRoot } from "../../src/specs/migration/upstream-root";
+import { createProofSliceRegistry } from "../../src/specs/v2_0/proof-slice";
 
 const upstreamV20Root = resolveUpstreamTestRoot("v2_0");
 

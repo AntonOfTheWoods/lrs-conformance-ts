@@ -16,7 +16,7 @@ bun run lrsql:reset:best-effort
 bun run lrsql:wait
 bun run lrsql:auth:check >/dev/null
 bun run lrsql:wait
-UPSTREAM_RUN_OUT="${UPSTREAM_RUN_OUT}" XAPI_VERSION="${XAPI_VERSION}" bun run export:upstream:lrsql
+UPSTREAM_RUN_OUT="${UPSTREAM_RUN_OUT}" XAPI_VERSION="${XAPI_VERSION}" bun run rewrite:export:upstream:lrsql
 
 UPSTREAM_RUN_OUT="${UPSTREAM_RUN_OUT}" bun -e 'import { readFileSync } from "node:fs";
 const filePath = process.env.UPSTREAM_RUN_OUT;

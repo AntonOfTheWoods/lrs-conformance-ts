@@ -40,7 +40,7 @@ function rewriteCaseFromV2(caseNode: CaseDefinition): CaseDefinition | null {
   cloned.tags = rewriteTags(cloned.tags);
 
   if (cloned.legacyTrace?.suiteFile) {
-    cloned.legacyTrace.suiteFile = cloned.legacyTrace.suiteFile.replace("/test/v2_0/", "/test/v1_0_3/");
+    cloned.legacyTrace.suiteFile = cloned.legacyTrace.suiteFile.replace("test/v2_0/", "test/v1_0_3/");
   }
 
   if (cloned.execution.kind === "single-request") {

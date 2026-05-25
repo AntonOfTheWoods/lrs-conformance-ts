@@ -38,9 +38,7 @@ export function resolveUpstreamRoot(): string {
   if (envRoot) {
     const resolvedEnvRoot = resolve(envRoot);
     if (!isUpstreamSuiteRoot(resolvedEnvRoot)) {
-      throw new Error(
-        `LRS_UPSTREAM_ROOT does not look like an upstream suite root: ${resolvedEnvRoot}`,
-      );
+      throw new Error(`LRS_UPSTREAM_ROOT does not look like an upstream suite root: ${resolvedEnvRoot}`);
     }
     cachedUpstreamRoot = resolvedEnvRoot;
     return cachedUpstreamRoot;

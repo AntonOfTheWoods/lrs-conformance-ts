@@ -23,7 +23,7 @@ interface Report {
 function usage(): string {
   return [
     "Usage:",
-    "  bun ./scripts/analyze-compare-output.ts --in <compare-output.txt> [--json <report.json>] [--md <report.md>]",
+    "  bun ./rewrite/scripts/analyze-compare-output.ts --in <compare-output.txt> [--json <report.json>] [--md <report.md>]",
     "",
     "Defaults:",
     "  --in tmp/agents/compare-live-valid-output.txt",

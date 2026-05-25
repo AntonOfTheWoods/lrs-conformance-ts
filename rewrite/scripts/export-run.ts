@@ -1,9 +1,9 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
-import { runRegistryVersion } from "../src/execution/runner";
-import { createV103ProofSliceRegistry } from "../src/specs/v1_0_3/proof-slice";
-import { createProofSliceRegistry } from "../src/specs/v2_0/proof-slice";
+import { runRegistryVersion } from "../../src/execution/runner";
+import { createV103ProofSliceRegistry } from "../../src/specs/v1_0_3/proof-slice";
+import { createProofSliceRegistry } from "../../src/specs/v2_0/proof-slice";
 
 type SupportedSpecVersion = "2.0.0" | "1.0.3";
 

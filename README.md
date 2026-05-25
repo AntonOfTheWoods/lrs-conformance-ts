@@ -16,5 +16,5 @@ This project was created using `bun init` in bun v1.3.14. [Bun](https://bun.com)
 
 ## Parity Notes
 
-- LRSQL parity and divergence notes are tracked in `PARITY-LEDGER.md`.
-- Latest run-aligned summary: see `LRSQL pass-mode parity note (2026-05-24)` in `PARITY-LEDGER.md`.
+- LRSQL parity and divergence notes are tracked in `rewrite/docs/PARITY-LEDGER.md`.
+- Latest run-aligned summary: see `LRSQL pass-mode parity note (2026-05-24)` in `rewrite/docs/PARITY-LEDGER.md`.

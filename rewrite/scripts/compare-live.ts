@@ -1,16 +1,16 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
-import { runRegistryVersion } from "../src/execution/runner";
+import { runRegistryVersion } from "../../src/execution/runner";
 import {
   compareParityTrees,
   getRuntimeRunRoot,
   normalizeParityTree,
   type NormalizedParityRecord,
   type ParityComparisonResult,
-} from "../src/parity/comparison";
-import { createV103ProofSliceRegistry } from "../src/specs/v1_0_3/proof-slice";
-import { createProofSliceRegistry } from "../src/specs/v2_0/proof-slice";
+} from "../comparison";
+import { createV103ProofSliceRegistry } from "../../src/specs/v1_0_3/proof-slice";
+import { createProofSliceRegistry } from "../../src/specs/v2_0/proof-slice";
 
 type SupportedSpecVersion = "2.0.0" | "1.0.3";
 
@@ -440,7 +440,7 @@ function compareByCaseTitle(
 function usage(): string {
   return [
     "Usage:",
-    "  bun run compare:live -- --base-url <url> --upstream <upstream-run.json> [--version 2.0.0|1.0.3] [--out <path>] [--username <user> --password <pass>]",
+    "  bun run rewrite:compare:live -- --base-url <url> --upstream <upstream-run.json> [--version 2.0.0|1.0.3] [--out <path>] [--username <user> --password <pass>]",
     "",
     "Defaults:",
     "  --version 2.0.0",
@@ -450,7 +450,7 @@ function usage(): string {
     "  --allow-partial-upstream false",
     "",
     "Example:",
-    "  bun run compare:live -- --base-url http://localhost:8100/xAPI --username janedoe --password supersecret --upstream tmp/agents/upstream-run.json",
+    "  bun run rewrite:compare:live -- --base-url http://localhost:8100/xAPI --username janedoe --password supersecret --upstream tmp/agents/upstream-run.json",
   ].join("\n");
 }
 
@@ -505,7 +505,7 @@ async function loadJson(path: string): Promise<unknown> {
   } catch (error) {
     if (error && typeof error === "object" && "code" in error && (error as { code?: string }).code === "ENOENT") {
       throw new Error(
-        `Upstream artifact not found at ${path}. Run \`bun run export:upstream:lrsql\` first or set --upstream to an existing file.`,
+        `Upstream artifact not found at ${path}. Run \`bun run rewrite:export:upstream:lrsql\` first or set --upstream to an existing file.`,
       );
     }
 

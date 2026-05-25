@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 
-import { compareParityTrees, getRuntimeRunRoot } from "../src/parity/comparison";
+import { compareParityTrees, getRuntimeRunRoot } from "../comparison";
 
 function getFlagValue(args: string[], flag: string): string | undefined {
   const index = args.indexOf(flag);
@@ -23,7 +23,7 @@ function getBooleanFlag(args: string[], flag: string, fallback: boolean): boolea
 function usage(): string {
   return [
     "Usage:",
-    "  bun run compare:parity -- --left <left-run.json> --right <right-run.json>",
+    "  bun run rewrite:compare -- --left <left-run.json> --right <right-run.json>",
     "",
     "Use --left-include-root and --right-include-root to control whether the top-level tree wrapper should be compared.",
   ].join("\n");

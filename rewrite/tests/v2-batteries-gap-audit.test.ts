@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import { createRequire } from "node:module";
-import { resolveUpstreamPath } from "../src/specs/migration/upstream-root";
+import { resolveUpstreamPath } from "../../src/specs/migration/upstream-root";
 
-import type { RegistryNode } from "../src/domain/contracts";
-import { createProofSliceRegistry } from "../src/specs/v2_0/proof-slice";
+import type { RegistryNode } from "../../src/domain/contracts";
+import { createProofSliceRegistry } from "../../src/specs/v2_0/proof-slice";
 
 interface BatteryNode {
   text: string;
@@ -18,8 +18,7 @@ interface UpstreamBatteryArtifact {
 }
 
 const require = createRequire(import.meta.url);
-const upstreamBatteries =
-  require(resolveUpstreamPath("batteries.js")) as UpstreamBatteryArtifact;
+const upstreamBatteries = require(resolveUpstreamPath("batteries.js")) as UpstreamBatteryArtifact;
 
 const upstreamV20ResourceKeys = new Set<string>([
   "Content Type Requirements",
