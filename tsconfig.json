@@ -6,8 +6,8 @@
     "module": "Preserve",
     "moduleDetection": "force",
     "jsx": "react-jsx",
-    "allowJs": true,
-    "types": ["bun"],
+    "allowJs": false,
+    "types": ["bun", "mocha"],
 
     // Bundler mode
     "moduleResolution": "bundler",
@@ -21,10 +21,12 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
+    "noImplicitAny": true,
 
     // Some stricter flags (disabled by default)
-    "noUnusedLocals": false,
+    "noUnusedLocals": true,
     "noUnusedParameters": false,
-    "noPropertyAccessFromIndexSignature": false
-  }
+    "noPropertyAccessFromIndexSignature": true
+  },
+  "exclude": ["runtime/local", "runtime/node_modules", "tmp", "node_modules"]
 }

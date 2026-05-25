@@ -1,0 +1,29 @@
+{
+  "name": "adl-lrs-conformance-tests",
+  "version": "2.0.0-1",
+  "description": "lrs-conformance-tests",
+  "homepage": "https://github.com/adlnet/lrs-conformance-test-suite",
+  "bugs": {
+    "url": "https://github.com/adlnet/lrs-conformance-test-suite/issues"
+  },
+  "license": "MIT",
+  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/adlnet/lrs-conformance-test-suite.git"
+  },
+  "bin": {
+    "lrs-test": "./bin/console_runner.ts"
+  },
+  "main": "./bin/console_runner.ts",
+  "scripts": {
+    "test": "bun test --preload ./test/bun-bootstrap.ts ./test/v1_0_3/*.ts ./test/v2_0/*.ts",
+    "start": "bun ./bin/console_runner.ts",
+    "update-batteries": "bun ./bin/update-batteries.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.0.4",
+    "hono": "^4.10.3",
+    "jose": "^6.1.0"
+  }
+}
