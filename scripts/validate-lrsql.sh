@@ -17,7 +17,7 @@ XAPI_VERSION="${XAPI_VERSION}" bun run lrsql:wait
 XAPI_VERSION="${XAPI_VERSION}" bun run lrsql:auth:check >/dev/null
 XAPI_VERSION="${XAPI_VERSION}" bun run lrsql:wait
 set +e
-LIVE_RUN_OUT="${LIVE_RUN_OUT}" XAPI_VERSION="${XAPI_VERSION}" bun run rewrite:export:run:lrsql
+LIVE_RUN_OUT="${LIVE_RUN_OUT}" XAPI_VERSION="${XAPI_VERSION}" bun run validate:export:lrsql
 export_exit_code=$?
 set -e
 
@@ -26,11 +26,11 @@ const filePath = process.env.LIVE_RUN_OUT;
 const parsed = JSON.parse(readFileSync(filePath, "utf8"));
 const run = parsed?.run;
 if (!run || typeof run !== "object") {
-  throw new Error(`rewrite artifact missing run payload: ${filePath}`);
+  throw new Error(`validation artifact missing run payload: ${filePath}`);
 }
 const events = Array.isArray(run.events) ? run.events.length : null;
 console.log(JSON.stringify({
-  mode: "rewrite-only",
+  mode: "validation",
   target: "lrsql",
   xapiVersion: run.version ?? process.env.XAPI_VERSION ?? null,
   artifact: filePath,
