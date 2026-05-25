@@ -19,6 +19,113 @@ function isJsonObject(value: unknown): value is JsonObject {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function wait(delayMs: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, delayMs);
+  });
+}
+
+async function fetchStoredStatement(context: DescribeRuntimeContext, statementId: string): Promise<JsonObject> {
+  const deadline = Date.now() + 15_000;
+
+  while (Date.now() <= deadline) {
+    const response = await context.sendRequest({
+      method: "GET",
+      path: context.getEndpointStatements(),
+      query: {
+        statementId,
+      },
+    });
+
+    if (response.status === 200) {
+      const payload = JSON.parse(response.bodyText) as unknown;
+      if (!isJsonObject(payload)) {
+        throw new Error("Expected the retrieved precision-check statement to resolve to an object.");
+      }
+
+      return payload;
+    }
+
+    await wait(200);
+  }
+
+  throw new Error("Timed out while retrieving the stored precision-check statement.");
+}
+
+function registerFormattingFloatPrecisionSuite(runtime: DescribeRuntime, context: DescribeRuntimeContext): void {
+  /**  XAPI-00002, Data 2.2 Formatting Requirements
+   * An LRS stores 32-bit floating point numbers with at least the precision of IEEE 754
+   */
+  runtime.describe(
+    "An LRS stores 32-bit floating point numbers with at least the precision of IEEE 754 (Data 2.2.s4.b3, XAPI-00002)",
+    () => {
+      runtime.it("should pass and keep precision", async () => {
+        const payload = await context.createFromTemplate([
+          { statement: "{{statements.result}}" },
+          { result: "{{results.default}}" },
+        ]);
+        const statement = payload.statement;
+        if (!isJsonObject(statement)) {
+          throw new Error("Expected the precision-check statement payload to resolve to an object.");
+        }
+
+        const result = statement.result;
+        if (!isJsonObject(result)) {
+          throw new Error("Expected the precision-check statement result to resolve to an object.");
+        }
+
+        const score = result.score;
+        if (!isJsonObject(score)) {
+          throw new Error("Expected the precision-check statement score to resolve to an object.");
+        }
+
+        const statementId = context.generateUuid();
+        const min = 0.12123434;
+        const raw = 12.125;
+        const max = 45.45;
+
+        statement.id = statementId;
+        score.min = min;
+        score.raw = raw;
+        score.max = max;
+        score.scaled = min;
+
+        const postResponse = await context.sendJsonRequest({
+          method: "POST",
+          path: context.getEndpointStatements(),
+          json: statement,
+        });
+
+        if (postResponse.status !== 200) {
+          throw new Error(`Expected status 200 for the precision-check POST but received ${postResponse.status}.`);
+        }
+
+        const storedStatement = await fetchStoredStatement(context, statementId);
+        const storedResult = storedStatement.result;
+        if (!isJsonObject(storedResult)) {
+          throw new Error("Expected the stored precision-check result to resolve to an object.");
+        }
+
+        const storedScore = storedResult.score;
+        if (!isJsonObject(storedScore)) {
+          throw new Error("Expected the stored precision-check score to resolve to an object.");
+        }
+
+        if (
+          storedScore.min !== min ||
+          storedScore.raw !== raw ||
+          storedScore.max !== max ||
+          storedScore.scaled !== min
+        ) {
+          throw new Error(
+            `Expected stored score precision ${JSON.stringify({ min, raw, max, scaled: min })} but received ${JSON.stringify(storedScore)}.`,
+          );
+        }
+      });
+    },
+  );
+}
+
 function registerFormattingIriSchemeSuite(runtime: DescribeRuntime, context: DescribeRuntimeContext): void {
   /**  XAPI-00011
    * An LRS rejects with error code 400 Bad Request a Statement containing IRL or IRI values without a scheme.
@@ -144,6 +251,7 @@ export function registerFormattingRequirementsSuite(runtime: DescribeRuntime, co
      * XAPI-00014 - below and in verify.js
      * XAPI-00015 - in Communication 1.4 - should stay in Comm 1.4 Encoding
      */
+    registerFormattingFloatPrecisionSuite(runtime, context);
     registerStatementPostConfigSuite(runtime, context, formattingMissingPropertyGroups);
     registerStatementPostConfigSuite(runtime, context, formattingNullPropertyGroups);
     registerStatementPostConfigSuite(runtime, context, formattingWrongTypeGroups);

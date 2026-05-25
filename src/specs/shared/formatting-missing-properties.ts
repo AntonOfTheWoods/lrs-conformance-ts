@@ -143,6 +143,43 @@ const validExtensionLayer = {
   },
 } as const;
 
+const validActivityDefinitionName = {
+  name: {
+    "en-GB": "example meeting",
+    "en-US": "example meeting",
+  },
+} as const;
+
+const validActivityDefinitionDescription = {
+  description: {
+    "en-GB": "An example meeting that happened on a specific occasion with certain people present.",
+    "en-US": "An example meeting that happened on a specific occasion with certain people present.",
+  },
+} as const;
+
+const validActivityDefinitionType = {
+  type: "http://adlnet.gov/expapi/activities/meeting",
+} as const;
+
+const validActivityDefinitionMoreInfo = {
+  moreInfo: "http://virtualmeeting.example.com/345256",
+} as const;
+
+const validActivityDefinitionExtensions = {
+  extensions: {
+    "http://example.com/profiles/meetings/extension/location": "X:\\meetings\\minutes\\examplemeeting.one",
+    "http://example.com/profiles/meetings/extension/reporter": {
+      name: "Thomas",
+      id: "http://openid.com/342",
+    },
+  },
+} as const;
+
+const validActivityDefinitionInteractionType = {
+  interactionType: "fill-in",
+  correctResponsesPattern: ['Bob"s your uncle'],
+};
+
 export const formattingMissingPropertyGroups: ConfigDrivenGroupDefinition[] = [
   {
     /**  XAPI-00003, 2.2 Formatting Requirements
@@ -1313,6 +1350,327 @@ export const formattingVerifyTemplateGroups: ConfigDrivenGroupDefinition[] = [
           { statement: "{{statements.object_substatement}}" },
           { object: "{{substatements.activity}}" },
           { object: "{{activities.sequencing}}" },
+        ],
+        expect: [200],
+      },
+    ],
+  },
+  {
+    /**  XAPI-00014, Data 2.2 Formatting Requirements
+     * All Objects are well-created JSON Objects (Nature of Binding)
+     */
+    name: "An Activity Definition uses the following properties: name, description, type, moreInfo, interactionType, or extensions (Format, Data 2.4.4.1.s2)",
+    config: [
+      {
+        name: 'statement activity "definition" missing all properties',
+        templates: [
+          { statement: "{{statements.object_activity}}" },
+          { object: "{{activities.no_definition}}" },
+          { definition: {} },
+        ],
+        expect: [200],
+      },
+      {
+        name: 'statement activity "definition" contains "name"',
+        templates: [
+          { statement: "{{statements.object_activity}}" },
+          { object: "{{activities.no_definition}}" },
+          { definition: validActivityDefinitionName },
+        ],
+        expect: [200],
+      },
+      {
+        name: 'statement activity "definition" contains "description"',
+        templates: [
+          { statement: "{{statements.object_activity}}" },
+          { object: "{{activities.no_definition}}" },
+          { definition: validActivityDefinitionDescription },
+        ],
+        expect: [200],
+      },
+      {
+        name: 'statement activity "definition" contains "type"',
+        templates: [
+          { statement: "{{statements.object_activity}}" },
+          { object: "{{activities.no_definition}}" },
+          { definition: validActivityDefinitionType },
+        ],
+        expect: [200],
+      },
+      {
+        name: 'statement activity "definition" contains "moreInfo"',
+        templates: [
+          { statement: "{{statements.object_activity}}" },
+          { object: "{{activities.no_definition}}" },
+          { definition: validActivityDefinitionMoreInfo },
+        ],
+        expect: [200],
+      },
+      {
+        name: 'statement activity "definition" contains "extensions"',
+        templates: [
+          { statement: "{{statements.object_activity}}" },
+          { object: "{{activities.no_definition}}" },
+          { definition: validActivityDefinitionExtensions },
+        ],
+        expect: [200],
+      },
+      {
+        name: 'statement activity "definition" contains "interactionType"',
+        templates: [
+          { statement: "{{statements.object_activity}}" },
+          { object: "{{activities.no_definition}}" },
+          { definition: validActivityDefinitionInteractionType },
+        ],
+        expect: [200],
+      },
+      {
+        name: 'statement substatement activity "definition" missing all properties',
+        templates: [
+          { statement: "{{statements.object_substatement}}" },
+          { object: "{{substatements.activity}}" },
+          { object: "{{activities.no_definition}}" },
+          { definition: {} },
+        ],
+        expect: [200],
+      },
+      {
+        name: 'statement substatement activity "definition" contains "name"',
+        templates: [
+          { statement: "{{statements.object_substatement}}" },
+          { object: "{{substatements.activity}}" },
+          { object: "{{activities.no_definition}}" },
+          { definition: validActivityDefinitionName },
+        ],
+        expect: [200],
+      },
+      {
+        name: 'statement substatement activity "definition" contains "description"',
+        templates: [
+          { statement: "{{statements.object_substatement}}" },
+          { object: "{{substatements.activity}}" },
+          { object: "{{activities.no_definition}}" },
+          { definition: validActivityDefinitionDescription },
+        ],
+        expect: [200],
+      },
+      {
+        name: 'statement substatement activity "definition" contains "type"',
+        templates: [
+          { statement: "{{statements.object_substatement}}" },
+          { object: "{{substatements.activity}}" },
+          { object: "{{activities.no_definition}}" },
+          { definition: validActivityDefinitionType },
+        ],
+        expect: [200],
+      },
+      {
+        name: 'statement substatement activity "definition" contains "moreInfo"',
+        templates: [
+          { statement: "{{statements.object_substatement}}" },
+          { object: "{{substatements.activity}}" },
+          { object: "{{activities.no_definition}}" },
+          { definition: validActivityDefinitionMoreInfo },
+        ],
+        expect: [200],
+      },
+      {
+        name: 'statement substatement activity "definition" contains "extensions"',
+        templates: [
+          { statement: "{{statements.object_substatement}}" },
+          { object: "{{substatements.activity}}" },
+          { object: "{{activities.no_definition}}" },
+          { definition: validActivityDefinitionExtensions },
+        ],
+        expect: [200],
+      },
+      {
+        name: 'statement substatement activity "definition" contains "interactionType"',
+        templates: [
+          { statement: "{{statements.object_substatement}}" },
+          { object: "{{substatements.activity}}" },
+          { object: "{{activities.no_definition}}" },
+          { definition: validActivityDefinitionInteractionType },
+        ],
+        expect: [200],
+      },
+    ],
+  },
+  {
+    /**  XAPI-00014, Data 2.2 Formatting Requirements
+     * All Objects are well-created JSON Objects (Nature of Binding)
+     */
+    name: "SubStatements Verify Templates",
+    config: [
+      {
+        name: "should pass statement SubStatement template",
+        templates: [{ statement: "{{statements.object_substatement}}" }, { object: "{{substatements.default}}" }],
+        expect: [200],
+      },
+    ],
+  },
+  {
+    /**  XAPI-00014, Data 2.2 Formatting Requirements
+     * All Objects are well-created JSON Objects (Nature of Binding)
+     */
+    name: "StatementRefs Verify Templates",
+    config: [
+      {
+        name: "should pass statement StatementRef template",
+        templates: [{ statement: "{{statements.object_statementref}}" }],
+        expect: [200],
+      },
+      {
+        name: "should pass substatement StatementRef template",
+        templates: [{ statement: "{{statements.object_substatement}}" }, { object: "{{substatements.statementref}}" }],
+        expect: [200],
+      },
+    ],
+  },
+  {
+    /**  XAPI-00014, Data 2.2 Formatting Requirements
+     * All Objects are well-created JSON Objects (Nature of Binding)
+     */
+    name: "Results Verify Templates",
+    config: [
+      {
+        name: "should pass statement result template",
+        templates: [{ statement: "{{statements.result}}" }, { result: "{{results.default}}" }],
+        expect: [200],
+      },
+      {
+        name: "should pass substatement result template",
+        templates: [
+          { statement: "{{statements.object_substatement}}" },
+          { object: "{{substatements.result}}" },
+          { result: "{{results.default}}" },
+        ],
+        expect: [200],
+      },
+    ],
+  },
+  {
+    /**  XAPI-00014, Data 2.2 Formatting Requirements
+     * All Objects are well-created JSON Objects (Nature of Binding)
+     */
+    name: "Contexts Verify Templates",
+    config: [
+      {
+        name: "should pass statement context template",
+        templates: [{ statement: "{{statements.context}}" }, { context: "{{contexts.default}}" }],
+        expect: [200],
+      },
+      {
+        name: "should pass substatement context template",
+        templates: [
+          { statement: "{{statements.object_substatement}}" },
+          { object: "{{substatements.context}}" },
+          { context: "{{contexts.default}}" },
+        ],
+        expect: [200],
+      },
+    ],
+  },
+  {
+    /**  XAPI-00014, Data 2.2 Formatting Requirements
+     * All Objects are well-created JSON Objects (Nature of Binding)
+     */
+    name: 'A ContextActivity is defined as a single Activity of the "value" of the "contextActivities" property (definition, Data 2.4.6.2.s4.b2)',
+    config: [
+      {
+        name: 'statement context "contextActivities parent" value is activity',
+        templates: [{ statement: "{{statements.context}}" }, { context: "{{contexts.parent}}" }],
+        expect: [200],
+      },
+      {
+        name: 'statement context "contextActivities grouping" value is activity',
+        templates: [{ statement: "{{statements.context}}" }, { context: "{{contexts.grouping}}" }],
+        expect: [200],
+      },
+      {
+        name: 'statement context "contextActivities category" value is activity',
+        templates: [{ statement: "{{statements.context}}" }, { context: "{{contexts.category}}" }],
+        expect: [200],
+      },
+      {
+        name: 'statement context "contextActivities other" value is activity',
+        templates: [{ statement: "{{statements.context}}" }, { context: "{{contexts.other}}" }],
+        expect: [200],
+      },
+      {
+        name: 'statement substatement context "contextActivities parent" value is activity',
+        templates: [
+          { statement: "{{statements.object_substatement}}" },
+          { object: "{{substatements.context}}" },
+          { context: "{{contexts.parent}}" },
+        ],
+        expect: [200],
+      },
+      {
+        name: 'statement substatement context "contextActivities grouping" value is activity',
+        templates: [
+          { statement: "{{statements.object_substatement}}" },
+          { object: "{{substatements.context}}" },
+          { context: "{{contexts.grouping}}" },
+        ],
+        expect: [200],
+      },
+      {
+        name: 'statement substatement context "contextActivities category" value is activity',
+        templates: [
+          { statement: "{{statements.object_substatement}}" },
+          { object: "{{substatements.context}}" },
+          { context: "{{contexts.category}}" },
+        ],
+        expect: [200],
+      },
+      {
+        name: 'statement substatement context "contextActivities other" value is activity',
+        templates: [
+          { statement: "{{statements.object_substatement}}" },
+          { object: "{{substatements.context}}" },
+          { context: "{{contexts.other}}" },
+        ],
+        expect: [200],
+      },
+    ],
+  },
+  {
+    /**  XAPI-00014, Data 2.2 Formatting Requirements
+     * All Objects are well-created JSON Objects (Nature of Binding)
+     */
+    name: "Languages Verify Templates",
+    config: [
+      {
+        name: "should pass statement verb template",
+        templates: [{ statement: "{{statements.verb}}" }, { verb: "{{verbs.no_display}}" }],
+        expect: [200],
+      },
+      {
+        name: "should pass statement object template",
+        templates: [{ statement: "{{statements.object_activity}}" }, { object: "{{activities.no_languages}}" }],
+        expect: [200],
+      },
+      {
+        name: "should pass statement attachment template",
+        templates: [{ statement: "{{statements.attachment}}" }, { attachments: [validAttachment] }],
+        expect: [200],
+      },
+      {
+        name: "should pass statement substatement verb template",
+        templates: [
+          { statement: "{{statements.object_substatement}}" },
+          { object: "{{substatements.verb}}" },
+          { verb: "{{verbs.no_display}}" },
+        ],
+        expect: [200],
+      },
+      {
+        name: "should pass statement substatement object template",
+        templates: [
+          { statement: "{{statements.object_substatement}}" },
+          { object: "{{substatements.activity}}" },
+          { object: "{{activities.no_languages}}" },
         ],
         expect: [200],
       },
