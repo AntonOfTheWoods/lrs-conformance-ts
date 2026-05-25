@@ -18,8 +18,8 @@ import {
   buildActivityStateIdentityFixture,
   buildAgentProfileDocumentFixture,
   buildAgentProfileIdentityFixture,
-} from "../../fixtures/v2_0/documents";
-import { buildStatementFixture, type FixtureTransform, type StatementFixture } from "../../fixtures/v2_0/statements";
+} from "../../fixtures/documents";
+import { buildStatementFixture, type FixtureTransform, type StatementFixture } from "../../fixtures/statements";
 import { RegistryBuilder } from "../../registry/builder";
 import {
   documentRoundTripCase,

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import type { RegistryNode, SuiteDefinition } from "../src/domain/contracts";
-import { buildStatementFixture } from "../src/fixtures/v2_0/statements";
+import { buildStatementFixture } from "../src/fixtures/statements";
 import { RegistryBuilder } from "../src/registry/builder";
 import {
   createV20AboutResourceProofSliceSuite,

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { buildOriginalSuiteDeltaMatrix, buildTopLevelSpecStemDelta } from "../../src/specs/migration/v1-v2-delta";
+import { buildOriginalSuiteDeltaMatrix, buildTopLevelSpecStemDelta } from "../v1-v2-delta";
 
 describe("v1.0.3 vs v2.0 original-suite delta matrix", () => {
   test("pins the known high-overlap inventory and requirement-id intersection", () => {

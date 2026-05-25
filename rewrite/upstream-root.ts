@@ -44,8 +44,8 @@ export function resolveUpstreamRoot(): string {
     return cachedUpstreamRoot;
   }
 
-  const migrationDir = dirname(fileURLToPath(import.meta.url));
-  const projectRoot = resolve(migrationDir, "../../..");
+  const rewriteDir = dirname(fileURLToPath(import.meta.url));
+  const projectRoot = resolve(rewriteDir, "..");
   const discovered = discoverSiblingUpstreamRoot(projectRoot);
 
   if (!discovered) {

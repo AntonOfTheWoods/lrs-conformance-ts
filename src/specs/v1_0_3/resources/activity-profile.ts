@@ -2,7 +2,7 @@ import type { SuiteDefinition } from "../../../domain/contracts";
 import {
   buildActivityProfileDocumentFixture,
   buildActivityProfileIdentityFixture,
-} from "../../../fixtures/v2_0/documents";
+} from "../../../fixtures/documents";
 import { requestSequenceCase, singleRequestCase } from "../../../registry/families";
 import { specVersion, upstreamV103Root } from "../shared";
 

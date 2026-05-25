@@ -1,4 +1,4 @@
-import type { JsonObject } from "../../domain/contracts";
+import type { JsonObject } from "../domain/contracts";
 
 export interface StatementFixture extends JsonObject {
   id: string;

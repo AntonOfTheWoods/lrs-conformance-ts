@@ -1,6 +1,6 @@
 import type { JsonObject, SuiteDefinition } from "../../../domain/contracts";
 import { requestSequenceCase, singleRequestCase } from "../../../registry/families";
-import { buildStatementFixture } from "../../../fixtures/v2_0/statements";
+import { buildStatementFixture } from "../../../fixtures/statements";
 import { specVersion, upstreamV103Root } from "../shared";
 
 const activitiesResourceLegacySuiteFile = `${upstreamV103Root}/H.Communication2.5-ActivitiesResource.js`;

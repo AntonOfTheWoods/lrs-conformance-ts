@@ -12,7 +12,7 @@ import type {
   RequirementRef,
   SpecVersion,
 } from "../domain/contracts";
-import { buildStatementFixture, type FixtureTransform, type StatementFixture } from "../fixtures/v2_0/statements";
+import { buildStatementFixture, type FixtureTransform, type StatementFixture } from "../fixtures/statements";
 
 const versionHeaderKey = "X-Experience-API-Version";
 

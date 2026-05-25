@@ -3,8 +3,8 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import type { RegistryNode } from "../../src/domain/contracts";
-import { buildOriginalSuiteDeltaMatrix } from "../../src/specs/migration/v1-v2-delta";
-import { resolveUpstreamTestRoot } from "../../src/specs/migration/upstream-root";
+import { buildOriginalSuiteDeltaMatrix } from "../v1-v2-delta";
+import { resolveUpstreamTestRoot } from "../upstream-root";
 import { createV103ProofSliceRegistry } from "../../src/specs/v1_0_3/proof-slice";
 
 const upstreamV103Root = resolveUpstreamTestRoot("v1_0_3");

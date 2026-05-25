@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { createRequire } from "node:module";
-import { resolveUpstreamPath } from "../../src/specs/migration/upstream-root";
+import { resolveUpstreamPath } from "../upstream-root";
 
 import type { RegistryNode } from "../../src/domain/contracts";
 import { createProofSliceRegistry } from "../../src/specs/v2_0/proof-slice";
