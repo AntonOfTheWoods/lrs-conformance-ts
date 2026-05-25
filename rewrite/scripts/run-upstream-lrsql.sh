@@ -3,6 +3,10 @@ set -euo pipefail
 
 XAPI_VERSION="${XAPI_VERSION:-2.0.0}"
 UPSTREAM_RUN_OUT="${UPSTREAM_RUN_OUT:-tmp/agents/upstream-run-${XAPI_VERSION}.json}"
+UPSTREAM_REPO_URL="${UPSTREAM_REPO_URL:-https://github.com/adlnet/lrs-conformance-test-suite.git}"
+UPSTREAM_REF="${UPSTREAM_REF:-5bc232d349c60faded8240da698f195106091638}"
+UPSTREAM_CLONE_DEPTH="${UPSTREAM_CLONE_DEPTH:-1}"
+UPSTREAM_CLONE_BASE_DIR="${UPSTREAM_CLONE_BASE_DIR:-tmp/agents/upstream-clones}"
 
 if [[ "${XAPI_VERSION}" == "1.0.3" ]]; then
   export LRSQL_SUPPORTED_VERSIONS="1.0.3"
@@ -16,7 +20,12 @@ bun run lrsql:reset:best-effort
 bun run lrsql:wait
 bun run lrsql:auth:check >/dev/null
 bun run lrsql:wait
-UPSTREAM_RUN_OUT="${UPSTREAM_RUN_OUT}" XAPI_VERSION="${XAPI_VERSION}" bun run rewrite:export:upstream:lrsql
+UPSTREAM_RUN_OUT="${UPSTREAM_RUN_OUT}" \
+UPSTREAM_REPO_URL="${UPSTREAM_REPO_URL}" \
+UPSTREAM_REF="${UPSTREAM_REF}" \
+UPSTREAM_CLONE_DEPTH="${UPSTREAM_CLONE_DEPTH}" \
+UPSTREAM_CLONE_BASE_DIR="${UPSTREAM_CLONE_BASE_DIR}" \
+XAPI_VERSION="${XAPI_VERSION}" bun run rewrite:export:upstream:lrsql
 
 UPSTREAM_RUN_OUT="${UPSTREAM_RUN_OUT}" bun -e 'import { readFileSync } from "node:fs";
 const filePath = process.env.UPSTREAM_RUN_OUT;

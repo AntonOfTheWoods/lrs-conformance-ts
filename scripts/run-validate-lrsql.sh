@@ -17,7 +17,7 @@ XAPI_VERSION="${XAPI_VERSION}" bun run lrsql:wait
 XAPI_VERSION="${XAPI_VERSION}" bun run lrsql:auth:check >/dev/null
 XAPI_VERSION="${XAPI_VERSION}" bun run lrsql:wait
 set +e
-VALIDATE_RUN_OUT="${VALIDATE_RUN_OUT}" XAPI_VERSION="${XAPI_VERSION}" bun run validate:export:lrsql
+VALIDATE_RUN_OUT="${VALIDATE_RUN_OUT}" XAPI_VERSION="${XAPI_VERSION}" bash ./scripts/export-validate-lrsql.sh
 export_exit_code=$?
 set -e
 
