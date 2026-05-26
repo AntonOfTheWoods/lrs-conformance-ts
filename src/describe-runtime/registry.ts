@@ -4,6 +4,7 @@ import { registerAuthorityPropertyRequirementsSuite as registerAuthorityProperty
 import { registerContextPropertyRequirementsSuite as registerContextPropertyRequirementsV103 } from "../specs/v1_0_3/Data2.4.6-ContextProperty.ts";
 import { registerFormattingRequirementsSuite as registerFormattingRequirementsV103 } from "../specs/v1_0_3/Data2.2-FormattingRequirements.ts";
 import { registerHeadRequestImplementationSuite as registerHeadRequestImplementationV103 } from "../specs/v1_0_3/H.Communication1.1-HeadRequestImplementation.ts";
+import { registerHeadersRequirementsSuite as registerHeadersRequirementsV103 } from "../specs/v1_0_3/H.Communication1.2-Headers.ts";
 import { registerAlternateRequestSyntaxRequirementsSuite as registerAlternateRequestSyntaxRequirementsV103 } from "../specs/v1_0_3/H.Communication1.3-AlternateRequestSyntax.ts";
 import { registerEncodingRequirementsSuite as registerEncodingRequirementsV103 } from "../specs/v1_0_3/H.Communication1.4-Encoding.ts";
 import { registerContentTypeRequirementsSuite as registerContentTypeRequirementsV103 } from "../specs/v1_0_3/H.Communication1.5-ContentTypes.ts";
@@ -35,6 +36,7 @@ import { registerAttachmentsPropertyRequirementsSuite as registerAttachmentsProp
 import { registerAuthorityPropertyRequirementsSuite as registerAuthorityPropertyRequirementsV20 } from "../specs/v2_0/4.2.4.2-Authority-Requirements.ts";
 import { registerContextPropertyRequirementsSuite as registerContextPropertyRequirementsV20 } from "../specs/v2_0/4.2.2.5-Context-Requirements.ts";
 import { registerFormattingRequirementsSuite as registerFormattingRequirementsV20 } from "../specs/v2_0/Data2.2-FormattingRequirements.ts";
+import { registerHeadersRequirementsSuite as registerHeadersRequirementsV20 } from "../specs/v2_0/H.Communication1.2-Headers.ts";
 import { registerEncodingRequirementsSuite as registerEncodingRequirementsV20 } from "../specs/v2_0/H.Communication1.4-Encoding.ts";
 import { registerContentTypeRequirementsSuite as registerContentTypeRequirementsV20 } from "../specs/v2_0/4.1.3-Content-Types.ts";
 import { registerHeadRequestImplementationSuite as registerHeadRequestImplementationV20 } from "../specs/v2_0/H.Communication1.1-HeadRequestImplementation.ts";
@@ -77,6 +79,7 @@ const registrarsByDirectory: Readonly<Record<string, readonly SuiteRegistrar[]>>
   v1_0_3: [
     registerFormattingRequirementsV103,
     registerHeadRequestImplementationV103,
+    registerHeadersRequirementsV103,
     registerAlternateRequestSyntaxRequirementsV103,
     registerEncodingRequirementsV103,
     registerContentTypeRequirementsV103,
@@ -111,6 +114,7 @@ const registrarsByDirectory: Readonly<Record<string, readonly SuiteRegistrar[]>>
   v2_0: [
     registerFormattingRequirementsV20,
     registerHeadRequestImplementationV20,
+    registerHeadersRequirementsV20,
     registerAlternateRequestSyntaxRequirementsV20,
     registerEncodingRequirementsV20,
     registerContentTypeRequirementsV20,
