@@ -35,6 +35,7 @@ import { registerAttachmentsPropertyRequirementsSuite as registerAttachmentsProp
 import { registerAuthorityPropertyRequirementsSuite as registerAuthorityPropertyRequirementsV20 } from "../specs/v2_0/4.2.4.2-Authority-Requirements.ts";
 import { registerContextPropertyRequirementsSuite as registerContextPropertyRequirementsV20 } from "../specs/v2_0/4.2.2.5-Context-Requirements.ts";
 import { registerFormattingRequirementsSuite as registerFormattingRequirementsV20 } from "../specs/v2_0/Data2.2-FormattingRequirements.ts";
+import { registerEncodingRequirementsSuite as registerEncodingRequirementsV20 } from "../specs/v2_0/H.Communication1.4-Encoding.ts";
 import { registerContentTypeRequirementsSuite as registerContentTypeRequirementsV20 } from "../specs/v2_0/4.1.3-Content-Types.ts";
 import { registerHeadRequestImplementationSuite as registerHeadRequestImplementationV20 } from "../specs/v2_0/H.Communication1.1-HeadRequestImplementation.ts";
 import { registerAlternateRequestSyntaxRequirementsSuite as registerAlternateRequestSyntaxRequirementsV20 } from "../specs/v2_0/H.Communication1.3-AlternateRequestSyntax.ts";
@@ -111,6 +112,7 @@ const registrarsByDirectory: Readonly<Record<string, readonly SuiteRegistrar[]>>
     registerFormattingRequirementsV20,
     registerHeadRequestImplementationV20,
     registerAlternateRequestSyntaxRequirementsV20,
+    registerEncodingRequirementsV20,
     registerContentTypeRequirementsV20,
     registerIdPropertyRequirementsV20,
     registerTimestampPropertyRequirementsV20,

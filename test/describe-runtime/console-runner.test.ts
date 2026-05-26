@@ -3296,20 +3296,20 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1310,
-        passed: 1310,
+        total: 1311,
+        passed: 1311,
         failed: 0,
         version: "2.0.0",
       });
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "POST"),
-      ).toHaveLength(1088);
+      ).toHaveLength(1089);
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "PUT"),
       ).toHaveLength(47);
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "GET"),
-      ).toHaveLength(175);
+      ).toHaveLength(176);
       expect(harness.requests.filter((request) => request.version === null)).toHaveLength(10);
       expect(harness.requests.filter((request) => request.version === "BAD")).toHaveLength(2);
       expect(
@@ -3324,8 +3324,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1310,
-        passed: 1310,
+        total: 1311,
+        passed: 1311,
         failed: 0,
         version: "2.0.0",
       });
@@ -3333,6 +3333,7 @@ describe("console runner entrypoint", () => {
         "Formatting Requirements (Data 2.2)",
         "HEAD Request Implementation Requirements (Communication 1.1)",
         "Alternate Request Syntax Requirements",
+        "Encoding Requirements (Communication 1.4)",
         "Content Type Requirements (Communication 1.5)",
         "Id Property Requirements (Data 2.4.1)",
         "Timestamp Property Requirements (Data 2.4.7)",
@@ -3490,12 +3491,12 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Parameters", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1338,
-        passed: 1338,
+        total: 1339,
+        passed: 1339,
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1313);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1315);
       expect(harness.requests.filter((request) => request.path === "/xapi/activities/state")).toHaveLength(130);
       expect(harness.requests.filter((request) => request.path === "/xapi/agents/profile")).toHaveLength(94);
       expect(harness.requests.filter((request) => request.path === "/xapi/activities/profile")).toHaveLength(93);
@@ -3512,8 +3513,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1338,
-        passed: 1338,
+        total: 1339,
+        passed: 1339,
         failed: 0,
         version: "2.0.0",
       });
@@ -3540,12 +3541,12 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Multiplicity", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1392,
-        passed: 1392,
+        total: 1393,
+        passed: 1393,
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1313);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1315);
       expect(harness.requests.filter((request) => request.path !== "/xapi/statements")).toHaveLength(322);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-multiplicity-v2.log"), "utf8")) as {
@@ -3554,8 +3555,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1392,
-        passed: 1392,
+        total: 1393,
+        passed: 1393,
         failed: 0,
         version: "2.0.0",
       });
@@ -3564,6 +3565,7 @@ describe("console runner entrypoint", () => {
         "Formatting Requirements (Data 2.2)",
         "HEAD Request Implementation Requirements (Communication 1.1)",
         "Alternate Request Syntax Requirements",
+        "Encoding Requirements (Communication 1.4)",
         "Content Type Requirements (Communication 1.5)",
         "Id Property Requirements (Data 2.4.1)",
         "Timestamp Property Requirements (Data 2.4.7)",
