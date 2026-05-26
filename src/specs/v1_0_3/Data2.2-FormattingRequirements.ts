@@ -170,6 +170,8 @@ function registerFormattingMalformedObjectSuite(runtime: DescribeRuntime, contex
   runtime.describe(
     "All Objects are well-created JSON Objects (Nature of binding, Data 2.1, XAPI-00014) **Implicit**",
     () => {
+      registerStatementPostConfigSuite(runtime, context, formattingVerifyTemplateGroups);
+
       runtime.it("An LRS rejects a not well-created JSON Object", async () => {
         const payload = await context.createFromTemplate([{ statement: "{{statements.default}}" }]);
         const statement = payload.statement;
@@ -259,7 +261,6 @@ export function registerFormattingRequirementsSuite(runtime: DescribeRuntime, co
     registerStatementPostConfigSuite(runtime, context, formattingKeyCaseGroups);
     registerStatementPostConfigSuite(runtime, context, formattingEnumeratedValueCaseGroups);
     registerStatementPostConfigSuite(runtime, context, formattingLanguageTagGroups);
-    registerStatementPostConfigSuite(runtime, context, formattingVerifyTemplateGroups);
     registerFormattingMalformedObjectSuite(runtime, context);
     registerFormattingIriSchemeSuite(runtime, context);
     registerFormattingParameterValidationSuite(runtime, context);

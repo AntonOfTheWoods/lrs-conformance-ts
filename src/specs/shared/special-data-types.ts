@@ -59,6 +59,19 @@ async function sendPutStatement(context: DescribeRuntimeContext, statement: Json
   }
 }
 
+async function sendPostStatement(context: DescribeRuntimeContext, statement: JsonObject, name: string): Promise<void> {
+  statement.id = context.generateUuid();
+
+  const response = await context.sendRequest({
+    method: "POST",
+    path: context.getEndpointStatements(),
+    body: statement,
+  });
+  if (response.status !== 200) {
+    throw new Error(`Expected ${name} to return 200, received ${response.status}.`);
+  }
+}
+
 async function fetchExactStatement(
   context: DescribeRuntimeContext,
   statementId: string,
@@ -76,22 +89,53 @@ async function fetchExactStatement(
   return parseJsonObject(response, name);
 }
 
-const extensionVariants = [
+type ExtensionVariantKind = "emptyExtensions" | "emptyString" | "nullValue" | "emptyObject";
+type ExtensionStatementCaseKey =
+  | "activity"
+  | "result"
+  | "context"
+  | "substatement-activity"
+  | "substatement-result"
+  | "substatement-context";
+
+const extensionVariants: Array<{
+  kind: ExtensionVariantKind;
+  layer: JsonObject;
+}> = [
   {
-    label: "extensions can be empty object",
+    kind: "emptyExtensions",
     layer: { extensions: {} } satisfies JsonObject,
   },
   {
-    label: "extension values can be empty string",
+    kind: "emptyString",
     layer: { extensions: { "http://example.com/ex": "" } } satisfies JsonObject,
   },
   {
-    label: "extension values can be null",
+    kind: "nullValue",
     layer: { extensions: { "http://example.com/ex": null } } satisfies JsonObject,
   },
   {
-    label: "extension values can be empty object",
+    kind: "emptyObject",
     layer: { extensions: { "http://example.com/ex": {} } } satisfies JsonObject,
+  },
+];
+
+const validExtensionVariants = [
+  {
+    label: "extensions valid boolean",
+    layer: { extensions: { "http://example.com/ex": true } } satisfies JsonObject,
+  },
+  {
+    label: "extensions valid numeric",
+    layer: { extensions: { "http://example.com/ex": 12345 } } satisfies JsonObject,
+  },
+  {
+    label: "extensions valid object",
+    layer: { extensions: { "http://example.com/ex": { key: "valid" } } } satisfies JsonObject,
+  },
+  {
+    label: "extensions valid string",
+    layer: { extensions: { "http://example.com/ex": "valid" } } satisfies JsonObject,
   },
 ] as const;
 
@@ -100,11 +144,13 @@ function templateLayer(value: TemplateLayer): TemplateLayer {
 }
 
 const extensionStatementCases: Array<{
+  caseKey: ExtensionStatementCaseKey;
   buildLayers: () => TemplateLayer[];
   titlePrefix: string;
   valueLayerKey: "definition" | "statement";
 }> = [
   {
+    caseKey: "activity",
     buildLayers: () => [
       templateLayer({ statement: "{{statements.object_activity}}" }),
       templateLayer({ object: "{{activities.no_extensions}}" }),
@@ -113,6 +159,7 @@ const extensionStatementCases: Array<{
     valueLayerKey: "definition",
   },
   {
+    caseKey: "result",
     buildLayers: () => [
       templateLayer({ statement: "{{statements.result}}" }),
       templateLayer({ result: "{{results.no_extensions}}" }),
@@ -121,6 +168,7 @@ const extensionStatementCases: Array<{
     valueLayerKey: "statement",
   },
   {
+    caseKey: "context",
     buildLayers: () => [
       templateLayer({ statement: "{{statements.context}}" }),
       templateLayer({ context: "{{contexts.no_extensions}}" }),
@@ -129,6 +177,7 @@ const extensionStatementCases: Array<{
     valueLayerKey: "statement",
   },
   {
+    caseKey: "substatement-activity",
     buildLayers: () => [
       templateLayer({ statement: "{{statements.object_substatement}}" }),
       templateLayer({ object: "{{substatements.activity}}" }),
@@ -138,6 +187,7 @@ const extensionStatementCases: Array<{
     valueLayerKey: "definition",
   },
   {
+    caseKey: "substatement-result",
     buildLayers: () => [
       templateLayer({ statement: "{{statements.object_substatement}}" }),
       templateLayer({ object: "{{substatements.result}}" }),
@@ -147,10 +197,69 @@ const extensionStatementCases: Array<{
     valueLayerKey: "statement",
   },
   {
+    caseKey: "substatement-context",
     buildLayers: () => [
       templateLayer({ statement: "{{statements.object_substatement}}" }),
       templateLayer({ object: "{{substatements.context}}" }),
       templateLayer({ context: "{{contexts.no_extensions}}" }),
+    ],
+    titlePrefix: "statement substatement context",
+    valueLayerKey: "statement",
+  },
+];
+
+const extensionObjectStatementCases: Array<{
+  buildLayers: () => TemplateLayer[];
+  titlePrefix: string;
+  valueLayerKey: "definition" | "statement";
+}> = [
+  {
+    buildLayers: () => [
+      templateLayer({ statement: "{{statements.object_activity}}" }),
+      templateLayer({ object: "{{activities.default}}" }),
+    ],
+    titlePrefix: "statement activity",
+    valueLayerKey: "definition",
+  },
+  {
+    buildLayers: () => [
+      templateLayer({ statement: "{{statements.result}}" }),
+      templateLayer({ result: "{{results.default}}" }),
+    ],
+    titlePrefix: "statement result",
+    valueLayerKey: "statement",
+  },
+  {
+    buildLayers: () => [
+      templateLayer({ statement: "{{statements.context}}" }),
+      templateLayer({ context: "{{contexts.default}}" }),
+    ],
+    titlePrefix: "statement context",
+    valueLayerKey: "statement",
+  },
+  {
+    buildLayers: () => [
+      templateLayer({ statement: "{{statements.object_substatement}}" }),
+      templateLayer({ object: "{{substatements.activity}}" }),
+      templateLayer({ object: "{{activities.default}}" }),
+    ],
+    titlePrefix: "statement substatement activity",
+    valueLayerKey: "definition",
+  },
+  {
+    buildLayers: () => [
+      templateLayer({ statement: "{{statements.object_substatement}}" }),
+      templateLayer({ object: "{{substatements.result}}" }),
+      templateLayer({ result: "{{results.default}}" }),
+    ],
+    titlePrefix: "statement substatement result",
+    valueLayerKey: "statement",
+  },
+  {
+    buildLayers: () => [
+      templateLayer({ statement: "{{statements.object_substatement}}" }),
+      templateLayer({ object: "{{substatements.context}}" }),
+      templateLayer({ context: "{{contexts.default}}" }),
     ],
     titlePrefix: "statement substatement context",
     valueLayerKey: "statement",
@@ -169,20 +278,80 @@ function buildExtensionLayers(
   return [...baseLayers, extensionLayer];
 }
 
+function getExtensionAcceptanceTitle(
+  statementCase: { caseKey: ExtensionStatementCaseKey; titlePrefix: string },
+  variantKind: ExtensionVariantKind,
+  method: "POST" | "PUT",
+): string {
+  if (variantKind === "emptyExtensions") {
+    return `${statementCase.titlePrefix} extensions can be empty object`;
+  }
+
+  const useExtensionsLabel =
+    (method === "POST" &&
+      (statementCase.caseKey === "context" ||
+        statementCase.caseKey === "substatement-result" ||
+        statementCase.caseKey === "substatement-context")) ||
+    (method === "PUT" && statementCase.caseKey === "activity" && variantKind === "emptyObject");
+
+  const valueLabel =
+    variantKind === "emptyString" ? "empty string" : variantKind === "nullValue" ? "null" : "empty object";
+  const prefix = useExtensionsLabel ? "extensions can be" : "extension values can be";
+  return `${statementCase.titlePrefix} ${prefix} ${valueLabel}`;
+}
+
 export function registerSpecialDataTypesAndRulesSuite(runtime: DescribeRuntime, context: DescribeRuntimeContext): void {
   runtime.describe("Special Data Types and Rules (Data 4.0)", () => {
     runtime.describe(
-      "An Extension can be null, an empty string, objects with nothing in them when using PUT. (Format, Data 4.1, XAPI-00119)",
+      'An Extension is defined as an Object of any "extensions" property (Multiplicity, Data 4.1.s2, XAPI-00120)',
       () => {
-        for (const statementCase of extensionStatementCases) {
-          for (const variant of extensionVariants) {
+        for (const statementCase of extensionObjectStatementCases) {
+          for (const variant of validExtensionVariants) {
             runtime.it(`${statementCase.titlePrefix} ${variant.label}`, async () => {
               const statement = await createTemplateStatement(
                 context,
                 buildExtensionLayers(statementCase.buildLayers(), statementCase.valueLayerKey, variant.layer),
                 `${statementCase.titlePrefix} ${variant.label}`,
               );
-              await sendPutStatement(context, statement, `${statementCase.titlePrefix} ${variant.label}`);
+              await sendPostStatement(context, statement, `${statementCase.titlePrefix} ${variant.label}`);
+            });
+          }
+        }
+      },
+    );
+
+    runtime.describe(
+      "An Extension can be null, an empty string, objects with nothing in them when using POST. (Format, Data 4.1, XAPI-00119)",
+      () => {
+        for (const statementCase of extensionStatementCases) {
+          for (const variant of extensionVariants) {
+            const title = getExtensionAcceptanceTitle(statementCase, variant.kind, "POST");
+            runtime.it(title, async () => {
+              const statement = await createTemplateStatement(
+                context,
+                buildExtensionLayers(statementCase.buildLayers(), statementCase.valueLayerKey, variant.layer),
+                title,
+              );
+              await sendPostStatement(context, statement, title);
+            });
+          }
+        }
+      },
+    );
+
+    runtime.describe(
+      "An Extension can be null, an empty string, objects with nothing in them when using PUT. (Format, Data 4.1, XAPI-00119)",
+      () => {
+        for (const statementCase of extensionStatementCases) {
+          for (const variant of extensionVariants) {
+            const title = getExtensionAcceptanceTitle(statementCase, variant.kind, "PUT");
+            runtime.it(title, async () => {
+              const statement = await createTemplateStatement(
+                context,
+                buildExtensionLayers(statementCase.buildLayers(), statementCase.valueLayerKey, variant.layer),
+                title,
+              );
+              await sendPutStatement(context, statement, title);
             });
           }
         }

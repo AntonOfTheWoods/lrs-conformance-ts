@@ -3296,14 +3296,14 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1311,
-        passed: 1311,
+        total: 1359,
+        passed: 1359,
         failed: 0,
         version: "2.0.0",
       });
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "POST"),
-      ).toHaveLength(1089);
+      ).toHaveLength(1137);
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "PUT"),
       ).toHaveLength(47);
@@ -3324,8 +3324,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1311,
-        passed: 1311,
+        total: 1359,
+        passed: 1359,
         failed: 0,
         version: "2.0.0",
       });
@@ -3375,25 +3375,39 @@ describe("console runner entrypoint", () => {
         "An LRS rejects with error code 400 Bad Request a Statement where the case of a key does not match the case specified in this specification. (Data 2.2.s4.b1.b5, XAPI-00008, XAPI-00010)",
         "An LRS rejects with error code 400 Bad Request a Statement where the case of a value restricted to enumerated values does not match an enumerated value given in this specification exactly. (Data 2.2.s4.b1.b6, XAPI-00009)",
         "The LRS rejects with error code 400 Bad Request a token with does not validate as matching the RFC 5646 standard in the sequence of token lengths for language map keys. (Format, Data 2.2.s4.b2, Data 2.4.6.s3.table1.row7, RFC5646, XAPI-00013)",
-        "Statements Verify Templates",
-        "Agents Verify Templates",
-        "Groups Verify Templates",
-        'A Group is defined by "objectType" of an "actor" property or "object" property with value "Group" (Data 2.4.2.2.s2.table2.row1)',
-        'An Anonymous Group is defined by "objectType" of an "actor" or "object" with value "Group" and by none of "mbox", "mbox_sha1sum", "openid", or "account" being used (Data 2.4.2.2.s2.table1.row1)',
-        "Verbs Verify Templates",
-        "Objects Verify Templates",
-        "Activities Verify Templates",
-        "An Activity Definition uses the following properties: name, description, type, moreInfo, interactionType, or extensions (Format, Data 2.4.4.1.s2)",
-        "SubStatements Verify Templates",
-        "StatementRefs Verify Templates",
-        "Results Verify Templates",
-        "Contexts Verify Templates",
-        'A ContextActivity is defined as a single Activity of the "value" of the "contextActivities" property (definition, Data 2.4.6.2.s4.b2)',
-        "Languages Verify Templates",
         "All Objects are well-created JSON Objects (Nature of binding, Data 2.1, XAPI-00014) **Implicit**",
         "An LRS rejects with error code 400 Bad Request a Statement containing IRL or IRI values without a scheme. (Data 2.2.s4.b1.b8, XAPI-00011)",
         "The LRS rejects with error code 400 Bad Request parameter values which do not validate to the same standards required for values of the same types in Statements (Data 2.2.s4.b4, XAPI-00012)",
       ]);
+      const formattingSuite = writtenRecord.log.tests.find(
+        (entry) => entry.title === "Formatting Requirements (Data 2.2)",
+      );
+      const formattingNestedSuites = (formattingSuite?.tests ?? []) as Array<{
+        title: string;
+        tests: Array<{ title: string }>;
+      }>;
+      expectLoggedNestedSuiteTitles(
+        formattingNestedSuites,
+        "All Objects are well-created JSON Objects (Nature of binding, Data 2.1, XAPI-00014) **Implicit**",
+        [
+          "Statements Verify Templates",
+          "Agents Verify Templates",
+          "Groups Verify Templates",
+          'A Group is defined by "objectType" of an "actor" property or "object" property with value "Group" (Data 2.4.2.2.s2.table2.row1)',
+          'An Anonymous Group is defined by "objectType" of an "actor" or "object" with value "Group" and by none of "mbox", "mbox_sha1sum", "openid", or "account" being used (Data 2.4.2.2.s2.table1.row1)',
+          "Verbs Verify Templates",
+          "Objects Verify Templates",
+          "Activities Verify Templates",
+          "An Activity Definition uses the following properties: name, description, type, moreInfo, interactionType, or extensions (Format, Data 2.4.4.1.s2)",
+          "SubStatements Verify Templates",
+          "StatementRefs Verify Templates",
+          "Results Verify Templates",
+          "Contexts Verify Templates",
+          'A ContextActivity is defined as a single Activity of the "value" of the "contextActivities" property (definition, Data 2.4.6.2.s4.b2)',
+          "Languages Verify Templates",
+          "An LRS rejects a not well-created JSON Object",
+        ],
+      );
       expectLoggedNestedSuiteTitles(writtenRecord.log.tests, "Id Property Requirements (Data 2.4.1)", [
         'An LRS generates the "id" property of a Statement if none is provided (Modify, Data 2.4.1.s2.b1, XAPI-00026)',
       ]);
@@ -3444,12 +3458,12 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("1.0.3");
       expect(execution.runRecord.summary).toEqual({
-        total: 1259,
-        passed: 1259,
+        total: 1307,
+        passed: 1307,
         failed: 0,
         version: "1.0.3",
       });
-      expect(harness.requests).toHaveLength(1523);
+      expect(harness.requests).toHaveLength(1571);
       expect(harness.requests.filter((request) => request.version === null)).toHaveLength(12);
       expect(harness.requests.filter((request) => request.version === "BAD")).toHaveLength(2);
       expect(
@@ -3463,8 +3477,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1259,
-        passed: 1259,
+        total: 1307,
+        passed: 1307,
         failed: 0,
         version: "1.0.3",
       });
@@ -3491,12 +3505,12 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Parameters", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1339,
-        passed: 1339,
+        total: 1387,
+        passed: 1387,
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1315);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1363);
       expect(harness.requests.filter((request) => request.path === "/xapi/activities/state")).toHaveLength(130);
       expect(harness.requests.filter((request) => request.path === "/xapi/agents/profile")).toHaveLength(94);
       expect(harness.requests.filter((request) => request.path === "/xapi/activities/profile")).toHaveLength(93);
@@ -3513,8 +3527,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1339,
-        passed: 1339,
+        total: 1387,
+        passed: 1387,
         failed: 0,
         version: "2.0.0",
       });
@@ -3541,12 +3555,12 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Multiplicity", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1393,
-        passed: 1393,
+        total: 1441,
+        passed: 1441,
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1315);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1363);
       expect(harness.requests.filter((request) => request.path !== "/xapi/statements")).toHaveLength(322);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-multiplicity-v2.log"), "utf8")) as {
@@ -3555,8 +3569,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1393,
-        passed: 1393,
+        total: 1441,
+        passed: 1441,
         failed: 0,
         version: "2.0.0",
       });
