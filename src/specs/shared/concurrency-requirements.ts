@@ -555,42 +555,46 @@ function registerResourceConcurrencySuite(
   resource: ConcurrencyResourceConfig,
   options: ConcurrencySuiteOptions,
 ): void {
+  const usesLegacyV1Tree = options.includeLegacyV1Cases === true;
+
   runtime.describe(`Concurrency for the ${resource.name} Resource.`, () => {
-    runtime.it("An LRS responding to a GET request SHALL add an ETag HTTP header to the response.", async () => {
-      const parameters = resource.buildParams(context);
-      await createDocument(context, resource, parameters, `${resource.name} ETag setup`, context.buildDocument());
+    if (!usesLegacyV1Tree) {
+      runtime.it("An LRS responding to a GET request SHALL add an ETag HTTP header to the response.", async () => {
+        const parameters = resource.buildParams(context);
+        await createDocument(context, resource, parameters, `${resource.name} ETag setup`, context.buildDocument());
 
-      const response = await sendDocumentRequest(
-        context,
-        "GET",
-        resource.path(context),
-        parameters,
-        200,
-        `${resource.name} GET ETag`,
-      );
-      expectEtag(response, options.etagPattern, `${resource.name} GET ETag`);
-    });
+        const response = await sendDocumentRequest(
+          context,
+          "GET",
+          resource.path(context),
+          parameters,
+          200,
+          `${resource.name} GET ETag`,
+        );
+        expectEtag(response, options.etagPattern, `${resource.name} GET ETag`);
+      });
 
-    runtime.it("When responding to a GET Request the Etag header must be enclosed in quotes", async () => {
-      const parameters = resource.buildParams(context);
-      await createDocument(
-        context,
-        resource,
-        parameters,
-        `${resource.name} quoted ETag setup`,
-        context.buildDocument(),
-      );
+      runtime.it("When responding to a GET Request the Etag header must be enclosed in quotes", async () => {
+        const parameters = resource.buildParams(context);
+        await createDocument(
+          context,
+          resource,
+          parameters,
+          `${resource.name} quoted ETag setup`,
+          context.buildDocument(),
+        );
 
-      const response = await sendDocumentRequest(
-        context,
-        "GET",
-        resource.path(context),
-        parameters,
-        200,
-        `${resource.name} quoted ETag GET`,
-      );
-      expectEtag(response, options.etagPattern, `${resource.name} quoted ETag GET`);
-    });
+        const response = await sendDocumentRequest(
+          context,
+          "GET",
+          resource.path(context),
+          parameters,
+          200,
+          `${resource.name} quoted ETag GET`,
+        );
+        expectEtag(response, options.etagPattern, `${resource.name} quoted ETag GET`);
+      });
+    }
 
     if (options.includeV2IfMatchTree) {
       runtime.describe(
@@ -603,7 +607,7 @@ function registerResourceConcurrencySuite(
       );
     }
 
-    if (!options.includeV2IfMatchTree) {
+    if (!options.includeV2IfMatchTree && !usesLegacyV1Tree) {
       runtime.describe(
         "When responding to a PUT request, must handle the If-Match header as described in RFC 2616, HTTP/1.1 if it contains an ETag",
         () => {
@@ -919,7 +923,7 @@ function registerResourceConcurrencySuite(
       );
     }
 
-    if (options.includeIfNoneMatchCases) {
+    if (options.includeIfNoneMatchCases && !usesLegacyV1Tree) {
       runtime.describe(
         'When responding to a PUT request, handle the If-None-Match header as described in RFC 2616, HTTP/1.1 if it contains "*"',
         () => {
@@ -963,67 +967,69 @@ function registerResourceConcurrencySuite(
       );
     }
 
-    runtime.describe("If a PUT request is received without either header for a resource that already exists", () => {
-      runtime.it("Return 409 conflict", async () => {
-        const parameters = resource.buildParams(context);
-        const document = context.buildDocument();
-        await createDocument(context, resource, parameters, `${resource.name} 409 setup`, document);
+    if (!usesLegacyV1Tree) {
+      runtime.describe("If a PUT request is received without either header for a resource that already exists", () => {
+        runtime.it("Return 409 conflict", async () => {
+          const parameters = resource.buildParams(context);
+          const document = context.buildDocument();
+          await createDocument(context, resource, parameters, `${resource.name} 409 setup`, document);
 
-        await sendDocumentRequest(
-          context,
-          "PUT",
-          resource.path(context),
-          parameters,
-          409,
-          `${resource.name} PUT without precondition`,
-          createUpdatedDocument(document, context.generateUuid()),
-        );
+          await sendDocumentRequest(
+            context,
+            "PUT",
+            resource.path(context),
+            parameters,
+            409,
+            `${resource.name} PUT without precondition`,
+            createUpdatedDocument(document, context.generateUuid()),
+          );
+        });
+
+        runtime.it("Return error message explaining the situation", async () => {
+          const parameters = resource.buildParams(context);
+          const document = context.buildDocument();
+          await createDocument(context, resource, parameters, `${resource.name} 409 message setup`, document);
+
+          const response = await sendDocumentRequest(
+            context,
+            "PUT",
+            resource.path(context),
+            parameters,
+            409,
+            `${resource.name} PUT without precondition message`,
+            createUpdatedDocument(document, context.generateUuid()),
+          );
+
+          if (response.bodyText.length === 0) {
+            throw new Error(`Expected ${resource.name} PUT without precondition to include an error message.`);
+          }
+        });
+
+        runtime.it("Do not modify the resource", async () => {
+          const parameters = resource.buildParams(context);
+          const document = context.buildDocument();
+          await createDocument(context, resource, parameters, `${resource.name} 409 unchanged setup`, document);
+
+          await sendDocumentRequest(
+            context,
+            "PUT",
+            resource.path(context),
+            parameters,
+            409,
+            `${resource.name} PUT without precondition unchanged`,
+            createUpdatedDocument(document, context.generateUuid()),
+          );
+
+          const fetchedDocument = await fetchDocumentObject(
+            context,
+            resource,
+            parameters,
+            `${resource.name} PUT without precondition fetch`,
+          );
+          expectJsonEquals(fetchedDocument, document, `${resource.name} PUT without precondition unchanged`);
+        });
       });
-
-      runtime.it("Return error message explaining the situation", async () => {
-        const parameters = resource.buildParams(context);
-        const document = context.buildDocument();
-        await createDocument(context, resource, parameters, `${resource.name} 409 message setup`, document);
-
-        const response = await sendDocumentRequest(
-          context,
-          "PUT",
-          resource.path(context),
-          parameters,
-          409,
-          `${resource.name} PUT without precondition message`,
-          createUpdatedDocument(document, context.generateUuid()),
-        );
-
-        if (response.bodyText.length === 0) {
-          throw new Error(`Expected ${resource.name} PUT without precondition to include an error message.`);
-        }
-      });
-
-      runtime.it("Do not modify the resource", async () => {
-        const parameters = resource.buildParams(context);
-        const document = context.buildDocument();
-        await createDocument(context, resource, parameters, `${resource.name} 409 unchanged setup`, document);
-
-        await sendDocumentRequest(
-          context,
-          "PUT",
-          resource.path(context),
-          parameters,
-          409,
-          `${resource.name} PUT without precondition unchanged`,
-          createUpdatedDocument(document, context.generateUuid()),
-        );
-
-        const fetchedDocument = await fetchDocumentObject(
-          context,
-          resource,
-          parameters,
-          `${resource.name} PUT without precondition fetch`,
-        );
-        expectJsonEquals(fetchedDocument, document, `${resource.name} PUT without precondition unchanged`);
-      });
-    });
+    }
   });
 }
 

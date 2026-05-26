@@ -3481,12 +3481,12 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("1.0.3");
       expect(execution.runRecord.summary).toEqual({
-        total: 1385,
-        passed: 1385,
+        total: 1365,
+        passed: 1365,
         failed: 0,
         version: "1.0.3",
       });
-      expect(harness.requests).toHaveLength(1673);
+      expect(harness.requests).toHaveLength(1627);
       expect(harness.requests.filter((request) => request.version === null)).toHaveLength(12);
       expect(harness.requests.filter((request) => request.version === "BAD")).toHaveLength(2);
       expect(
@@ -3500,8 +3500,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1385,
-        passed: 1385,
+        total: 1365,
+        passed: 1365,
         failed: 0,
         version: "1.0.3",
       });

@@ -15,6 +15,12 @@ function getFixturesRoot(): string {
   return resolve(import.meta.dir, "..", "fixtures");
 }
 
+function getTemplatePathCandidates(directory: string, group: string, name: string): string[] {
+  return [directory, "shared"].map((segment) =>
+    resolve(getFixturesRoot(), segment, "templates", group, `${name}.json`),
+  );
+}
+
 function cloneJsonValue<T extends JsonValue>(value: T): T {
   return structuredClone(value);
 }
@@ -45,8 +51,21 @@ function parseTemplateReference(value: string): { group: string; name: string } 
   };
 }
 
-function getTemplatePath(directory: string, group: string, name: string): string {
-  return resolve(getFixturesRoot(), directory, "templates", group, `${name}.json`);
+function resolveTemplatePath(
+  directory: string,
+  group: string,
+  name: string,
+  pathExists: (path: string) => boolean = existsSync,
+): string {
+  const candidatePaths = getTemplatePathCandidates(directory, group, name);
+
+  for (const candidatePath of candidatePaths) {
+    if (pathExists(candidatePath)) {
+      return candidatePath;
+    }
+  }
+
+  return candidatePaths[0] ?? "";
 }
 
 async function loadTemplateReference(directory: string, value: string): Promise<JsonValue> {
@@ -55,7 +74,7 @@ async function loadTemplateReference(directory: string, value: string): Promise<
     throw new Error(`Template value is not a valid reference: ${value}`);
   }
 
-  const templatePath = getTemplatePath(directory, reference.group, reference.name);
+  const templatePath = resolveTemplatePath(directory, reference.group, reference.name);
   if (!existsSync(templatePath)) {
     throw new Error(`Template fixture not found: ${templatePath}`);
   }
