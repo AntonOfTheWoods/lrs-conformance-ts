@@ -7,6 +7,7 @@ export function registerConcurrencyRequirementsSuite(runtime: DescribeRuntime, c
   registerSharedConcurrencyRequirementsSuite(runtime, context, {
     etagPattern: /^(W\/)?"[0-9a-f]{40}"$/i,
     includeIfNoneMatchCases: true,
+    includeLegacyV1Cases: true,
     requirementTitle:
       "An LRS must support HTTP/1.1 entity tags (ETags) to implement optimistic concurrency control when handling Resources where PUT may overwrite existing data (Agent Profile, and Activity Profile, Communication 3.1, XAPI-00322)",
     resources: [

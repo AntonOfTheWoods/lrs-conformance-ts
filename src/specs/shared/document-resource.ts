@@ -12,6 +12,15 @@ type DocumentCase = {
   title: string;
 };
 
+type MergeRejectCasesConfig = {
+  suiteTitle: string;
+  badPostTitle: string;
+  badExistingTitle: string;
+  badJsonTitle: string;
+  incomingNonJsonContentType?: string;
+  existingNonJsonPutHeaders?: Record<string, string>;
+};
+
 type ProfileResourceConfig = {
   buildParams: (context: DescribeRuntimeContext) => JsonObject;
   contextParamKey: "activityId" | "agent";
@@ -23,11 +32,14 @@ type ProfileResourceConfig = {
   invalidContextCases?: readonly DocumentCase[];
   invalidJsonTitle: string;
   invalidTypeTitle: string;
+  mergeRejectCases?: MergeRejectCasesConfig;
   listTitle: string;
   missingContextCases: readonly DocumentCase[];
   missingIdCases: readonly DocumentCase[];
   postAcceptanceTitle: string;
   postCreatesTitle: string;
+  standaloneInvalidJsonObjectContentType?: string;
+  standaloneInvalidJsonObjectTitle?: string;
   putAcceptanceTitle: string;
   sinceCorrespondenceTitle: string;
   sinceTitle: string;
@@ -89,6 +101,12 @@ function expectStringArray(values: JsonValue[], name: string): string[] {
 function expectJsonEquals(actual: unknown, expected: JsonObject, name: string): void {
   if (JSON.stringify(actual) !== JSON.stringify(expected)) {
     throw new Error(`Expected ${name} to equal the stored document.`);
+  }
+}
+
+function expectTextEquals(actual: string, expected: string, name: string): void {
+  if (actual !== expected) {
+    throw new Error(`Expected ${name} to equal the stored document text.`);
   }
 }
 
@@ -177,6 +195,16 @@ async function fetchDocumentIds(
   return expectStringArray(parseJsonArray(response, name), name);
 }
 
+async function fetchDocumentText(
+  context: DescribeRuntimeContext,
+  path: string,
+  query: Record<string, unknown>,
+  name: string,
+): Promise<string> {
+  const response = await sendDocumentRequest(context, "GET", path, query, 200, name);
+  return response.bodyText;
+}
+
 function createUpdatedDocument(document: JsonObject, suffix: string): JsonObject {
   return {
     ...structuredClone(document),
@@ -201,6 +229,112 @@ function shouldWaitForLastModifiedUpdate(context: DescribeRuntimeContext): boole
 async function createSinceTimestamp(context: DescribeRuntimeContext): Promise<string> {
   await context.setTimeMargin();
   return new Date(Date.now() - 60_000 - (context.getTimeMargin() ?? 0)).toISOString();
+}
+
+function createInvalidJsonDocument(context: DescribeRuntimeContext): string {
+  return `${JSON.stringify(context.buildDocument())}{`;
+}
+
+function registerMergeRejectCases(
+  runtime: DescribeRuntime,
+  context: DescribeRuntimeContext,
+  endpointPath: string,
+  buildParams: (context: DescribeRuntimeContext) => JsonObject,
+  config: MergeRejectCasesConfig,
+): void {
+  runtime.describe(config.suiteTitle, () => {
+    runtime.it(config.badPostTitle, async () => {
+      const parameters = buildParams(context);
+      const document = context.buildDocument();
+
+      await sendDocumentRequest(
+        context,
+        "POST",
+        endpointPath,
+        parameters,
+        204,
+        `${config.badPostTitle} setup`,
+        document,
+      );
+      await sendDocumentRequest(context, "POST", endpointPath, parameters, 400, config.badPostTitle, "abcdefg", {
+        "Content-Type": config.incomingNonJsonContentType ?? "application/octet-stream",
+      });
+
+      const fetchedDocument = await fetchDocumentObject(
+        context,
+        endpointPath,
+        parameters,
+        `${config.badPostTitle} fetch`,
+      );
+      expectJsonEquals(fetchedDocument, document, config.badPostTitle);
+    });
+
+    runtime.it(config.badExistingTitle, async () => {
+      const parameters = buildParams(context);
+      const existingDocument = "/ asdf / undefined";
+
+      await sendDocumentRequest(
+        context,
+        "PUT",
+        endpointPath,
+        parameters,
+        204,
+        `${config.badExistingTitle} setup`,
+        existingDocument,
+        config.existingNonJsonPutHeaders ?? { "Content-Type": "application/octet-stream" },
+      );
+      await sendDocumentRequest(
+        context,
+        "POST",
+        endpointPath,
+        parameters,
+        400,
+        config.badExistingTitle,
+        context.buildDocument(),
+      );
+
+      const fetchedDocument = await fetchDocumentText(
+        context,
+        endpointPath,
+        parameters,
+        `${config.badExistingTitle} fetch`,
+      );
+      expectTextEquals(fetchedDocument, existingDocument, config.badExistingTitle);
+    });
+
+    runtime.it(config.badJsonTitle, async () => {
+      const parameters = buildParams(context);
+      const document = context.buildDocument();
+
+      await sendDocumentRequest(
+        context,
+        "POST",
+        endpointPath,
+        parameters,
+        204,
+        `${config.badJsonTitle} setup`,
+        document,
+      );
+      await sendDocumentRequest(
+        context,
+        "POST",
+        endpointPath,
+        parameters,
+        400,
+        config.badJsonTitle,
+        createInvalidJsonDocument(context),
+        { "Content-Type": "application/json" },
+      );
+
+      const fetchedDocument = await fetchDocumentObject(
+        context,
+        endpointPath,
+        parameters,
+        `${config.badJsonTitle} fetch`,
+      );
+      expectJsonEquals(fetchedDocument, document, config.badJsonTitle);
+    });
+  });
 }
 
 function registerLastModifiedCases(
@@ -713,30 +847,73 @@ function registerProfileResourceRequirementsSuite(
       );
     });
 
-    runtime.it(config.invalidTypeTitle, async () => {
-      const parameters = config.buildParams(context);
-      const document = context.buildDocument();
-      await sendDocumentRequest(
-        context,
-        "POST",
-        endpointPath,
-        parameters,
-        204,
-        `${config.invalidTypeTitle} setup`,
-        document,
-      );
-      await sendDocumentRequest(context, "POST", endpointPath, parameters, 400, config.invalidTypeTitle, "abcdefg", {
-        "Content-Type": "application/octet-stream",
-      });
+    if (config.standaloneInvalidJsonObjectTitle) {
+      const standaloneInvalidJsonObjectTitle = config.standaloneInvalidJsonObjectTitle;
 
-      const fetchedDocument = await fetchDocumentObject(
-        context,
-        endpointPath,
-        parameters,
-        `${config.invalidTypeTitle} fetch`,
-      );
-      expectJsonEquals(fetchedDocument, document, config.invalidTypeTitle);
-    });
+      runtime.it(standaloneInvalidJsonObjectTitle, async () => {
+        const parameters = config.buildParams(context);
+        const document = context.buildDocument();
+
+        await sendDocumentRequest(
+          context,
+          "POST",
+          endpointPath,
+          parameters,
+          204,
+          `${standaloneInvalidJsonObjectTitle} setup`,
+          document,
+        );
+        await sendDocumentRequest(
+          context,
+          "POST",
+          endpointPath,
+          parameters,
+          400,
+          standaloneInvalidJsonObjectTitle,
+          "abcdefg",
+          { "Content-Type": config.standaloneInvalidJsonObjectContentType ?? "not/json" },
+        );
+
+        const fetchedDocument = await fetchDocumentObject(
+          context,
+          endpointPath,
+          parameters,
+          `${standaloneInvalidJsonObjectTitle} fetch`,
+        );
+        expectJsonEquals(fetchedDocument, document, standaloneInvalidJsonObjectTitle);
+      });
+    }
+
+    if (config.mergeRejectCases) {
+      registerMergeRejectCases(runtime, context, endpointPath, config.buildParams, config.mergeRejectCases);
+    }
+
+    if (config.mergeRejectCases?.suiteTitle !== config.invalidTypeTitle) {
+      runtime.it(config.invalidTypeTitle, async () => {
+        const parameters = config.buildParams(context);
+        const document = context.buildDocument();
+        await sendDocumentRequest(
+          context,
+          "POST",
+          endpointPath,
+          parameters,
+          204,
+          `${config.invalidTypeTitle} setup`,
+          document,
+        );
+        await sendDocumentRequest(context, "POST", endpointPath, parameters, 400, config.invalidTypeTitle, "abcdefg", {
+          "Content-Type": "application/octet-stream",
+        });
+
+        const fetchedDocument = await fetchDocumentObject(
+          context,
+          endpointPath,
+          parameters,
+          `${config.invalidTypeTitle} fetch`,
+        );
+        expectJsonEquals(fetchedDocument, document, config.invalidTypeTitle);
+      });
+    }
 
     runtime.it(config.invalidJsonTitle, async () => {
       const parameters = config.buildParams(context);
@@ -821,6 +998,17 @@ export function registerAgentProfileResourceRequirementsSuite(
       'An LRS\'s Agent Profile Resource rejects a GET request with "since" as a parameter if it is not a "TimeStamp", with error code 400 Bad Request (format, Communication 2.6.s4.table1.row2, XAPI-00260)',
     invalidTypeTitle:
       "An LRS's Agent Profile Resource, rejects a POST request if the document is found and either document's type is not \"application/json\" with error code 400 Bad Request (multiplicity, Communication 2.3.s3.table1.row3, Communication 2.2.s8.b1, XAPI-00278)",
+    mergeRejectCases: {
+      suiteTitle:
+        'An LRSs Agent Profile Resource, rejects a POST request if the document is found and either documents type is not "application/json" with error code 400 Bad Request (multiplicity, Communication 2.3.s3.table1.row3, Communication 2.2.s8.b1, XAPI-00278)',
+      badPostTitle:
+        "If the document being posted to the Agent Profile Resource does not have a Content-Type of application/json and the existing document does, the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.",
+      badExistingTitle:
+        "If the existing document does not have a Content-Type of application/json but the document being posted to the Agent Profile Resource does the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.",
+      badJsonTitle:
+        "If the document being posted to the Agent Profile Resource has a content type of Content-Type of application/json but cannot be parsed as a JSON Object, the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.",
+      existingNonJsonPutHeaders: { "Content-Type": "application/octet-stream", "If-None-Match": "*" },
+    },
     listTitle:
       'An LRS\'s Agent Profile Resource upon processing a successful GET request without "profileId" as a parameter returns an array of ids of agent profile documents satisfying the requirements of the GET and code 200 OK (Communication 2.6.s4, XAPI-00270)',
     mergeTitle:
@@ -868,6 +1056,8 @@ export function registerAgentProfileResourceRequirementsSuite(
       "An LRS's Agent Profile Resource upon processing a successful POST request returns code 204 No Content (Communication 2.6.s3, XAPI-00272, XAPI-00283)",
     postCreatesTitle:
       "An LRS's Agent Profile Resource, upon receiving a POST request for a document not currently in the LRS, treats it as a PUT request and store a new document (Communication 2.2.s7, XAPI-00280)",
+    standaloneInvalidJsonObjectTitle:
+      "An LRS's Agent Profile Resource, rejects a POST request if the document is found and either document is not a valid JSON Object (Communication 2.6, XAPI-00281)",
     putAcceptanceTitle:
       "An LRS's Agent Profile Resource upon processing a successful PUT request returns code 204 No Content (Communication 2.6.s3, XAPI-00273)",
     sinceCorrespondenceTitle:
@@ -901,6 +1091,17 @@ export function registerActivityProfileResourceRequirementsSuite(
       'An LRS\'s Activity Profile Resource rejects a GET request with "since" as a parameter if it is not a "TimeStamp", with error code 400 Bad Request (format, Communication 2.7.s4.table1.row2, XAPI-00295)',
     invalidTypeTitle:
       "An LRS's Activity Profile Resource, rejects a POST request if the document is found and either document's type is not \"application/json\" with error code 400 Bad Request (Communication 2.2.s8.b1, XAPI-00309)",
+    mergeRejectCases: {
+      suiteTitle:
+        "An LRS's Activity Profile Resource, rejects a POST request if the document is found and either document is not a valid JSON Object (Communication 2.7.s3.table1.row3, Communication 2.2.s8.b1, XAPI-00313)",
+      badPostTitle:
+        "If the document being posted to the Activity Profile Resource does not have a Content-Type of application/json and the existing document does, the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.",
+      badExistingTitle:
+        "If the existing document does not have a Content-Type of application/json but the document being posted to the Activity Profile Resource does the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.",
+      badJsonTitle:
+        "If the document being posted to the Activity Profile Resource has a content type of Content-Type of application/json but cannot be parsed as a JSON Object, the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.",
+      existingNonJsonPutHeaders: { "Content-Type": "application/octet-stream", "If-None-Match": "*" },
+    },
     listTitle:
       'An LRS\'s Activity Profile Resource upon processing a successful GET request without "profileId" as a parameter returns an array of ids of activity profile documents satisfying the requirements of the GET and code 200 OK (Communication 2.7.s4, XAPI-00289)',
     mergeTitle:
@@ -1476,6 +1677,18 @@ export function registerStateResourceRequirementsSuite(
         expectJsonEquals(mergedDocument, { car: "Honda", type: "Civic" }, "State merge");
       },
     );
+
+    registerMergeRejectCases(runtime, context, endpointPath, (currentContext) => currentContext.buildState(), {
+      suiteTitle:
+        "An LRSs State Resource, rejects a POST request if the document is found and either document is not a valid JSON Object (multiplicity, Communication 2.3.s3.table1.row3, Communication 2.2.s8.b1, XAPI-00229)",
+      badPostTitle:
+        "If the document being posted to the State Resource does not have a Content-Type of application/json and the existing document does, the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.",
+      badExistingTitle:
+        "If the existing document does not have a Content-Type of application/json but the document being posted to the State Resource does the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.",
+      badJsonTitle:
+        "If the document being posted to the State Resource has a content type of Content-Type of application/json but cannot be parsed as a JSON Object, the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.",
+      incomingNonJsonContentType: "not/json",
+    });
 
     runtime.it(
       "An LRS's State Resource, rejects a POST request if the document is found and either document's type is not \"application/json\" with error code 400 Bad Request (Communication 2.2.s8.b1, XAPI-00232)",

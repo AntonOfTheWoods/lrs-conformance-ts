@@ -7,6 +7,7 @@ export function registerConcurrencyRequirementsSuite(runtime: DescribeRuntime, c
   registerSharedConcurrencyRequirementsSuite(runtime, context, {
     etagPattern: /^(W\/)?".+"$/,
     includeIfMatchPostAndDeleteCases: true,
+    includeV2IfMatchTree: true,
     requirementTitle:
       "xAPI uses HTTP 1.1 entity tags (ETags) to implement optimistic concurrency control in the following resources, where PUT, POST or DELETE are allowed to overwrite or remove existing data. (Communication 3.1, XAPI-00322)",
     resources: [

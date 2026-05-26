@@ -3296,8 +3296,8 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1417,
-        passed: 1417,
+        total: 1460,
+        passed: 1460,
         failed: 0,
         version: "2.0.0",
       });
@@ -3324,8 +3324,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1417,
-        passed: 1417,
+        total: 1460,
+        passed: 1460,
         failed: 0,
         version: "2.0.0",
       });
@@ -3460,12 +3460,12 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("1.0.3");
       expect(execution.runRecord.summary).toEqual({
-        total: 1363,
-        passed: 1363,
+        total: 1385,
+        passed: 1385,
         failed: 0,
         version: "1.0.3",
       });
-      expect(harness.requests).toHaveLength(1627);
+      expect(harness.requests).toHaveLength(1683);
       expect(harness.requests.filter((request) => request.version === null)).toHaveLength(12);
       expect(harness.requests.filter((request) => request.version === "BAD")).toHaveLength(2);
       expect(
@@ -3479,8 +3479,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1363,
-        passed: 1363,
+        total: 1385,
+        passed: 1385,
         failed: 0,
         version: "1.0.3",
       });
@@ -3507,15 +3507,15 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Parameters", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1445,
-        passed: 1445,
+        total: 1488,
+        passed: 1488,
         failed: 0,
         version: "2.0.0",
       });
       expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1421);
-      expect(harness.requests.filter((request) => request.path === "/xapi/activities/state")).toHaveLength(130);
-      expect(harness.requests.filter((request) => request.path === "/xapi/agents/profile")).toHaveLength(94);
-      expect(harness.requests.filter((request) => request.path === "/xapi/activities/profile")).toHaveLength(93);
+      expect(harness.requests.filter((request) => request.path === "/xapi/activities/state")).toHaveLength(171);
+      expect(harness.requests.filter((request) => request.path === "/xapi/agents/profile")).toHaveLength(138);
+      expect(harness.requests.filter((request) => request.path === "/xapi/activities/profile")).toHaveLength(134);
       expect(harness.requests.filter((request) => request.version === null)).toHaveLength(10);
       expect(harness.requests.filter((request) => request.version === "BAD")).toHaveLength(2);
       expect(
@@ -3529,8 +3529,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1445,
-        passed: 1445,
+        total: 1488,
+        passed: 1488,
         failed: 0,
         version: "2.0.0",
       });
@@ -3557,13 +3557,13 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Multiplicity", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1499,
-        passed: 1499,
+        total: 1542,
+        passed: 1542,
         failed: 0,
         version: "2.0.0",
       });
       expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1421);
-      expect(harness.requests.filter((request) => request.path !== "/xapi/statements")).toHaveLength(322);
+      expect(harness.requests.filter((request) => request.path !== "/xapi/statements")).toHaveLength(448);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-multiplicity-v2.log"), "utf8")) as {
         log: { tests: Array<{ title: string }> };
@@ -3571,8 +3571,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1499,
-        passed: 1499,
+        total: 1542,
+        passed: 1542,
         failed: 0,
         version: "2.0.0",
       });
