@@ -267,7 +267,7 @@ function buildSuiteBootstrapCommand(
     '  echo "[conformance] hydrating ADL suite runtime dependencies"',
     '  npm install --prefix "$runtime_suite_dir" --omit=dev --no-save --no-package-lock --ignore-scripts --no-audit --no-fund',
     "fi",
-    'export NODE_PATH="$runtime_suite_node_modules_dir:$runtime_node_modules_dir${NODE_PATH:+:$NODE_PATH}"',
+    'export NODE_PATH="$runtime_suite_node_modules_dir${NODE_PATH:+:$NODE_PATH}"',
     "set +e",
     `node ${shellEscape(runtimeConsoleRunnerPath)}${
       shellQuotedUpstreamArgs.length > 0 ? ` ${shellQuotedUpstreamArgs}` : ""
