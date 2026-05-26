@@ -36,8 +36,11 @@ export interface DescribeRuntimeContext {
   addAllHeaders(headers?: Record<string, string>, badAuth?: boolean): Record<string, string>;
   createFromTemplate(layers: TemplateLayer[]): Promise<JsonObject>;
   generateUuid(): string;
+  getEndpointAbout(): string;
+  getEndpointActivities(): string;
   getEndpointActivitiesProfile(): string;
   getEndpointActivitiesState(): string;
+  getEndpointAgents(): string;
   getEndpointAgentsProfile(): string;
   getEndpointStatements(): string;
   getTimeMargin(): number | undefined;
@@ -233,11 +236,20 @@ export function createDescribeRuntimeContext(
     addAllHeaders,
     createFromTemplate,
     generateUuid,
+    getEndpointAbout() {
+      return "/about";
+    },
+    getEndpointActivities() {
+      return "/activities";
+    },
     getEndpointActivitiesProfile() {
       return "/activities/profile";
     },
     getEndpointActivitiesState() {
       return "/activities/state";
+    },
+    getEndpointAgents() {
+      return "/agents";
     },
     getEndpointAgentsProfile() {
       return "/agents/profile";

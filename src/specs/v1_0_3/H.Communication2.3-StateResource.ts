@@ -3,6 +3,9 @@ import type { DescribeRuntimeContext } from "../../describe-runtime/suite-contex
 
 import { registerStateResourceRequirementsSuite as registerSharedStateResourceRequirementsSuite } from "../shared/document-resource.ts";
 
-export function registerStateResourceRequirementsSuite(runtime: DescribeRuntime, context: DescribeRuntimeContext): void {
+export function registerStateResourceRequirementsSuite(
+  runtime: DescribeRuntime,
+  context: DescribeRuntimeContext,
+): void {
   registerSharedStateResourceRequirementsSuite(runtime, context);
 }

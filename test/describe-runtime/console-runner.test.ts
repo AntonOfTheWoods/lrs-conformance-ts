@@ -1,3 +1,4 @@
+import { Buffer } from "node:buffer";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -31,6 +32,19 @@ interface StoredDocument {
   storedAt: number;
 }
 
+const versionHeaderExemptPaths = new Set(["/xapi/about"]);
+const versionedApiPaths = new Set([
+  "/xapi/statements",
+  "/xapi/activities",
+  "/xapi/activities/profile",
+  "/xapi/activities/state",
+  "/xapi/agents",
+  "/xapi/agents/profile",
+]);
+const validBasicUserName = "proof-basic-user";
+const validBasicPassword = "proof-basic-password";
+const validOauthAuthorizationPrefix = "OAuth ";
+
 const silentLogger = {
   log: (..._args: unknown[]) => {},
   error: (..._args: unknown[]) => {},
@@ -38,6 +52,90 @@ const silentLogger = {
 
 function createNowSequence(sequence: number[]): () => number {
   return () => sequence.shift() ?? 0;
+}
+
+function createMockHeaders(
+  version: string,
+  contentType = "application/json",
+  extraHeaders: Record<string, string> = {},
+): Headers {
+  return new Headers({
+    "content-type": contentType,
+    "x-experience-api-version": version,
+    ...extraHeaders,
+  });
+}
+
+function withoutBody(response: Response): Response {
+  return new Response(null, {
+    status: response.status,
+    headers: new Headers(response.headers),
+  });
+}
+
+function validateVersionHeader(request: Request, path: string, version: string): Response | undefined {
+  if (!versionedApiPaths.has(path) || versionHeaderExemptPaths.has(path)) {
+    return undefined;
+  }
+
+  if (request.headers.get("x-experience-api-version") === version) {
+    return undefined;
+  }
+
+  return new Response(JSON.stringify({ error: "X-Experience-API-Version header is required" }), {
+    status: 400,
+    headers: createMockHeaders(version),
+  });
+}
+
+function parseBasicAuthCredentials(headerValue: string | null): { password: string; username: string } | undefined {
+  if (!headerValue) {
+    return undefined;
+  }
+
+  const [scheme, encoded] = headerValue.split(" ", 2);
+  if (!scheme || scheme.toLowerCase() !== "basic" || !encoded) {
+    return undefined;
+  }
+
+  try {
+    const decoded = Buffer.from(encoded, "base64").toString("utf8");
+    const separatorIndex = decoded.indexOf(":");
+    if (separatorIndex <= 0) {
+      return undefined;
+    }
+
+    return {
+      username: decoded.slice(0, separatorIndex),
+      password: decoded.slice(separatorIndex + 1),
+    };
+  } catch {
+    return undefined;
+  }
+}
+
+function validateAuthorizationHeader(request: Request, version: string): Response | undefined {
+  const authorization = request.headers.get("authorization");
+  if (!authorization) {
+    return new Response(JSON.stringify({ error: "authorization is required" }), {
+      status: 401,
+      headers: createMockHeaders(version),
+    });
+  }
+
+  if (authorization.startsWith(validOauthAuthorizationPrefix)) {
+    return undefined;
+  }
+
+  const credentials = parseBasicAuthCredentials(authorization);
+  if (credentials && credentials.username === validBasicUserName && credentials.password === validBasicPassword) {
+    return undefined;
+  }
+
+  return new Response(JSON.stringify({ error: "unauthorized" }), {
+    status: 401,
+    headers: createMockHeaders(version),
+  });
 }
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {
@@ -1320,9 +1418,10 @@ function createLastModifiedHeader(statement: Record<string, unknown>): string | 
   return new Date(normalizeStoredTimestampForDate(stored)).toUTCString();
 }
 
-function createStatementGetHeaders(statement?: Record<string, unknown>): Record<string, string> {
+function createStatementGetHeaders(version: string, statement?: Record<string, unknown>): Record<string, string> {
   const headers: Record<string, string> = {
     "X-Experience-API-Consistent-Through": createConsistentThroughHeader(),
+    "X-Experience-API-Version": version,
   };
 
   if (statement) {
@@ -1335,10 +1434,15 @@ function createStatementGetHeaders(statement?: Record<string, unknown>): Record<
   return headers;
 }
 
-function createStatementJsonResponse(body: unknown, status: number, statement?: Record<string, unknown>): Response {
+function createStatementJsonResponse(
+  version: string,
+  body: unknown,
+  status: number,
+  statement?: Record<string, unknown>,
+): Response {
   return Response.json(body, {
     status,
-    headers: createStatementGetHeaders(statement),
+    headers: createStatementGetHeaders(version, statement),
   });
 }
 
@@ -1403,12 +1507,13 @@ function buildMultipartStatementResponseBody(
 }
 
 function createMultipartStatementResponse(
+  version: string,
   body: unknown,
   status: number,
   attachmentParts: Array<StoredAttachmentBody & { hash: string }>,
   statement?: Record<string, unknown>,
 ): Response {
-  const headers = new Headers(createStatementGetHeaders(statement));
+  const headers = new Headers(createStatementGetHeaders(version, statement));
   headers.set("Content-Type", `multipart/mixed; boundary=${statementAttachmentResponseBoundary}`);
 
   return new Response(buildMultipartStatementResponseBody(body, attachmentParts), {
@@ -1635,6 +1740,58 @@ function isMatchingAgent(candidate: Record<string, unknown>, queryAgent: Record<
   return false;
 }
 
+function isValidAgentAccount(value: unknown): value is Record<string, unknown> {
+  return isObjectRecord(value) && typeof value.homePage === "string" && typeof value.name === "string";
+}
+
+function parseAgentQueryObject(value: string | null): Record<string, unknown> | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  try {
+    const parsed = JSON.parse(value) as Record<string, unknown>;
+    if (!isObjectRecord(parsed) || parsed.objectType !== "Agent") {
+      return undefined;
+    }
+
+    if ("name" in parsed && typeof parsed.name !== "string") {
+      return undefined;
+    }
+
+    if ("mbox" in parsed && typeof parsed.mbox !== "string") {
+      return undefined;
+    }
+
+    if ("mbox_sha1sum" in parsed && typeof parsed.mbox_sha1sum !== "string") {
+      return undefined;
+    }
+
+    if ("openid" in parsed && typeof parsed.openid !== "string") {
+      return undefined;
+    }
+
+    if ("account" in parsed && !isValidAgentAccount(parsed.account)) {
+      return undefined;
+    }
+
+    const identifiers = [
+      typeof parsed.mbox === "string",
+      typeof parsed.mbox_sha1sum === "string",
+      typeof parsed.openid === "string",
+      isValidAgentAccount(parsed.account),
+    ].filter(Boolean);
+
+    if (identifiers.length !== 1) {
+      return undefined;
+    }
+
+    return parsed;
+  } catch {
+    return undefined;
+  }
+}
+
 function addContextActors(context: unknown, actors: Record<string, unknown>[]): void {
   if (!isObjectRecord(context)) {
     return;
@@ -1828,16 +1985,219 @@ function getCollectionResults(
 }
 
 function isAgentQueryValid(value: string | null): boolean {
-  if (typeof value !== "string") {
-    return false;
+  return typeof parseAgentQueryObject(value) !== "undefined";
+}
+
+function validateAgentResourceQuery(searchParams: URLSearchParams): number | undefined {
+  for (const key of searchParams.keys()) {
+    if (key !== "agent") {
+      return 400;
+    }
   }
 
-  try {
-    const parsed = JSON.parse(value) as { objectType?: string };
-    return isObjectRecord(parsed) && parsed.objectType === "Agent";
-  } catch {
-    return false;
+  if (!searchParams.has("agent") || !isAgentQueryValid(searchParams.get("agent"))) {
+    return 400;
   }
+
+  return undefined;
+}
+
+function validateActivityResourceQuery(searchParams: URLSearchParams): number | undefined {
+  for (const key of searchParams.keys()) {
+    if (key !== "activityId") {
+      return 400;
+    }
+  }
+
+  if (!searchParams.has("activityId") || !hasScheme(searchParams.get("activityId"))) {
+    return 400;
+  }
+
+  return undefined;
+}
+
+function pushUniqueString(values: string[], value: string): void {
+  if (!values.includes(value)) {
+    values.push(value);
+  }
+}
+
+function deepMergeRecords(target: Record<string, unknown>, source: Record<string, unknown>): Record<string, unknown> {
+  const merged = structuredClone(target);
+
+  for (const [key, value] of Object.entries(source)) {
+    if (isObjectRecord(value) && isObjectRecord(merged[key])) {
+      merged[key] = deepMergeRecords(merged[key] as Record<string, unknown>, value);
+      continue;
+    }
+
+    merged[key] = structuredClone(value);
+  }
+
+  return merged;
+}
+
+function buildPersonObject(
+  queryAgent: Record<string, unknown>,
+  storedStatements: Map<string, Record<string, unknown>>,
+): Record<string, unknown> {
+  const names: string[] = [];
+  const mboxes: string[] = [];
+  const mboxSha1sums: string[] = [];
+  const openids: string[] = [];
+  const accounts: Record<string, unknown>[] = [];
+  const seenAccounts = new Set<string>();
+
+  const collect = (candidate: Record<string, unknown>): void => {
+    if (typeof candidate.name === "string") {
+      pushUniqueString(names, candidate.name);
+    }
+
+    if (typeof candidate.mbox === "string") {
+      pushUniqueString(mboxes, candidate.mbox);
+    }
+
+    if (typeof candidate.mbox_sha1sum === "string") {
+      pushUniqueString(mboxSha1sums, candidate.mbox_sha1sum);
+    }
+
+    if (typeof candidate.openid === "string") {
+      pushUniqueString(openids, candidate.openid);
+    }
+
+    if (isValidAgentAccount(candidate.account)) {
+      const serialized = JSON.stringify(candidate.account);
+      if (!seenAccounts.has(serialized)) {
+        seenAccounts.add(serialized);
+        accounts.push(structuredClone(candidate.account));
+      }
+    }
+  };
+
+  collect(queryAgent);
+
+  for (const statement of storedStatements.values()) {
+    for (const candidate of collectAgentCandidates(statement, true)) {
+      if (isMatchingAgent(candidate, queryAgent)) {
+        collect(candidate);
+      }
+    }
+  }
+
+  const person: Record<string, unknown> = {
+    objectType: "Person",
+  };
+
+  if (names.length > 0) {
+    person.name = names;
+  }
+
+  if (mboxes.length > 0) {
+    person.mbox = mboxes;
+  }
+
+  if (mboxSha1sums.length > 0) {
+    person.mbox_sha1sum = mboxSha1sums;
+  }
+
+  if (openids.length > 0) {
+    person.openid = openids;
+  }
+
+  if (accounts.length > 0) {
+    person.account = accounts;
+  }
+
+  return person;
+}
+
+function buildActivityObject(
+  activityId: string,
+  storedStatements: Map<string, Record<string, unknown>>,
+): Record<string, unknown> {
+  let activity: Record<string, unknown> = {
+    objectType: "Activity",
+    id: activityId,
+  };
+
+  for (const statement of storedStatements.values()) {
+    if (!isObjectRecord(statement.object) || !isActivityLikeRecord(statement.object)) {
+      continue;
+    }
+
+    if (statement.object.id !== activityId) {
+      continue;
+    }
+
+    activity = deepMergeRecords(activity, statement.object);
+  }
+
+  activity.objectType = "Activity";
+  activity.id = activityId;
+  return activity;
+}
+
+function handleAboutResource(request: Request, version: string): Response {
+  if (request.method !== "GET" && request.method !== "HEAD") {
+    return new Response("Not found", { status: 404, headers: createMockHeaders(version, "text/plain") });
+  }
+
+  const response = Response.json({ version: [version] }, { status: 200, headers: createMockHeaders(version) });
+  return request.method === "HEAD" ? withoutBody(response) : response;
+}
+
+function handleAgentsResource(
+  request: Request,
+  url: URL,
+  version: string,
+  storedStatements: Map<string, Record<string, unknown>>,
+): Response {
+  if (request.method !== "GET" && request.method !== "HEAD") {
+    return new Response("Not found", { status: 404, headers: createMockHeaders(version, "text/plain") });
+  }
+
+  const validationStatus = validateAgentResourceQuery(url.searchParams);
+  if (validationStatus) {
+    return Response.json({ ok: false }, { status: validationStatus, headers: createMockHeaders(version) });
+  }
+
+  const queryAgent = parseAgentQueryObject(url.searchParams.get("agent"));
+  if (!queryAgent) {
+    return Response.json({ ok: false }, { status: 400, headers: createMockHeaders(version) });
+  }
+
+  const response = Response.json(buildPersonObject(queryAgent, storedStatements), {
+    status: 200,
+    headers: createMockHeaders(version),
+  });
+  return request.method === "HEAD" ? withoutBody(response) : response;
+}
+
+function handleActivitiesResource(
+  request: Request,
+  url: URL,
+  version: string,
+  storedStatements: Map<string, Record<string, unknown>>,
+): Response {
+  if (request.method !== "GET" && request.method !== "HEAD") {
+    return new Response("Not found", { status: 404, headers: createMockHeaders(version, "text/plain") });
+  }
+
+  const validationStatus = validateActivityResourceQuery(url.searchParams);
+  if (validationStatus) {
+    return Response.json({ ok: false }, { status: validationStatus, headers: createMockHeaders(version) });
+  }
+
+  const activityId = url.searchParams.get("activityId");
+  if (typeof activityId !== "string") {
+    return Response.json({ ok: false }, { status: 400, headers: createMockHeaders(version) });
+  }
+
+  const response = Response.json(buildActivityObject(activityId, storedStatements), {
+    status: 200,
+    headers: createMockHeaders(version),
+  });
+  return request.method === "HEAD" ? withoutBody(response) : response;
 }
 
 function validateStatementQuery(searchParams: URLSearchParams): number | undefined {
@@ -2048,11 +2408,7 @@ function validateDocumentResourceQuery(
   return undefined;
 }
 
-function listDocumentIds(
-  store: Map<string, StoredDocument>,
-  contextKey: string,
-  sinceTimestamp?: number,
-): string[] {
+function listDocumentIds(store: Map<string, StoredDocument>, contextKey: string, sinceTimestamp?: number): string[] {
   return Array.from(store.values())
     .filter((document) => {
       if (document.contextKey !== contextKey) {
@@ -2117,10 +2473,11 @@ function createStoredDocument(
   };
 }
 
-function buildStoredDocumentResponse(document: StoredDocument): Response {
+function buildStoredDocumentResponse(document: StoredDocument, version: string): Response {
   const headers = new Headers({
     "Content-Type": document.mediaType,
     "Last-Modified": new Date(document.storedAt).toUTCString(),
+    "X-Experience-API-Version": version,
   });
   const body = isJsonMediaType(document.mediaType) ? JSON.stringify(document.body) : String(document.body);
   return new Response(body, { status: 200, headers });
@@ -2131,75 +2488,88 @@ function handleDocumentResource(
   url: URL,
   requestText: string,
   contentType: string | null,
+  version: string,
   store: Map<string, StoredDocument>,
   options: DocumentResourceOptions,
 ): Response {
-  const validationStatus = validateDocumentResourceQuery(url.searchParams, request.method, options);
+  const effectiveMethod = request.method === "HEAD" ? "GET" : request.method;
+  const validationStatus = validateDocumentResourceQuery(url.searchParams, effectiveMethod, options);
   if (validationStatus) {
-    return Response.json({ ok: false }, { status: validationStatus });
+    return Response.json({ ok: false }, { status: validationStatus, headers: createMockHeaders(version) });
   }
 
   const contextKey = buildContextKey(url.searchParams, options.contextKeys);
   const documentId = url.searchParams.get(options.idKey);
 
-  if (request.method === "GET") {
+  if (effectiveMethod === "GET") {
     if (documentId) {
       const storedDocument = store.get(buildDocumentKey(contextKey, documentId));
       if (!storedDocument) {
-        return new Response("Not found", { status: 404 });
+        return new Response("Not found", { status: 404, headers: createMockHeaders(version, "text/plain") });
       }
-      return buildStoredDocumentResponse(storedDocument);
+      const response = buildStoredDocumentResponse(storedDocument, version);
+      return request.method === "HEAD" ? withoutBody(response) : response;
     }
 
     const sinceTimestamp = url.searchParams.has("since") ? Date.parse(url.searchParams.get("since") ?? "") : undefined;
-    return Response.json(listDocumentIds(store, contextKey, sinceTimestamp), { status: 200 });
+    const response = Response.json(listDocumentIds(store, contextKey, sinceTimestamp), {
+      status: 200,
+      headers: createMockHeaders(version),
+    });
+    return request.method === "HEAD" ? withoutBody(response) : response;
   }
 
-  if (request.method === "DELETE") {
+  if (effectiveMethod === "DELETE") {
     if (documentId) {
       store.delete(buildDocumentKey(contextKey, documentId));
-      return new Response(null, { status: 204 });
+      return new Response(null, { status: 204, headers: createMockHeaders(version) });
     }
 
     deleteDocumentsByContext(store, contextKey);
-    return new Response(null, { status: 204 });
+    return new Response(null, { status: 204, headers: createMockHeaders(version) });
   }
 
   const parsedBody = parseDocumentWriteBody(requestText, contentType);
   if (!parsedBody || typeof documentId !== "string") {
-    return Response.json({ ok: false }, { status: 400 });
+    return Response.json({ ok: false }, { status: 400, headers: createMockHeaders(version) });
   }
 
   const key = buildDocumentKey(contextKey, documentId);
   const existingDocument = store.get(key);
 
-  if (request.method === "PUT") {
-    store.set(key, createStoredDocument(parsedBody.body, documentId, contextKey, parsedBody.mediaType, existingDocument));
-    return new Response(null, { status: 204 });
+  if (effectiveMethod === "PUT") {
+    store.set(
+      key,
+      createStoredDocument(parsedBody.body, documentId, contextKey, parsedBody.mediaType, existingDocument),
+    );
+    return new Response(null, { status: 204, headers: createMockHeaders(version) });
   }
 
   if (!existingDocument) {
     store.set(key, createStoredDocument(parsedBody.body, documentId, contextKey, parsedBody.mediaType));
-    return new Response(null, { status: 204 });
+    return new Response(null, { status: 204, headers: createMockHeaders(version) });
   }
 
   if (!isJsonMediaType(existingDocument.mediaType) || !isJsonMediaType(parsedBody.mediaType)) {
-    return Response.json({ ok: false }, { status: 400 });
+    return Response.json({ ok: false }, { status: 400, headers: createMockHeaders(version) });
   }
 
   if (!isObjectRecord(existingDocument.body) || !isObjectRecord(parsedBody.body)) {
-    return Response.json({ ok: false }, { status: 400 });
+    return Response.json({ ok: false }, { status: 400, headers: createMockHeaders(version) });
   }
 
   const mergedBody = {
     ...existingDocument.body,
     ...parsedBody.body,
   };
-  store.set(key, createStoredDocument(mergedBody, documentId, contextKey, existingDocument.mediaType, existingDocument));
-  return new Response(null, { status: 204 });
+  store.set(
+    key,
+    createStoredDocument(mergedBody, documentId, contextKey, existingDocument.mediaType, existingDocument),
+  );
+  return new Response(null, { status: 204, headers: createMockHeaders(version) });
 }
 
-function startMockLrs() {
+function startMockLrs(defaultVersion = "2.0.0") {
   const requests: CapturedRequest[] = [];
   const storedAttachmentBodies = new Map<string, StoredAttachmentBody>();
   const storedStatements = new Map<string, Record<string, unknown>>();
@@ -2238,6 +2608,16 @@ function startMockLrs() {
         version: request.headers.get("X-Experience-API-Version"),
       });
 
+      const versionHeaderError = validateVersionHeader(request, url.pathname, defaultVersion);
+      if (versionHeaderError) {
+        return versionHeaderError;
+      }
+
+      const authorizationError = validateAuthorizationHeader(request, defaultVersion);
+      if (authorizationError) {
+        return authorizationError;
+      }
+
       if (request.method === "POST" && url.pathname === "/xapi/statements") {
         if (Array.isArray(body)) {
           const seenIds = new Set<string>();
@@ -2259,7 +2639,7 @@ function startMockLrs() {
               return false;
             })
           ) {
-            return Response.json({ ok: false }, { status: 400 });
+            return Response.json({ ok: false }, { status: 400, headers: createMockHeaders(defaultVersion) });
           }
 
           const statementIds: string[] = [];
@@ -2278,7 +2658,7 @@ function startMockLrs() {
           }
 
           voidedStatementIds = recomputeVoidedStatementIds(storedStatements);
-          return Response.json(statementIds, { status: 200 });
+          return Response.json(statementIds, { status: 200, headers: createMockHeaders(defaultVersion) });
         }
 
         const status = determineStatementStatus(body);
@@ -2294,16 +2674,16 @@ function startMockLrs() {
           }
           voidedStatementIds = recomputeVoidedStatementIds(storedStatements);
 
-          return Response.json([statementId], { status });
+          return Response.json([statementId], { status, headers: createMockHeaders(defaultVersion) });
         }
 
-        return Response.json({ ok: false }, { status });
+        return Response.json({ ok: false }, { status, headers: createMockHeaders(defaultVersion) });
       }
 
       if (request.method === "PUT" && url.pathname === "/xapi/statements") {
         const statementId = url.searchParams.get("statementId");
         if (typeof statementId !== "string" || !isUuidLike(statementId)) {
-          return Response.json({ ok: false }, { status: 400 });
+          return Response.json({ ok: false }, { status: 400, headers: createMockHeaders(defaultVersion) });
         }
 
         const status = determineStatementStatus(body);
@@ -2313,16 +2693,17 @@ function startMockLrs() {
           }
           voidedStatementIds = recomputeVoidedStatementIds(storedStatements);
 
-          return new Response(null, { status: 204 });
+          return new Response(null, { status: 204, headers: createMockHeaders(defaultVersion) });
         }
 
-        return Response.json({ ok: false }, { status });
+        return Response.json({ ok: false }, { status, headers: createMockHeaders(defaultVersion) });
       }
 
-      if (request.method === "GET" && url.pathname === "/xapi/statements") {
+      if ((request.method === "GET" || request.method === "HEAD") && url.pathname === "/xapi/statements") {
         const validationStatus = validateStatementQuery(url.searchParams);
         if (validationStatus) {
-          return createStatementJsonResponse({ ok: false }, validationStatus);
+          const response = createStatementJsonResponse(defaultVersion, { ok: false }, validationStatus);
+          return request.method === "HEAD" ? withoutBody(response) : response;
         }
 
         const statementFormat = getStatementResponseFormat(url.searchParams);
@@ -2330,7 +2711,8 @@ function startMockLrs() {
         const statementId = url.searchParams.get("statementId");
         if (statementId) {
           if (voidedStatementIds.has(statementId)) {
-            return createStatementJsonResponse({ ok: false }, 404);
+            const response = createStatementJsonResponse(defaultVersion, { ok: false }, 404);
+            return request.method === "HEAD" ? withoutBody(response) : response;
           }
 
           const storedStatement = storedStatements.get(statementId);
@@ -2345,19 +2727,29 @@ function startMockLrs() {
                 ? collectAttachmentParts([storedStatement], storedAttachmentBodies)
                 : [];
             if (attachmentParts.length > 0) {
-              return createMultipartStatementResponse(formattedStatement, 200, attachmentParts, storedStatement);
+              const response = createMultipartStatementResponse(
+                defaultVersion,
+                formattedStatement,
+                200,
+                attachmentParts,
+                storedStatement,
+              );
+              return request.method === "HEAD" ? withoutBody(response) : response;
             }
 
-            return createStatementJsonResponse(formattedStatement, 200, storedStatement);
+            const response = createStatementJsonResponse(defaultVersion, formattedStatement, 200, storedStatement);
+            return request.method === "HEAD" ? withoutBody(response) : response;
           }
 
-          return createStatementJsonResponse({ ok: false }, 404);
+          const response = createStatementJsonResponse(defaultVersion, { ok: false }, 404);
+          return request.method === "HEAD" ? withoutBody(response) : response;
         }
 
         const voidedStatementId = url.searchParams.get("voidedStatementId");
         if (voidedStatementId) {
           if (!voidedStatementIds.has(voidedStatementId)) {
-            return createStatementJsonResponse({ ok: false }, 404);
+            const response = createStatementJsonResponse(defaultVersion, { ok: false }, 404);
+            return request.method === "HEAD" ? withoutBody(response) : response;
           }
 
           const storedStatement = storedStatements.get(voidedStatementId);
@@ -2372,13 +2764,22 @@ function startMockLrs() {
                 ? collectAttachmentParts([storedStatement], storedAttachmentBodies)
                 : [];
             if (attachmentParts.length > 0) {
-              return createMultipartStatementResponse(formattedStatement, 200, attachmentParts, storedStatement);
+              const response = createMultipartStatementResponse(
+                defaultVersion,
+                formattedStatement,
+                200,
+                attachmentParts,
+                storedStatement,
+              );
+              return request.method === "HEAD" ? withoutBody(response) : response;
             }
 
-            return createStatementJsonResponse(formattedStatement, 200, storedStatement);
+            const response = createStatementJsonResponse(defaultVersion, formattedStatement, 200, storedStatement);
+            return request.method === "HEAD" ? withoutBody(response) : response;
           }
 
-          return createStatementJsonResponse({ ok: false }, 404);
+          const response = createStatementJsonResponse(defaultVersion, { ok: false }, 404);
+          return request.method === "HEAD" ? withoutBody(response) : response;
         }
 
         const collectionResult = getCollectionResults(
@@ -2392,14 +2793,16 @@ function startMockLrs() {
             ? collectAttachmentParts(collectionResult.statements, storedAttachmentBodies)
             : [];
         if (attachmentParts.length > 0) {
-          return createMultipartStatementResponse(collectionResult, 200, attachmentParts);
+          const response = createMultipartStatementResponse(defaultVersion, collectionResult, 200, attachmentParts);
+          return request.method === "HEAD" ? withoutBody(response) : response;
         }
 
-        return createStatementJsonResponse(collectionResult, 200);
+        const response = createStatementJsonResponse(defaultVersion, collectionResult, 200);
+        return request.method === "HEAD" ? withoutBody(response) : response;
       }
 
       if (url.pathname === "/xapi/activities/state") {
-        return handleDocumentResource(request, url, requestText, contentType, stateDocuments, {
+        return handleDocumentResource(request, url, requestText, contentType, defaultVersion, stateDocuments, {
           allowCollectionDelete: true,
           allowRegistration: true,
           allowSince: true,
@@ -2411,8 +2814,20 @@ function startMockLrs() {
         });
       }
 
+      if (url.pathname === "/xapi/about") {
+        return handleAboutResource(request, defaultVersion);
+      }
+
+      if (url.pathname === "/xapi/agents") {
+        return handleAgentsResource(request, url, defaultVersion, storedStatements);
+      }
+
+      if (url.pathname === "/xapi/activities") {
+        return handleActivitiesResource(request, url, defaultVersion, storedStatements);
+      }
+
       if (url.pathname === "/xapi/agents/profile") {
-        return handleDocumentResource(request, url, requestText, contentType, agentProfileDocuments, {
+        return handleDocumentResource(request, url, requestText, contentType, defaultVersion, agentProfileDocuments, {
           allowSince: true,
           contextKeys: ["agent"],
           idKey: "profileId",
@@ -2422,16 +2837,24 @@ function startMockLrs() {
       }
 
       if (url.pathname === "/xapi/activities/profile") {
-        return handleDocumentResource(request, url, requestText, contentType, activityProfileDocuments, {
-          allowSince: true,
-          contextKeys: ["activityId"],
-          idKey: "profileId",
-          requiredKeys: ["activityId"],
-          validateActivityId: true,
-        });
+        return handleDocumentResource(
+          request,
+          url,
+          requestText,
+          contentType,
+          defaultVersion,
+          activityProfileDocuments,
+          {
+            allowSince: true,
+            contextKeys: ["activityId"],
+            idKey: "profileId",
+            requiredKeys: ["activityId"],
+            validateActivityId: true,
+          },
+        );
       }
 
-      return new Response("Not found", { status: 404 });
+      return new Response("Not found", { status: 404, headers: createMockHeaders(defaultVersion, "text/plain") });
     },
   });
 
@@ -2442,13 +2865,30 @@ function startMockLrs() {
   };
 }
 
+function expectLoggedSuiteTitles(logTests: Array<{ title: string }>, expectedTitles: string[]): void {
+  expect(logTests.map((suite) => suite.title)).toEqual(expectedTitles);
+}
+
+function expectLoggedNestedSuiteTitles(
+  logTests: Array<{ title: string; tests: Array<{ title: string }> }>,
+  suiteTitle: string,
+  expectedTitles: string[],
+): void {
+  const suite = logTests.find((entry) => entry.title === suiteTitle);
+  expect(suite?.tests.map((entry) => entry.title)).toEqual(expectedTitles);
+}
+
+function withBasicAuthArgs(argv: string[]): string[] {
+  return [...argv, "-a", "-u", validBasicUserName, "-p", validBasicPassword];
+}
+
 describe("console runner entrypoint", () => {
   test("runs the v2 formatting slice end to end and writes an upstream-style log", async () => {
-    const harness = startMockLrs();
+    const harness = startMockLrs("2.0.0");
     const logDirectory = join(import.meta.dir, "..", "..", "tmp", "agents", crypto.randomUUID());
 
     try {
-      const execution = await runConsoleRunnerArgv(["--endpoint", harness.endpoint], {
+      const execution = await runConsoleRunnerArgv(withBasicAuthArgs(["--endpoint", harness.endpoint]), {
         createUuid: () => "run-v2",
         logDirectory,
         logger: silentLogger,
@@ -2457,21 +2897,27 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1140,
-        passed: 1140,
+        total: 1210,
+        passed: 1210,
         failed: 0,
         version: "2.0.0",
       });
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "POST"),
-      ).toHaveLength(1035);
+      ).toHaveLength(1057);
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "PUT"),
-      ).toHaveLength(18);
+      ).toHaveLength(23);
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "GET"),
-      ).toHaveLength(147);
-      expect(harness.requests.every((request) => request.version === "2.0.0")).toBe(true);
+      ).toHaveLength(170);
+      expect(harness.requests.filter((request) => request.version === null)).toHaveLength(10);
+      expect(harness.requests.filter((request) => request.version === "BAD")).toHaveLength(2);
+      expect(
+        harness.requests.every(
+          (request) => request.version === null || request.version === "BAD" || request.version === "2.0.0",
+        ),
+      ).toBe(true);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-v2.log"), "utf8")) as {
         log: { tests: Array<{ title: string; tests: Array<{ title: string }> }> };
@@ -2479,13 +2925,14 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1140,
-        passed: 1140,
+        total: 1210,
+        passed: 1210,
         failed: 0,
         version: "2.0.0",
       });
-      expect(writtenRecord.log.tests.map((suite) => suite.title)).toEqual([
+      expectLoggedSuiteTitles(writtenRecord.log.tests, [
         "Formatting Requirements (Data 2.2)",
+        "HEAD Request Implementation Requirements (Communication 1.1)",
         "Id Property Requirements (Data 2.4.1)",
         "Timestamp Property Requirements (Data 2.4.7)",
         "Stored Property Requirements (Data 2.4.8)",
@@ -2501,10 +2948,16 @@ describe("console runner entrypoint", () => {
         "Retrieval of Statements (Data 2.5)",
         "Statement Resource Requirements (Communication 2.1)",
         "State Resource Requirements (Communication 2.3)",
+        "Agents Resource Requirements (Communication 2.4)",
+        "Activities Resource Requirements (Communication 2.5)",
         "Agent Profile Resource Requirements (Communication 2.6)",
         "Activity Profile Resource Requirements (Communication 2.7)",
+        "About Resource Requirements (Communication 2.8)",
+        "Error Codes Requirements (Communication 3.2)",
+        "Versioning Requirements (Communication 3.3)",
+        "Authentication Requirements (Communication 4.0)",
       ]);
-      expect(writtenRecord.log.tests[0]?.tests.map((suite) => suite.title)).toEqual([
+      expectLoggedNestedSuiteTitles(writtenRecord.log.tests, "Formatting Requirements (Data 2.2)", [
         "An LRS stores 32-bit floating point numbers with at least the precision of IEEE 754 (Data 2.2.s4.b3, XAPI-00002)",
         'A Statement contains an "actor" property (Multiplicity, Data 2.2.s2.b3, XAPI-00003)',
         'A Statement contains a "verb" property (Multiplicity, Data 2.2.s2.b3, XAPI-00004)',
@@ -2534,26 +2987,26 @@ describe("console runner entrypoint", () => {
         "An LRS rejects with error code 400 Bad Request a Statement containing IRL or IRI values without a scheme. (Data 2.2.s4.b1.b8, XAPI-00011)",
         "The LRS rejects with error code 400 Bad Request parameter values which do not validate to the same standards required for values of the same types in Statements (Data 2.2.s4.b4, XAPI-00012)",
       ]);
-      expect(writtenRecord.log.tests[1]?.tests.map((suite) => suite.title)).toEqual([
+      expectLoggedNestedSuiteTitles(writtenRecord.log.tests, "Id Property Requirements (Data 2.4.1)", [
         'An LRS generates the "id" property of a Statement if none is provided (Modify, Data 2.4.1.s2.b1, XAPI-00026)',
       ]);
-      expect(writtenRecord.log.tests[2]?.tests.map((suite) => suite.title)).toEqual([
+      expectLoggedNestedSuiteTitles(writtenRecord.log.tests, "Timestamp Property Requirements (Data 2.4.7)", [
         'A "timestamp" property is a TimeStamp (Type, Data 2.4.7, Data 2.4.s1.table1.row7, XAPI-00022)',
       ]);
-      expect(writtenRecord.log.tests[3]?.tests.map((suite) => suite.title)).toEqual([
+      expectLoggedNestedSuiteTitles(writtenRecord.log.tests, "Stored Property Requirements (Data 2.4.8)", [
         "An LRS MUST accept statements with the stored property (Data 2.4.8.s3.b2, XAPI-00097)",
         "A stored property must be a TimeStamp (Data 2.4.8.s2, XAPI-00023)",
       ]);
-      expect(writtenRecord.log.tests[4]?.tests.map((suite) => suite.title)).toEqual([
+      expectLoggedNestedSuiteTitles(writtenRecord.log.tests, "Verb Property Requirements (Data 2.4.3)", [
         'A "verb" property contains an "id" property (Multiplicity, Data 2.4.3.s3.table1.row1, XAPI-00044)',
         'A "verb" property\'s "id" property is an IRI (Type, Data 2.4.3.s3.table1.row1, XAPI-00044)',
         'A "verb" property\'s "display" property is a Language Map (Type, Data 2.4.3.s3.table1.row2, XAPI-00045)',
       ]);
-      expect(writtenRecord.log.tests[5]?.tests.map((suite) => suite.title)).toEqual([
+      expectLoggedNestedSuiteTitles(writtenRecord.log.tests, "Version Property Requirements (Data 2.4.10)", [
         'An LRS rejects with error code 400 Bad Request, a Request which uses "version" and has the value set to anything but "1.0" or "1.0.x", where x is the semantic versioning number (Format, Data 2.4.10.s2.b1, Data 2.4.10.s3.b1, Communication 3.3.s3.b3, Communication 3.3.s3.b6, XAPI-00101)',
         "Statements returned by an LRS MUST retain the version property they are accepted with (Format, Data 2.4.10, XAPI-00332)",
       ]);
-      expect(writtenRecord.log.tests[6]?.tests.map((suite) => suite.title)).toEqual([
+      expectLoggedNestedSuiteTitles(writtenRecord.log.tests, "Result Property Requirements (Data 2.4.5)", [
         'A "success" property is a Boolean (Type, Data 2.4.5.s2.table1.row1, XAPI-00074)',
         'A "completion" property is a Boolean (Type, Data 2.4.5.s2.table1.row2, XAPI-00075)',
         'A "response" property is a String (Type, Data 2.4.5.s2.table1.row3, XAPI-00076)',
@@ -2571,11 +3024,11 @@ describe("console runner entrypoint", () => {
   });
 
   test("runs the v1 formatting slice through the same console runner path", async () => {
-    const harness = startMockLrs();
+    const harness = startMockLrs("1.0.3");
     const logDirectory = join(import.meta.dir, "..", "..", "tmp", "agents", crypto.randomUUID());
 
     try {
-      const execution = await runConsoleRunnerArgv(["-e", harness.endpoint, "-x", "1.0.3"], {
+      const execution = await runConsoleRunnerArgv(withBasicAuthArgs(["-e", harness.endpoint, "-x", "1.0.3"]), {
         createUuid: () => "run-v103",
         logDirectory,
         logger: silentLogger,
@@ -2584,21 +3037,27 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("1.0.3");
       expect(execution.runRecord.summary).toEqual({
-        total: 1111,
-        passed: 1111,
+        total: 1180,
+        passed: 1180,
         failed: 0,
         version: "1.0.3",
       });
-      expect(harness.requests).toHaveLength(1312);
-      expect(harness.requests.every((request) => request.version === "1.0.3")).toBe(true);
+      expect(harness.requests).toHaveLength(1410);
+      expect(harness.requests.filter((request) => request.version === null)).toHaveLength(10);
+      expect(harness.requests.filter((request) => request.version === "BAD")).toHaveLength(2);
+      expect(
+        harness.requests.every(
+          (request) => request.version === null || request.version === "BAD" || request.version === "1.0.3",
+        ),
+      ).toBe(true);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-v103.log"), "utf8")) as {
         summary: { failed: number; passed: number; total: number; version: string };
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1111,
-        passed: 1111,
+        total: 1180,
+        passed: 1180,
         failed: 0,
         version: "1.0.3",
       });
@@ -2608,38 +3067,47 @@ describe("console runner entrypoint", () => {
   });
 
   test("runs the Parameters slice alongside v2_0 through directory selection", async () => {
-    const harness = startMockLrs();
+    const harness = startMockLrs("2.0.0");
     const logDirectory = join(import.meta.dir, "..", "..", "tmp", "agents", crypto.randomUUID());
 
     try {
-      const execution = await runConsoleRunnerArgv(["--endpoint", harness.endpoint, "--directory", "Parameters,v2_0"], {
-        createUuid: () => "run-parameters-v2",
-        logDirectory,
-        logger: silentLogger,
-        now: createNowSequence([300, 360]),
-      });
+      const execution = await runConsoleRunnerArgv(
+        withBasicAuthArgs(["--endpoint", harness.endpoint, "--directory", "Parameters,v2_0"]),
+        {
+          createUuid: () => "run-parameters-v2",
+          logDirectory,
+          logger: silentLogger,
+          now: createNowSequence([300, 360]),
+        },
+      );
 
       expect(execution.normalizedOptions.directory).toEqual(["Parameters", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1168,
-        passed: 1168,
+        total: 1238,
+        passed: 1238,
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1200);
-      expect(harness.requests.filter((request) => request.path === "/xapi/activities/state")).toHaveLength(81);
-      expect(harness.requests.filter((request) => request.path === "/xapi/agents/profile")).toHaveLength(51);
-      expect(harness.requests.filter((request) => request.path === "/xapi/activities/profile")).toHaveLength(50);
-      expect(harness.requests.every((request) => request.version === "2.0.0")).toBe(true);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1253);
+      expect(harness.requests.filter((request) => request.path === "/xapi/activities/state")).toHaveLength(86);
+      expect(harness.requests.filter((request) => request.path === "/xapi/agents/profile")).toHaveLength(56);
+      expect(harness.requests.filter((request) => request.path === "/xapi/activities/profile")).toHaveLength(55);
+      expect(harness.requests.filter((request) => request.version === null)).toHaveLength(10);
+      expect(harness.requests.filter((request) => request.version === "BAD")).toHaveLength(2);
+      expect(
+        harness.requests.every(
+          (request) => request.version === null || request.version === "BAD" || request.version === "2.0.0",
+        ),
+      ).toBe(true);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-parameters-v2.log"), "utf8")) as {
         summary: { failed: number; passed: number; total: number; version: string };
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1168,
-        passed: 1168,
+        total: 1238,
+        passed: 1238,
         failed: 0,
         version: "2.0.0",
       });
@@ -2649,12 +3117,12 @@ describe("console runner entrypoint", () => {
   });
 
   test("runs the Multiplicity slice alongside v2_0 without adding HTTP traffic", async () => {
-    const harness = startMockLrs();
+    const harness = startMockLrs("2.0.0");
     const logDirectory = join(import.meta.dir, "..", "..", "tmp", "agents", crypto.randomUUID());
 
     try {
       const execution = await runConsoleRunnerArgv(
-        ["--endpoint", harness.endpoint, "--directory", "Multiplicity,v2_0"],
+        withBasicAuthArgs(["--endpoint", harness.endpoint, "--directory", "Multiplicity,v2_0"]),
         {
           createUuid: () => "run-multiplicity-v2",
           logDirectory,
@@ -2666,13 +3134,13 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Multiplicity", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1222,
-        passed: 1222,
+        total: 1292,
+        passed: 1292,
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1200);
-      expect(harness.requests.filter((request) => request.path !== "/xapi/statements")).toHaveLength(154);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1253);
+      expect(harness.requests.filter((request) => request.path !== "/xapi/statements")).toHaveLength(200);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-multiplicity-v2.log"), "utf8")) as {
         log: { tests: Array<{ title: string }> };
@@ -2680,14 +3148,15 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1222,
-        passed: 1222,
+        total: 1292,
+        passed: 1292,
         failed: 0,
         version: "2.0.0",
       });
-      expect(writtenRecord.log.tests.map((suite) => suite.title)).toEqual([
+      expectLoggedSuiteTitles(writtenRecord.log.tests, [
         "Welcome to Multiplicity Testing.  A Statement, Object or Verb's properties are used at most one time",
         "Formatting Requirements (Data 2.2)",
+        "HEAD Request Implementation Requirements (Communication 1.1)",
         "Id Property Requirements (Data 2.4.1)",
         "Timestamp Property Requirements (Data 2.4.7)",
         "Stored Property Requirements (Data 2.4.8)",
@@ -2703,8 +3172,14 @@ describe("console runner entrypoint", () => {
         "Retrieval of Statements (Data 2.5)",
         "Statement Resource Requirements (Communication 2.1)",
         "State Resource Requirements (Communication 2.3)",
+        "Agents Resource Requirements (Communication 2.4)",
+        "Activities Resource Requirements (Communication 2.5)",
         "Agent Profile Resource Requirements (Communication 2.6)",
         "Activity Profile Resource Requirements (Communication 2.7)",
+        "About Resource Requirements (Communication 2.8)",
+        "Error Codes Requirements (Communication 3.2)",
+        "Versioning Requirements (Communication 3.3)",
+        "Authentication Requirements (Communication 4.0)",
       ]);
     } finally {
       await harness.server.stop(true);
