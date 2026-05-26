@@ -1,3 +1,7 @@
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import type { DescribeRuntime } from "../../describe-runtime/runtime.ts";
 import type { DescribeRuntimeContext, JsonResponse } from "../../describe-runtime/suite-context.ts";
 import type { JsonObject, JsonValue } from "../../describe-runtime/templates.ts";
@@ -14,6 +18,20 @@ type StatementResourceOptions = {
   includeV2DuplicateBatchIdCase?: boolean;
   includeV2LastModifiedCase?: boolean;
 };
+
+type AttachmentFixture = {
+  bodyText: string;
+  contentType: string;
+  hash: string;
+  length: number;
+};
+
+type MultipartPart = {
+  bodyText: string;
+  headers: Record<string, string>;
+};
+
+const multipartBoundary = "-------314159265358979323846";
 
 function isJsonObject(value: unknown): value is JsonObject {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -48,6 +66,15 @@ function parseJsonArray(response: JsonResponse, name: string): JsonValue[] {
   const parsed = JSON.parse(response.bodyText) as unknown;
   if (!Array.isArray(parsed)) {
     throw new Error(`Expected "${name}" to return a JSON array response.`);
+  }
+
+  return parsed;
+}
+
+function parseJsonObjectText(bodyText: string, name: string): JsonObject {
+  const parsed = JSON.parse(bodyText) as unknown;
+  if (!isJsonObject(parsed)) {
+    throw new Error(`Expected "${name}" to return a JSON object response.`);
   }
 
   return parsed;
@@ -100,6 +127,149 @@ function parseStoredDate(value: unknown, name: string): number {
   return parsed;
 }
 
+function getAttachmentFixturePath(directory: string, fileName: string): string {
+  return join(
+    import.meta.dir,
+    "..",
+    "..",
+    "..",
+    "node_modules",
+    "adl-lrs-conformance-tests",
+    "test",
+    directory,
+    "templates",
+    "attachments",
+    fileName,
+  );
+}
+
+function loadAttachmentFixture(context: DescribeRuntimeContext, fileName: string): AttachmentFixture {
+  const bodyText = readFileSync(getAttachmentFixturePath(context.directory, fileName), "utf8");
+  return {
+    bodyText,
+    contentType: "text/plain",
+    hash: createHash("sha256").update(bodyText).digest("hex"),
+    length: new TextEncoder().encode(bodyText).length,
+  };
+}
+
+function parseMultipartBoundary(contentType: string | null): string | undefined {
+  if (!contentType) {
+    return undefined;
+  }
+
+  const match = /boundary=(?:"([^"]+)"|([^;]+))/i.exec(contentType);
+  return match?.[1] ?? match?.[2]?.trim();
+}
+
+function parseMultipartHeaders(rawHeaders: string): Record<string, string> {
+  const headers: Record<string, string> = {};
+  for (const line of rawHeaders.split(/\r?\n/)) {
+    const separatorIndex = line.indexOf(":");
+    if (separatorIndex < 0) {
+      continue;
+    }
+
+    const key = line.slice(0, separatorIndex).trim().toLowerCase();
+    const value = line.slice(separatorIndex + 1).trim();
+    if (key.length > 0) {
+      headers[key] = value;
+    }
+  }
+
+  return headers;
+}
+
+function parseMultipartParts(bodyText: string, boundary: string): MultipartPart[] {
+  const parts: MultipartPart[] = [];
+  const marker = `--${boundary}`;
+  for (const rawPart of bodyText.split(marker)) {
+    let normalized = rawPart;
+    if (normalized.startsWith("\r\n")) {
+      normalized = normalized.slice(2);
+    } else if (normalized.startsWith("\n")) {
+      normalized = normalized.slice(1);
+    }
+
+    if (normalized.endsWith("--\r\n")) {
+      normalized = normalized.slice(0, -4);
+    } else if (normalized.endsWith("--")) {
+      normalized = normalized.slice(0, -2);
+    }
+
+    normalized = normalized.replace(/\r?\n$/, "");
+    if (normalized.trim().length === 0) {
+      continue;
+    }
+
+    const separatorIndex = normalized.indexOf("\r\n\r\n");
+    const separatorLength = separatorIndex >= 0 ? 4 : 0;
+    const fallbackSeparatorIndex = separatorIndex >= 0 ? separatorIndex : normalized.indexOf("\n\n");
+    if (fallbackSeparatorIndex < 0) {
+      continue;
+    }
+
+    const bodyStart = fallbackSeparatorIndex + (separatorIndex >= 0 ? separatorLength : 2);
+    parts.push({
+      bodyText: normalized.slice(bodyStart),
+      headers: parseMultipartHeaders(normalized.slice(0, fallbackSeparatorIndex)),
+    });
+  }
+
+  return parts;
+}
+
+function buildMultipartBody(json: JsonValue, attachments: readonly AttachmentFixture[]): string {
+  const lines: string[] = [];
+  lines.push(`--${multipartBoundary}`);
+  lines.push("Content-Type: application/json");
+  lines.push("");
+  lines.push(JSON.stringify(json));
+
+  for (const attachment of attachments) {
+    lines.push(`--${multipartBoundary}`);
+    lines.push(`Content-Type: ${attachment.contentType}`);
+    lines.push("Content-Transfer-Encoding: binary");
+    lines.push(`X-Experience-API-Hash: ${attachment.hash}`);
+    lines.push("");
+    lines.push(attachment.bodyText);
+  }
+
+  lines.push(`--${multipartBoundary}--`);
+  lines.push("");
+  return lines.join("\r\n");
+}
+
+function expectMultipartResponse(response: JsonResponse, name: string): MultipartPart[] {
+  const boundary = parseMultipartBoundary(response.headers.get("content-type"));
+  if (!boundary) {
+    throw new Error(`Expected ${name} to return multipart content-type with a boundary.`);
+  }
+
+  const parts = parseMultipartParts(response.bodyText, boundary);
+  if (parts.length === 0) {
+    throw new Error(`Expected ${name} to return multipart parts.`);
+  }
+
+  return parts;
+}
+
+function deepIncludesValue(value: unknown, expected: string): boolean {
+  if (typeof value === "string") {
+    return value === expected;
+  }
+
+  if (Array.isArray(value)) {
+    return value.some((item) => deepIncludesValue(item, expected));
+  }
+
+  if (!isJsonObject(value)) {
+    return false;
+  }
+
+  return Object.values(value).some((item) => deepIncludesValue(item, expected));
+}
+
 async function createStatement(
   context: DescribeRuntimeContext,
   templates: Array<Record<string, JsonValue>>,
@@ -127,6 +297,35 @@ async function postStatement(
     method: "POST",
     path: context.getEndpointStatements(),
     json,
+  });
+
+  if (response.status !== expectedStatus) {
+    throw new Error(`Expected status ${expectedStatus} for "${name}" but received ${response.status}.`);
+  }
+
+  return response;
+}
+
+function expectAllowedStatus(response: JsonResponse, allowedStatuses: readonly number[], name: string): void {
+  if (!allowedStatuses.includes(response.status)) {
+    throw new Error(`Expected status ${allowedStatuses.join(" or ")} for "${name}" but received ${response.status}.`);
+  }
+}
+
+async function postMultipartStatement(
+  context: DescribeRuntimeContext,
+  statement: JsonObject,
+  attachments: readonly AttachmentFixture[],
+  expectedStatus: number,
+  name: string,
+): Promise<JsonResponse> {
+  const response = await context.sendRequest({
+    method: "POST",
+    path: context.getEndpointStatements(),
+    headers: {
+      "Content-Type": `multipart/mixed; boundary=${multipartBoundary}`,
+    },
+    body: buildMultipartBody(statement, attachments),
   });
 
   if (response.status !== expectedStatus) {
@@ -307,6 +506,131 @@ async function persistRichFormatStatement(
   return { activity, statement, statementId };
 }
 
+async function persistStatementWithAttachments(
+  context: DescribeRuntimeContext,
+  options: { twoAttachments?: boolean } = {},
+): Promise<{ attachments: AttachmentFixture[]; statement: JsonObject; statementId: string }> {
+  const statement = await createStatement(context, [{ statement: "{{statements.attachment}}" }]);
+  const statementId = context.generateUuid();
+  statement.id = statementId;
+
+  const attachments = [loadAttachmentFixture(context, "simple_text1.txt")];
+  if (options.twoAttachments) {
+    attachments.push(loadAttachmentFixture(context, "simple_text2.txt"));
+  }
+
+  statement.attachments = attachments.map((attachment) => ({
+    usageType: "http://example.com/attachment-usage/test",
+    display: { "en-US": "A test attachment" },
+    description: { "en-US": "A test attachment (description)" },
+    contentType: attachment.contentType,
+    length: attachment.length,
+    sha2: attachment.hash,
+    fileUrl: "http://over.there.com/file.txt",
+  }));
+
+  await postMultipartStatement(context, statement, attachments, 200, "persist statement with attachments");
+
+  return { attachments, statement, statementId };
+}
+
+async function persistVoidedQueryFixture(
+  context: DescribeRuntimeContext,
+): Promise<{ statementRefId: string; voidedId: string; voidingId: string }> {
+  const voidedId = context.generateUuid();
+  const voidingId = context.generateUuid();
+  const statementRefId = context.generateUuid();
+
+  const voidedStatement = await createStatement(context, [{ statement: "{{statements.default}}" }]);
+  voidedStatement.id = voidedId;
+  await postStatement(context, voidedStatement, 200, "persist voided query fixture statement");
+
+  const voidingStatement = await createStatement(context, [
+    { statement: "{{statements.object_statementref}}" },
+    { verb: createVoidedVerb() },
+  ]);
+  voidingStatement.id = voidingId;
+  expectObjectProperty(voidingStatement, "object", "voiding query fixture object").id = voidedId;
+  await postStatement(context, voidingStatement, 200, "persist voiding query fixture statement");
+
+  const statementRef = await createStatement(context, [{ statement: "{{statements.object_statementref}}" }]);
+  statementRef.id = statementRefId;
+  expectObjectProperty(statementRef, "object", "statement-ref query fixture object").id = voidedId;
+  await postStatement(context, statementRef, 200, "persist statement-ref query fixture statement");
+
+  return { statementRefId, voidedId, voidingId };
+}
+
+async function persistFilterCorrectnessFixture(
+  context: DescribeRuntimeContext,
+): Promise<{ statement: JsonObject; substatement: JsonObject }> {
+  const statement = await createStatement(context, [
+    { statement: "{{statements.context}}" },
+    { context: "{{contexts.category}}" },
+    {
+      instructor: {
+        objectType: "Agent",
+        name: "xAPI mbox",
+        mbox: `mailto:pri-${context.generateUuid()}@adlnet.gov`,
+      },
+    },
+  ]);
+  statement.id = context.generateUuid();
+  expectObjectProperty(statement, "verb", "filter correctness statement verb").id =
+    `http://example.com/filter/verb/${context.generateUuid()}`;
+  expectObjectProperty(statement, "actor", "filter correctness statement actor").mbox =
+    `mailto:${context.generateUuid()}@adlnet.gov`;
+  expectObjectProperty(statement, "object", "filter correctness statement object").id =
+    `http://example.com/filter/activity/${context.generateUuid()}`;
+  const statementContext = expectObjectProperty(statement, "context", "filter correctness statement context");
+  statementContext.registration = context.generateUuid();
+  const statementContextActivities = expectObjectProperty(
+    statementContext,
+    "contextActivities",
+    "filter correctness statement context activities",
+  );
+  expectObjectProperty(statementContextActivities, "category", "filter correctness statement category").id =
+    "http://www.example.com/test/array/statements/pri";
+  await postStatement(context, statement, 200, "persist filter correctness statement");
+
+  const substatement = await createStatement(context, [
+    { statement: "{{statements.object_substatement}}" },
+    { object: "{{substatements.context}}" },
+    { context: "{{contexts.category}}" },
+    {
+      instructor: {
+        objectType: "Agent",
+        name: "xAPI mbox",
+        mbox: `mailto:sub-${context.generateUuid()}@adlnet.gov`,
+      },
+    },
+  ]);
+  substatement.id = context.generateUuid();
+  expectObjectProperty(substatement, "verb", "filter correctness substatement verb").id =
+    `http://example.com/filter/substatement-verb/${context.generateUuid()}`;
+  expectObjectProperty(substatement, "actor", "filter correctness substatement actor").mbox =
+    `mailto:${context.generateUuid()}@adlnet.gov`;
+
+  const nestedSubstatement = expectObjectProperty(substatement, "object", "filter correctness nested substatement");
+  expectObjectProperty(nestedSubstatement, "verb", "filter correctness nested verb").id =
+    `http://example.com/filter/nested-verb/${context.generateUuid()}`;
+  expectObjectProperty(nestedSubstatement, "actor", "filter correctness nested actor").mbox =
+    `mailto:${context.generateUuid()}@adlnet.gov`;
+  expectObjectProperty(nestedSubstatement, "object", "filter correctness nested object").id =
+    `http://example.com/filter/nested-activity/${context.generateUuid()}`;
+  const nestedContext = expectObjectProperty(nestedSubstatement, "context", "filter correctness nested context");
+  const nestedContextActivities = expectObjectProperty(
+    nestedContext,
+    "contextActivities",
+    "filter correctness nested context activities",
+  );
+  expectObjectProperty(nestedContextActivities, "category", "filter correctness nested category").id =
+    "http://www.example.com/test/array/statements/sub";
+  await postStatement(context, substatement, 200, "persist filter correctness substatement");
+
+  return { statement, substatement };
+}
+
 function findStatementById(result: JsonObject, statementId: string, name: string): JsonObject {
   const statements = expectArrayProperty(result, "statements", `${name} statements`);
   const statement = statements.find((value) => isJsonObject(value) && value.id === statementId);
@@ -442,13 +766,13 @@ export function registerStatementResourceRequirementsSuite(
           statement.id = statementId;
 
           await putStatement(context, statementId, statement, 204, "persist initial PUT statement");
-          await putStatement(
-            context,
-            statementId,
-            createModifiedStatement(statement),
-            204,
-            "attempt to overwrite statement on PUT",
-          );
+          const overwriteResponse = await context.sendJsonRequest({
+            method: "PUT",
+            path: context.getEndpointStatements(),
+            query: { statementId },
+            json: createModifiedStatement(statement),
+          });
+          expectAllowedStatus(overwriteResponse, [204, 409], "attempt to overwrite statement on PUT");
 
           const response = await fetchStatement(
             context,
@@ -471,12 +795,12 @@ export function registerStatementResourceRequirementsSuite(
           statement.id = statementId;
 
           await postStatement(context, statement, 200, "persist initial POST statement");
-          await postStatement(
-            context,
-            createModifiedStatement(statement),
-            200,
-            "attempt to overwrite statement on POST",
-          );
+          const overwriteResponse = await context.sendJsonRequest({
+            method: "POST",
+            path: context.getEndpointStatements(),
+            json: createModifiedStatement(statement),
+          });
+          expectAllowedStatus(overwriteResponse, [200, 409], "attempt to overwrite statement on POST");
 
           const response = await fetchStatement(
             context,
@@ -630,6 +954,7 @@ export function registerStatementResourceRequirementsSuite(
 
         const queryCaseBuilders: Array<{
           createQuery: (fixture: Awaited<ReturnType<typeof persistCollectionQueryFixture>>) => Record<string, unknown>;
+          requireFixtureInResult?: boolean;
           title: string;
         }> = [
           {
@@ -673,6 +998,7 @@ export function registerStatementResourceRequirementsSuite(
           {
             title: 'should return StatementResult using GET with "ascending"',
             createQuery: () => ({ ascending: true }),
+            requireFixtureInResult: false,
           },
           {
             title: 'should return StatementResult using GET with "format"',
@@ -689,7 +1015,13 @@ export function registerStatementResourceRequirementsSuite(
             }
 
             const result = parseJsonObject(response, queryCase.title);
-            findStatementById(result, fixture.statementId, queryCase.title);
+            if (!Array.isArray(result.statements)) {
+              throw new Error(`Expected ${queryCase.title} to return a StatementResult with a statements array.`);
+            }
+
+            if (queryCase.requireFixtureInResult !== false) {
+              findStatementById(result, fixture.statementId, queryCase.title);
+            }
           });
         }
       },
@@ -1224,6 +1556,449 @@ export function registerStatementResourceRequirementsSuite(
     );
 
     runtime.describe(
+      'An LRS\'s Statement Resource can process a GET request with "attachments" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row13, XAPI-00167)',
+      () => {
+        runtime.it(
+          'should return multipart response format StatementResult using GET with "attachments" parameter as true',
+          async () => {
+            const { statementId } = await persistStatementWithAttachments(context, { twoAttachments: true });
+            const response = await fetchStatements(context, "GET collection with attachments=true", {
+              attachments: true,
+            });
+            if (response.status !== 200) {
+              throw new Error(
+                `Expected GET collection with attachments=true to return 200 but received ${response.status}.`,
+              );
+            }
+
+            const parts = expectMultipartResponse(response, "GET collection with attachments=true");
+            const result = parseJsonObjectText(parts[0]?.bodyText ?? "", "GET collection with attachments=true JSON");
+            findStatementById(result, statementId, "GET collection with attachments=true JSON");
+          },
+        );
+
+        runtime.it(
+          'should not return multipart response format using GET with "attachments" parameter as false',
+          async () => {
+            await persistStatementWithAttachments(context, { twoAttachments: true });
+            const response = await fetchStatements(context, "GET collection with attachments=false", {
+              attachments: false,
+            });
+            if (response.status !== 200) {
+              throw new Error(
+                `Expected GET collection with attachments=false to return 200 but received ${response.status}.`,
+              );
+            }
+
+            const contentType = response.headers.get("content-type") ?? "";
+            if (!contentType.startsWith("application/json")) {
+              throw new Error("Expected attachments=false collection GET to return application/json.");
+            }
+
+            parseJsonObject(response, "GET collection with attachments=false");
+          },
+        );
+
+        runtime.it('should process using GET with "attachments"', async () => {
+          const { attachments, statementId } = await persistStatementWithAttachments(context, { twoAttachments: true });
+          const response = await fetchStatements(context, "GET statementId with attachments=true", {
+            attachments: true,
+            statementId,
+          });
+          if (response.status !== 200) {
+            throw new Error(
+              `Expected GET statementId with attachments=true to return 200 but received ${response.status}.`,
+            );
+          }
+
+          const parts = expectMultipartResponse(response, "GET statementId with attachments=true");
+          const statement = parseJsonObjectText(parts[0]?.bodyText ?? "", "GET statementId with attachments=true JSON");
+          if (statement.id !== statementId) {
+            throw new Error(
+              "Expected GET statementId with attachments=true to return the requested statement in the first multipart part.",
+            );
+          }
+
+          const hashes = new Set(parts.slice(1).map((part) => part.headers["x-experience-api-hash"]));
+          for (const attachment of attachments) {
+            if (!hashes.has(attachment.hash)) {
+              throw new Error(
+                `Expected GET statementId with attachments=true to include attachment hash ${attachment.hash}.`,
+              );
+            }
+          }
+        });
+      },
+    );
+
+    runtime.describe(
+      'An LRSs Statement Resource does not return attachment data and only returns application/json if the "attachment" parameter set to "false" (Communication 2.1.3.s1.b1, XAPI-00161)',
+      () => {
+        runtime.it('should NOT return the attachment if "attachments" is missing', async () => {
+          const { statementId } = await persistStatementWithAttachments(context);
+          const response = await fetchStatement(
+            context,
+            "statementId",
+            statementId,
+            200,
+            "GET single statement without attachments query",
+          );
+          const contentType = response.headers.get("content-type") ?? "";
+          if (!contentType.startsWith("application/json")) {
+            throw new Error("Expected single-statement GET without attachments query to return application/json.");
+          }
+        });
+
+        runtime.it('should NOT return the attachment if "attachments" is false', async () => {
+          const { statementId } = await persistStatementWithAttachments(context);
+          const response = await fetchStatement(
+            context,
+            "statementId",
+            statementId,
+            200,
+            "GET single statement with attachments=false",
+            { attachments: false },
+          );
+          const contentType = response.headers.get("content-type") ?? "";
+          if (!contentType.startsWith("application/json")) {
+            throw new Error("Expected single-statement GET with attachments=false to return application/json.");
+          }
+        });
+
+        runtime.it('should return the attachment when "attachment" is true', async () => {
+          const { attachments, statementId } = await persistStatementWithAttachments(context);
+          const response = await fetchStatement(
+            context,
+            "statementId",
+            statementId,
+            200,
+            "GET single statement with attachments=true",
+            { attachments: true },
+          );
+          const parts = expectMultipartResponse(response, "GET single statement with attachments=true");
+          const hashSet = new Set(parts.slice(1).map((part) => part.headers["x-experience-api-hash"]));
+          if (!hashSet.has(attachments[0]?.hash)) {
+            throw new Error(
+              "Expected single-statement GET with attachments=true to include the binary attachment part.",
+            );
+          }
+        });
+      },
+    );
+
+    runtime.describe(
+      "An LRS's Statement Resource, upon processing a successful GET request, can only return a Voided Statement if that Statement is specified in the voidedStatementId parameter of that request (Communication 2.1.4.s1.b1, XAPI-00163)",
+      () => {
+        runtime.it('should not return a voided statement if using GET "statementId"', async () => {
+          const { voidedId } = await persistVoidedAndVoidingStatements(context);
+          await fetchStatement(context, "statementId", voidedId, 404, "GET statementId for voided statement");
+        });
+      },
+    );
+
+    runtime.describe(
+      "An LRS's Statement Resource, upon processing a successful GET request wishing to return a Voided Statement still returns Statements which target it (Communication 2.1.4.s1.b2, XAPI-00162)",
+      () => {
+        runtime.it(
+          'should only return statements stored after designated "since" timestamp when using "since" parameter',
+          async () => {
+            const { statementRefId, voidedId, voidingId } = await persistVoidedQueryFixture(context);
+            const response = await fetchStatements(context, "GET since excluding voided statement", {
+              since: new Date(Date.now() - 60_000).toISOString(),
+            });
+            const result = parseJsonObject(response, "GET since excluding voided statement");
+            const ids = expectArrayProperty(result, "statements", "GET since excluding voided statement list")
+              .filter(isJsonObject)
+              .map((statement) => statement.id);
+            if (!ids.includes(statementRefId) || !ids.includes(voidingId) || ids.includes(voidedId)) {
+              throw new Error(
+                "Expected GET with since to include the statement-ref and voiding statement, but not the voided statement.",
+              );
+            }
+          },
+        );
+
+        runtime.it(
+          'should only return statements stored at or before designated "before" timestamp when using "until" parameter',
+          async () => {
+            const { statementRefId, voidedId, voidingId } = await persistVoidedQueryFixture(context);
+            const response = await fetchStatements(context, "GET until excluding voided statement", {
+              until: new Date(Date.now() + 60_000).toISOString(),
+            });
+            const result = parseJsonObject(response, "GET until excluding voided statement");
+            const ids = expectArrayProperty(result, "statements", "GET until excluding voided statement list")
+              .filter(isJsonObject)
+              .map((statement) => statement.id);
+            if (!ids.includes(statementRefId) || !ids.includes(voidingId) || ids.includes(voidedId)) {
+              throw new Error(
+                "Expected GET with until to include the statement-ref and voiding statement, but not the voided statement.",
+              );
+            }
+          },
+        );
+
+        runtime.it('should return the number of statements listed in "limit" parameter', async () => {
+          const { statementRefId, voidedId, voidingId } = await persistVoidedQueryFixture(context);
+          const response = await fetchStatements(context, "GET limit excluding voided statement", { limit: 1 });
+          const result = parseJsonObject(response, "GET limit excluding voided statement");
+          const statements = expectArrayProperty(result, "statements", "GET limit excluding voided statement list");
+          if (
+            statements.length !== 1 ||
+            !isJsonObject(statements[0]) ||
+            statements[0].id === voidedId ||
+            (statements[0].id !== statementRefId && statements[0].id !== voidingId)
+          ) {
+            throw new Error(
+              "Expected GET with limit=1 to return exactly one statement that targets the voided statement, but not the voided statement itself.",
+            );
+          }
+        });
+
+        runtime.it(
+          'should return StatementRef and voiding statement when not using "since", "until", "limit"',
+          async () => {
+            const { statementRefId, voidedId, voidingId } = await persistVoidedQueryFixture(context);
+            const response = await fetchStatements(context, "GET default excluding voided statement");
+            const result = parseJsonObject(response, "GET default excluding voided statement");
+            const ids = expectArrayProperty(result, "statements", "GET default excluding voided statement list")
+              .filter(isJsonObject)
+              .map((statement) => statement.id);
+            if (!ids.includes(statementRefId) || !ids.includes(voidingId) || ids.includes(voidedId)) {
+              throw new Error(
+                "Expected default GET to include the statement-ref and voiding statement, but not the voided statement.",
+              );
+            }
+          },
+        );
+      },
+    );
+
+    runtime.describe(
+      'The Statements within the "statements" property will correspond to the filtering criterion sent in with the GET request (Communication 2.1.3.s1, XAPI-00164)',
+      () => {
+        runtime.it('should return StatementResult with statements as array using GET with "agent"', async () => {
+          const { statement } = await persistFilterCorrectnessFixture(context);
+          const actor = expectObjectProperty(statement, "actor", "filter correctness query actor");
+          const response = await fetchStatements(context, "GET strict agent filter", { agent: actor });
+          const result = parseJsonObject(response, "GET strict agent filter");
+          const statements = expectArrayProperty(result, "statements", "GET strict agent filter list");
+          if (
+            statements.length === 0 ||
+            statements.some(
+              (value) => !isJsonObject(value) || !isJsonObject(value.actor) || value.actor.mbox !== actor.mbox,
+            )
+          ) {
+            throw new Error(
+              "Expected GET with agent to return only statements whose actor matches the requested agent.",
+            );
+          }
+        });
+
+        runtime.it('should return StatementResult with statements as array using GET with "verb"', async () => {
+          const { statement } = await persistFilterCorrectnessFixture(context);
+          const verb = expectObjectProperty(statement, "verb", "filter correctness query verb").id;
+          const response = await fetchStatements(context, "GET strict verb filter", { verb });
+          const result = parseJsonObject(response, "GET strict verb filter");
+          const statements = expectArrayProperty(result, "statements", "GET strict verb filter list");
+          if (
+            statements.length === 0 ||
+            statements.some((value) => !isJsonObject(value) || !isJsonObject(value.verb) || value.verb.id !== verb)
+          ) {
+            throw new Error("Expected GET with verb to return only statements whose verb matches the requested id.");
+          }
+        });
+
+        runtime.it('should return StatementResult with statements as array using GET with "activity"', async () => {
+          const { statement } = await persistFilterCorrectnessFixture(context);
+          const activity = expectObjectProperty(statement, "object", "filter correctness query activity").id;
+          const response = await fetchStatements(context, "GET strict activity filter", { activity });
+          const result = parseJsonObject(response, "GET strict activity filter");
+          const statements = expectArrayProperty(result, "statements", "GET strict activity filter list");
+          if (
+            statements.length === 0 ||
+            statements.some(
+              (value) => !isJsonObject(value) || !isJsonObject(value.object) || value.object.id !== activity,
+            )
+          ) {
+            throw new Error(
+              "Expected GET with activity to return only statements whose object activity matches the requested id.",
+            );
+          }
+        });
+
+        runtime.it('should return StatementResult with statements as array using GET with "registration"', async () => {
+          const { statement } = await persistFilterCorrectnessFixture(context);
+          const registration = expectObjectProperty(
+            statement,
+            "context",
+            "filter correctness query context",
+          ).registration;
+          const response = await fetchStatements(context, "GET strict registration filter", { registration });
+          const result = parseJsonObject(response, "GET strict registration filter");
+          const statements = expectArrayProperty(result, "statements", "GET strict registration filter list");
+          if (
+            statements.length === 0 ||
+            statements.some(
+              (value) =>
+                !isJsonObject(value) || !isJsonObject(value.context) || value.context.registration !== registration,
+            )
+          ) {
+            throw new Error(
+              "Expected GET with registration to return only statements whose context registration matches the requested id.",
+            );
+          }
+        });
+
+        runtime.it(
+          'should return StatementResult with statements as array using GET with "related_activities"',
+          async () => {
+            const { statement } = await persistFilterCorrectnessFixture(context);
+            const statementContext = expectObjectProperty(
+              statement,
+              "context",
+              "filter correctness related activities context",
+            );
+            const statementContextActivities = expectObjectProperty(
+              statementContext,
+              "contextActivities",
+              "filter correctness related activities context activities",
+            );
+            const categoryId = expectObjectProperty(
+              statementContextActivities,
+              "category",
+              "filter correctness related activities category",
+            ).id;
+            if (typeof categoryId !== "string") {
+              throw new Error("Expected the related_activities fixture category id to be a string.");
+            }
+            const response = await fetchStatements(context, "GET strict related_activities filter", {
+              activity: categoryId,
+              related_activities: true,
+            });
+            const result = parseJsonObject(response, "GET strict related_activities filter");
+            const statements = expectArrayProperty(result, "statements", "GET strict related_activities filter list");
+            if (statements.length === 0 || statements.some((value) => !deepIncludesValue(value, categoryId))) {
+              throw new Error(
+                "Expected GET with related_activities=true to return only statements that contain the requested activity id.",
+              );
+            }
+          },
+        );
+
+        runtime.it(
+          'should return StatementResult with statements as array using GET with "related_agents"',
+          async () => {
+            const { statement } = await persistFilterCorrectnessFixture(context);
+            const statementContext = expectObjectProperty(
+              statement,
+              "context",
+              "filter correctness related agents context",
+            );
+            const instructor = expectObjectProperty(
+              statementContext,
+              "instructor",
+              "filter correctness related agents instructor",
+            );
+            const instructorMbox = instructor.mbox;
+            if (typeof instructorMbox !== "string") {
+              throw new Error("Expected the related_agents fixture instructor mbox to be a string.");
+            }
+            const response = await fetchStatements(context, "GET strict related_agents filter", {
+              agent: instructor,
+              related_agents: true,
+            });
+            const result = parseJsonObject(response, "GET strict related_agents filter");
+            const statements = expectArrayProperty(result, "statements", "GET strict related_agents filter list");
+            if (statements.length === 0 || statements.some((value) => !deepIncludesValue(value, instructorMbox))) {
+              throw new Error(
+                "Expected GET with related_agents=true to return only statements that contain the requested agent identifier.",
+              );
+            }
+          },
+        );
+
+        runtime.it('should return StatementResult with statements as array using GET with "since"', async () => {
+          await persistFilterCorrectnessFixture(context);
+          const since = "2012-06-01T19:09:13.245Z";
+          const response = await fetchStatements(context, "GET strict since filter", { since });
+          const result = parseJsonObject(response, "GET strict since filter");
+          const statements = expectArrayProperty(result, "statements", "GET strict since filter list");
+          if (
+            statements.some(
+              (value) =>
+                !isJsonObject(value) ||
+                parseStoredDate(value.stored, "strict since stored timestamp") < Date.parse(since),
+            )
+          ) {
+            throw new Error("Expected GET with since to return only statements stored after the requested timestamp.");
+          }
+        });
+
+        runtime.it('should return StatementResult with statements as array using GET with "until"', async () => {
+          await persistFilterCorrectnessFixture(context);
+          const until = new Date(Date.now() + 60_000).toISOString();
+          const response = await fetchStatements(context, "GET strict until filter", { until });
+          const result = parseJsonObject(response, "GET strict until filter");
+          const statements = expectArrayProperty(result, "statements", "GET strict until filter list");
+          if (
+            statements.some(
+              (value) =>
+                !isJsonObject(value) ||
+                parseStoredDate(value.stored, "strict until stored timestamp") > Date.parse(until),
+            )
+          ) {
+            throw new Error(
+              "Expected GET with until to return only statements stored at or before the requested timestamp.",
+            );
+          }
+        });
+
+        runtime.it('should return StatementResult with statements as array using GET with "limit"', async () => {
+          await persistFilterCorrectnessFixture(context);
+          const response = await fetchStatements(context, "GET strict limit filter", { limit: 1 });
+          const result = parseJsonObject(response, "GET strict limit filter");
+          const statements = expectArrayProperty(result, "statements", "GET strict limit filter list");
+          if (statements.length !== 1) {
+            throw new Error("Expected GET with limit=1 to return exactly one statement.");
+          }
+        });
+
+        runtime.it('should return StatementResult with statements as array using GET with "ascending"', async () => {
+          await persistFilterCorrectnessFixture(context);
+          const response = await fetchStatements(context, "GET strict ascending filter", { ascending: true });
+          const result = parseJsonObject(response, "GET strict ascending filter");
+          const statements = expectArrayProperty(result, "statements", "GET strict ascending filter list").filter(
+            isJsonObject,
+          );
+          for (let index = 0; index < statements.length - 1; index += 1) {
+            const current = parseStoredDate(statements[index]?.stored, "strict ascending current stored timestamp");
+            const next = parseStoredDate(statements[index + 1]?.stored, "strict ascending next stored timestamp");
+            if (current > next) {
+              throw new Error(
+                "Expected GET with ascending=true to return statements sorted by stored time in ascending order.",
+              );
+            }
+          }
+        });
+
+        runtime.it('should return StatementResult with statements as array using GET with "format"', async () => {
+          await persistFilterCorrectnessFixture(context);
+          const response = await fetchStatements(context, "GET strict format filter", { format: "ids" });
+          const result = parseJsonObject(response, "GET strict format filter");
+          expectArrayProperty(result, "statements", "GET strict format filter list");
+        });
+
+        runtime.it('should return StatementResult with statements as array using GET with "attachments"', async () => {
+          await persistStatementWithAttachments(context);
+          const response = await fetchStatements(context, "GET strict attachments filter", { attachments: true });
+          const parts = expectMultipartResponse(response, "GET strict attachments filter");
+          const result = parseJsonObjectText(parts[0]?.bodyText ?? "", "GET strict attachments filter JSON");
+          expectArrayProperty(result, "statements", "GET strict attachments filter list");
+        });
+      },
+    );
+
+    runtime.describe(
       'The LRS will NOT reject a GET request which returns an empty "statements" property (**Implicit**, Communication 2.1.3.s2.b4, XAPI-00149)',
       () => {
         runtime.it("should return empty array list", async () => {
@@ -1316,6 +2091,79 @@ export function registerStatementResourceRequirementsSuite(
 
             if (!response.headers.get("X-Experience-API-Consistent-Through")) {
               throw new Error(`Expected ${queryCase.name} to include X-Experience-API-Consistent-Through.`);
+            }
+          });
+        }
+      },
+    );
+
+    runtime.describe(
+      'An LRS\'s "X-Experience-API-Consistent-Through" header is an ISO 8601 combined date and time (Type, Communication 2.1.3.s2.b5).',
+      () => {
+        const isoCases: QueryCase[] = [
+          { name: 'should return valid "X-Experience-API-Consistent-Through" using GET' },
+          {
+            name: 'should return "X-Experience-API-Consistent-Through" using GET with "agent"',
+            query: { agent: { objectType: "Agent", mbox: `mailto:${context.generateUuid()}@example.com` } },
+          },
+          {
+            name: 'should return "X-Experience-API-Consistent-Through" using GET with "verb"',
+            query: { verb: "http://adlnet.gov/expapi/non/existent" },
+          },
+          {
+            name: 'should return "X-Experience-API-Consistent-Through" using GET with "activity"',
+            query: { activity: "http://www.example.com/meetings/occurances/12345" },
+          },
+          {
+            name: 'should return "X-Experience-API-Consistent-Through" using GET with "registration"',
+            query: { registration: context.generateUuid() },
+          },
+          {
+            name: 'should return "X-Experience-API-Consistent-Through" using GET with "related_activities"',
+            query: { related_activities: true },
+          },
+          {
+            name: 'should return "X-Experience-API-Consistent-Through" using GET with "related_agents"',
+            query: { related_agents: true },
+          },
+          {
+            name: 'should return "X-Experience-API-Consistent-Through" using GET with "since"',
+            query: { since: "2012-06-01T19:09:13.245Z" },
+          },
+          {
+            name: 'should return "X-Experience-API-Consistent-Through" using GET with "until"',
+            query: { until: "2100-06-01T19:09:13.245Z" },
+          },
+          {
+            name: 'should return "X-Experience-API-Consistent-Through" using GET with "limit"',
+            query: { limit: 1 },
+          },
+          {
+            name: 'should return "X-Experience-API-Consistent-Through" using GET with "ascending"',
+            query: { ascending: true },
+          },
+          {
+            name: 'should return "X-Experience-API-Consistent-Through" using GET with "format"',
+            query: { format: "ids" },
+          },
+          {
+            name: 'should return "X-Experience-API-Consistent-Through" using GET with "attachments"',
+            query: { attachments: true },
+          },
+        ];
+
+        for (const queryCase of isoCases) {
+          runtime.it(queryCase.name, async () => {
+            const response = queryCase.rawPath
+              ? await fetchRawStatements(context, queryCase.name, queryCase.rawPath, queryCase.headers)
+              : await fetchStatements(context, queryCase.name, queryCase.query, queryCase.headers);
+            if (response.status !== 200) {
+              throw new Error(`Expected ${queryCase.name} to return 200 but received ${response.status}.`);
+            }
+
+            const value = response.headers.get("X-Experience-API-Consistent-Through");
+            if (!value || Number.isNaN(Date.parse(value))) {
+              throw new Error(`Expected ${queryCase.name} to return a valid ISO timestamp header.`);
             }
           });
         }

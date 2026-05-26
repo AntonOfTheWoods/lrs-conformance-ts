@@ -45,6 +45,11 @@ function parseJsonObject(response: JsonResponse, name: string): JsonObject {
   return parsed;
 }
 
+function resolveMoreRequestUrl(context: DescribeRuntimeContext, more: string): string {
+  const statementsUrl = `${context.options.endpoint.replace(/\/+$/, "")}${context.getEndpointStatements()}`;
+  return new URL(more, statementsUrl).toString();
+}
+
 async function fetchCollection(
   context: DescribeRuntimeContext,
   name: string,
@@ -66,7 +71,7 @@ async function fetchCollection(
 async function fetchMore(context: DescribeRuntimeContext, more: string, name: string): Promise<JsonObject> {
   const response = await context.sendJsonRequest({
     method: "GET",
-    path: `${context.getEndpointStatements()}${more}`,
+    path: resolveMoreRequestUrl(context, more),
   });
 
   if (response.status !== 200) {

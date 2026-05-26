@@ -13,6 +13,16 @@ interface CapturedRequest {
   version: string | null;
 }
 
+interface ParsedMultipartPart {
+  bodyText: string;
+  headers: Record<string, string>;
+}
+
+interface StoredAttachmentBody {
+  bodyText: string;
+  contentType: string;
+}
+
 const silentLogger = {
   log: (..._args: unknown[]) => {},
   error: (..._args: unknown[]) => {},
@@ -86,6 +96,7 @@ const interactionComponentParents = new Set(["choices", "scale", "source", "targ
 
 const isoTimestampPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/;
 const voidedVerbSuffix = "voided";
+const statementAttachmentResponseBoundary = "mock-xapi-statement-attachments";
 
 type StatementResponseFormat = "canonical" | "exact" | "ids";
 
@@ -1192,6 +1203,106 @@ function createConsistentThroughHeader(): string {
   return new Date().toISOString();
 }
 
+function parseMultipartBoundary(contentType: string | null): string | undefined {
+  if (!contentType) {
+    return undefined;
+  }
+
+  const match = /boundary=(?:"([^"]+)"|([^;]+))/i.exec(contentType);
+  return match?.[1] ?? match?.[2]?.trim();
+}
+
+function parseMultipartHeaders(rawHeaders: string): Record<string, string> {
+  const headers: Record<string, string> = {};
+  for (const line of rawHeaders.split(/\r?\n/)) {
+    const separatorIndex = line.indexOf(":");
+    if (separatorIndex < 0) {
+      continue;
+    }
+
+    headers[line.slice(0, separatorIndex).trim().toLowerCase()] = line.slice(separatorIndex + 1).trim();
+  }
+
+  return headers;
+}
+
+function parseMultipartParts(bodyText: string, boundary: string): ParsedMultipartPart[] {
+  const parts: ParsedMultipartPart[] = [];
+  const marker = `--${boundary}`;
+  for (const rawPart of bodyText.split(marker)) {
+    let normalized = rawPart;
+    if (normalized.startsWith("\r\n")) {
+      normalized = normalized.slice(2);
+    } else if (normalized.startsWith("\n")) {
+      normalized = normalized.slice(1);
+    }
+
+    if (normalized.endsWith("--\r\n")) {
+      normalized = normalized.slice(0, -4);
+    } else if (normalized.endsWith("--")) {
+      normalized = normalized.slice(0, -2);
+    }
+
+    normalized = normalized.replace(/\r?\n$/, "");
+    if (normalized.trim().length === 0) {
+      continue;
+    }
+
+    const separatorIndex = normalized.indexOf("\r\n\r\n");
+    const separatorLength = separatorIndex >= 0 ? 4 : 0;
+    const fallbackSeparatorIndex = separatorIndex >= 0 ? separatorIndex : normalized.indexOf("\n\n");
+    if (fallbackSeparatorIndex < 0) {
+      continue;
+    }
+
+    const bodyStart = fallbackSeparatorIndex + (separatorIndex >= 0 ? separatorLength : 2);
+    parts.push({
+      bodyText: normalized.slice(bodyStart),
+      headers: parseMultipartHeaders(normalized.slice(0, fallbackSeparatorIndex)),
+    });
+  }
+
+  return parts;
+}
+
+function parseMultipartStatementRequest(
+  bodyText: string,
+  contentType: string | null,
+): { attachments: Map<string, StoredAttachmentBody>; body: unknown } | undefined {
+  const boundary = parseMultipartBoundary(contentType);
+  if (!boundary) {
+    return undefined;
+  }
+
+  const parts = parseMultipartParts(bodyText, boundary);
+  const firstPart = parts[0];
+  if (!firstPart || firstPart.headers["content-type"] !== "application/json") {
+    return undefined;
+  }
+
+  let body: unknown;
+  try {
+    body = JSON.parse(firstPart.bodyText) as unknown;
+  } catch {
+    return undefined;
+  }
+
+  const attachments = new Map<string, StoredAttachmentBody>();
+  for (const part of parts.slice(1)) {
+    const hash = part.headers["x-experience-api-hash"];
+    if (typeof hash !== "string") {
+      continue;
+    }
+
+    attachments.set(hash, {
+      bodyText: part.bodyText,
+      contentType: part.headers["content-type"] ?? "application/octet-stream",
+    });
+  }
+
+  return { attachments, body };
+}
+
 function createLastModifiedHeader(statement: Record<string, unknown>): string | undefined {
   const stored = statement.stored;
   if (typeof stored !== "string") {
@@ -1220,6 +1331,81 @@ function createStatementJsonResponse(body: unknown, status: number, statement?: 
   return Response.json(body, {
     status,
     headers: createStatementGetHeaders(statement),
+  });
+}
+
+function collectAttachmentParts(
+  statements: readonly Record<string, unknown>[],
+  storedAttachmentBodies: Map<string, StoredAttachmentBody>,
+): Array<StoredAttachmentBody & { hash: string }> {
+  const parts: Array<StoredAttachmentBody & { hash: string }> = [];
+  const seenHashes = new Set<string>();
+
+  for (const statement of statements) {
+    const attachments = statement.attachments;
+    if (!Array.isArray(attachments)) {
+      continue;
+    }
+
+    for (const attachment of attachments) {
+      if (!isObjectRecord(attachment) || typeof attachment.sha2 !== "string" || seenHashes.has(attachment.sha2)) {
+        continue;
+      }
+
+      const storedAttachment = storedAttachmentBodies.get(attachment.sha2);
+      if (!storedAttachment) {
+        continue;
+      }
+
+      seenHashes.add(attachment.sha2);
+      parts.push({
+        hash: attachment.sha2,
+        bodyText: storedAttachment.bodyText,
+        contentType: typeof attachment.contentType === "string" ? attachment.contentType : storedAttachment.contentType,
+      });
+    }
+  }
+
+  return parts;
+}
+
+function buildMultipartStatementResponseBody(
+  body: unknown,
+  attachmentParts: Array<StoredAttachmentBody & { hash: string }>,
+): string {
+  const lines: string[] = [];
+  lines.push(`--${statementAttachmentResponseBoundary}`);
+  lines.push("Content-Type: application/json");
+  lines.push("");
+  lines.push(JSON.stringify(body));
+
+  for (const attachmentPart of attachmentParts) {
+    lines.push(`--${statementAttachmentResponseBoundary}`);
+    lines.push(`Content-Type: ${attachmentPart.contentType}`);
+    lines.push("Content-Transfer-Encoding: binary");
+    lines.push(`X-Experience-API-Hash: ${attachmentPart.hash}`);
+    lines.push("");
+    lines.push(attachmentPart.bodyText);
+  }
+
+  lines.push(`--${statementAttachmentResponseBoundary}--`);
+  lines.push("");
+
+  return lines.join("\r\n");
+}
+
+function createMultipartStatementResponse(
+  body: unknown,
+  status: number,
+  attachmentParts: Array<StoredAttachmentBody & { hash: string }>,
+  statement?: Record<string, unknown>,
+): Response {
+  const headers = new Headers(createStatementGetHeaders(statement));
+  headers.set("Content-Type", `multipart/mixed; boundary=${statementAttachmentResponseBoundary}`);
+
+  return new Response(buildMultipartStatementResponseBody(body, attachmentParts), {
+    status,
+    headers,
   });
 }
 
@@ -1554,11 +1740,15 @@ function getCollectionResults(
   if (agentParam) {
     const queryAgent = JSON.parse(agentParam) as Record<string, unknown>;
     const includeRelatedAgents = parseBooleanQuery(searchParams.get("related_agents")) === true;
-    results = results.filter((statement) => {
-      return collectAgentCandidates(statement, includeRelatedAgents).some((candidate) => {
-        return isMatchingAgent(candidate, queryAgent);
-      });
-    });
+    results = includeRelatedAgents
+      ? results.filter((statement) => {
+          return collectAgentCandidates(statement, true).some((candidate) => {
+            return isMatchingAgent(candidate, queryAgent);
+          });
+        })
+      : results.filter((statement) => {
+          return isObjectRecord(statement.actor) && isMatchingAgent(statement.actor, queryAgent);
+        });
   }
 
   const verb = searchParams.get("verb");
@@ -1619,7 +1809,7 @@ function getCollectionResults(
       const nextQuery = new URLSearchParams(searchParams);
       nextQuery.set("limit", String(limit));
       nextQuery.set("offset", String(nextOffset));
-      more = `?${nextQuery.toString()}`;
+      more = `/xapi/statements?${nextQuery.toString()}`;
     }
   }
 
@@ -1793,6 +1983,7 @@ function validateAgentProfileQuery(searchParams: URLSearchParams): number {
 
 function startMockLrs() {
   const requests: CapturedRequest[] = [];
+  const storedAttachmentBodies = new Map<string, StoredAttachmentBody>();
   const storedStatements = new Map<string, Record<string, unknown>>();
   let voidedStatementIds = new Set<string>();
 
@@ -1801,7 +1992,18 @@ function startMockLrs() {
     async fetch(request) {
       const url = new URL(request.url);
       const requestText = await request.text();
-      const body = requestText.length > 0 ? (JSON.parse(requestText) as unknown) : undefined;
+      const contentType = request.headers.get("Content-Type");
+      let body: unknown;
+      let multipartAttachments: Map<string, StoredAttachmentBody> | undefined;
+      if (requestText.length > 0) {
+        if (contentType?.toLowerCase().startsWith("multipart/mixed")) {
+          const parsedMultipart = parseMultipartStatementRequest(requestText, contentType);
+          body = parsedMultipart?.body;
+          multipartAttachments = parsedMultipart?.attachments;
+        } else {
+          body = JSON.parse(requestText) as unknown;
+        }
+      }
 
       requests.push({
         body,
@@ -1844,6 +2046,12 @@ function startMockLrs() {
             }
           }
 
+          if (multipartAttachments) {
+            for (const [hash, attachmentBody] of multipartAttachments.entries()) {
+              storedAttachmentBodies.set(hash, attachmentBody);
+            }
+          }
+
           voidedStatementIds = recomputeVoidedStatementIds(storedStatements);
           return Response.json(statementIds, { status: 200 });
         }
@@ -1853,6 +2061,11 @@ function startMockLrs() {
           const statementId = typeof body.id === "string" ? body.id : crypto.randomUUID();
           if (!storedStatements.has(statementId)) {
             storedStatements.set(statementId, createStoredStatement(body, statementId));
+          }
+          if (multipartAttachments) {
+            for (const [hash, attachmentBody] of multipartAttachments.entries()) {
+              storedAttachmentBodies.set(hash, attachmentBody);
+            }
           }
           voidedStatementIds = recomputeVoidedStatementIds(storedStatements);
 
@@ -1897,11 +2110,20 @@ function startMockLrs() {
 
           const storedStatement = storedStatements.get(statementId);
           if (storedStatement) {
-            return createStatementJsonResponse(
-              formatStatementForResponse(storedStatement, statementFormat, request.headers.get("Accept-Language")),
-              200,
+            const formattedStatement = formatStatementForResponse(
               storedStatement,
+              statementFormat,
+              request.headers.get("Accept-Language"),
             );
+            const attachmentParts =
+              parseBooleanQuery(url.searchParams.get("attachments")) === true
+                ? collectAttachmentParts([storedStatement], storedAttachmentBodies)
+                : [];
+            if (attachmentParts.length > 0) {
+              return createMultipartStatementResponse(formattedStatement, 200, attachmentParts, storedStatement);
+            }
+
+            return createStatementJsonResponse(formattedStatement, 200, storedStatement);
           }
 
           return createStatementJsonResponse({ ok: false }, 404);
@@ -1915,25 +2137,40 @@ function startMockLrs() {
 
           const storedStatement = storedStatements.get(voidedStatementId);
           if (storedStatement) {
-            return createStatementJsonResponse(
-              formatStatementForResponse(storedStatement, statementFormat, request.headers.get("Accept-Language")),
-              200,
+            const formattedStatement = formatStatementForResponse(
               storedStatement,
+              statementFormat,
+              request.headers.get("Accept-Language"),
             );
+            const attachmentParts =
+              parseBooleanQuery(url.searchParams.get("attachments")) === true
+                ? collectAttachmentParts([storedStatement], storedAttachmentBodies)
+                : [];
+            if (attachmentParts.length > 0) {
+              return createMultipartStatementResponse(formattedStatement, 200, attachmentParts, storedStatement);
+            }
+
+            return createStatementJsonResponse(formattedStatement, 200, storedStatement);
           }
 
           return createStatementJsonResponse({ ok: false }, 404);
         }
 
-        return createStatementJsonResponse(
-          getCollectionResults(
-            storedStatements,
-            voidedStatementIds,
-            url.searchParams,
-            request.headers.get("Accept-Language"),
-          ),
-          200,
+        const collectionResult = getCollectionResults(
+          storedStatements,
+          voidedStatementIds,
+          url.searchParams,
+          request.headers.get("Accept-Language"),
         );
+        const attachmentParts =
+          parseBooleanQuery(url.searchParams.get("attachments")) === true
+            ? collectAttachmentParts(collectionResult.statements, storedAttachmentBodies)
+            : [];
+        if (attachmentParts.length > 0) {
+          return createMultipartStatementResponse(collectionResult, 200, attachmentParts);
+        }
+
+        return createStatementJsonResponse(collectionResult, 200);
       }
 
       if (url.pathname === "/xapi/activities/state") {
@@ -1974,20 +2211,20 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1012,
-        passed: 1012,
+        total: 1048,
+        passed: 1048,
         failed: 0,
         version: "2.0.0",
       });
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "POST"),
-      ).toHaveLength(992);
+      ).toHaveLength(1035);
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "PUT"),
       ).toHaveLength(18);
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "GET"),
-      ).toHaveLength(111);
+      ).toHaveLength(147);
       expect(harness.requests.every((request) => request.version === "2.0.0")).toBe(true);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-v2.log"), "utf8")) as {
@@ -1996,8 +2233,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1012,
-        passed: 1012,
+        total: 1048,
+        passed: 1048,
         failed: 0,
         version: "2.0.0",
       });
@@ -2098,12 +2335,12 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("1.0.3");
       expect(execution.runRecord.summary).toEqual({
-        total: 989,
-        passed: 989,
+        total: 1025,
+        passed: 1025,
         failed: 0,
         version: "1.0.3",
       });
-      expect(harness.requests).toHaveLength(1097);
+      expect(harness.requests).toHaveLength(1176);
       expect(harness.requests.every((request) => request.version === "1.0.3")).toBe(true);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-v103.log"), "utf8")) as {
@@ -2111,8 +2348,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 989,
-        passed: 989,
+        total: 1025,
+        passed: 1025,
         failed: 0,
         version: "1.0.3",
       });
@@ -2136,12 +2373,12 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Parameters", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1040,
-        passed: 1040,
+        total: 1076,
+        passed: 1076,
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1121);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1200);
       expect(harness.requests.filter((request) => request.path === "/xapi/activities/state")).toHaveLength(13);
       expect(harness.requests.filter((request) => request.path === "/xapi/agents/profile")).toHaveLength(6);
       expect(harness.requests.filter((request) => request.path === "/xapi/activities/profile")).toHaveLength(9);
@@ -2152,8 +2389,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1040,
-        passed: 1040,
+        total: 1076,
+        passed: 1076,
         failed: 0,
         version: "2.0.0",
       });
@@ -2180,12 +2417,12 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Multiplicity", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1094,
-        passed: 1094,
+        total: 1130,
+        passed: 1130,
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1121);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1200);
       expect(harness.requests.filter((request) => request.path !== "/xapi/statements")).toHaveLength(0);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-multiplicity-v2.log"), "utf8")) as {
@@ -2194,8 +2431,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1094,
-        passed: 1094,
+        total: 1130,
+        passed: 1130,
         failed: 0,
         version: "2.0.0",
       });

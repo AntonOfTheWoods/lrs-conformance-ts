@@ -57,6 +57,14 @@ function joinEndpoint(baseEndpoint: string, resourcePath: string): string {
   return `${normalizedBase}${normalizedPath}`;
 }
 
+function isAbsoluteUrl(value: string): boolean {
+  return /^[A-Za-z][A-Za-z\d+.-]*:\/\//.test(value);
+}
+
+function resolveRequestTarget(baseEndpoint: string, resourcePath: string): string {
+  return isAbsoluteUrl(resourcePath) ? resourcePath : joinEndpoint(baseEndpoint, resourcePath);
+}
+
 function addHeaderXapiVersion(
   headers: Record<string, string>,
   options: NormalizedRunnerOptions,
@@ -162,7 +170,7 @@ export function createDescribeRuntimeContext(
       bodyText = JSON.stringify(request.body);
     }
 
-    const response = await fetch(joinEndpoint(options.endpoint, requestPath), {
+    const response = await fetch(resolveRequestTarget(options.endpoint, requestPath), {
       method: request.method,
       headers: addAllHeaders(headers),
       body: bodyText,
