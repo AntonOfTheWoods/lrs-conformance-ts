@@ -16,12 +16,20 @@ const allowedArtifactsRoot = resolve(repoRoot, "tmp/agents");
 type SupportedVersion = "1.0.3" | "2.0.0";
 
 type RunnerScope = {
-  directory?: string;
   grep?: string;
+  rewriteDirectory?: string;
+  upstreamDirectory?: string;
+  upstreamOptional?: string;
 };
+
+const optionalDirectoryNames = new Set(["Multiplicity", "Parameters"]);
 
 function getVersionDirectory(version: SupportedVersion): "v1_0_3" | "v2_0" {
   return version === "1.0.3" ? "v1_0_3" : "v2_0";
+}
+
+function isVersionDirectory(value: string): value is "v1_0_3" | "v2_0" {
+  return value === "v1_0_3" || value === "v2_0";
 }
 
 function escapeRegex(value: string): string {
@@ -61,13 +69,19 @@ export function resolveRunnerScope(
   }
 
   const versionDirectory = getVersionDirectory(version);
-  const suiteDirectories = parseDirectorySegments(directory).filter(
-    (segment) => segment !== "v1_0_3" && segment !== "v2_0",
+  const parsedSegments = parseDirectorySegments(directory);
+  const nonVersionSegments = parsedSegments.filter((segment) => !isVersionDirectory(segment));
+  const optionalSegments = nonVersionSegments.filter((segment) => optionalDirectoryNames.has(segment));
+  const fallbackSegments = nonVersionSegments.filter((segment) => !optionalDirectoryNames.has(segment));
+  const rewriteSegments = [...nonVersionSegments, versionDirectory].filter(
+    (segment, index, list) => list.indexOf(segment) === index,
   );
 
   return {
-    directory: versionDirectory,
-    grep: combineGreps(grep, createDirectoryScopeGrep(suiteDirectories)),
+    rewriteDirectory: rewriteSegments.join(","),
+    upstreamDirectory: versionDirectory,
+    upstreamOptional: optionalSegments.length > 0 ? optionalSegments.join(",") : undefined,
+    grep: combineGreps(grep, createDirectoryScopeGrep(fallbackSegments)),
   };
 }
 
@@ -249,7 +263,7 @@ export function buildRewriteArgs(config: DiagnosticConfig, endpoint: string, ver
     config.password,
   ];
 
-  if (!scope.directory) {
+  if (!scope.rewriteDirectory) {
     args.push("--xapiVersion", version);
   }
 
@@ -257,14 +271,14 @@ export function buildRewriteArgs(config: DiagnosticConfig, endpoint: string, ver
     args.push("--grep", scope.grep);
   }
 
-  if (scope.directory) {
-    args.push("--directory", scope.directory);
+  if (scope.rewriteDirectory) {
+    args.push("--directory", scope.rewriteDirectory);
   }
 
   return args;
 }
 
-function buildUpstreamArgs(
+export function buildUpstreamArgs(
   config: DiagnosticConfig,
   endpoint: string,
   version: SupportedVersion,
@@ -291,8 +305,12 @@ function buildUpstreamArgs(
     args.push("--grep", scope.grep);
   }
 
-  if (scope.directory) {
-    args.push("--directory", scope.directory);
+  if (scope.upstreamDirectory) {
+    args.push("--directory", scope.upstreamDirectory);
+  }
+
+  if (scope.upstreamOptional) {
+    args.push("--optional", scope.upstreamOptional);
   }
 
   if (config.keepClone) {

@@ -100,6 +100,148 @@ describe("traffic harness", () => {
     expect(createExchangeSignature(left.exchanges[0]!)).toBe(createExchangeSignature(right.exchanges[0]!));
   });
 
+  test("normalizes UUID-like JSON object keys per exchange", () => {
+    const left = normalizeTrafficArtifact(
+      createArtifact(
+        createRawExchange({
+          request: {
+            bodyBase64: Buffer.from(
+              JSON.stringify({
+                "11111111-1111-4111-8111-111111111111": "alpha",
+                location: { name: "example" },
+                name: "document",
+              }),
+            ).toString("base64"),
+            headers: [["content-type", "application/json"]],
+            method: "DELETE",
+            targetUrl: "http://localhost:8080/xapi/activities/profile?profileId=1",
+          },
+          response: {
+            bodyBase64: "",
+            headers: [],
+            status: 204,
+          },
+        }),
+      ),
+    );
+    const right = normalizeTrafficArtifact(
+      createArtifact(
+        createRawExchange({
+          request: {
+            bodyBase64: Buffer.from(
+              JSON.stringify({
+                "22222222-2222-4222-8222-222222222222": "alpha",
+                location: { name: "example" },
+                name: "document",
+              }),
+            ).toString("base64"),
+            headers: [["content-type", "application/json"]],
+            method: "DELETE",
+            targetUrl: "http://localhost:8080/xapi/activities/profile?profileId=1",
+          },
+          response: {
+            bodyBase64: "",
+            headers: [],
+            status: 204,
+          },
+        }),
+      ),
+    );
+
+    expect(createExchangeSignature(left.exchanges[0]!)).toBe(createExchangeSignature(right.exchanges[0]!));
+  });
+
+  test("normalizes UUIDs embedded inside larger scalar strings", () => {
+    const left = normalizeTrafficArtifact(
+      createArtifact(
+        createRawExchange({
+          request: {
+            bodyBase64: "",
+            headers: [["x-experience-api-version", "2.0.0"]],
+            method: "GET",
+            targetUrl:
+              "http://localhost:8080/xapi/activities/profile?activityId=http://www.example.com/activityId/hashset11111111-1111-4111-8111-111111111111",
+          },
+          response: {
+            bodyBase64: Buffer.from(
+              JSON.stringify({
+                activityId: "http://www.example.com/activityId/hashset11111111-1111-4111-8111-111111111111",
+              }),
+            ).toString("base64"),
+            headers: [["content-type", "application/json"]],
+            status: 200,
+          },
+        }),
+      ),
+    );
+    const right = normalizeTrafficArtifact(
+      createArtifact(
+        createRawExchange({
+          request: {
+            bodyBase64: "",
+            headers: [["x-experience-api-version", "2.0.0"]],
+            method: "GET",
+            targetUrl:
+              "http://localhost:8080/xapi/activities/profile?activityId=http://www.example.com/activityId/hashset22222222-2222-4222-8222-222222222222",
+          },
+          response: {
+            bodyBase64: Buffer.from(
+              JSON.stringify({
+                activityId: "http://www.example.com/activityId/hashset22222222-2222-4222-8222-222222222222",
+              }),
+            ).toString("base64"),
+            headers: [["content-type", "application/json"]],
+            status: 200,
+          },
+        }),
+      ),
+    );
+
+    expect(createExchangeSignature(left.exchanges[0]!)).toBe(createExchangeSignature(right.exchanges[0]!));
+  });
+
+  test("ignores request content-type when the request body is empty", () => {
+    const left = normalizeTrafficArtifact(
+      createArtifact(
+        createRawExchange({
+          request: {
+            bodyBase64: "",
+            headers: [
+              ["content-type", "application/json"],
+              ["authorization", "Basic abc123"],
+            ],
+            method: "GET",
+            targetUrl: "http://localhost:8080/xapi/about",
+          },
+          response: {
+            bodyBase64: Buffer.from(JSON.stringify({ version: ["1.0.3"] })).toString("base64"),
+            headers: [["content-type", "application/json; charset=utf-8"]],
+            status: 200,
+          },
+        }),
+      ),
+    );
+    const right = normalizeTrafficArtifact(
+      createArtifact(
+        createRawExchange({
+          request: {
+            bodyBase64: "",
+            headers: [["authorization", "Basic def456"]],
+            method: "GET",
+            targetUrl: "http://localhost:8080/xapi/about",
+          },
+          response: {
+            bodyBase64: Buffer.from(JSON.stringify({ version: ["1.0.3"] })).toString("base64"),
+            headers: [["content-type", "application/json; charset=utf-8"]],
+            status: 200,
+          },
+        }),
+      ),
+    );
+
+    expect(createExchangeSignature(left.exchanges[0]!)).toBe(createExchangeSignature(right.exchanges[0]!));
+  });
+
   test("compresses consecutive equivalent exchanges before bag comparison", () => {
     const normalized = normalizeTrafficArtifact({
       ...createArtifact(createRawExchange()),

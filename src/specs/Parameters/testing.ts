@@ -97,6 +97,20 @@ export function registerParametersTestingSuite(runtime: DescribeRuntime, context
       bodyFactory: () => context.buildDocument(),
     });
 
+    registerParameterRejectionSuite(runtime, context, {
+      suiteTitle:
+        'An LRS\'s Agent Profile Resource rejects a DELETE request with "profileId" as a parameter if it is not type "String" with error code 400 Bad Request (format, Communication 2.6.s3.table1.row2)',
+      invalidTypes: [1, true, { key: "value" }],
+      testTitlePrefix: 'Should reject DELETE with "profileId" with type ',
+      buildParameters: () => context.buildAgentProfile(),
+      mutateParameters(parameters, invalidType) {
+        parameters.agent = invalidType;
+      },
+      method: "DELETE",
+      url: context.getEndpointAgentsProfile(),
+      bodyFactory: () => context.buildDocument(),
+    });
+
     /**  XAPI-00228, Communication 2.3 State Resource
      * An LRS's State API rejects a PUT request with "stateId" as a parameter if it is not type "String" with error code 400 Bad Request
      */
@@ -108,6 +122,20 @@ export function registerParametersTestingSuite(runtime: DescribeRuntime, context
       buildParameters: () => context.buildState(),
       mutateParameters(parameters, invalidType) {
         parameters.stateId = invalidType ?? parameters.stateId;
+      },
+      method: "PUT",
+      url: context.getEndpointActivitiesState(),
+      bodyFactory: () => context.buildDocument(),
+    });
+
+    registerParameterRejectionSuite(runtime, context, {
+      suiteTitle:
+        'An LRS\'s State Resource rejects a PUT request with "activityId" as a parameter if it is not type "String" with error code 400 Bad Request (format, Communication 2.3.s3.table1.row1)',
+      invalidTypes: [{ key: "value" }, 1, true, undefined],
+      testTitlePrefix: "Should State Resource reject a PUT request with activityId type ",
+      buildParameters: () => context.buildState(),
+      mutateParameters(parameters, invalidType) {
+        parameters.activityId = invalidType;
       },
       method: "PUT",
       url: context.getEndpointActivitiesState(),
@@ -131,6 +159,20 @@ export function registerParametersTestingSuite(runtime: DescribeRuntime, context
       bodyFactory: () => context.buildDocument(),
     });
 
+    registerParameterRejectionSuite(runtime, context, {
+      suiteTitle:
+        'An LRS\'s State Resource rejects a POST request with "activityId" as a parameter if it is not type "String" with error code 400 Bad Request (format, Communication 2.3.s3.table1.row1)',
+      invalidTypes: [1, true, { key: "value" }, undefined],
+      testTitlePrefix: "Should reject PUT State with stateId type : ",
+      buildParameters: () => context.buildState(),
+      mutateParameters(parameters, invalidType) {
+        parameters.activityId = invalidType;
+      },
+      method: "POST",
+      url: context.getEndpointActivitiesState(),
+      bodyFactory: () => context.buildDocument(),
+    });
+
     /**  XAPI-00225, Communication 2.3 State Resources
      * An LRS's State API rejects a GET request with "stateId" as a parameter if it is not type "String" with error code 400 Bad Request
      */
@@ -142,6 +184,19 @@ export function registerParametersTestingSuite(runtime: DescribeRuntime, context
       buildParameters: () => context.buildState(),
       mutateParameters(parameters, invalidType) {
         parameters.stateId = invalidType ?? parameters.stateId;
+      },
+      method: "GET",
+      url: context.getEndpointActivitiesState(),
+    });
+
+    registerParameterRejectionSuite(runtime, context, {
+      suiteTitle:
+        'An LRS\'s State Resource rejects a GET request with "activityId" as a parameter if it is not type "String" with error code 400 Bad Request (format, Communication 2.3.s3.table1.row1)',
+      invalidTypes: [1, true, { key: "value" }, undefined],
+      testTitlePrefix: 'Should reject GET with "activityId" with type ',
+      buildParameters: () => context.buildState(),
+      mutateParameters(parameters, invalidType) {
+        parameters.activityId = invalidType;
       },
       method: "GET",
       url: context.getEndpointActivitiesState(),
@@ -181,6 +236,47 @@ export function registerParametersTestingSuite(runtime: DescribeRuntime, context
     bodyFactory: () => context.buildDocument(),
   });
 
+  registerParameterRejectionSuite(runtime, context, {
+    suiteTitle:
+      'An LRS\'s Activity Profile Resource rejects a PUT request with "activityId" as a parameter if it is not type "String" with error code 400 Bad Request (format, Communication 2.7.s3.table1.row1)',
+    invalidTypes: [1, true, { key: "value" }],
+    testTitlePrefix: 'Should reject PUT with "activityId" with type ',
+    buildParameters: () => context.buildActivityProfile(),
+    mutateParameters(parameters, invalidType) {
+      parameters.activityId = invalidType;
+    },
+    method: "PUT",
+    url: context.getEndpointActivitiesProfile(),
+    bodyFactory: () => context.buildDocument(),
+  });
+
+  registerParameterRejectionSuite(runtime, context, {
+    suiteTitle:
+      'An LRS\'s Activity Profile Resource rejects a POST request with "activityId" as a parameter if it is not type "String" with error code 400 Bad Request (format, Communication 2.7.s3.table1.row1)',
+    invalidTypes: [1, true, { key: "value" }],
+    testTitlePrefix: 'Should reject POST with "activityId" with type ',
+    buildParameters: () => context.buildActivityProfile(),
+    mutateParameters(parameters, invalidType) {
+      parameters.activityId = invalidType;
+    },
+    method: "POST",
+    url: context.getEndpointActivitiesProfile(),
+    bodyFactory: () => context.buildDocument(),
+  });
+
+  registerParameterRejectionSuite(runtime, context, {
+    suiteTitle:
+      'An LRS\'s Activity Profile Resource rejects a DELETE request with "activityId" as a parameter if it is not type "String" with error code 400 Bad Request (format, Communication 2.7.s3.table1.row1)',
+    invalidTypes: [1, true, { key: "value" }],
+    testTitlePrefix: 'Should reject DELETE with "activityId" with type ',
+    buildParameters: () => context.buildActivityProfile(),
+    mutateParameters(parameters, invalidType) {
+      parameters.activityId = invalidType;
+    },
+    method: "DELETE",
+    url: context.getEndpointActivitiesProfile(),
+  });
+
   /**  XAPI-00305, Communication 2.7 Activity Profile Resource
    * An LRS's Activity Profile API rejects a DELETE request with "profileId" as a parameter if it is not type "String" with error code 400 Bad Request
    */
@@ -194,6 +290,33 @@ export function registerParametersTestingSuite(runtime: DescribeRuntime, context
       parameters.profileId = invalidType ?? parameters.profileId;
     },
     method: "DELETE",
+    url: context.getEndpointActivitiesProfile(),
+    bodyFactory: () => context.buildDocument(),
+  });
+
+  registerParameterRejectionSuite(runtime, context, {
+    suiteTitle:
+      'An LRS\'s Activity Profile Resource rejects a GET request without "profileId" as a parameter if it is not type "String" with error code 400 Bad Request (format, Communication 2.7.s3.table1.row2)',
+    invalidTypes: [1, true, { key: "value" }],
+    testTitlePrefix: 'Should reject GET with "profileId" with type ',
+    buildParameters: () => context.buildActivityProfile(),
+    mutateParameters(parameters, invalidType) {
+      parameters.profileId = invalidType ?? parameters.profileId;
+    },
+    method: "GET",
+    url: context.getEndpointActivitiesProfile(),
+  });
+
+  registerParameterRejectionSuite(runtime, context, {
+    suiteTitle:
+      'An LRS\'s Activity Profile Resource rejects a GET request with "activityId" as a parameter if it is not type "String" with error code 400 Bad Request (format, Communication 2.7.s3.table1.row1, Communication 2.7.s4.table1.row1)',
+    invalidTypes: [1, true, { key: "value" }],
+    testTitlePrefix: 'Should reject GET with "activityId" with type ',
+    buildParameters: () => context.buildActivityProfile(),
+    mutateParameters(parameters, invalidType) {
+      parameters.activityId = invalidType;
+    },
+    method: "GET",
     url: context.getEndpointActivitiesProfile(),
   });
 

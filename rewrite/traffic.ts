@@ -208,7 +208,7 @@ function normalizeStringValue(value: string, state: PlaceholderState): string {
   );
 
   return withIsoTimestamps.replace(
-    /\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/gi,
+    /(?<![0-9a-f])[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}(?![0-9a-f])/gi,
     (match) => normalizeWithPlaceholder(match.toLowerCase(), "uuid", state),
   );
 }
@@ -224,9 +224,11 @@ function canonicalizeJsonValue(value: unknown, state: PlaceholderState): unknown
 
   if (value && typeof value === "object") {
     return Object.fromEntries(
-      Object.keys(value)
-        .sort((left, right) => left.localeCompare(right))
-        .map((key) => [key, canonicalizeJsonValue((value as Record<string, unknown>)[key], state)]),
+      Object.entries(value as Record<string, unknown>)
+        .map(
+          ([key, childValue]) => [normalizeStringValue(key, state), canonicalizeJsonValue(childValue, state)] as const,
+        )
+        .sort(([left], [right]) => left.localeCompare(right)),
     );
   }
 
@@ -281,6 +283,18 @@ function normalizeHeaders(
     .sort(([leftName], [rightName]) => leftName.localeCompare(rightName));
 
   return Object.fromEntries(normalizedEntries.map(([name, value]) => [name, normalizeHeaderValue(name, value, state)]));
+}
+
+function omitRequestContentTypeForEmptyBody(
+  headers: Record<string, string>,
+  body: NormalizedBody,
+): Record<string, string> {
+  if (body.kind !== "empty" || !("content-type" in headers)) {
+    return headers;
+  }
+
+  const { ["content-type"]: _contentType, ...remainingHeaders } = headers;
+  return remainingHeaders;
 }
 
 function tryParseJson(buffer: Buffer): JsonValue | undefined {
@@ -462,6 +476,7 @@ export function normalizeTrafficArtifact(rawArtifact: RawTrafficArtifact): Norma
     const requestUrl = new URL(exchange.request.targetUrl);
     const requestContentType = exchange.request.headers.find(([name]) => name.toLowerCase() === "content-type")?.[1];
     const responseContentType = exchange.response.headers.find(([name]) => name.toLowerCase() === "content-type")?.[1];
+    const requestBody = normalizeBody(base64ToBuffer(exchange.request.bodyBase64), requestContentType, state);
 
     return {
       attempts: 1,
@@ -469,8 +484,11 @@ export function normalizeTrafficArtifact(rawArtifact: RawTrafficArtifact): Norma
       path: requestUrl.pathname,
       query: normalizeQuery(requestUrl, state),
       request: {
-        headers: normalizeHeaders(exchange.request.headers, requestHeaderAllowList, state),
-        body: normalizeBody(base64ToBuffer(exchange.request.bodyBase64), requestContentType, state),
+        headers: omitRequestContentTypeForEmptyBody(
+          normalizeHeaders(exchange.request.headers, requestHeaderAllowList, state),
+          requestBody,
+        ),
+        body: requestBody,
       },
       response: {
         status: exchange.response.status,

@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { mkdir, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { dirname, isAbsolute, posix, relative, resolve } from "node:path";
@@ -32,6 +32,7 @@ interface ExportUpstreamConfig {
   allowUnsafeOutputPath: boolean;
   grep?: string;
   directory?: string;
+  optional?: string;
 }
 
 function getFlagValue(args: string[], flag: string): string | undefined {
@@ -46,7 +47,7 @@ function getFlagValue(args: string[], flag: string): string | undefined {
 function usage(): string {
   return [
     "Usage:",
-    "  bun run rewrite:export:upstream:lrsql -- [--base-url <url>] [--username <user>] [--password <pass>] [--version 2.0.0|1.0.3] [--out <path>] [--grep <pattern>] [--directory <csv>] [--log-dir <path>] [--node-image <ref>] [--upstream-repo-url <url>] [--upstream-ref <ref>] [--clone-depth <n>] [--clone-base-dir <path>] [--keep-clone]",
+    "  bun run rewrite:export:upstream:lrsql -- [--base-url <url>] [--username <user>] [--password <pass>] [--version 2.0.0|1.0.3] [--out <path>] [--grep <pattern>] [--directory <csv>] [--optional <csv>] [--log-dir <path>] [--node-image <ref>] [--upstream-repo-url <url>] [--upstream-ref <ref>] [--clone-depth <n>] [--clone-base-dir <path>] [--keep-clone]",
     "",
     "Defaults:",
     "  --base-url http://localhost:8080/xapi",
@@ -87,6 +88,7 @@ function parseConfig(args: string[]): ExportUpstreamConfig {
     args.includes("--allow-unsafe-output-path") || process.env.ALLOW_UNSAFE_OUTPUT_PATH === "1";
   const grep = getFlagValue(args, "--grep");
   const directory = getFlagValue(args, "--directory");
+  const optional = getFlagValue(args, "--optional");
   const cloneDepth = Number.parseInt(cloneDepthValue, 10);
 
   if (versionFlag !== "2.0.0" && versionFlag !== "1.0.3") {
@@ -119,7 +121,32 @@ function parseConfig(args: string[]): ExportUpstreamConfig {
     allowUnsafeOutputPath,
     grep,
     directory,
+    optional,
   };
+}
+
+function ensureOptionalFlagSupport(suiteDir: string): void {
+  const consoleRunnerPath = resolve(suiteDir, "bin/console_runner.js");
+  const source = readFileSync(consoleRunnerPath, "utf8");
+
+  if (source.includes("program.optional") || source.includes("--optional")) {
+    return;
+  }
+
+  const optionAnchor =
+    "    .option('-d, --directory [value]', 'Specific directories of tests (as a comma-separated list with no spaces).', clean_dir, [...[]])\n    .option('-z, --errors', 'Results log of failing tests only.')";
+  const optionReplacement =
+    "    .option('-d, --directory [value]', 'Specific directories of tests (as a comma-separated list with no spaces).', clean_dir, [...[]])\n    .option('-m, --optional [value]', 'Optional directories of tests (as a comma-separated list with no spaces).', clean_dir, [...[]])\n    .option('-z, --errors', 'Results log of failing tests only.')";
+  const optionsAnchor = "    directory: program.directory,\n    errors: program.errors\n}";
+  const optionsReplacement =
+    "    directory: program.directory,\n    optional: Array.isArray(program.optional) && program.optional.length > 0 ? program.optional : undefined,\n    errors: program.errors\n}";
+
+  if (!source.includes(optionAnchor) || !source.includes(optionsAnchor)) {
+    throw new Error(`Unable to patch optional flag support into ${consoleRunnerPath}.`);
+  }
+
+  const patched = source.replace(optionAnchor, optionReplacement).replace(optionsAnchor, optionsReplacement);
+  writeFileSync(consoleRunnerPath, patched, "utf8");
 }
 
 function ensureSuiteReady(suiteDir: string, missingMessage: string): string {
@@ -207,6 +234,7 @@ function cloneUpstreamSuite(config: ExportUpstreamConfig): SuiteLocation {
   }
 
   ensureSuiteReady(cloneDir, `The cloned ADL conformance suite at ${cloneDir} is incomplete.`);
+  ensureOptionalFlagSupport(cloneDir);
 
   return {
     suiteDir: cloneDir,
@@ -304,6 +332,10 @@ function runConsoleRunnerInContainer(config: ExportUpstreamConfig, suiteLocation
 
   if (config.directory) {
     upstreamArgs.push("--directory", config.directory);
+  }
+
+  if (config.optional) {
+    upstreamArgs.push("--optional", config.optional);
   }
 
   mkdirSync(config.logDir, { recursive: true });
