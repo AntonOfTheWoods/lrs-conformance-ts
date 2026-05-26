@@ -3296,14 +3296,14 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1401,
-        passed: 1401,
+        total: 1417,
+        passed: 1417,
         failed: 0,
         version: "2.0.0",
       });
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "POST"),
-      ).toHaveLength(1179);
+      ).toHaveLength(1195);
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "PUT"),
       ).toHaveLength(47);
@@ -3324,8 +3324,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1401,
-        passed: 1401,
+        total: 1417,
+        passed: 1417,
         failed: 0,
         version: "2.0.0",
       });
@@ -3410,6 +3410,8 @@ describe("console runner entrypoint", () => {
       );
       expectLoggedNestedSuiteTitles(writtenRecord.log.tests, "Id Property Requirements (Data 2.4.1)", [
         'An LRS generates the "id" property of a Statement if none is provided (Modify, Data 2.4.1.s2.b1, XAPI-00026)',
+        "All UUID types follow requirements of RFC4122 (Type, Data 2.4.1.s1, XAPI-00030, XAPI-00027)",
+        "All UUID types are in standard String form (Type, Data 2.4.1.s1, XAPI-00029, XAPI-00028)",
       ]);
       expectLoggedNestedSuiteTitles(writtenRecord.log.tests, "Timestamp Property Requirements (Data 2.4.7)", [
         'A "timestamp" property is a TimeStamp (Type, Data 2.4.7, Data 2.4.s1.table1.row7, XAPI-00022)',
@@ -3458,12 +3460,12 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("1.0.3");
       expect(execution.runRecord.summary).toEqual({
-        total: 1347,
-        passed: 1347,
+        total: 1363,
+        passed: 1363,
         failed: 0,
         version: "1.0.3",
       });
-      expect(harness.requests).toHaveLength(1611);
+      expect(harness.requests).toHaveLength(1627);
       expect(harness.requests.filter((request) => request.version === null)).toHaveLength(12);
       expect(harness.requests.filter((request) => request.version === "BAD")).toHaveLength(2);
       expect(
@@ -3477,8 +3479,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1347,
-        passed: 1347,
+        total: 1363,
+        passed: 1363,
         failed: 0,
         version: "1.0.3",
       });
@@ -3505,12 +3507,12 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Parameters", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1429,
-        passed: 1429,
+        total: 1445,
+        passed: 1445,
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1405);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1421);
       expect(harness.requests.filter((request) => request.path === "/xapi/activities/state")).toHaveLength(130);
       expect(harness.requests.filter((request) => request.path === "/xapi/agents/profile")).toHaveLength(94);
       expect(harness.requests.filter((request) => request.path === "/xapi/activities/profile")).toHaveLength(93);
@@ -3527,8 +3529,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1429,
-        passed: 1429,
+        total: 1445,
+        passed: 1445,
         failed: 0,
         version: "2.0.0",
       });
@@ -3555,12 +3557,12 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Multiplicity", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1483,
-        passed: 1483,
+        total: 1499,
+        passed: 1499,
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1405);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1421);
       expect(harness.requests.filter((request) => request.path !== "/xapi/statements")).toHaveLength(322);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-multiplicity-v2.log"), "utf8")) as {
@@ -3569,8 +3571,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1483,
-        passed: 1483,
+        total: 1499,
+        passed: 1499,
         failed: 0,
         version: "2.0.0",
       });
