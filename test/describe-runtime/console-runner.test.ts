@@ -1,4 +1,5 @@
 import { Buffer } from "node:buffer";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -18,6 +19,12 @@ interface ParsedMultipartPart {
   bodyText: string;
   headers: Record<string, string>;
 }
+
+type ParsedMultipartStatementRequest = {
+  attachments: Map<string, StoredAttachmentBody>;
+  body: unknown;
+  parts: ParsedMultipartPart[];
+};
 
 interface StoredAttachmentBody {
   bodyText: string;
@@ -1374,9 +1381,13 @@ function parseMultipartParts(bodyText: string, boundary: string): ParsedMultipar
 function parseMultipartStatementRequest(
   bodyText: string,
   contentType: string | null,
-): { attachments: Map<string, StoredAttachmentBody>; body: unknown } | undefined {
+): ParsedMultipartStatementRequest | undefined {
   const boundary = parseMultipartBoundary(contentType);
   if (!boundary) {
+    return undefined;
+  }
+
+  if (!bodyText.trimStart().startsWith(`--${boundary}`)) {
     return undefined;
   }
 
@@ -1406,7 +1417,94 @@ function parseMultipartStatementRequest(
     });
   }
 
-  return { attachments, body };
+  return { attachments, body, parts };
+}
+
+function normalizeRequestMediaType(contentType: string | null): string | undefined {
+  const mediaType = contentType?.split(";", 1)[0]?.trim().toLowerCase();
+  return mediaType && mediaType.length > 0 ? mediaType : undefined;
+}
+
+function getStatementAttachmentRecords(body: unknown): Record<string, unknown>[] {
+  if (!isObjectRecord(body) || !Array.isArray(body.attachments)) {
+    return [];
+  }
+
+  return body.attachments.filter((attachment): attachment is Record<string, unknown> => isObjectRecord(attachment));
+}
+
+function validateMultipartAttachmentPayload(
+  body: unknown,
+  parsedMultipart: ParsedMultipartStatementRequest | undefined,
+): number | undefined {
+  const attachmentRecords = getStatementAttachmentRecords(body);
+  if (attachmentRecords.length === 0) {
+    return undefined;
+  }
+
+  const allowedHashes = attachmentRecords.flatMap((attachment) => {
+    return typeof attachment.sha2 === "string" ? [attachment.sha2] : [];
+  });
+
+  const requiredHashes = attachmentRecords.flatMap((attachment) => {
+    if (typeof attachment.fileUrl === "string") {
+      return [];
+    }
+
+    return typeof attachment.sha2 === "string" ? [attachment.sha2] : [];
+  });
+
+  if (!parsedMultipart) {
+    return requiredHashes.length > 0 ? 400 : undefined;
+  }
+
+  const seenHashes = new Set<string>();
+  for (const part of parsedMultipart.parts.slice(1)) {
+    const hash = part.headers["x-experience-api-hash"];
+    if (typeof hash !== "string") {
+      return 400;
+    }
+
+    if (part.headers["content-transfer-encoding"] !== "binary") {
+      return 400;
+    }
+
+    if (!allowedHashes.includes(hash) || seenHashes.has(hash)) {
+      return 400;
+    }
+
+    seenHashes.add(hash);
+  }
+
+  return requiredHashes.every((hash) => seenHashes.has(hash)) ? undefined : 400;
+}
+
+function validateStatementWriteContentType(
+  body: unknown,
+  contentType: string | null,
+  parsedMultipart: ParsedMultipartStatementRequest | undefined,
+): number | undefined {
+  const mediaType = normalizeRequestMediaType(contentType);
+  const attachmentRecords = getStatementAttachmentRecords(body);
+
+  if (attachmentRecords.length === 0) {
+    if (mediaType === "multipart/mixed" && !parsedMultipart) {
+      return 400;
+    }
+
+    return undefined;
+  }
+
+  if (mediaType !== "application/json" && mediaType !== "multipart/mixed") {
+    return 400;
+  }
+
+  if (mediaType === "application/json") {
+    const requiresBinaryParts = attachmentRecords.some((attachment) => typeof attachment.fileUrl !== "string");
+    return requiresBinaryParts ? 400 : undefined;
+  }
+
+  return validateMultipartAttachmentPayload(body, parsedMultipart);
 }
 
 function createLastModifiedHeader(statement: Record<string, unknown>): string | undefined {
@@ -2473,13 +2571,36 @@ function createStoredDocument(
   };
 }
 
+function createStoredDocumentBody(document: StoredDocument): string {
+  return isJsonMediaType(document.mediaType) ? JSON.stringify(document.body) : String(document.body);
+}
+
+function createDocumentEtag(document: StoredDocument): string {
+  return `"${createHash("sha1").update(createStoredDocumentBody(document)).digest("hex")}"`;
+}
+
+function createDocumentPreconditionFailedResponse(version: string): Response {
+  return new Response("Precondition Failed", {
+    status: 412,
+    headers: createMockHeaders(version, "text/plain"),
+  });
+}
+
+function createDocumentConflictResponse(version: string): Response {
+  return new Response("Conflict: existing document requires If-Match or If-None-Match.", {
+    status: 409,
+    headers: createMockHeaders(version, "text/plain"),
+  });
+}
+
 function buildStoredDocumentResponse(document: StoredDocument, version: string): Response {
   const headers = new Headers({
     "Content-Type": document.mediaType,
+    ETag: createDocumentEtag(document),
     "Last-Modified": new Date(document.storedAt).toUTCString(),
     "X-Experience-API-Version": version,
   });
-  const body = isJsonMediaType(document.mediaType) ? JSON.stringify(document.body) : String(document.body);
+  const body = createStoredDocumentBody(document);
   return new Response(body, { status: 200, headers });
 }
 
@@ -2500,14 +2621,22 @@ function handleDocumentResource(
 
   const contextKey = buildContextKey(url.searchParams, options.contextKeys);
   const documentId = url.searchParams.get(options.idKey);
+  const key = typeof documentId === "string" ? buildDocumentKey(contextKey, documentId) : undefined;
+  const existingDocument = key ? store.get(key) : undefined;
+
+  const ifMatch = request.headers.get("If-Match");
+  if (typeof ifMatch === "string") {
+    if (!existingDocument || ifMatch !== createDocumentEtag(existingDocument)) {
+      return createDocumentPreconditionFailedResponse(version);
+    }
+  }
 
   if (effectiveMethod === "GET") {
     if (documentId) {
-      const storedDocument = store.get(buildDocumentKey(contextKey, documentId));
-      if (!storedDocument) {
+      if (!existingDocument) {
         return new Response("Not found", { status: 404, headers: createMockHeaders(version, "text/plain") });
       }
-      const response = buildStoredDocumentResponse(storedDocument, version);
+      const response = buildStoredDocumentResponse(existingDocument, version);
       return request.method === "HEAD" ? withoutBody(response) : response;
     }
 
@@ -2520,8 +2649,8 @@ function handleDocumentResource(
   }
 
   if (effectiveMethod === "DELETE") {
-    if (documentId) {
-      store.delete(buildDocumentKey(contextKey, documentId));
+    if (key) {
+      store.delete(key);
       return new Response(null, { status: 204, headers: createMockHeaders(version) });
     }
 
@@ -2534,19 +2663,26 @@ function handleDocumentResource(
     return Response.json({ ok: false }, { status: 400, headers: createMockHeaders(version) });
   }
 
-  const key = buildDocumentKey(contextKey, documentId);
-  const existingDocument = store.get(key);
+  const documentKey = buildDocumentKey(contextKey, documentId);
 
   if (effectiveMethod === "PUT") {
+    if (request.headers.get("If-None-Match") === "*" && existingDocument) {
+      return createDocumentPreconditionFailedResponse(version);
+    }
+
+    if (existingDocument && !request.headers.has("If-Match") && !request.headers.has("If-None-Match")) {
+      return createDocumentConflictResponse(version);
+    }
+
     store.set(
-      key,
+      documentKey,
       createStoredDocument(parsedBody.body, documentId, contextKey, parsedBody.mediaType, existingDocument),
     );
     return new Response(null, { status: 204, headers: createMockHeaders(version) });
   }
 
   if (!existingDocument) {
-    store.set(key, createStoredDocument(parsedBody.body, documentId, contextKey, parsedBody.mediaType));
+    store.set(documentKey, createStoredDocument(parsedBody.body, documentId, contextKey, parsedBody.mediaType));
     return new Response(null, { status: 204, headers: createMockHeaders(version) });
   }
 
@@ -2563,7 +2699,7 @@ function handleDocumentResource(
     ...parsedBody.body,
   };
   store.set(
-    key,
+    documentKey,
     createStoredDocument(mergedBody, documentId, contextKey, existingDocument.mediaType, existingDocument),
   );
   return new Response(null, { status: 204, headers: createMockHeaders(version) });
@@ -2585,12 +2721,11 @@ function startMockLrs(defaultVersion = "2.0.0") {
       const requestText = await request.text();
       const contentType = request.headers.get("Content-Type");
       let body: unknown;
-      let multipartAttachments: Map<string, StoredAttachmentBody> | undefined;
+      let parsedMultipartStatement: ParsedMultipartStatementRequest | undefined;
       if (requestText.length > 0) {
         if (contentType?.toLowerCase().startsWith("multipart/mixed")) {
-          const parsedMultipart = parseMultipartStatementRequest(requestText, contentType);
-          body = parsedMultipart?.body;
-          multipartAttachments = parsedMultipart?.attachments;
+          parsedMultipartStatement = parseMultipartStatementRequest(requestText, contentType);
+          body = parsedMultipartStatement?.body;
         } else {
           try {
             body = JSON.parse(requestText) as unknown;
@@ -2619,6 +2754,14 @@ function startMockLrs(defaultVersion = "2.0.0") {
       }
 
       if (request.method === "POST" && url.pathname === "/xapi/statements") {
+        const contentTypeStatus = validateStatementWriteContentType(body, contentType, parsedMultipartStatement);
+        if (contentTypeStatus) {
+          return Response.json(
+            { ok: false },
+            { status: contentTypeStatus, headers: createMockHeaders(defaultVersion) },
+          );
+        }
+
         if (Array.isArray(body)) {
           const seenIds = new Set<string>();
           if (
@@ -2651,8 +2794,8 @@ function startMockLrs(defaultVersion = "2.0.0") {
             }
           }
 
-          if (multipartAttachments) {
-            for (const [hash, attachmentBody] of multipartAttachments.entries()) {
+          if (parsedMultipartStatement?.attachments) {
+            for (const [hash, attachmentBody] of parsedMultipartStatement.attachments.entries()) {
               storedAttachmentBodies.set(hash, attachmentBody);
             }
           }
@@ -2667,8 +2810,8 @@ function startMockLrs(defaultVersion = "2.0.0") {
           if (!storedStatements.has(statementId)) {
             storedStatements.set(statementId, createStoredStatement(body, statementId));
           }
-          if (multipartAttachments) {
-            for (const [hash, attachmentBody] of multipartAttachments.entries()) {
+          if (parsedMultipartStatement?.attachments) {
+            for (const [hash, attachmentBody] of parsedMultipartStatement.attachments.entries()) {
               storedAttachmentBodies.set(hash, attachmentBody);
             }
           }
@@ -2681,6 +2824,14 @@ function startMockLrs(defaultVersion = "2.0.0") {
       }
 
       if (request.method === "PUT" && url.pathname === "/xapi/statements") {
+        const contentTypeStatus = validateStatementWriteContentType(body, contentType, parsedMultipartStatement);
+        if (contentTypeStatus) {
+          return Response.json(
+            { ok: false },
+            { status: contentTypeStatus, headers: createMockHeaders(defaultVersion) },
+          );
+        }
+
         const statementId = url.searchParams.get("statementId");
         if (typeof statementId !== "string" || !isUuidLike(statementId)) {
           return Response.json({ ok: false }, { status: 400, headers: createMockHeaders(defaultVersion) });
@@ -2897,14 +3048,14 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1210,
-        passed: 1210,
+        total: 1268,
+        passed: 1268,
         failed: 0,
         version: "2.0.0",
       });
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "POST"),
-      ).toHaveLength(1057);
+      ).toHaveLength(1073);
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "PUT"),
       ).toHaveLength(23);
@@ -2925,13 +3076,14 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1210,
-        passed: 1210,
+        total: 1268,
+        passed: 1268,
         failed: 0,
         version: "2.0.0",
       });
       expectLoggedSuiteTitles(writtenRecord.log.tests, [
         "Formatting Requirements (Data 2.2)",
+        "Content Type Requirements (Communication 1.5)",
         "HEAD Request Implementation Requirements (Communication 1.1)",
         "Id Property Requirements (Data 2.4.1)",
         "Timestamp Property Requirements (Data 2.4.7)",
@@ -2953,6 +3105,7 @@ describe("console runner entrypoint", () => {
         "Agent Profile Resource Requirements (Communication 2.6)",
         "Activity Profile Resource Requirements (Communication 2.7)",
         "About Resource Requirements (Communication 2.8)",
+        "Concurrency Requirements (Communication 3.1)",
         "Error Codes Requirements (Communication 3.2)",
         "Versioning Requirements (Communication 3.3)",
         "Authentication Requirements (Communication 4.0)",
@@ -3037,12 +3190,12 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("1.0.3");
       expect(execution.runRecord.summary).toEqual({
-        total: 1180,
-        passed: 1180,
+        total: 1215,
+        passed: 1215,
         failed: 0,
         version: "1.0.3",
       });
-      expect(harness.requests).toHaveLength(1410);
+      expect(harness.requests).toHaveLength(1472);
       expect(harness.requests.filter((request) => request.version === null)).toHaveLength(10);
       expect(harness.requests.filter((request) => request.version === "BAD")).toHaveLength(2);
       expect(
@@ -3056,8 +3209,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1180,
-        passed: 1180,
+        total: 1215,
+        passed: 1215,
         failed: 0,
         version: "1.0.3",
       });
@@ -3084,15 +3237,15 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Parameters", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1238,
-        passed: 1238,
+        total: 1296,
+        passed: 1296,
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1253);
-      expect(harness.requests.filter((request) => request.path === "/xapi/activities/state")).toHaveLength(86);
-      expect(harness.requests.filter((request) => request.path === "/xapi/agents/profile")).toHaveLength(56);
-      expect(harness.requests.filter((request) => request.path === "/xapi/activities/profile")).toHaveLength(55);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1269);
+      expect(harness.requests.filter((request) => request.path === "/xapi/activities/state")).toHaveLength(124);
+      expect(harness.requests.filter((request) => request.path === "/xapi/agents/profile")).toHaveLength(94);
+      expect(harness.requests.filter((request) => request.path === "/xapi/activities/profile")).toHaveLength(93);
       expect(harness.requests.filter((request) => request.version === null)).toHaveLength(10);
       expect(harness.requests.filter((request) => request.version === "BAD")).toHaveLength(2);
       expect(
@@ -3106,8 +3259,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1238,
-        passed: 1238,
+        total: 1296,
+        passed: 1296,
         failed: 0,
         version: "2.0.0",
       });
@@ -3134,13 +3287,13 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Multiplicity", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1292,
-        passed: 1292,
+        total: 1350,
+        passed: 1350,
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1253);
-      expect(harness.requests.filter((request) => request.path !== "/xapi/statements")).toHaveLength(200);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1269);
+      expect(harness.requests.filter((request) => request.path !== "/xapi/statements")).toHaveLength(314);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-multiplicity-v2.log"), "utf8")) as {
         log: { tests: Array<{ title: string }> };
@@ -3148,14 +3301,15 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1292,
-        passed: 1292,
+        total: 1350,
+        passed: 1350,
         failed: 0,
         version: "2.0.0",
       });
       expectLoggedSuiteTitles(writtenRecord.log.tests, [
         "Welcome to Multiplicity Testing.  A Statement, Object or Verb's properties are used at most one time",
         "Formatting Requirements (Data 2.2)",
+        "Content Type Requirements (Communication 1.5)",
         "HEAD Request Implementation Requirements (Communication 1.1)",
         "Id Property Requirements (Data 2.4.1)",
         "Timestamp Property Requirements (Data 2.4.7)",
@@ -3177,6 +3331,7 @@ describe("console runner entrypoint", () => {
         "Agent Profile Resource Requirements (Communication 2.6)",
         "Activity Profile Resource Requirements (Communication 2.7)",
         "About Resource Requirements (Communication 2.8)",
+        "Concurrency Requirements (Communication 3.1)",
         "Error Codes Requirements (Communication 3.2)",
         "Versioning Requirements (Communication 3.3)",
         "Authentication Requirements (Communication 4.0)",

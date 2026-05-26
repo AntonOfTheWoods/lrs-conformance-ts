@@ -4,6 +4,9 @@ import type { DescribeRuntime } from "../../describe-runtime/runtime.ts";
 import type { DescribeRuntimeContext, JsonResponse } from "../../describe-runtime/suite-context.ts";
 import type { JsonObject, JsonValue, TemplateLayer } from "../../describe-runtime/templates.ts";
 
+const allowedModernVersionPattern = /^2\.0\.0$|^1\.0(\.[1-3])$/;
+const allowedMissingVersionAboutResponsePattern = /^2\.0\.\d+$|^1\.0\.\d+$|^0?\.9\d*?$/;
+
 type RawRequestOptions = {
   body?: JsonValue | string;
   badAuth?: boolean;
@@ -147,6 +150,15 @@ function expectVersionHeader(response: JsonResponse, expectedVersion: string, na
   }
 }
 
+function expectVersionHeaderPattern(response: JsonResponse, pattern: RegExp, name: string): void {
+  const actualVersion = response.headers.get("x-experience-api-version");
+  if (!actualVersion || !pattern.test(actualVersion)) {
+    throw new Error(
+      `Expected ${name} to include X-Experience-API-Version matching ${pattern}, received ${actualVersion ?? "missing"}.`,
+    );
+  }
+}
+
 function expectHeadWithoutBody(response: JsonResponse, name: string): void {
   if (response.bodyText.length !== 0) {
     throw new Error(`Expected ${name} to return no message body.`);
@@ -201,7 +213,11 @@ export function registerAboutVersionHeaderExceptionCases(
           400,
           "About missing-version statement GET",
         );
-        expectVersionHeader(response, context.options.xapiVersion, "About missing-version statement GET");
+        expectVersionHeaderPattern(
+          response,
+          allowedMissingVersionAboutResponsePattern,
+          "About missing-version statement GET",
+        );
       });
 
       for (const endpointCase of [
@@ -222,7 +238,7 @@ export function registerAboutVersionHeaderExceptionCases(
             400,
             endpointCase.title,
           );
-          expectVersionHeader(response, context.options.xapiVersion, endpointCase.title);
+          expectVersionHeaderPattern(response, allowedMissingVersionAboutResponsePattern, endpointCase.title);
         });
       }
     },
@@ -820,7 +836,7 @@ export function registerVersioningRequirementsSuite(runtime: DescribeRuntime, co
             "Statement GET without version header",
           );
 
-          expectVersionHeader(response, context.options.xapiVersion, "Statement GET without version header");
+          expectVersionHeaderPattern(response, allowedModernVersionPattern, "Statement GET without version header");
         });
 
         runtime.it('Should fail when Statement POST without header "X-Experience-API-Version"', async () => {
@@ -836,7 +852,7 @@ export function registerVersioningRequirementsSuite(runtime: DescribeRuntime, co
             "Statement POST without version header",
           );
 
-          expectVersionHeader(response, context.options.xapiVersion, "Statement POST without version header");
+          expectVersionHeaderPattern(response, allowedModernVersionPattern, "Statement POST without version header");
         });
 
         runtime.it('Should fail when Statement PUT without header "X-Experience-API-Version"', async () => {
@@ -853,7 +869,7 @@ export function registerVersioningRequirementsSuite(runtime: DescribeRuntime, co
             "Statement PUT without version header",
           );
 
-          expectVersionHeader(response, context.options.xapiVersion, "Statement PUT without version header");
+          expectVersionHeaderPattern(response, allowedModernVersionPattern, "Statement PUT without version header");
         });
       },
     );

@@ -4,12 +4,15 @@ import { registerAuthorityPropertyRequirementsSuite as registerAuthorityProperty
 import { registerContextPropertyRequirementsSuite as registerContextPropertyRequirementsV103 } from "../specs/v1_0_3/Data2.4.6-ContextProperty.ts";
 import { registerFormattingRequirementsSuite as registerFormattingRequirementsV103 } from "../specs/v1_0_3/Data2.2-FormattingRequirements.ts";
 import { registerHeadRequestImplementationSuite as registerHeadRequestImplementationV103 } from "../specs/v1_0_3/H.Communication1.1-HeadRequestImplementation.ts";
+import { registerEncodingRequirementsSuite as registerEncodingRequirementsV103 } from "../specs/v1_0_3/H.Communication1.4-Encoding.ts";
+import { registerContentTypeRequirementsSuite as registerContentTypeRequirementsV103 } from "../specs/v1_0_3/H.Communication1.5-ContentTypes.ts";
 import { registerAboutResourceRequirementsSuite as registerAboutResourceRequirementsV103 } from "../specs/v1_0_3/H.Communication2.8-AboutResource.ts";
 import { registerAgentsResourceRequirementsSuite as registerAgentsResourceRequirementsV103 } from "../specs/v1_0_3/H.Communication2.4-AgentsResource.ts";
 import { registerAgentProfileResourceRequirementsSuite as registerAgentProfileResourceRequirementsV103 } from "../specs/v1_0_3/H.Communication2.6-AgentProfileResource.ts";
 import { registerActivitiesResourceRequirementsSuite as registerActivitiesResourceRequirementsV103 } from "../specs/v1_0_3/H.Communication2.5-ActivitiesResource.ts";
 import { registerActivityProfileResourceRequirementsSuite as registerActivityProfileResourceRequirementsV103 } from "../specs/v1_0_3/H.Communication2.7-ActivityProfileResource.ts";
 import { registerStateResourceRequirementsSuite as registerStateResourceRequirementsV103 } from "../specs/v1_0_3/H.Communication2.3-StateResource.ts";
+import { registerConcurrencyRequirementsSuite as registerConcurrencyRequirementsV103 } from "../specs/v1_0_3/H.Communication3.1-Concurrency.ts";
 import { registerErrorCodesRequirementsSuite as registerErrorCodesRequirementsV103 } from "../specs/v1_0_3/H.Communication3.2-ErrorCodes.ts";
 import { registerVersioningRequirementsSuite as registerVersioningRequirementsV103Protocol } from "../specs/v1_0_3/H.Communication3.3-Versioning.ts";
 import { registerAuthenticationRequirementsSuite as registerAuthenticationRequirementsV103 } from "../specs/v1_0_3/H.Communication4.0-Authentication.ts";
@@ -28,6 +31,7 @@ import { registerAttachmentsPropertyRequirementsSuite as registerAttachmentsProp
 import { registerAuthorityPropertyRequirementsSuite as registerAuthorityPropertyRequirementsV20 } from "../specs/v2_0/4.2.4.2-Authority-Requirements.ts";
 import { registerContextPropertyRequirementsSuite as registerContextPropertyRequirementsV20 } from "../specs/v2_0/4.2.2.5-Context-Requirements.ts";
 import { registerFormattingRequirementsSuite as registerFormattingRequirementsV20 } from "../specs/v2_0/Data2.2-FormattingRequirements.ts";
+import { registerContentTypeRequirementsSuite as registerContentTypeRequirementsV20 } from "../specs/v2_0/4.1.3-Content-Types.ts";
 import { registerHeadRequestImplementationSuite as registerHeadRequestImplementationV20 } from "../specs/v2_0/H.Communication1.1-HeadRequestImplementation.ts";
 import { registerAboutResourceRequirementsSuite as registerAboutResourceRequirementsV20 } from "../specs/v2_0/4.1.6.7-About-Resource.ts";
 import { registerAgentsResourceRequirementsSuite as registerAgentsResourceRequirementsV20 } from "../specs/v2_0/4.1.6.3-Agents-Resource.ts";
@@ -35,6 +39,7 @@ import { registerAgentProfileResourceRequirementsSuite as registerAgentProfileRe
 import { registerActivitiesResourceRequirementsSuite as registerActivitiesResourceRequirementsV20 } from "../specs/v2_0/4.1.6.4-Activity-Resource.ts";
 import { registerActivityProfileResourceRequirementsSuite as registerActivityProfileResourceRequirementsV20 } from "../specs/v2_0/4.1.6.6-Activity-Profile-Resource.ts";
 import { registerStateResourceRequirementsSuite as registerStateResourceRequirementsV20 } from "../specs/v2_0/4.1.6.2-State-Resource.ts";
+import { registerConcurrencyRequirementsSuite as registerConcurrencyRequirementsV20 } from "../specs/v2_0/4.1.4-Concurrency.ts";
 import { registerErrorCodesRequirementsSuite as registerErrorCodesRequirementsV20 } from "../specs/v2_0/H.Communication3.2-ErrorCodes.ts";
 import { registerVersioningRequirementsSuite as registerVersioningRequirementsV20Protocol } from "../specs/v2_0/H.Communication3.3-Versioning.ts";
 import { registerAuthenticationRequirementsSuite as registerAuthenticationRequirementsV20 } from "../specs/v2_0/H.Communication4.0-Authentication.ts";
@@ -62,6 +67,8 @@ const registrarsByDirectory: Readonly<Record<string, readonly SuiteRegistrar[]>>
   v1_0_3: [
     registerFormattingRequirementsV103,
     registerHeadRequestImplementationV103,
+    registerEncodingRequirementsV103,
+    registerContentTypeRequirementsV103,
     registerIdPropertyRequirementsV103,
     registerTimestampPropertyRequirementsV103,
     registerStoredPropertyRequirementsV103,
@@ -82,12 +89,14 @@ const registrarsByDirectory: Readonly<Record<string, readonly SuiteRegistrar[]>>
     registerAgentProfileResourceRequirementsV103,
     registerActivityProfileResourceRequirementsV103,
     registerAboutResourceRequirementsV103,
+    registerConcurrencyRequirementsV103,
     registerErrorCodesRequirementsV103,
     registerVersioningRequirementsV103Protocol,
     registerAuthenticationRequirementsV103,
   ],
   v2_0: [
     registerFormattingRequirementsV20,
+    registerContentTypeRequirementsV20,
     registerHeadRequestImplementationV20,
     registerIdPropertyRequirementsV20,
     registerTimestampPropertyRequirementsV20,
@@ -109,6 +118,7 @@ const registrarsByDirectory: Readonly<Record<string, readonly SuiteRegistrar[]>>
     registerAgentProfileResourceRequirementsV20,
     registerActivityProfileResourceRequirementsV20,
     registerAboutResourceRequirementsV20,
+    registerConcurrencyRequirementsV20,
     registerErrorCodesRequirementsV20,
     registerVersioningRequirementsV20Protocol,
     registerAuthenticationRequirementsV20,
