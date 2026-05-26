@@ -3,6 +3,9 @@ import { registerAttachmentsPropertyRequirementsSuite as registerAttachmentsProp
 import { registerAuthorityPropertyRequirementsSuite as registerAuthorityPropertyRequirementsV103 } from "../specs/v1_0_3/Data2.4.9-AuthorityProperty.ts";
 import { registerContextPropertyRequirementsSuite as registerContextPropertyRequirementsV103 } from "../specs/v1_0_3/Data2.4.6-ContextProperty.ts";
 import { registerFormattingRequirementsSuite as registerFormattingRequirementsV103 } from "../specs/v1_0_3/Data2.2-FormattingRequirements.ts";
+import { registerAgentProfileResourceRequirementsSuite as registerAgentProfileResourceRequirementsV103 } from "../specs/v1_0_3/H.Communication2.6-AgentProfileResource.ts";
+import { registerActivityProfileResourceRequirementsSuite as registerActivityProfileResourceRequirementsV103 } from "../specs/v1_0_3/H.Communication2.7-ActivityProfileResource.ts";
+import { registerStateResourceRequirementsSuite as registerStateResourceRequirementsV103 } from "../specs/v1_0_3/H.Communication2.3-StateResource.ts";
 import { registerVerbPropertyRequirementsSuite as registerVerbPropertyRequirementsV103 } from "../specs/v1_0_3/Data2.4.3-VerbProperty.ts";
 import { registerIdPropertyRequirementsSuite as registerIdPropertyRequirementsV103 } from "../specs/v1_0_3/Data2.4.1-IDProperty.ts";
 import { registerObjectPropertyRequirementsSuite as registerObjectPropertyRequirementsV103 } from "../specs/v1_0_3/Data2.4.4-ObjectProperty.ts";
@@ -18,6 +21,9 @@ import { registerAttachmentsPropertyRequirementsSuite as registerAttachmentsProp
 import { registerAuthorityPropertyRequirementsSuite as registerAuthorityPropertyRequirementsV20 } from "../specs/v2_0/4.2.4.2-Authority-Requirements.ts";
 import { registerContextPropertyRequirementsSuite as registerContextPropertyRequirementsV20 } from "../specs/v2_0/4.2.2.5-Context-Requirements.ts";
 import { registerFormattingRequirementsSuite as registerFormattingRequirementsV20 } from "../specs/v2_0/Data2.2-FormattingRequirements.ts";
+import { registerAgentProfileResourceRequirementsSuite as registerAgentProfileResourceRequirementsV20 } from "../specs/v2_0/4.1.6.5-Agent-Profile-Resource.ts";
+import { registerActivityProfileResourceRequirementsSuite as registerActivityProfileResourceRequirementsV20 } from "../specs/v2_0/4.1.6.6-Activity-Profile-Resource.ts";
+import { registerStateResourceRequirementsSuite as registerStateResourceRequirementsV20 } from "../specs/v2_0/4.1.6.2-State-Resource.ts";
 import { registerVerbPropertyRequirementsSuite as registerVerbPropertyRequirementsV20 } from "../specs/v2_0/4.2.2.2-Verb-Requirements.ts";
 import { registerIdPropertyRequirementsSuite as registerIdPropertyRequirementsV20 } from "../specs/v2_0/4.2.4.2-ID-Requirements.ts";
 import { registerObjectPropertyRequirementsSuite as registerObjectPropertyRequirementsV20 } from "../specs/v2_0/4.2.2.3-Object-Requirements.ts";
@@ -55,6 +61,9 @@ const registrarsByDirectory: Readonly<Record<string, readonly SuiteRegistrar[]>>
     registerStatementLifecycleRequirementsV103,
     registerRetrievalOfStatementsV103,
     registerStatementResourceRequirementsV103,
+    registerStateResourceRequirementsV103,
+    registerAgentProfileResourceRequirementsV103,
+    registerActivityProfileResourceRequirementsV103,
   ],
   v2_0: [
     registerFormattingRequirementsV20,
@@ -72,6 +81,9 @@ const registrarsByDirectory: Readonly<Record<string, readonly SuiteRegistrar[]>>
     registerStatementLifecycleRequirementsV20,
     registerRetrievalOfStatementsV20,
     registerStatementResourceRequirementsV20,
+    registerStateResourceRequirementsV20,
+    registerAgentProfileResourceRequirementsV20,
+    registerActivityProfileResourceRequirementsV20,
   ],
 };
 
