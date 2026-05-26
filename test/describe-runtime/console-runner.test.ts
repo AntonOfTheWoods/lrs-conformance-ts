@@ -3486,7 +3486,7 @@ describe("console runner entrypoint", () => {
         failed: 0,
         version: "1.0.3",
       });
-      expect(harness.requests).toHaveLength(1627);
+      expect(harness.requests).toHaveLength(1625);
       expect(harness.requests.filter((request) => request.version === null)).toHaveLength(12);
       expect(harness.requests.filter((request) => request.version === "BAD")).toHaveLength(2);
       expect(
@@ -3535,8 +3535,8 @@ describe("console runner entrypoint", () => {
       });
       expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1418);
       expect(harness.requests.filter((request) => request.path === "/xapi/activities/state")).toHaveLength(156);
-      expect(harness.requests.filter((request) => request.path === "/xapi/agents/profile")).toHaveLength(110);
-      expect(harness.requests.filter((request) => request.path === "/xapi/activities/profile")).toHaveLength(122);
+      expect(harness.requests.filter((request) => request.path === "/xapi/agents/profile")).toHaveLength(109);
+      expect(harness.requests.filter((request) => request.path === "/xapi/activities/profile")).toHaveLength(121);
       expect(harness.requests.filter((request) => request.version === null)).toHaveLength(10);
       expect(harness.requests.filter((request) => request.version === "BAD")).toHaveLength(2);
       expect(
@@ -3584,7 +3584,7 @@ describe("console runner entrypoint", () => {
         version: "2.0.0",
       });
       expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1418);
-      expect(harness.requests.filter((request) => request.path !== "/xapi/statements")).toHaveLength(363);
+      expect(harness.requests.filter((request) => request.path !== "/xapi/statements")).toHaveLength(361);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-multiplicity-v2.log"), "utf8")) as {
         log: { tests: Array<{ title: string }> };

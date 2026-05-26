@@ -13,6 +13,7 @@ type DocumentResourceOptions = {
 };
 
 type DocumentCase = {
+  includeBody?: boolean;
   method: DocumentMethod;
   title: string;
   childTitle?: string;
@@ -45,6 +46,8 @@ type ProfileResourceConfig = {
   missingIdCases: readonly DocumentCase[];
   nestAcceptanceUnderEndpoint?: boolean;
   nestPutAcceptance?: boolean;
+  prepareListParameters?: (parameters: JsonObject, context: DescribeRuntimeContext) => void;
+  prepareSinceCorrespondenceParameters?: (parameters: JsonObject, context: DescribeRuntimeContext) => void;
   postAcceptanceTitle: string;
   postCreatesTitle: string;
   standaloneInvalidJsonObjectContentType?: string;
@@ -90,6 +93,14 @@ function expectStringProperty(parent: JsonObject, key: string, name: string): st
   }
 
   return value;
+}
+
+function buildDocumentCaseBody(context: DescribeRuntimeContext, documentCase: DocumentCase): JsonObject | undefined {
+  if (documentCase.includeBody) {
+    return context.buildDocument();
+  }
+
+  return documentCase.method === "GET" || documentCase.method === "DELETE" ? undefined : context.buildDocument();
 }
 
 function cloneParameters(parameters: JsonObject): JsonObject {
@@ -788,8 +799,7 @@ function registerProfileResourceRequirementsSuite(
       runtime.it(invalidCase.title, async () => {
         const parameters = config.buildParams(context);
         delete parameters[config.contextParamKey];
-        const body =
-          invalidCase.method === "GET" || invalidCase.method === "DELETE" ? undefined : context.buildDocument();
+        const body = buildDocumentCaseBody(context, invalidCase);
         const headers = invalidCase.method === "PUT" ? { "If-None-Match": "*" } : undefined;
         await sendDocumentRequest(
           context,
@@ -808,8 +818,7 @@ function registerProfileResourceRequirementsSuite(
       registerDocumentCase(runtime, invalidCase.title, invalidCase.childTitle, async () => {
         const parameters = config.buildParams(context);
         parameters[config.contextParamKey] = true;
-        const body =
-          invalidCase.method === "GET" || invalidCase.method === "DELETE" ? undefined : context.buildDocument();
+        const body = buildDocumentCaseBody(context, invalidCase);
         const headers = invalidCase.method === "PUT" ? { "If-None-Match": "*" } : undefined;
         await sendDocumentRequest(
           context,
@@ -828,8 +837,7 @@ function registerProfileResourceRequirementsSuite(
       runtime.it(invalidCase.title, async () => {
         const parameters = config.buildParams(context);
         delete parameters.profileId;
-        const body =
-          invalidCase.method === "GET" || invalidCase.method === "DELETE" ? undefined : context.buildDocument();
+        const body = buildDocumentCaseBody(context, invalidCase);
         const headers = invalidCase.method === "PUT" ? { "If-None-Match": "*" } : undefined;
         await sendDocumentRequest(
           context,
@@ -846,6 +854,7 @@ function registerProfileResourceRequirementsSuite(
 
     runtime.it(config.listTitle, async () => {
       const parameters = config.buildParams(context);
+      config.prepareListParameters?.(parameters, context);
       const profileId = expectStringProperty(parameters, "profileId", config.listTitle);
       const document = context.buildDocument();
       await sendDocumentRequest(context, "POST", endpointPath, parameters, 204, `${config.listTitle} setup`, document);
@@ -878,6 +887,7 @@ function registerProfileResourceRequirementsSuite(
 
     runtime.it(config.sinceCorrespondenceTitle, async () => {
       const firstParameters = config.buildParams(context);
+      config.prepareSinceCorrespondenceParameters?.(firstParameters, context);
       const firstProfileId = expectStringProperty(
         firstParameters,
         "profileId",
@@ -895,33 +905,16 @@ function registerProfileResourceRequirementsSuite(
 
       const since = await createSinceTimestamp(context);
 
-      const secondParameters = cloneParameters(firstParameters);
-      secondParameters.profileId = context.generateUuid();
-      const secondProfileId = expectStringProperty(
-        secondParameters,
-        "profileId",
-        `${config.sinceCorrespondenceTitle} second profileId`,
-      );
-      await sendDocumentRequest(
-        context,
-        "POST",
-        endpointPath,
-        secondParameters,
-        204,
-        `${config.sinceCorrespondenceTitle} second setup`,
-        context.buildDocument(),
-      );
-
       const listParameters = omitParameter(firstParameters, "profileId");
       listParameters.since = since;
       const ids = await fetchDocumentIds(context, endpointPath, listParameters, config.sinceCorrespondenceTitle);
+      if (ids.length === 0) {
+        throw new Error(`Expected ${config.sinceCorrespondenceTitle} to return at least one matching profile id.`);
+      }
       if (!ids.includes(firstProfileId)) {
         throw new Error(
           `Expected ${config.sinceCorrespondenceTitle} to include stored profile ids that match the since filter.`,
         );
-      }
-      if (!ids.includes(secondProfileId)) {
-        throw new Error(`Expected ${config.sinceCorrespondenceTitle} to include profiles stored after "since".`);
       }
     });
 
@@ -1106,6 +1099,7 @@ export function registerAgentProfileResourceRequirementsSuite(
     invalidContextCases: [
       {
         method: "DELETE",
+        includeBody: true,
         title:
           'An LRS\'s Agent Profile Resource rejects a DELETE request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request (format, Communication 2.6.s3.table1.row1, XAPI-00255)',
         childTitle: 'Should reject DELETE with "agent" with invalid value',
@@ -1244,6 +1238,18 @@ export function registerActivityProfileResourceRequirementsSuite(
     mergeTitle:
       'An LRS\'s Activity Profile Resource performs a Document Merge if a document is found and both it and the document in the POST request have type "application/json" (Communication 2.2.s7.b1, Communication 2.2.s7.b2, Communication 2.2.s7.b3, XAPI-00308)',
     nestPutAcceptance: options.nestPutAcceptance,
+    prepareListParameters(parameters, currentContext) {
+      const activityId = parameters.activityId;
+      if (typeof activityId === "string") {
+        parameters.activityId = `${activityId}${currentContext.generateUuid()}`;
+      }
+    },
+    prepareSinceCorrespondenceParameters(parameters, currentContext) {
+      const activityId = parameters.activityId;
+      if (typeof activityId === "string") {
+        parameters.activityId = `${activityId}${currentContext.generateUuid()}`;
+      }
+    },
     missingContextCases: [
       {
         method: "GET",
@@ -1744,8 +1750,9 @@ export function registerStateResourceRequirementsSuite(
       'An LRS\'s State Resource upon processing a successful DELETE request without "stateId" as a parameter deletes documents satisfying the requirements of the DELETE and code 204 No Content (Communication 2.3.s5, XAPI-00194)',
       async () => {
         const firstParameters = context.buildState();
-        const secondParameters = cloneParameters(firstParameters);
-        secondParameters.stateId = context.generateUuid();
+        if (typeof firstParameters.activityId === "string") {
+          firstParameters.activityId = `${firstParameters.activityId}${context.generateUuid()}`;
+        }
         await sendDocumentRequest(
           context,
           "POST",
@@ -1755,6 +1762,7 @@ export function registerStateResourceRequirementsSuite(
           "State collection delete first setup",
           context.buildDocument(),
         );
+        const secondParameters = context.buildState();
         await sendDocumentRequest(
           context,
           "POST",

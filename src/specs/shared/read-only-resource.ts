@@ -411,7 +411,7 @@ export function registerActivitiesResourceRequirementsSuite(
       async () => {
         const statement = await createActivityStatement(context, "Activities complete object statement");
         const activity = expectJsonObject(statement.object, "Activities complete object activity");
-        const activityId = `http://www.example.com/verify/complete/${context.generateUuid()}`;
+        const activityId = "http://www.example.com/verify/complete/34534";
         activity.id = activityId;
 
         await postStatements(context, [statement], "Activities complete object statement write");
@@ -451,7 +451,7 @@ export function registerActivitiesResourceRequirementsSuite(
         const secondStatement = await createActivityStatement(context, "Activities merge second statement");
         const firstActivity = expectJsonObject(firstStatement.object, "Activities merge first activity");
         const secondActivity = expectJsonObject(secondStatement.object, "Activities merge second activity");
-        const activityId = `http://www.example.com/verify/complete/${context.generateUuid()}`;
+        const activityId = "http://www.example.com/verify/complete/34534100123";
         firstActivity.id = activityId;
         secondActivity.id = activityId;
 
@@ -464,7 +464,7 @@ export function registerActivitiesResourceRequirementsSuite(
           "Activities merge second definition",
         );
         const secondNames = expectObjectProperty(secondDefinition, "name", "Activities merge second names");
-        secondNames["fr-FR"] = "meeting-fr";
+        secondNames["fr-FR"] = "réunion";
         delete secondNames["en-US"];
 
         await postStatements(context, [firstStatement, secondStatement], "Activities merge statements write");
@@ -482,7 +482,7 @@ export function registerActivitiesResourceRequirementsSuite(
         const activity = parseJsonObject(response, "Activities merge GET");
         const definition = expectObjectProperty(activity, "definition", "Activities merge response definition");
         const names = expectObjectProperty(definition, "name", "Activities merge response names");
-        if (names["en-US"] !== englishName || names["fr-FR"] !== "meeting-fr") {
+        if (names["en-US"] !== englishName || names["fr-FR"] !== "réunion") {
           throw new Error("Expected the Activities resource to merge language maps across matching activityIds.");
         }
       },
