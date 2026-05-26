@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "bun test ./rewrite/tests/parity-comparison.test.ts ./rewrite/tests/v1-v2-delta-matrix.test.ts ./test/describe-runtime/runtime.test.ts ./test/describe-runtime/options.test.ts ./test/describe-runtime/cli-args.test.ts ./test/describe-runtime/templates.test.ts ./test/describe-runtime/describe-run.test.ts ./test/describe-runtime/console-runner.test.ts",
+    "test": "bun test ./rewrite/tests/parity-comparison.test.ts ./rewrite/tests/v1-v2-delta-matrix.test.ts ./rewrite/tests/traffic.test.ts ./rewrite/tests/traffic-diagnostic.test.ts ./test/describe-runtime/runtime.test.ts ./test/describe-runtime/options.test.ts ./test/describe-runtime/cli-args.test.ts ./test/describe-runtime/templates.test.ts ./test/describe-runtime/describe-run.test.ts ./test/describe-runtime/console-runner.test.ts",
     "typecheck": "tsgo --noEmit",
     "lint": "oxlint --config .oxlintrc.jsonc .",
     "format": "oxfmt --config .oxfmtrc.jsonc --write .",
@@ -23,6 +23,7 @@
     "rewrite:run:upstream:lrsql:2.0.0": "XAPI_VERSION=2.0.0 bun run rewrite:run:upstream:lrsql",
     "rewrite:run:upstream:lrsql:1.0.3": "XAPI_VERSION=1.0.3 bun run rewrite:run:upstream:lrsql",
     "rewrite:analyze:upstream": "bun run ./rewrite/scripts/analyze-upstream-run.ts",
+    "rewrite:diagnose:traffic": "bun ./rewrite/scripts/traffic-diagnostic.ts",
     "rewrite:report:compare": "bun ./rewrite/scripts/analyze-compare-output.ts",
     "rewrite:diagnose:scope": "bun ./rewrite/scripts/diagnose-scope.ts",
     "rewrite:compare": "bun ./rewrite/scripts/compare-parity.ts",

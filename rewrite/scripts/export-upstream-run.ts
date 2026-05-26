@@ -437,8 +437,13 @@ async function main(): Promise<number> {
   }
 
   const absoluteOutputPath = config.outputPath;
+  const outputPayload = {
+    ...parsed,
+    sourceLogPath: latestLogPath,
+    upstreamExitCode: exitCode,
+  };
   await mkdir(dirname(absoluteOutputPath), { recursive: true });
-  await writeFile(absoluteOutputPath, `${JSON.stringify(parsed, null, 2)}\n`, "utf8");
+  await writeFile(absoluteOutputPath, `${JSON.stringify(outputPayload, null, 2)}\n`, "utf8");
 
   console.log(
     JSON.stringify(
