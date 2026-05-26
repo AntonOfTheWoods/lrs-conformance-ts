@@ -59,17 +59,28 @@ async function sendPutStatement(context: DescribeRuntimeContext, statement: Json
   }
 }
 
-async function sendPostStatement(context: DescribeRuntimeContext, statement: JsonObject, name: string): Promise<void> {
-  statement.id = context.generateUuid();
+async function sendPostStatementExpectStatus(
+  context: DescribeRuntimeContext,
+  statement: JsonObject,
+  expectedStatus: number,
+  name: string,
+): Promise<void> {
+  if (typeof statement.id !== "string") {
+    statement.id = context.generateUuid();
+  }
 
   const response = await context.sendRequest({
     method: "POST",
     path: context.getEndpointStatements(),
     body: statement,
   });
-  if (response.status !== 200) {
-    throw new Error(`Expected ${name} to return 200, received ${response.status}.`);
+  if (response.status !== expectedStatus) {
+    throw new Error(`Expected ${name} to return ${expectedStatus}, received ${response.status}.`);
   }
+}
+
+async function sendPostStatement(context: DescribeRuntimeContext, statement: JsonObject, name: string): Promise<void> {
+  await sendPostStatementExpectStatus(context, statement, 200, name);
 }
 
 async function fetchExactStatement(
@@ -138,6 +149,37 @@ const validExtensionVariants = [
     layer: { extensions: { "http://example.com/ex": "valid" } } satisfies JsonObject,
   },
 ] as const;
+
+const invalidExtensionKeyLayer = { extensions: { "should fail": true } } satisfies JsonObject;
+const invalidLanguageMap = { a12345678: "should error" } satisfies JsonObject;
+const invalidDescriptionLanguageLayer = { description: invalidLanguageMap } satisfies JsonObject;
+const invalidDisplayLanguageLayer = { display: invalidLanguageMap } satisfies JsonObject;
+const invalidNameLanguageLayer = { name: invalidLanguageMap } satisfies JsonObject;
+const validAttachmentDisplayLanguageLayer = { display: { "en-US": "A test attachment" } } satisfies JsonObject;
+const invalidDuration = "PA1H0M0S";
+const invalidDurationNumber = 12345;
+const invalidDurationObject = { key: "invalid" } satisfies JsonObject;
+const invalidDurationString = "should fail";
+const validDuration = "PT1H0M0.1S";
+const invalidTimestampDate = "01/011/2015";
+const invalidTimestampString = "should fail";
+const invalidTimestampNegativeZeroHour = "2008-09-15T15:53:00.601-00";
+const invalidTimestampNegativeZeroBasic = "2008-09-15T15:53:00.601-0000";
+const invalidTimestampNegativeZeroExtended = "2008-09-15T15:53:00.601-00:00";
+const validTimestampRfc3339 = "2008-09-15T15:53:00.601+00:00";
+
+interface TemplateStatusCase {
+  title: string;
+  layers: TemplateLayer[];
+  expectedStatus: number;
+}
+
+interface TimestampValidationCase {
+  title: string;
+  target: "statement" | "substatement";
+  timestamp: string;
+  expectedStatus: number;
+}
 
 function templateLayer(value: TemplateLayer): TemplateLayer {
   return value;
@@ -278,6 +320,374 @@ function buildExtensionLayers(
   return [...baseLayers, extensionLayer];
 }
 
+function getSubStatementObject(statement: JsonObject, name: string): JsonObject {
+  const object = statement.object;
+  if (!isJsonObject(object)) {
+    throw new Error(`Expected ${name} to include a substatement object.`);
+  }
+
+  return object;
+}
+
+async function createTemplateStatementAndPostExpectStatus(
+  context: DescribeRuntimeContext,
+  layers: TemplateLayer[],
+  expectedStatus: number,
+  name: string,
+  mutate?: (statement: JsonObject) => void,
+): Promise<void> {
+  const statement = await createTemplateStatement(context, layers, name);
+  mutate?.(statement);
+  await sendPostStatementExpectStatus(context, statement, expectedStatus, name);
+}
+
+function getLanguageMapValidationCases(): TemplateStatusCase[] {
+  return [
+    {
+      title: 'statement verb "display" language map invalid',
+      layers: [
+        templateLayer({ statement: "{{statements.verb}}" }),
+        templateLayer({ verb: "{{verbs.no_display}}" }),
+        invalidDisplayLanguageLayer,
+      ],
+      expectedStatus: 400,
+    },
+    {
+      title: 'statement object "name" language map invalid',
+      layers: [
+        templateLayer({ statement: "{{statements.object_activity}}" }),
+        templateLayer({ object: "{{activities.no_languages}}" }),
+        templateLayer({ definition: invalidNameLanguageLayer }),
+      ],
+      expectedStatus: 400,
+    },
+    {
+      title: 'statement object "description" language map invalid',
+      layers: [
+        templateLayer({ statement: "{{statements.object_activity}}" }),
+        templateLayer({ object: "{{activities.no_languages}}" }),
+        templateLayer({ definition: invalidDescriptionLanguageLayer }),
+      ],
+      expectedStatus: 400,
+    },
+    {
+      title: 'statement attachment "display" language map invalid',
+      layers: [
+        templateLayer({ statement: "{{statements.attachment}}" }),
+        {
+          attachments: [
+            {
+              usageType: "http://example.com/attachment-usage/test",
+              display: invalidLanguageMap,
+              contentType: "text/plain; charset=ascii",
+              length: 27,
+              sha2: "495395e777cd98da653df9615d09c0fd6bb2f8d4788394cd53c56a3bfdcd848a",
+              fileUrl: "http://over.there.com/file.txt",
+            },
+          ],
+        },
+      ],
+      expectedStatus: 400,
+    },
+    {
+      title: 'statement attachment "description" language map invalid',
+      layers: [
+        templateLayer({ statement: "{{statements.attachment}}" }),
+        {
+          attachments: [
+            {
+              usageType: "http://example.com/attachment-usage/test",
+              ...validAttachmentDisplayLanguageLayer,
+              description: invalidLanguageMap,
+              contentType: "text/plain; charset=ascii",
+              length: 27,
+              sha2: "495395e777cd98da653df9615d09c0fd6bb2f8d4788394cd53c56a3bfdcd848a",
+              fileUrl: "http://over.there.com/file.txt",
+            },
+          ],
+        },
+      ],
+      expectedStatus: 400,
+    },
+    {
+      title: 'statement substatement verb "display" language map invalid',
+      layers: [
+        templateLayer({ statement: "{{statements.object_substatement}}" }),
+        templateLayer({ object: "{{substatements.verb}}" }),
+        templateLayer({ verb: "{{verbs.no_display}}" }),
+        invalidDisplayLanguageLayer,
+      ],
+      expectedStatus: 400,
+    },
+    {
+      title: 'statement substatement activity "name" language map invalid',
+      layers: [
+        templateLayer({ statement: "{{statements.object_substatement}}" }),
+        templateLayer({ object: "{{substatements.activity}}" }),
+        templateLayer({ object: "{{activities.no_languages}}" }),
+        templateLayer({ definition: invalidNameLanguageLayer }),
+      ],
+      expectedStatus: 400,
+    },
+    {
+      title: 'statement substatement activity "description" language map invalid',
+      layers: [
+        templateLayer({ statement: "{{statements.object_substatement}}" }),
+        templateLayer({ object: "{{substatements.activity}}" }),
+        templateLayer({ object: "{{activities.no_languages}}" }),
+        templateLayer({ definition: invalidDescriptionLanguageLayer }),
+      ],
+      expectedStatus: 400,
+    },
+  ];
+}
+
+function getDurationValidationCases(): TemplateStatusCase[] {
+  return [
+    {
+      title: 'Statement result "duration" property is valid',
+      layers: [
+        templateLayer({ statement: "{{statements.result}}" }),
+        templateLayer({ result: "{{results.default}}" }),
+        templateLayer({ duration: validDuration }),
+      ],
+      expectedStatus: 200,
+    },
+    {
+      title: 'Statement substatement result "duration" property is valid',
+      layers: [
+        templateLayer({ statement: "{{statements.object_substatement}}" }),
+        templateLayer({ object: "{{substatements.result}}" }),
+        templateLayer({ result: "{{results.default}}" }),
+        templateLayer({ duration: validDuration }),
+      ],
+      expectedStatus: 200,
+    },
+    {
+      title: 'statement result "duration" property is invalid with invalid string',
+      layers: [
+        templateLayer({ statement: "{{statements.result}}" }),
+        templateLayer({ result: "{{results.default}}" }),
+        templateLayer({ duration: invalidDurationString }),
+      ],
+      expectedStatus: 400,
+    },
+    {
+      title: 'statement substatement result "duration" property is invalid',
+      layers: [
+        templateLayer({ statement: "{{statements.object_substatement}}" }),
+        templateLayer({ object: "{{substatements.result}}" }),
+        templateLayer({ result: "{{results.default}}" }),
+        templateLayer({ duration: invalidDurationString }),
+      ],
+      expectedStatus: 400,
+    },
+    {
+      title: 'statement result "duration" property is invalid with invalid number',
+      layers: [
+        templateLayer({ statement: "{{statements.result}}" }),
+        templateLayer({ result: "{{results.default}}" }),
+        templateLayer({ duration: invalidDurationNumber }),
+      ],
+      expectedStatus: 400,
+    },
+    {
+      title: 'statement substatement result "duration" property is invalid invalid number',
+      layers: [
+        templateLayer({ statement: "{{statements.object_substatement}}" }),
+        templateLayer({ object: "{{substatements.result}}" }),
+        templateLayer({ result: "{{results.default}}" }),
+        templateLayer({ duration: invalidDurationNumber }),
+      ],
+      expectedStatus: 400,
+    },
+    {
+      title: 'statement result "duration" property is invalid with invalid object',
+      layers: [
+        templateLayer({ statement: "{{statements.result}}" }),
+        templateLayer({ result: "{{results.default}}" }),
+        templateLayer({ duration: invalidDurationObject }),
+      ],
+      expectedStatus: 400,
+    },
+    {
+      title: 'statement substatement result "duration" property is invalid with invalid object',
+      layers: [
+        templateLayer({ statement: "{{statements.object_substatement}}" }),
+        templateLayer({ object: "{{substatements.result}}" }),
+        templateLayer({ result: "{{results.default}}" }),
+        templateLayer({ duration: invalidDurationObject }),
+      ],
+      expectedStatus: 400,
+    },
+    {
+      title: 'statement result "duration" property is invalid with invalid duration',
+      layers: [
+        templateLayer({ statement: "{{statements.result}}" }),
+        templateLayer({ result: "{{results.default}}" }),
+        templateLayer({ duration: invalidDuration }),
+      ],
+      expectedStatus: 400,
+    },
+    {
+      title: 'statement substatement result "duration" property is invalid with invalid duration',
+      layers: [
+        templateLayer({ statement: "{{statements.object_substatement}}" }),
+        templateLayer({ object: "{{substatements.result}}" }),
+        templateLayer({ result: "{{results.default}}" }),
+        templateLayer({ duration: invalidDuration }),
+      ],
+      expectedStatus: 400,
+    },
+    {
+      title: 'statement result "duration" property is valid with "PT4H35M59.14S"',
+      layers: [
+        templateLayer({ statement: "{{statements.result}}" }),
+        templateLayer({ result: "{{results.default}}" }),
+        templateLayer({ duration: "PT4H35M59.14S" }),
+      ],
+      expectedStatus: 200,
+    },
+    {
+      title: 'statement substatement result "duration" property is valid with "PT16559.14S"',
+      layers: [
+        templateLayer({ statement: "{{statements.object_substatement}}" }),
+        templateLayer({ object: "{{substatements.result}}" }),
+        templateLayer({ result: "{{results.default}}" }),
+        templateLayer({ duration: "PT16559.14S" }),
+      ],
+      expectedStatus: 200,
+    },
+    {
+      title: 'statement result "duration" property is valid with "P3Y1M29DT4H35M59.14S"',
+      layers: [
+        templateLayer({ statement: "{{statements.result}}" }),
+        templateLayer({ result: "{{results.default}}" }),
+        templateLayer({ duration: "P3Y1M29DT4H35M59.14S" }),
+      ],
+      expectedStatus: 200,
+    },
+    {
+      title: 'statement substatement result "duration" property is valid with "P3Y"',
+      layers: [
+        templateLayer({ statement: "{{statements.object_substatement}}" }),
+        templateLayer({ object: "{{substatements.result}}" }),
+        templateLayer({ result: "{{results.default}}" }),
+        templateLayer({ duration: "P3Y" }),
+      ],
+      expectedStatus: 200,
+    },
+    {
+      title: 'statement result "duration" property is valid with "P4W"',
+      layers: [
+        templateLayer({ statement: "{{statements.result}}" }),
+        templateLayer({ result: "{{results.default}}" }),
+        templateLayer({ duration: "P4W" }),
+      ],
+      expectedStatus: 200,
+    },
+    {
+      title: 'statement result "duration" property is invalid with "P4W1D"',
+      layers: [
+        templateLayer({ statement: "{{statements.result}}" }),
+        templateLayer({ result: "{{results.default}}" }),
+        templateLayer({ duration: "P4W1D" }),
+      ],
+      expectedStatus: 400,
+    },
+  ];
+}
+
+function getTimestampValidationCases(version: string): TimestampValidationCase[] {
+  const statementNegativeZeroLabel = version === "1.0.3" ? "statement timestmap" : "statement timestamp";
+
+  const cases: TimestampValidationCase[] = [
+    {
+      title: 'statement "template" invalid string in timestamp',
+      target: "statement",
+      timestamp: invalidTimestampString,
+      expectedStatus: 400,
+    },
+    {
+      title: 'statement "template" invalid date in timestamp',
+      target: "statement",
+      timestamp: invalidTimestampDate,
+      expectedStatus: 400,
+    },
+    {
+      title: `statement "template" invalid date in timestamp: did not reject ${statementNegativeZeroLabel} with -00 offset`,
+      target: "statement",
+      timestamp: invalidTimestampNegativeZeroHour,
+      expectedStatus: 400,
+    },
+    {
+      title: `statement "template" invalid date in timestamp: did not reject ${statementNegativeZeroLabel} with -0000 offset`,
+      target: "statement",
+      timestamp: invalidTimestampNegativeZeroBasic,
+      expectedStatus: 400,
+    },
+    {
+      title: `statement "template" invalid date in timestamp: did not reject ${statementNegativeZeroLabel} with -00:00 offset`,
+      target: "statement",
+      timestamp: invalidTimestampNegativeZeroExtended,
+      expectedStatus: 400,
+    },
+    {
+      title: 'substatement "template" invalid string in timestamp',
+      target: "substatement",
+      timestamp: invalidTimestampString,
+      expectedStatus: 400,
+    },
+    {
+      title: 'substatement "template" invalid date in timestamp',
+      target: "substatement",
+      timestamp: invalidTimestampDate,
+      expectedStatus: 400,
+    },
+    {
+      title: 'substatement "template" invalid date in timestamp: did not reject substatement timestamp with -00 offset',
+      target: "substatement",
+      timestamp: invalidTimestampNegativeZeroHour,
+      expectedStatus: 400,
+    },
+    {
+      title:
+        version === "1.0.3"
+          ? 'substatement "template" invalid date in timestamp: did not reject substatement timestamp with  -0000 offset'
+          : 'substatement "template" invalid date in timestamp: did not reject substatement timestamp with -0000 offset',
+      target: "substatement",
+      timestamp: invalidTimestampNegativeZeroBasic,
+      expectedStatus: 400,
+    },
+    {
+      title:
+        version === "1.0.3"
+          ? 'substatement "template" invalid date in timestamp: did not reject substatement timestamp with  -00:00 offset'
+          : 'substatement "template" invalid date in timestamp: did not reject substatement timestamp with -00:00 offset',
+      target: "substatement",
+      timestamp: invalidTimestampNegativeZeroExtended,
+      expectedStatus: 400,
+    },
+  ];
+
+  if (version === "2.0.0") {
+    cases.splice(5, 0, {
+      title: 'Statement "template" valid RFC 3339 date in timestamp',
+      target: "statement",
+      timestamp: validTimestampRfc3339,
+      expectedStatus: 200,
+    });
+    cases.push({
+      title: 'Substatement "template" valid RFC 3339 date in timestamp',
+      target: "substatement",
+      timestamp: validTimestampRfc3339,
+      expectedStatus: 200,
+    });
+  }
+
+  return cases;
+}
+
 function getExtensionAcceptanceTitle(
   statementCase: { caseKey: ExtensionStatementCaseKey; titlePrefix: string },
   variantKind: ExtensionVariantKind,
@@ -358,6 +768,65 @@ export function registerSpecialDataTypesAndRulesSuite(runtime: DescribeRuntime, 
       },
     );
 
+    runtime.describe('An Extension "key" is an IRI (Format, Data 4.1.s3.b1, XAPI-00118)', () => {
+      for (const statementCase of extensionObjectStatementCases) {
+        const title = `${statementCase.titlePrefix} extensions key is not an IRI`;
+        runtime.it(title, async () => {
+          await createTemplateStatementAndPostExpectStatus(
+            context,
+            buildExtensionLayers(statementCase.buildLayers(), statementCase.valueLayerKey, invalidExtensionKeyLayer),
+            400,
+            title,
+          );
+        });
+      }
+    });
+
+    runtime.describe("A Language Map follows RFC5646 (Format, Data 4.2.s1, RFC5646, XAPI-00121)", () => {
+      for (const testCase of getLanguageMapValidationCases()) {
+        runtime.it(testCase.title, async () => {
+          await createTemplateStatementAndPostExpectStatus(
+            context,
+            testCase.layers,
+            testCase.expectedStatus,
+            testCase.title,
+          );
+        });
+      }
+    });
+
+    runtime.describe(
+      "A TimeStamp is defined as a Date/Time formatted according to ISO 8601 (Format, Data 4.5.s1.b1, ISO8601, XAPI-00123)",
+      () => {
+        for (const testCase of getTimestampValidationCases(context.options.xapiVersion)) {
+          runtime.it(testCase.title, async () => {
+            await createTemplateStatementAndPostExpectStatus(
+              context,
+              [
+                templateLayer({
+                  statement:
+                    testCase.target === "statement"
+                      ? "{{statements.default}}"
+                      : "{{statements.object_substatement_default}}",
+                }),
+              ],
+              testCase.expectedStatus,
+              testCase.title,
+              (statement) => {
+                if (testCase.target === "statement") {
+                  statement.timestamp = testCase.timestamp;
+                  return;
+                }
+
+                const subStatement = getSubStatementObject(statement, testCase.title);
+                subStatement.timestamp = testCase.timestamp;
+              },
+            );
+          });
+        }
+      },
+    );
+
     runtime.describe(
       "A Timestamp MUST preserve precision to at least milliseconds, 3 decimal points beyond seconds. (Data 4.5.s1.b3, XAPI-00122)",
       () => {
@@ -403,6 +872,22 @@ export function registerSpecialDataTypesAndRulesSuite(runtime: DescribeRuntime, 
             throw new Error("Expected retrieved stored timestamp to preserve at least millisecond precision.");
           }
         });
+      },
+    );
+
+    runtime.describe(
+      "A Duration MUST be expressed using the format for Duration in ISO 8601:2004(E) section 4.4.3.2. (Type, Data 4.6.s1.b1, XAPI-00124)",
+      () => {
+        for (const testCase of getDurationValidationCases()) {
+          runtime.it(testCase.title, async () => {
+            await createTemplateStatementAndPostExpectStatus(
+              context,
+              testCase.layers,
+              testCase.expectedStatus,
+              testCase.title,
+            );
+          });
+        }
       },
     );
   });

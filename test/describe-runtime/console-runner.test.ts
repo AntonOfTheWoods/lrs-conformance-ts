@@ -1142,7 +1142,7 @@ function isActorLikePath(path: readonly string[]): boolean {
 }
 
 function isIsoTimestamp(value: string): boolean {
-  return isoTimestampPattern.test(value) && !Number.isNaN(Date.parse(value));
+  return isoTimestampPattern.test(value) && !value.endsWith("-00:00") && !Number.isNaN(Date.parse(value));
 }
 
 function normalizeIncomingTimestamp(value: string): string {
@@ -3296,14 +3296,14 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1359,
-        passed: 1359,
+        total: 1401,
+        passed: 1401,
         failed: 0,
         version: "2.0.0",
       });
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "POST"),
-      ).toHaveLength(1137);
+      ).toHaveLength(1179);
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "PUT"),
       ).toHaveLength(47);
@@ -3324,8 +3324,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1359,
-        passed: 1359,
+        total: 1401,
+        passed: 1401,
         failed: 0,
         version: "2.0.0",
       });
@@ -3458,12 +3458,12 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("1.0.3");
       expect(execution.runRecord.summary).toEqual({
-        total: 1307,
-        passed: 1307,
+        total: 1347,
+        passed: 1347,
         failed: 0,
         version: "1.0.3",
       });
-      expect(harness.requests).toHaveLength(1571);
+      expect(harness.requests).toHaveLength(1611);
       expect(harness.requests.filter((request) => request.version === null)).toHaveLength(12);
       expect(harness.requests.filter((request) => request.version === "BAD")).toHaveLength(2);
       expect(
@@ -3477,8 +3477,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1307,
-        passed: 1307,
+        total: 1347,
+        passed: 1347,
         failed: 0,
         version: "1.0.3",
       });
@@ -3505,12 +3505,12 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Parameters", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1387,
-        passed: 1387,
+        total: 1429,
+        passed: 1429,
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1363);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1405);
       expect(harness.requests.filter((request) => request.path === "/xapi/activities/state")).toHaveLength(130);
       expect(harness.requests.filter((request) => request.path === "/xapi/agents/profile")).toHaveLength(94);
       expect(harness.requests.filter((request) => request.path === "/xapi/activities/profile")).toHaveLength(93);
@@ -3527,8 +3527,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1387,
-        passed: 1387,
+        total: 1429,
+        passed: 1429,
         failed: 0,
         version: "2.0.0",
       });
@@ -3555,12 +3555,12 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Multiplicity", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1441,
-        passed: 1441,
+        total: 1483,
+        passed: 1483,
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1363);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1405);
       expect(harness.requests.filter((request) => request.path !== "/xapi/statements")).toHaveLength(322);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-multiplicity-v2.log"), "utf8")) as {
@@ -3569,8 +3569,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1441,
-        passed: 1441,
+        total: 1483,
+        passed: 1483,
         failed: 0,
         version: "2.0.0",
       });
