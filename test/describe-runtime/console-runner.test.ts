@@ -26,6 +26,14 @@ type ParsedMultipartStatementRequest = {
   parts: ParsedMultipartPart[];
 };
 
+type ParsedAlternateStatementRequest = {
+  body: unknown;
+  contentType: string | null;
+  headers: Headers;
+  method: "DELETE" | "GET" | "HEAD" | "POST" | "PUT";
+  searchParams: URLSearchParams;
+};
+
 interface StoredAttachmentBody {
   bodyText: string;
   contentType: string;
@@ -51,6 +59,16 @@ const versionedApiPaths = new Set([
 const validBasicUserName = "proof-basic-user";
 const validBasicPassword = "proof-basic-password";
 const validOauthAuthorizationPrefix = "OAuth ";
+const signatureUsageType = "http://adlnet.gov/expapi/attachments/signature";
+const allowedSignatureAlgorithms = new Set(["RS256", "RS384", "RS512"]);
+const alternateHeaderParameters = new Set([
+  "Authorization",
+  "Content-Length",
+  "Content-Type",
+  "If-Match",
+  "If-None-Match",
+  "X-Experience-API-Version",
+]);
 
 const silentLogger = {
   log: (..._args: unknown[]) => {},
@@ -207,7 +225,7 @@ const isoDurationPattern =
 
 const interactionComponentParents = new Set(["choices", "scale", "source", "target", "steps"]);
 
-const isoTimestampPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/;
+const isoTimestampPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/;
 const voidedVerbSuffix = "voided";
 const statementAttachmentResponseBoundary = "mock-xapi-statement-attachments";
 
@@ -1127,6 +1145,15 @@ function isIsoTimestamp(value: string): boolean {
   return isoTimestampPattern.test(value) && !Number.isNaN(Date.parse(value));
 }
 
+function normalizeIncomingTimestamp(value: string): string {
+  const parsed = Date.parse(value);
+  if (Number.isNaN(parsed)) {
+    return value;
+  }
+
+  return new Date(parsed).toISOString();
+}
+
 function hasInvalidTimestamp(value: unknown, path: readonly string[] = []): boolean {
   if (typeof value === "string") {
     return path.at(-1) === "timestamp" && !isIsoTimestamp(value);
@@ -1179,6 +1206,10 @@ function createStoredStatement(statement: Record<string, unknown>, statementId: 
     id: statementId,
     stored: createStoredTimestamp(),
   });
+
+  if (typeof storedStatement.timestamp === "string" && isIsoTimestamp(storedStatement.timestamp)) {
+    storedStatement.timestamp = normalizeIncomingTimestamp(storedStatement.timestamp);
+  }
 
   if (typeof storedStatement.authority === "undefined") {
     storedStatement.authority = createDefaultAuthority();
@@ -1420,6 +1451,97 @@ function parseMultipartStatementRequest(
   return { attachments, body, parts };
 }
 
+function isFormUrlEncodedContentType(contentType: string | null): boolean {
+  return normalizeRequestMediaType(contentType) === "application/x-www-form-urlencoded";
+}
+
+function parseAlternateStatementRequest(
+  request: Request,
+  url: URL,
+  requestText: string,
+  contentType: string | null,
+): ParsedAlternateStatementRequest | { errorStatus: number } | undefined {
+  if (url.pathname !== "/xapi/statements") {
+    return undefined;
+  }
+
+  const overrideMethod = url.searchParams.get("method");
+  if (!overrideMethod) {
+    return undefined;
+  }
+
+  if (request.method !== "POST") {
+    return { errorStatus: 400 };
+  }
+
+  if (!isFormUrlEncodedContentType(contentType)) {
+    return { errorStatus: 400 };
+  }
+
+  const normalizedMethod = overrideMethod.toUpperCase();
+  if (
+    normalizedMethod !== "DELETE" &&
+    normalizedMethod !== "GET" &&
+    normalizedMethod !== "HEAD" &&
+    normalizedMethod !== "POST" &&
+    normalizedMethod !== "PUT"
+  ) {
+    return { errorStatus: 400 };
+  }
+
+  const formEntries = new URLSearchParams(requestText);
+  const effectiveHeaders = new Headers(request.headers);
+  const effectiveSearchParams = new URLSearchParams(url.search);
+  effectiveSearchParams.delete("method");
+
+  let contentBodyText: string | undefined;
+  for (const [key, value] of formEntries.entries()) {
+    if (alternateHeaderParameters.has(key)) {
+      effectiveHeaders.set(key, value);
+      continue;
+    }
+
+    if (key === "content") {
+      contentBodyText = value;
+      continue;
+    }
+
+    if (effectiveSearchParams.has(key)) {
+      return { errorStatus: 400 };
+    }
+
+    effectiveSearchParams.set(key, value);
+  }
+
+  let effectiveBody: unknown;
+  if (normalizedMethod === "POST" || normalizedMethod === "PUT") {
+    if (typeof contentBodyText !== "string" || contentBodyText.length === 0) {
+      return { errorStatus: 400 };
+    }
+
+    try {
+      effectiveBody = JSON.parse(contentBodyText) as unknown;
+    } catch {
+      return { errorStatus: 400 };
+    }
+
+    const headerContentType = effectiveHeaders.get("Content-Type");
+    if (!headerContentType || isFormUrlEncodedContentType(headerContentType)) {
+      effectiveHeaders.set("Content-Type", "application/json");
+    }
+  } else if (typeof contentBodyText === "string") {
+    return { errorStatus: 400 };
+  }
+
+  return {
+    body: effectiveBody,
+    contentType: effectiveHeaders.get("Content-Type"),
+    headers: effectiveHeaders,
+    method: normalizedMethod,
+    searchParams: effectiveSearchParams,
+  };
+}
+
 function normalizeRequestMediaType(contentType: string | null): string | undefined {
   const mediaType = contentType?.split(";", 1)[0]?.trim().toLowerCase();
   return mediaType && mediaType.length > 0 ? mediaType : undefined;
@@ -1479,6 +1601,77 @@ function validateMultipartAttachmentPayload(
   return requiredHashes.every((hash) => seenHashes.has(hash)) ? undefined : 400;
 }
 
+function decodeBase64Url(value: string): string | undefined {
+  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+  const remainder = normalized.length % 4;
+  const padding = remainder === 0 ? "" : "=".repeat(4 - remainder);
+
+  try {
+    return Buffer.from(`${normalized}${padding}`, "base64").toString("utf8");
+  } catch {
+    return undefined;
+  }
+}
+
+function parseJwsSignature(value: string): { algorithm: string } | undefined {
+  const parts = value.split(".");
+  if (parts.length !== 3 || parts.some((part) => part.length === 0)) {
+    return undefined;
+  }
+
+  const headerText = decodeBase64Url(parts[0] ?? "");
+  const payloadText = decodeBase64Url(parts[1] ?? "");
+  if (!headerText || !payloadText) {
+    return undefined;
+  }
+
+  try {
+    const header = JSON.parse(headerText) as unknown;
+    if (!isObjectRecord(header) || typeof header.alg !== "string") {
+      return undefined;
+    }
+
+    JSON.parse(payloadText);
+    return { algorithm: header.alg };
+  } catch {
+    return undefined;
+  }
+}
+
+function validateSignedStatementPayload(
+  body: unknown,
+  parsedMultipart: ParsedMultipartStatementRequest | undefined,
+): number | undefined {
+  const signatureAttachments = getStatementAttachmentRecords(body).filter((attachment) => {
+    return attachment.usageType === signatureUsageType;
+  });
+  if (signatureAttachments.length === 0) {
+    return undefined;
+  }
+
+  if (!parsedMultipart) {
+    return 400;
+  }
+
+  for (const attachment of signatureAttachments) {
+    if (attachment.contentType !== "application/octet-stream" || typeof attachment.sha2 !== "string") {
+      return 400;
+    }
+
+    const signatureBody = parsedMultipart.attachments.get(attachment.sha2);
+    if (!signatureBody || normalizeRequestMediaType(signatureBody.contentType) !== "application/octet-stream") {
+      return 400;
+    }
+
+    const parsedSignature = parseJwsSignature(signatureBody.bodyText.trim());
+    if (!parsedSignature || !allowedSignatureAlgorithms.has(parsedSignature.algorithm)) {
+      return 400;
+    }
+  }
+
+  return undefined;
+}
+
 function validateStatementWriteContentType(
   body: unknown,
   contentType: string | null,
@@ -1501,10 +1694,19 @@ function validateStatementWriteContentType(
 
   if (mediaType === "application/json") {
     const requiresBinaryParts = attachmentRecords.some((attachment) => typeof attachment.fileUrl !== "string");
-    return requiresBinaryParts ? 400 : undefined;
+    if (requiresBinaryParts) {
+      return 400;
+    }
+
+    return validateSignedStatementPayload(body, parsedMultipart);
   }
 
-  return validateMultipartAttachmentPayload(body, parsedMultipart);
+  const multipartStatus = validateMultipartAttachmentPayload(body, parsedMultipart);
+  if (multipartStatus) {
+    return multipartStatus;
+  }
+
+  return validateSignedStatementPayload(body, parsedMultipart);
 }
 
 function createLastModifiedHeader(statement: Record<string, unknown>): string | undefined {
@@ -2735,6 +2937,8 @@ function startMockLrs(defaultVersion = "2.0.0") {
         }
       }
 
+      const alternateStatementRequest = parseAlternateStatementRequest(request, url, requestText, contentType);
+
       requests.push({
         body,
         method: request.method,
@@ -2743,18 +2947,58 @@ function startMockLrs(defaultVersion = "2.0.0") {
         version: request.headers.get("X-Experience-API-Version"),
       });
 
-      const versionHeaderError = validateVersionHeader(request, url.pathname, defaultVersion);
+      const validationRequest =
+        alternateStatementRequest && !("errorStatus" in alternateStatementRequest)
+          ? new Request(request.url, {
+              method: alternateStatementRequest.method,
+              headers: alternateStatementRequest.headers,
+            })
+          : request;
+
+      const versionHeaderError = validateVersionHeader(validationRequest, url.pathname, defaultVersion);
       if (versionHeaderError) {
         return versionHeaderError;
       }
 
-      const authorizationError = validateAuthorizationHeader(request, defaultVersion);
+      const authorizationError = validateAuthorizationHeader(validationRequest, defaultVersion);
       if (authorizationError) {
         return authorizationError;
       }
 
-      if (request.method === "POST" && url.pathname === "/xapi/statements") {
-        const contentTypeStatus = validateStatementWriteContentType(body, contentType, parsedMultipartStatement);
+      if (alternateStatementRequest && "errorStatus" in alternateStatementRequest) {
+        return Response.json(
+          { ok: false },
+          { status: alternateStatementRequest.errorStatus, headers: createMockHeaders(defaultVersion) },
+        );
+      }
+
+      const statementMethod =
+        alternateStatementRequest && !("errorStatus" in alternateStatementRequest)
+          ? alternateStatementRequest.method
+          : request.method;
+      const statementSearchParams =
+        alternateStatementRequest && !("errorStatus" in alternateStatementRequest)
+          ? alternateStatementRequest.searchParams
+          : url.searchParams;
+      const statementHeaders =
+        alternateStatementRequest && !("errorStatus" in alternateStatementRequest)
+          ? alternateStatementRequest.headers
+          : request.headers;
+      const statementBody =
+        alternateStatementRequest && !("errorStatus" in alternateStatementRequest)
+          ? alternateStatementRequest.body
+          : body;
+      const statementContentType =
+        alternateStatementRequest && !("errorStatus" in alternateStatementRequest)
+          ? alternateStatementRequest.contentType
+          : contentType;
+
+      if (statementMethod === "POST" && url.pathname === "/xapi/statements") {
+        const contentTypeStatus = validateStatementWriteContentType(
+          statementBody,
+          statementContentType,
+          parsedMultipartStatement,
+        );
         if (contentTypeStatus) {
           return Response.json(
             { ok: false },
@@ -2762,11 +3006,11 @@ function startMockLrs(defaultVersion = "2.0.0") {
           );
         }
 
-        if (Array.isArray(body)) {
+        if (Array.isArray(statementBody)) {
           const seenIds = new Set<string>();
           if (
-            body.length === 0 ||
-            body.some((statement) => {
+            statementBody.length === 0 ||
+            statementBody.some((statement) => {
               if (!isObjectRecord(statement) || determineStatementStatus(statement) !== 200) {
                 return true;
               }
@@ -2786,7 +3030,7 @@ function startMockLrs(defaultVersion = "2.0.0") {
           }
 
           const statementIds: string[] = [];
-          for (const statement of body) {
+          for (const statement of statementBody) {
             const statementId = typeof statement.id === "string" ? statement.id : crypto.randomUUID();
             statementIds.push(statementId);
             if (!storedStatements.has(statementId)) {
@@ -2804,11 +3048,11 @@ function startMockLrs(defaultVersion = "2.0.0") {
           return Response.json(statementIds, { status: 200, headers: createMockHeaders(defaultVersion) });
         }
 
-        const status = determineStatementStatus(body);
-        if (status === 200 && isObjectRecord(body)) {
-          const statementId = typeof body.id === "string" ? body.id : crypto.randomUUID();
+        const status = determineStatementStatus(statementBody);
+        if (status === 200 && isObjectRecord(statementBody)) {
+          const statementId = typeof statementBody.id === "string" ? statementBody.id : crypto.randomUUID();
           if (!storedStatements.has(statementId)) {
-            storedStatements.set(statementId, createStoredStatement(body, statementId));
+            storedStatements.set(statementId, createStoredStatement(statementBody, statementId));
           }
           if (parsedMultipartStatement?.attachments) {
             for (const [hash, attachmentBody] of parsedMultipartStatement.attachments.entries()) {
@@ -2823,8 +3067,12 @@ function startMockLrs(defaultVersion = "2.0.0") {
         return Response.json({ ok: false }, { status, headers: createMockHeaders(defaultVersion) });
       }
 
-      if (request.method === "PUT" && url.pathname === "/xapi/statements") {
-        const contentTypeStatus = validateStatementWriteContentType(body, contentType, parsedMultipartStatement);
+      if (statementMethod === "PUT" && url.pathname === "/xapi/statements") {
+        const contentTypeStatus = validateStatementWriteContentType(
+          statementBody,
+          statementContentType,
+          parsedMultipartStatement,
+        );
         if (contentTypeStatus) {
           return Response.json(
             { ok: false },
@@ -2832,15 +3080,15 @@ function startMockLrs(defaultVersion = "2.0.0") {
           );
         }
 
-        const statementId = url.searchParams.get("statementId");
+        const statementId = statementSearchParams.get("statementId");
         if (typeof statementId !== "string" || !isUuidLike(statementId)) {
           return Response.json({ ok: false }, { status: 400, headers: createMockHeaders(defaultVersion) });
         }
 
-        const status = determineStatementStatus(body);
-        if (status === 200 && isObjectRecord(body)) {
+        const status = determineStatementStatus(statementBody);
+        if (status === 200 && isObjectRecord(statementBody)) {
           if (!storedStatements.has(statementId)) {
-            storedStatements.set(statementId, createStoredStatement(body, statementId));
+            storedStatements.set(statementId, createStoredStatement(statementBody, statementId));
           }
           voidedStatementIds = recomputeVoidedStatementIds(storedStatements);
 
@@ -2850,20 +3098,20 @@ function startMockLrs(defaultVersion = "2.0.0") {
         return Response.json({ ok: false }, { status, headers: createMockHeaders(defaultVersion) });
       }
 
-      if ((request.method === "GET" || request.method === "HEAD") && url.pathname === "/xapi/statements") {
-        const validationStatus = validateStatementQuery(url.searchParams);
+      if ((statementMethod === "GET" || statementMethod === "HEAD") && url.pathname === "/xapi/statements") {
+        const validationStatus = validateStatementQuery(statementSearchParams);
         if (validationStatus) {
           const response = createStatementJsonResponse(defaultVersion, { ok: false }, validationStatus);
-          return request.method === "HEAD" ? withoutBody(response) : response;
+          return statementMethod === "HEAD" ? withoutBody(response) : response;
         }
 
-        const statementFormat = getStatementResponseFormat(url.searchParams);
+        const statementFormat = getStatementResponseFormat(statementSearchParams);
 
-        const statementId = url.searchParams.get("statementId");
+        const statementId = statementSearchParams.get("statementId");
         if (statementId) {
           if (voidedStatementIds.has(statementId)) {
             const response = createStatementJsonResponse(defaultVersion, { ok: false }, 404);
-            return request.method === "HEAD" ? withoutBody(response) : response;
+            return statementMethod === "HEAD" ? withoutBody(response) : response;
           }
 
           const storedStatement = storedStatements.get(statementId);
@@ -2871,10 +3119,10 @@ function startMockLrs(defaultVersion = "2.0.0") {
             const formattedStatement = formatStatementForResponse(
               storedStatement,
               statementFormat,
-              request.headers.get("Accept-Language"),
+              statementHeaders.get("Accept-Language"),
             );
             const attachmentParts =
-              parseBooleanQuery(url.searchParams.get("attachments")) === true
+              parseBooleanQuery(statementSearchParams.get("attachments")) === true
                 ? collectAttachmentParts([storedStatement], storedAttachmentBodies)
                 : [];
             if (attachmentParts.length > 0) {
@@ -2885,22 +3133,22 @@ function startMockLrs(defaultVersion = "2.0.0") {
                 attachmentParts,
                 storedStatement,
               );
-              return request.method === "HEAD" ? withoutBody(response) : response;
+              return statementMethod === "HEAD" ? withoutBody(response) : response;
             }
 
             const response = createStatementJsonResponse(defaultVersion, formattedStatement, 200, storedStatement);
-            return request.method === "HEAD" ? withoutBody(response) : response;
+            return statementMethod === "HEAD" ? withoutBody(response) : response;
           }
 
           const response = createStatementJsonResponse(defaultVersion, { ok: false }, 404);
-          return request.method === "HEAD" ? withoutBody(response) : response;
+          return statementMethod === "HEAD" ? withoutBody(response) : response;
         }
 
-        const voidedStatementId = url.searchParams.get("voidedStatementId");
+        const voidedStatementId = statementSearchParams.get("voidedStatementId");
         if (voidedStatementId) {
           if (!voidedStatementIds.has(voidedStatementId)) {
             const response = createStatementJsonResponse(defaultVersion, { ok: false }, 404);
-            return request.method === "HEAD" ? withoutBody(response) : response;
+            return statementMethod === "HEAD" ? withoutBody(response) : response;
           }
 
           const storedStatement = storedStatements.get(voidedStatementId);
@@ -2908,10 +3156,10 @@ function startMockLrs(defaultVersion = "2.0.0") {
             const formattedStatement = formatStatementForResponse(
               storedStatement,
               statementFormat,
-              request.headers.get("Accept-Language"),
+              statementHeaders.get("Accept-Language"),
             );
             const attachmentParts =
-              parseBooleanQuery(url.searchParams.get("attachments")) === true
+              parseBooleanQuery(statementSearchParams.get("attachments")) === true
                 ? collectAttachmentParts([storedStatement], storedAttachmentBodies)
                 : [];
             if (attachmentParts.length > 0) {
@@ -2922,34 +3170,34 @@ function startMockLrs(defaultVersion = "2.0.0") {
                 attachmentParts,
                 storedStatement,
               );
-              return request.method === "HEAD" ? withoutBody(response) : response;
+              return statementMethod === "HEAD" ? withoutBody(response) : response;
             }
 
             const response = createStatementJsonResponse(defaultVersion, formattedStatement, 200, storedStatement);
-            return request.method === "HEAD" ? withoutBody(response) : response;
+            return statementMethod === "HEAD" ? withoutBody(response) : response;
           }
 
           const response = createStatementJsonResponse(defaultVersion, { ok: false }, 404);
-          return request.method === "HEAD" ? withoutBody(response) : response;
+          return statementMethod === "HEAD" ? withoutBody(response) : response;
         }
 
         const collectionResult = getCollectionResults(
           storedStatements,
           voidedStatementIds,
-          url.searchParams,
-          request.headers.get("Accept-Language"),
+          statementSearchParams,
+          statementHeaders.get("Accept-Language"),
         );
         const attachmentParts =
-          parseBooleanQuery(url.searchParams.get("attachments")) === true
+          parseBooleanQuery(statementSearchParams.get("attachments")) === true
             ? collectAttachmentParts(collectionResult.statements, storedAttachmentBodies)
             : [];
         if (attachmentParts.length > 0) {
           const response = createMultipartStatementResponse(defaultVersion, collectionResult, 200, attachmentParts);
-          return request.method === "HEAD" ? withoutBody(response) : response;
+          return statementMethod === "HEAD" ? withoutBody(response) : response;
         }
 
         const response = createStatementJsonResponse(defaultVersion, collectionResult, 200);
-        return request.method === "HEAD" ? withoutBody(response) : response;
+        return statementMethod === "HEAD" ? withoutBody(response) : response;
       }
 
       if (url.pathname === "/xapi/activities/state") {
@@ -3048,20 +3296,20 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1271,
-        passed: 1271,
+        total: 1310,
+        passed: 1310,
         failed: 0,
         version: "2.0.0",
       });
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "POST"),
-      ).toHaveLength(1074);
+      ).toHaveLength(1088);
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "PUT"),
-      ).toHaveLength(23);
+      ).toHaveLength(47);
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "GET"),
-      ).toHaveLength(171);
+      ).toHaveLength(175);
       expect(harness.requests.filter((request) => request.version === null)).toHaveLength(10);
       expect(harness.requests.filter((request) => request.version === "BAD")).toHaveLength(2);
       expect(
@@ -3076,15 +3324,16 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1271,
-        passed: 1271,
+        total: 1310,
+        passed: 1310,
         failed: 0,
         version: "2.0.0",
       });
       expectLoggedSuiteTitles(writtenRecord.log.tests, [
         "Formatting Requirements (Data 2.2)",
-        "Content Type Requirements (Communication 1.5)",
         "HEAD Request Implementation Requirements (Communication 1.1)",
+        "Alternate Request Syntax Requirements",
+        "Content Type Requirements (Communication 1.5)",
         "Id Property Requirements (Data 2.4.1)",
         "Timestamp Property Requirements (Data 2.4.7)",
         "Stored Property Requirements (Data 2.4.8)",
@@ -3098,6 +3347,9 @@ describe("console runner entrypoint", () => {
         "Attachments Property Requirements (Data 2.4.11)",
         "Statement Lifecycle Requirements (Data 2.3)",
         "Retrieval of Statements (Data 2.5)",
+        "Signed Statements (Data 2.6)",
+        "Special Data Types and Rules (Data 4.0)",
+        "(4.2.7) Additional Requirements for Data Types",
         "Statement Resource Requirements (Communication 2.1)",
         "Document Resource Requirements (Communication 2.2)",
         "State Resource Requirements (Communication 2.3)",
@@ -3191,13 +3443,13 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("1.0.3");
       expect(execution.runRecord.summary).toEqual({
-        total: 1218,
-        passed: 1218,
+        total: 1259,
+        passed: 1259,
         failed: 0,
         version: "1.0.3",
       });
-      expect(harness.requests).toHaveLength(1480);
-      expect(harness.requests.filter((request) => request.version === null)).toHaveLength(10);
+      expect(harness.requests).toHaveLength(1523);
+      expect(harness.requests.filter((request) => request.version === null)).toHaveLength(12);
       expect(harness.requests.filter((request) => request.version === "BAD")).toHaveLength(2);
       expect(
         harness.requests.every(
@@ -3210,8 +3462,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1218,
-        passed: 1218,
+        total: 1259,
+        passed: 1259,
         failed: 0,
         version: "1.0.3",
       });
@@ -3238,12 +3490,12 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Parameters", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1299,
-        passed: 1299,
+        total: 1338,
+        passed: 1338,
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1271);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1313);
       expect(harness.requests.filter((request) => request.path === "/xapi/activities/state")).toHaveLength(130);
       expect(harness.requests.filter((request) => request.path === "/xapi/agents/profile")).toHaveLength(94);
       expect(harness.requests.filter((request) => request.path === "/xapi/activities/profile")).toHaveLength(93);
@@ -3260,8 +3512,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1299,
-        passed: 1299,
+        total: 1338,
+        passed: 1338,
         failed: 0,
         version: "2.0.0",
       });
@@ -3288,13 +3540,13 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Multiplicity", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1353,
-        passed: 1353,
+        total: 1392,
+        passed: 1392,
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1271);
-      expect(harness.requests.filter((request) => request.path !== "/xapi/statements")).toHaveLength(320);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1313);
+      expect(harness.requests.filter((request) => request.path !== "/xapi/statements")).toHaveLength(322);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-multiplicity-v2.log"), "utf8")) as {
         log: { tests: Array<{ title: string }> };
@@ -3302,16 +3554,17 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1353,
-        passed: 1353,
+        total: 1392,
+        passed: 1392,
         failed: 0,
         version: "2.0.0",
       });
       expectLoggedSuiteTitles(writtenRecord.log.tests, [
         "Welcome to Multiplicity Testing.  A Statement, Object or Verb's properties are used at most one time",
         "Formatting Requirements (Data 2.2)",
-        "Content Type Requirements (Communication 1.5)",
         "HEAD Request Implementation Requirements (Communication 1.1)",
+        "Alternate Request Syntax Requirements",
+        "Content Type Requirements (Communication 1.5)",
         "Id Property Requirements (Data 2.4.1)",
         "Timestamp Property Requirements (Data 2.4.7)",
         "Stored Property Requirements (Data 2.4.8)",
@@ -3325,6 +3578,9 @@ describe("console runner entrypoint", () => {
         "Attachments Property Requirements (Data 2.4.11)",
         "Statement Lifecycle Requirements (Data 2.3)",
         "Retrieval of Statements (Data 2.5)",
+        "Signed Statements (Data 2.6)",
+        "Special Data Types and Rules (Data 4.0)",
+        "(4.2.7) Additional Requirements for Data Types",
         "Statement Resource Requirements (Communication 2.1)",
         "Document Resource Requirements (Communication 2.2)",
         "State Resource Requirements (Communication 2.3)",

@@ -4,8 +4,11 @@ import { registerAuthorityPropertyRequirementsSuite as registerAuthorityProperty
 import { registerContextPropertyRequirementsSuite as registerContextPropertyRequirementsV103 } from "../specs/v1_0_3/Data2.4.6-ContextProperty.ts";
 import { registerFormattingRequirementsSuite as registerFormattingRequirementsV103 } from "../specs/v1_0_3/Data2.2-FormattingRequirements.ts";
 import { registerHeadRequestImplementationSuite as registerHeadRequestImplementationV103 } from "../specs/v1_0_3/H.Communication1.1-HeadRequestImplementation.ts";
+import { registerAlternateRequestSyntaxRequirementsSuite as registerAlternateRequestSyntaxRequirementsV103 } from "../specs/v1_0_3/H.Communication1.3-AlternateRequestSyntax.ts";
 import { registerEncodingRequirementsSuite as registerEncodingRequirementsV103 } from "../specs/v1_0_3/H.Communication1.4-Encoding.ts";
 import { registerContentTypeRequirementsSuite as registerContentTypeRequirementsV103 } from "../specs/v1_0_3/H.Communication1.5-ContentTypes.ts";
+import { registerSignedStatementsSuite as registerSignedStatementsV103 } from "../specs/v1_0_3/E.Data2.6-SignedStatements.ts";
+import { registerSpecialDataTypesAndRulesSuite as registerSpecialDataTypesAndRulesV103 } from "../specs/v1_0_3/E.Data4.0-SpecialDataTypesAndRules.ts";
 import { registerAboutResourceRequirementsSuite as registerAboutResourceRequirementsV103 } from "../specs/v1_0_3/H.Communication2.8-AboutResource.ts";
 import { registerDocumentResourcesRequirementsSuite as registerDocumentResourcesRequirementsV103 } from "../specs/v1_0_3/H.Communication2.2-DocumentResources.ts";
 import { registerAgentsResourceRequirementsSuite as registerAgentsResourceRequirementsV103 } from "../specs/v1_0_3/H.Communication2.4-AgentsResource.ts";
@@ -34,7 +37,11 @@ import { registerContextPropertyRequirementsSuite as registerContextPropertyRequ
 import { registerFormattingRequirementsSuite as registerFormattingRequirementsV20 } from "../specs/v2_0/Data2.2-FormattingRequirements.ts";
 import { registerContentTypeRequirementsSuite as registerContentTypeRequirementsV20 } from "../specs/v2_0/4.1.3-Content-Types.ts";
 import { registerHeadRequestImplementationSuite as registerHeadRequestImplementationV20 } from "../specs/v2_0/H.Communication1.1-HeadRequestImplementation.ts";
+import { registerAlternateRequestSyntaxRequirementsSuite as registerAlternateRequestSyntaxRequirementsV20 } from "../specs/v2_0/H.Communication1.3-AlternateRequestSyntax.ts";
+import { registerAdditionalRequirementsForDataTypesSuite as registerAdditionalRequirementsForDataTypesV20 } from "../specs/v2_0/4.2.7-Additional-Requirements-for-Data-Types.ts";
 import { registerAboutResourceRequirementsSuite as registerAboutResourceRequirementsV20 } from "../specs/v2_0/4.1.6.7-About-Resource.ts";
+import { registerSignedStatementsSuite as registerSignedStatementsV20 } from "../specs/v2_0/E.Data2.6-SignedStatements.ts";
+import { registerSpecialDataTypesAndRulesSuite as registerSpecialDataTypesAndRulesV20 } from "../specs/v2_0/E.Data4.0-SpecialDataTypesAndRules.ts";
 import { registerDocumentResourcesRequirementsSuite as registerDocumentResourcesRequirementsV20 } from "../specs/v2_0/H.Communication2.2-DocumentResources.ts";
 import { registerAgentsResourceRequirementsSuite as registerAgentsResourceRequirementsV20 } from "../specs/v2_0/4.1.6.3-Agents-Resource.ts";
 import { registerAgentProfileResourceRequirementsSuite as registerAgentProfileResourceRequirementsV20 } from "../specs/v2_0/4.1.6.5-Agent-Profile-Resource.ts";
@@ -69,6 +76,7 @@ const registrarsByDirectory: Readonly<Record<string, readonly SuiteRegistrar[]>>
   v1_0_3: [
     registerFormattingRequirementsV103,
     registerHeadRequestImplementationV103,
+    registerAlternateRequestSyntaxRequirementsV103,
     registerEncodingRequirementsV103,
     registerContentTypeRequirementsV103,
     registerIdPropertyRequirementsV103,
@@ -84,6 +92,8 @@ const registrarsByDirectory: Readonly<Record<string, readonly SuiteRegistrar[]>>
     registerAttachmentsPropertyRequirementsV103,
     registerStatementLifecycleRequirementsV103,
     registerRetrievalOfStatementsV103,
+    registerSignedStatementsV103,
+    registerSpecialDataTypesAndRulesV103,
     registerStatementResourceRequirementsV103,
     registerDocumentResourcesRequirementsV103,
     registerStateResourceRequirementsV103,
@@ -99,8 +109,9 @@ const registrarsByDirectory: Readonly<Record<string, readonly SuiteRegistrar[]>>
   ],
   v2_0: [
     registerFormattingRequirementsV20,
-    registerContentTypeRequirementsV20,
     registerHeadRequestImplementationV20,
+    registerAlternateRequestSyntaxRequirementsV20,
+    registerContentTypeRequirementsV20,
     registerIdPropertyRequirementsV20,
     registerTimestampPropertyRequirementsV20,
     registerStoredPropertyRequirementsV20,
@@ -114,6 +125,9 @@ const registrarsByDirectory: Readonly<Record<string, readonly SuiteRegistrar[]>>
     registerAttachmentsPropertyRequirementsV20,
     registerStatementLifecycleRequirementsV20,
     registerRetrievalOfStatementsV20,
+    registerSignedStatementsV20,
+    registerSpecialDataTypesAndRulesV20,
+    registerAdditionalRequirementsForDataTypesV20,
     registerStatementResourceRequirementsV20,
     registerDocumentResourcesRequirementsV20,
     registerStateResourceRequirementsV20,
