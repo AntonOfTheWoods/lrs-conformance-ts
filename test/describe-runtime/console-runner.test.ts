@@ -1209,6 +1209,8 @@ function createStoredStatement(statement: Record<string, unknown>, statementId: 
 
   if (typeof storedStatement.timestamp === "string" && isIsoTimestamp(storedStatement.timestamp)) {
     storedStatement.timestamp = normalizeIncomingTimestamp(storedStatement.timestamp);
+  } else if (typeof storedStatement.timestamp === "undefined") {
+    storedStatement.timestamp = storedStatement.stored;
   }
 
   if (typeof storedStatement.authority === "undefined") {
@@ -2611,6 +2613,7 @@ type DocumentResourceOptions = {
   allowSince?: boolean;
   contextKeys: readonly string[];
   idKey: string;
+  requirePutPreconditionHeader?: boolean;
   requiredKeys: readonly string[];
   validateActivityId?: boolean;
   validateAgent?: boolean;
@@ -2795,6 +2798,13 @@ function createDocumentConflictResponse(version: string): Response {
   });
 }
 
+function createDocumentMissingPreconditionResponse(version: string): Response {
+  return new Response("Bad Request: document PUT requires If-Match or If-None-Match.", {
+    status: 400,
+    headers: createMockHeaders(version, "text/plain"),
+  });
+}
+
 function buildStoredDocumentResponse(document: StoredDocument, version: string): Response {
   const headers = new Headers({
     "Content-Type": document.mediaType,
@@ -2868,6 +2878,15 @@ function handleDocumentResource(
   const documentKey = buildDocumentKey(contextKey, documentId);
 
   if (effectiveMethod === "PUT") {
+    if (
+      options.requirePutPreconditionHeader &&
+      !existingDocument &&
+      !request.headers.has("If-Match") &&
+      !request.headers.has("If-None-Match")
+    ) {
+      return createDocumentMissingPreconditionResponse(version);
+    }
+
     if (request.headers.get("If-None-Match") === "*" && existingDocument) {
       return createDocumentPreconditionFailedResponse(version);
     }
@@ -3230,6 +3249,7 @@ function startMockLrs(defaultVersion = "2.0.0") {
           allowSince: true,
           contextKeys: ["agent"],
           idKey: "profileId",
+          requirePutPreconditionHeader: defaultVersion === "1.0.3",
           requiredKeys: ["agent"],
           validateAgent: true,
         });
@@ -3247,6 +3267,7 @@ function startMockLrs(defaultVersion = "2.0.0") {
             allowSince: true,
             contextKeys: ["activityId"],
             idKey: "profileId",
+            requirePutPreconditionHeader: defaultVersion === "1.0.3",
             requiredKeys: ["activityId"],
             validateActivityId: true,
           },
@@ -3296,20 +3317,20 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1460,
-        passed: 1460,
+        total: 1435,
+        passed: 1435,
         failed: 0,
         version: "2.0.0",
       });
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "POST"),
-      ).toHaveLength(1195);
+      ).toHaveLength(1191);
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "PUT"),
       ).toHaveLength(47);
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "GET"),
-      ).toHaveLength(176);
+      ).toHaveLength(177);
       expect(harness.requests.filter((request) => request.version === null)).toHaveLength(10);
       expect(harness.requests.filter((request) => request.version === "BAD")).toHaveLength(2);
       expect(
@@ -3324,8 +3345,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1460,
-        passed: 1460,
+        total: 1435,
+        passed: 1435,
         failed: 0,
         version: "2.0.0",
       });
@@ -3465,7 +3486,7 @@ describe("console runner entrypoint", () => {
         failed: 0,
         version: "1.0.3",
       });
-      expect(harness.requests).toHaveLength(1683);
+      expect(harness.requests).toHaveLength(1673);
       expect(harness.requests.filter((request) => request.version === null)).toHaveLength(12);
       expect(harness.requests.filter((request) => request.version === "BAD")).toHaveLength(2);
       expect(
@@ -3507,15 +3528,15 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Parameters", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1488,
-        passed: 1488,
+        total: 1463,
+        passed: 1463,
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1421);
-      expect(harness.requests.filter((request) => request.path === "/xapi/activities/state")).toHaveLength(171);
-      expect(harness.requests.filter((request) => request.path === "/xapi/agents/profile")).toHaveLength(138);
-      expect(harness.requests.filter((request) => request.path === "/xapi/activities/profile")).toHaveLength(134);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1418);
+      expect(harness.requests.filter((request) => request.path === "/xapi/activities/state")).toHaveLength(144);
+      expect(harness.requests.filter((request) => request.path === "/xapi/agents/profile")).toHaveLength(107);
+      expect(harness.requests.filter((request) => request.path === "/xapi/activities/profile")).toHaveLength(107);
       expect(harness.requests.filter((request) => request.version === null)).toHaveLength(10);
       expect(harness.requests.filter((request) => request.version === "BAD")).toHaveLength(2);
       expect(
@@ -3529,8 +3550,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1488,
-        passed: 1488,
+        total: 1463,
+        passed: 1463,
         failed: 0,
         version: "2.0.0",
       });
@@ -3557,13 +3578,13 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Multiplicity", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1542,
-        passed: 1542,
+        total: 1517,
+        passed: 1517,
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1421);
-      expect(harness.requests.filter((request) => request.path !== "/xapi/statements")).toHaveLength(448);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1418);
+      expect(harness.requests.filter((request) => request.path !== "/xapi/statements")).toHaveLength(363);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-multiplicity-v2.log"), "utf8")) as {
         log: { tests: Array<{ title: string }> };
@@ -3571,8 +3592,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1542,
-        passed: 1542,
+        total: 1517,
+        passed: 1517,
         failed: 0,
         version: "2.0.0",
       });

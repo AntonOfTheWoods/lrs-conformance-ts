@@ -9,5 +9,7 @@ export function registerActivityProfileResourceRequirementsSuite(
 ): void {
   registerSharedActivityProfileResourceRequirementsSuite(runtime, context, {
     includeLastModifiedCases: true,
+    nestPutAcceptance: true,
+    putAcceptancePassTitle: "passes with 204 no content",
   });
 }

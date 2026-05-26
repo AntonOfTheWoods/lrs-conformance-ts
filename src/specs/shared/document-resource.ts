@@ -4,12 +4,18 @@ import type { JsonObject, JsonValue, TemplateLayer } from "../../describe-runtim
 
 type DocumentMethod = "DELETE" | "GET" | "POST" | "PUT";
 type DocumentResourceOptions = {
+  endpointSuitePutWithoutHeaderTitle?: string;
   includeLastModifiedCases?: boolean;
+  nestAcceptanceUnderEndpoint?: boolean;
+  nestPutAcceptance?: boolean;
+  putAcceptancePassTitle?: string;
+  putAcceptanceWithoutHeaderTitle?: string;
 };
 
 type DocumentCase = {
   method: DocumentMethod;
   title: string;
+  childTitle?: string;
 };
 
 type MergeRejectCasesConfig = {
@@ -26,25 +32,31 @@ type ProfileResourceConfig = {
   contextParamKey: "activityId" | "agent";
   deleteAcceptanceTitle: string;
   endpointPath: (context: DescribeRuntimeContext) => string;
+  endpointSuitePutWithoutHeaderTitle?: string;
   endpointTitle: string;
   getAcceptanceTitle: string;
   getByIdTitle: string;
   invalidContextCases?: readonly DocumentCase[];
   invalidJsonTitle: string;
-  invalidTypeTitle: string;
+  invalidTypeTitle?: string;
   mergeRejectCases?: MergeRejectCasesConfig;
   listTitle: string;
   missingContextCases: readonly DocumentCase[];
   missingIdCases: readonly DocumentCase[];
+  nestAcceptanceUnderEndpoint?: boolean;
+  nestPutAcceptance?: boolean;
   postAcceptanceTitle: string;
   postCreatesTitle: string;
   standaloneInvalidJsonObjectContentType?: string;
   standaloneInvalidJsonObjectTitle?: string;
+  putAcceptancePassTitle?: string;
   putAcceptanceTitle: string;
+  putAcceptanceWithoutHeaderTitle?: string;
   sinceCorrespondenceTitle: string;
   sinceTitle: string;
   suiteTitle: string;
   invalidSinceTitle: string;
+  invalidSinceChildTitle?: string;
   mergeTitle: string;
   includeLastModifiedCases?: boolean;
 };
@@ -233,6 +245,42 @@ async function createSinceTimestamp(context: DescribeRuntimeContext): Promise<st
 
 function createInvalidJsonDocument(context: DescribeRuntimeContext): string {
   return `${JSON.stringify(context.buildDocument())}{`;
+}
+
+async function expectSuccessfulProfilePut(
+  context: DescribeRuntimeContext,
+  endpointPath: string,
+  parameters: JsonObject,
+  name: string,
+): Promise<void> {
+  await sendDocumentRequest(context, "PUT", endpointPath, parameters, 204, name, context.buildDocument(), {
+    "If-None-Match": "*",
+  });
+}
+
+async function expectRejectedProfilePutWithoutHeader(
+  context: DescribeRuntimeContext,
+  endpointPath: string,
+  parameters: JsonObject,
+  name: string,
+): Promise<void> {
+  await sendDocumentRequest(context, "PUT", endpointPath, parameters, 400, name, context.buildDocument());
+}
+
+function registerDocumentCase(
+  runtime: DescribeRuntime,
+  title: string,
+  childTitle: string | undefined,
+  fn: () => Promise<void>,
+): void {
+  if (!childTitle) {
+    runtime.it(title, fn);
+    return;
+  }
+
+  runtime.describe(title, () => {
+    runtime.it(childTitle, fn);
+  });
 }
 
 function registerMergeRejectCases(
@@ -578,65 +626,147 @@ function registerProfileResourceRequirementsSuite(
   config: ProfileResourceConfig,
 ): void {
   const endpointPath = config.endpointPath(context);
-  const putHeaders = { "If-None-Match": "*" };
 
   runtime.describe(config.suiteTitle, () => {
-    runtime.it(config.endpointTitle, async () => {
-      const parameters = config.buildParams(context);
-      const document = context.buildDocument();
-      await sendDocumentRequest(context, "POST", endpointPath, parameters, 204, config.endpointTitle, document);
-    });
+    if (config.nestAcceptanceUnderEndpoint) {
+      runtime.describe(config.endpointTitle, () => {
+        runtime.it(config.getAcceptanceTitle, async () => {
+          const parameters = config.buildParams(context);
+          const document = context.buildDocument();
+          await sendDocumentRequest(
+            context,
+            "POST",
+            endpointPath,
+            parameters,
+            204,
+            `${config.getAcceptanceTitle} setup`,
+            document,
+          );
+          await sendDocumentRequest(context, "GET", endpointPath, parameters, 200, config.getAcceptanceTitle);
+        });
 
-    runtime.it(config.putAcceptanceTitle, async () => {
-      const parameters = config.buildParams(context);
-      const document = context.buildDocument();
-      await sendDocumentRequest(
-        context,
-        "PUT",
-        endpointPath,
-        parameters,
-        204,
-        config.putAcceptanceTitle,
-        document,
-        putHeaders,
-      );
-    });
+        runtime.it(config.putAcceptanceTitle, async () => {
+          const parameters = config.buildParams(context);
+          await expectSuccessfulProfilePut(context, endpointPath, parameters, config.putAcceptanceTitle);
+        });
 
-    runtime.it(config.postAcceptanceTitle, async () => {
-      const parameters = config.buildParams(context);
-      const document = context.buildDocument();
-      await sendDocumentRequest(context, "POST", endpointPath, parameters, 204, config.postAcceptanceTitle, document);
-    });
+        if (config.endpointSuitePutWithoutHeaderTitle) {
+          const endpointSuitePutWithoutHeaderTitle = config.endpointSuitePutWithoutHeaderTitle;
+          runtime.it(endpointSuitePutWithoutHeaderTitle, async () => {
+            const parameters = config.buildParams(context);
+            await expectRejectedProfilePutWithoutHeader(
+              context,
+              endpointPath,
+              parameters,
+              endpointSuitePutWithoutHeaderTitle,
+            );
+          });
+        }
 
-    runtime.it(config.deleteAcceptanceTitle, async () => {
-      const parameters = config.buildParams(context);
-      const document = context.buildDocument();
-      await sendDocumentRequest(
-        context,
-        "POST",
-        endpointPath,
-        parameters,
-        204,
-        `${config.deleteAcceptanceTitle} setup`,
-        document,
-      );
-      await sendDocumentRequest(context, "DELETE", endpointPath, parameters, 204, config.deleteAcceptanceTitle);
-    });
+        runtime.it(config.postAcceptanceTitle, async () => {
+          const parameters = config.buildParams(context);
+          const document = context.buildDocument();
+          await sendDocumentRequest(
+            context,
+            "POST",
+            endpointPath,
+            parameters,
+            204,
+            config.postAcceptanceTitle,
+            document,
+          );
+        });
 
-    runtime.it(config.getAcceptanceTitle, async () => {
-      const parameters = config.buildParams(context);
-      const document = context.buildDocument();
-      await sendDocumentRequest(
-        context,
-        "POST",
-        endpointPath,
-        parameters,
-        204,
-        `${config.getAcceptanceTitle} setup`,
-        document,
-      );
-      await sendDocumentRequest(context, "GET", endpointPath, parameters, 200, config.getAcceptanceTitle);
-    });
+        runtime.it(config.deleteAcceptanceTitle, async () => {
+          const parameters = config.buildParams(context);
+          const document = context.buildDocument();
+          await sendDocumentRequest(
+            context,
+            "POST",
+            endpointPath,
+            parameters,
+            204,
+            `${config.deleteAcceptanceTitle} setup`,
+            document,
+          );
+          await sendDocumentRequest(context, "DELETE", endpointPath, parameters, 204, config.deleteAcceptanceTitle);
+        });
+      });
+    } else {
+      runtime.it(config.endpointTitle, async () => {
+        const parameters = config.buildParams(context);
+        const document = context.buildDocument();
+        await sendDocumentRequest(context, "POST", endpointPath, parameters, 204, config.endpointTitle, document);
+      });
+
+      if (config.nestPutAcceptance) {
+        runtime.describe(config.putAcceptanceTitle, () => {
+          runtime.it(config.putAcceptancePassTitle ?? "passes with 204 no content", async () => {
+            const parameters = config.buildParams(context);
+            await expectSuccessfulProfilePut(
+              context,
+              endpointPath,
+              parameters,
+              config.putAcceptancePassTitle ?? config.putAcceptanceTitle,
+            );
+          });
+
+          if (config.putAcceptanceWithoutHeaderTitle) {
+            const putAcceptanceWithoutHeaderTitle = config.putAcceptanceWithoutHeaderTitle;
+            runtime.it(putAcceptanceWithoutHeaderTitle, async () => {
+              const parameters = config.buildParams(context);
+              await expectRejectedProfilePutWithoutHeader(
+                context,
+                endpointPath,
+                parameters,
+                putAcceptanceWithoutHeaderTitle,
+              );
+            });
+          }
+        });
+      } else {
+        runtime.it(config.putAcceptanceTitle, async () => {
+          const parameters = config.buildParams(context);
+          await expectSuccessfulProfilePut(context, endpointPath, parameters, config.putAcceptanceTitle);
+        });
+      }
+
+      runtime.it(config.postAcceptanceTitle, async () => {
+        const parameters = config.buildParams(context);
+        const document = context.buildDocument();
+        await sendDocumentRequest(context, "POST", endpointPath, parameters, 204, config.postAcceptanceTitle, document);
+      });
+
+      runtime.it(config.deleteAcceptanceTitle, async () => {
+        const parameters = config.buildParams(context);
+        const document = context.buildDocument();
+        await sendDocumentRequest(
+          context,
+          "POST",
+          endpointPath,
+          parameters,
+          204,
+          `${config.deleteAcceptanceTitle} setup`,
+          document,
+        );
+        await sendDocumentRequest(context, "DELETE", endpointPath, parameters, 204, config.deleteAcceptanceTitle);
+      });
+
+      runtime.it(config.getAcceptanceTitle, async () => {
+        const parameters = config.buildParams(context);
+        const document = context.buildDocument();
+        await sendDocumentRequest(
+          context,
+          "POST",
+          endpointPath,
+          parameters,
+          204,
+          `${config.getAcceptanceTitle} setup`,
+          document,
+        );
+        await sendDocumentRequest(context, "GET", endpointPath, parameters, 200, config.getAcceptanceTitle);
+      });
+    }
 
     runtime.it(config.getByIdTitle, async () => {
       const parameters = config.buildParams(context);
@@ -660,7 +790,7 @@ function registerProfileResourceRequirementsSuite(
         delete parameters[config.contextParamKey];
         const body =
           invalidCase.method === "GET" || invalidCase.method === "DELETE" ? undefined : context.buildDocument();
-        const headers = invalidCase.method === "PUT" ? putHeaders : undefined;
+        const headers = invalidCase.method === "PUT" ? { "If-None-Match": "*" } : undefined;
         await sendDocumentRequest(
           context,
           invalidCase.method,
@@ -675,12 +805,12 @@ function registerProfileResourceRequirementsSuite(
     }
 
     for (const invalidCase of config.invalidContextCases ?? []) {
-      runtime.it(invalidCase.title, async () => {
+      registerDocumentCase(runtime, invalidCase.title, invalidCase.childTitle, async () => {
         const parameters = config.buildParams(context);
         parameters[config.contextParamKey] = true;
         const body =
           invalidCase.method === "GET" || invalidCase.method === "DELETE" ? undefined : context.buildDocument();
-        const headers = invalidCase.method === "PUT" ? putHeaders : undefined;
+        const headers = invalidCase.method === "PUT" ? { "If-None-Match": "*" } : undefined;
         await sendDocumentRequest(
           context,
           invalidCase.method,
@@ -700,7 +830,7 @@ function registerProfileResourceRequirementsSuite(
         delete parameters.profileId;
         const body =
           invalidCase.method === "GET" || invalidCase.method === "DELETE" ? undefined : context.buildDocument();
-        const headers = invalidCase.method === "PUT" ? putHeaders : undefined;
+        const headers = invalidCase.method === "PUT" ? { "If-None-Match": "*" } : undefined;
         await sendDocumentRequest(
           context,
           invalidCase.method,
@@ -740,7 +870,7 @@ function registerProfileResourceRequirementsSuite(
       }
     });
 
-    runtime.it(config.invalidSinceTitle, async () => {
+    registerDocumentCase(runtime, config.invalidSinceTitle, config.invalidSinceChildTitle, async () => {
       const parameters = omitParameter(config.buildParams(context), "profileId");
       parameters.since = true;
       await sendDocumentRequest(context, "GET", endpointPath, parameters, 400, config.invalidSinceTitle);
@@ -888,8 +1018,10 @@ function registerProfileResourceRequirementsSuite(
       registerMergeRejectCases(runtime, context, endpointPath, config.buildParams, config.mergeRejectCases);
     }
 
-    if (config.mergeRejectCases?.suiteTitle !== config.invalidTypeTitle) {
-      runtime.it(config.invalidTypeTitle, async () => {
+    if (config.invalidTypeTitle && config.mergeRejectCases?.suiteTitle !== config.invalidTypeTitle) {
+      const invalidTypeTitle = config.invalidTypeTitle;
+
+      runtime.it(invalidTypeTitle, async () => {
         const parameters = config.buildParams(context);
         const document = context.buildDocument();
         await sendDocumentRequest(
@@ -898,10 +1030,10 @@ function registerProfileResourceRequirementsSuite(
           endpointPath,
           parameters,
           204,
-          `${config.invalidTypeTitle} setup`,
+          `${invalidTypeTitle} setup`,
           document,
         );
-        await sendDocumentRequest(context, "POST", endpointPath, parameters, 400, config.invalidTypeTitle, "abcdefg", {
+        await sendDocumentRequest(context, "POST", endpointPath, parameters, 400, invalidTypeTitle, "abcdefg", {
           "Content-Type": "application/octet-stream",
         });
 
@@ -909,9 +1041,9 @@ function registerProfileResourceRequirementsSuite(
           context,
           endpointPath,
           parameters,
-          `${config.invalidTypeTitle} fetch`,
+          `${invalidTypeTitle} fetch`,
         );
-        expectJsonEquals(fetchedDocument, document, config.invalidTypeTitle);
+        expectJsonEquals(fetchedDocument, document, invalidTypeTitle);
       });
     }
 
@@ -964,6 +1096,7 @@ export function registerAgentProfileResourceRequirementsSuite(
     deleteAcceptanceTitle:
       "An LRS's Agent Profile Resource upon processing a successful DELETE request deletes the associated profile and returns code 204 No Content (Communication 2.6.s3, XAPI-00271)",
     endpointPath: (currentContext) => currentContext.getEndpointAgentsProfile(),
+    endpointSuitePutWithoutHeaderTitle: options.endpointSuitePutWithoutHeaderTitle,
     endpointTitle:
       'An LRS has an Agent Profile Resource with endpoint "base IRI"+"/agents/profile" (Communication 2.2.s3.table2.row3.a, Communication 2.2.table2.row3.c, XAPI-00282)',
     getAcceptanceTitle: "An LRS's Agent Profile Resource accepts GET requests (Communication 2.6.s2, XAPI-00274)",
@@ -975,6 +1108,7 @@ export function registerAgentProfileResourceRequirementsSuite(
         method: "DELETE",
         title:
           'An LRS\'s Agent Profile Resource rejects a DELETE request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request (format, Communication 2.6.s3.table1.row1, XAPI-00255)',
+        childTitle: 'Should reject DELETE with "agent" with invalid value',
       },
       {
         method: "POST",
@@ -985,19 +1119,20 @@ export function registerAgentProfileResourceRequirementsSuite(
         method: "PUT",
         title:
           'An LRS\'s Agent Profile Resource rejects a PUT request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request (format, Communication 2.6.s3.table1.row1, XAPI-00257)',
+        childTitle: 'Should reject PUT with "agent" with invalid value',
       },
       {
         method: "GET",
         title:
           'An LRS\'s Agent Profile Resource rejects a GET request with "agent" as a parameter if it is a valid, in structure, Agent with error code 400 Bad Request (multiplicity, Communication 2.6.s4.table1.row1, Communication 2.6.s3.table1.row1, XAPI-00258)',
+        childTitle: 'Should reject GET with "agent" with invalid value',
       },
     ],
     invalidJsonTitle:
-      'An LRS must reject with 400 Bad Request a POST request to the Agent Profile Resource which contains name/value pairs with invalid JSON and the Content-Type header is "application/json" (Communication 2.6, XAPI-00284)',
+      'An LRS must reject with 400 Bad Request a POST request to the Activitiy Profile Resource which contains name/value pairs with invalid JSON and the Content-Type header is "application/json" (Communication 2.6, XAPI-00284)',
     invalidSinceTitle:
       'An LRS\'s Agent Profile Resource rejects a GET request with "since" as a parameter if it is not a "TimeStamp", with error code 400 Bad Request (format, Communication 2.6.s4.table1.row2, XAPI-00260)',
-    invalidTypeTitle:
-      "An LRS's Agent Profile Resource, rejects a POST request if the document is found and either document's type is not \"application/json\" with error code 400 Bad Request (multiplicity, Communication 2.3.s3.table1.row3, Communication 2.2.s8.b1, XAPI-00278)",
+    invalidSinceChildTitle: 'Should reject GET with "since" with invalid value',
     mergeRejectCases: {
       suiteTitle:
         'An LRSs Agent Profile Resource, rejects a POST request if the document is found and either documents type is not "application/json" with error code 400 Bad Request (multiplicity, Communication 2.3.s3.table1.row3, Communication 2.2.s8.b1, XAPI-00278)',
@@ -1056,6 +1191,7 @@ export function registerAgentProfileResourceRequirementsSuite(
       "An LRS's Agent Profile Resource upon processing a successful POST request returns code 204 No Content (Communication 2.6.s3, XAPI-00272, XAPI-00283)",
     postCreatesTitle:
       "An LRS's Agent Profile Resource, upon receiving a POST request for a document not currently in the LRS, treats it as a PUT request and store a new document (Communication 2.2.s7, XAPI-00280)",
+    nestAcceptanceUnderEndpoint: options.nestAcceptanceUnderEndpoint,
     standaloneInvalidJsonObjectTitle:
       "An LRS's Agent Profile Resource, rejects a POST request if the document is found and either document is not a valid JSON Object (Communication 2.6, XAPI-00281)",
     putAcceptanceTitle:
@@ -1089,6 +1225,7 @@ export function registerActivityProfileResourceRequirementsSuite(
       'An LRS\'s must reject, with 400 Bad Request, a POST request to the Activity Profile Resource which contains name/value pairs with invalid JSON and the Content-Type header is "application/json" (Communication 2.7.s4.table1.row2, XAPI-00314)',
     invalidSinceTitle:
       'An LRS\'s Activity Profile Resource rejects a GET request with "since" as a parameter if it is not a "TimeStamp", with error code 400 Bad Request (format, Communication 2.7.s4.table1.row2, XAPI-00295)',
+    invalidSinceChildTitle: 'Should reject GET with "since" with invalid value',
     invalidTypeTitle:
       "An LRS's Activity Profile Resource, rejects a POST request if the document is found and either document's type is not \"application/json\" with error code 400 Bad Request (Communication 2.2.s8.b1, XAPI-00309)",
     mergeRejectCases: {
@@ -1106,6 +1243,7 @@ export function registerActivityProfileResourceRequirementsSuite(
       'An LRS\'s Activity Profile Resource upon processing a successful GET request without "profileId" as a parameter returns an array of ids of activity profile documents satisfying the requirements of the GET and code 200 OK (Communication 2.7.s4, XAPI-00289)',
     mergeTitle:
       'An LRS\'s Activity Profile Resource performs a Document Merge if a document is found and both it and the document in the POST request have type "application/json" (Communication 2.2.s7.b1, Communication 2.2.s7.b2, Communication 2.2.s7.b3, XAPI-00308)',
+    nestPutAcceptance: options.nestPutAcceptance,
     missingContextCases: [
       {
         method: "GET",
@@ -1149,8 +1287,10 @@ export function registerActivityProfileResourceRequirementsSuite(
       "An LRS's Activity Profile Resource accepts POST requests (Communication 2.7, XAPI-00286, XAPI-00292, XAPI-00312)",
     postCreatesTitle:
       "An LRS's Activity Profile Resource, upon receiving a POST request for a document not currently in the LRS, treats it as a PUT request and store a new document (Communication 2.2.s7, XAPI-00310)",
+    putAcceptancePassTitle: options.putAcceptancePassTitle,
     putAcceptanceTitle:
       "An LRS's Activity Profile Resource accepts PUT requests (Communication 2.7, XAPI-00287, XAPI-00293)",
+    putAcceptanceWithoutHeaderTitle: options.putAcceptanceWithoutHeaderTitle,
     sinceCorrespondenceTitle:
       'An LRS\'s returned array of ids from a successful GET request to the Activity Profile Resource all refer to documents stored after the TimeStamp in the "since" parameter of the GET request if such a parameter was present (Communication 2.7.s4.table1.row2, XAPI-00294)',
     sinceTitle:
@@ -1314,6 +1454,7 @@ export function registerStateResourceRequirementsSuite(
         title:
           'An LRS\'s State Resource rejects a POST request with "agent" as a parameter if it is not in JSON format with error code 400 Bad Request (format, Communication 2.3.s3.table1.row2, XAPI-00198)',
         missing: false,
+        childTitle: "Should reject POST State with agent invalid value",
       },
       {
         method: "GET" as const,
@@ -1326,6 +1467,7 @@ export function registerStateResourceRequirementsSuite(
         title:
           'An LRS\'s State Resource rejects a GET request with "agent" as a parameter if it is not in JSON format with error code 400 Bad Request (format, Communication 2.3.s3.table1.row2, XAPI-00197)',
         missing: false,
+        childTitle: 'Should reject GET with "agent" with invalid value',
       },
       {
         method: "DELETE" as const,
@@ -1338,9 +1480,10 @@ export function registerStateResourceRequirementsSuite(
         title:
           'An LRS\'s State Resource rejects a DELETE request with "agent" as a parameter if it is not in JSON format with error code 400 Bad Request (format, Communication 2.3.s3.table1.row2, XAPI-00196)',
         missing: false,
+        childTitle: 'Should reject DELETE with "agent" with invalid value',
       },
     ]) {
-      runtime.it(invalidCase.title, async () => {
+      registerDocumentCase(runtime, invalidCase.title, invalidCase.childTitle, async () => {
         const parameters = context.buildState();
         if (invalidCase.missing) {
           delete parameters.agent;
@@ -1416,24 +1559,28 @@ export function registerStateResourceRequirementsSuite(
         method: "PUT" as const,
         title:
           'An LRS\'s State Resource rejects a PUT request with "registration" as a parameter if it is not a UUID with error code 400 Bad Request(format, Communication 2.3.s3.table1.row3, XAPI-00203)',
+        childTitle: 'Should reject PUT with "registration" with invalid value',
       },
       {
         method: "POST" as const,
         title:
           'An LRS\'s State Resource rejects a POST request with "registration" as a parameter if it is not a UUID with error code 400 Bad Request (format, Communication 2.3.s3.table1.row3, XAPI-00202)',
+        childTitle: 'Should reject POST with "registration" with invalid value',
       },
       {
         method: "GET" as const,
         title:
           'An LRS\'s State Resource rejects a GET request with "registration" as a parameter if it is not a UUID with error code 400 Bad Request (format, Communication 2.3.s3.table1.row3, XAPI-00201)',
+        childTitle: 'Should reject GET with "registration" with invalid value',
       },
       {
         method: "DELETE" as const,
         title:
           'An LRS\'s State Resource rejects a DELETE request with "registration" as a parameter if it is not a UUID with error code 400 Bad Request (format, Communication 2.3.s3.table1.row3, XAPI-00200)',
+        childTitle: 'Should reject DELETE with "registration" with invalid value',
       },
     ]) {
-      runtime.it(invalidCase.title, async () => {
+      registerDocumentCase(runtime, invalidCase.title, invalidCase.childTitle, async () => {
         const parameters = context.buildState();
         parameters.registration = true;
         const body =

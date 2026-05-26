@@ -148,6 +148,83 @@ describe("describe runtime core", () => {
     });
   });
 
+  test("counts a failing before hook as a failed run and cancels descendant cases", async () => {
+    const steps: string[] = [];
+    const runtime = createDescribeRuntime({
+      rootTitle: "xAPI 2.0.0",
+      version: "2.0.0",
+    });
+
+    runtime.before(() => {
+      steps.push("root before");
+      throw new Error("setup failed");
+    });
+
+    runtime.describe("Formatting Requirements", () => {
+      runtime.it("first test", () => {
+        steps.push("first test");
+      });
+
+      runtime.it("second test", () => {
+        steps.push("second test");
+      });
+    });
+
+    const result = await runtime.run();
+
+    expect(steps).toEqual(["root before"]);
+    expect(result.summary).toEqual({
+      total: 2,
+      passed: 0,
+      failed: 1,
+      skipped: 0,
+      cancelled: 2,
+      version: "2.0.0",
+    });
+    expect(result.root).toEqual({
+      kind: "suite",
+      title: "xAPI 2.0.0",
+      name: "xAPI 2.0.0",
+      requirement: "",
+      status: "failed",
+      error: "Error: setup failed",
+      log: [],
+      children: [
+        {
+          kind: "suite",
+          title: "Formatting Requirements",
+          name: "Formatting Requirements",
+          requirement: "",
+          status: "cancelled",
+          error: undefined,
+          log: [],
+          children: [
+            {
+              kind: "case",
+              title: "first test",
+              name: "first test",
+              requirement: "",
+              status: "cancelled",
+              error: undefined,
+              log: [],
+              children: [],
+            },
+            {
+              kind: "case",
+              title: "second test",
+              name: "second test",
+              requirement: "",
+              status: "cancelled",
+              error: undefined,
+              log: [],
+              children: [],
+            },
+          ],
+        },
+      ],
+    });
+  });
+
   test("filters registered cases by grep against full titles", async () => {
     const steps: string[] = [];
     const runtime = createDescribeRuntime({

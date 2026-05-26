@@ -5,6 +5,7 @@ import { registerContentTypeRequirementsSuite as registerSharedContentTypeRequir
 
 export function registerContentTypeRequirementsSuite(runtime: DescribeRuntime, context: DescribeRuntimeContext): void {
   registerSharedContentTypeRequirementsSuite(runtime, context, {
+    includeDuplicateFileUrlJsonCase: true,
     includeMultipartWithoutAttachmentsCases: true,
   });
 }

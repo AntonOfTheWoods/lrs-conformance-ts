@@ -7,5 +7,9 @@ export function registerActivityProfileResourceRequirementsSuite(
   runtime: DescribeRuntime,
   context: DescribeRuntimeContext,
 ): void {
-  registerSharedActivityProfileResourceRequirementsSuite(runtime, context);
+  registerSharedActivityProfileResourceRequirementsSuite(runtime, context, {
+    nestPutAcceptance: true,
+    putAcceptancePassTitle: "passes with 204 no content",
+    putAcceptanceWithoutHeaderTitle: "fails without ETag header",
+  });
 }

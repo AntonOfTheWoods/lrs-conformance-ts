@@ -18,6 +18,10 @@ To run the new Bun-native describe runtime slice against an LRS endpoint:
 bun run describe:run -- --endpoint http://localhost:8000/xapi
 ```
 
+When the endpoint is the local LRSQL instance at `http://localhost:8080/xapi`, `describe:run`
+now auto-detects version-mode mismatches and resets LRSQL into the required `1.0.3` or
+`2.0.0` mode before executing the suite.
+
 The current rewrite slice registers the first config-driven cases from `Data2.2-FormattingRequirements.ts`
 for both `v1_0_3` and `v2_0`, and writes an upstream-shaped JSON run log to `logs/<uuid>.log`.
 

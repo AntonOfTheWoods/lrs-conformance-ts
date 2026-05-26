@@ -7,5 +7,7 @@ export function registerStatementResourceRequirementsSuite(
   runtime: DescribeRuntime,
   context: DescribeRuntimeContext,
 ): void {
-  registerSharedStatementResourceRequirementsSuite(runtime, context);
+  registerSharedStatementResourceRequirementsSuite(runtime, context, {
+    includeLegacyStatementResultAttachmentCases: true,
+  });
 }

@@ -317,6 +317,7 @@ async function executeSuite(
     try {
       await runRunnable(hook.fn);
     } catch (error) {
+      state.summary.failed += 1;
       result.status = "failed";
       result.error = toErrorMessage(error);
 

@@ -297,7 +297,12 @@ export function createDescribeRuntimeContext(
       });
 
       if (postResponse.status !== 200) {
-        throw new Error(`Unable to establish time margin: expected 200 but received ${postResponse.status}.`);
+        const responseDetail = postResponse.bodyText.trim();
+        throw new Error(
+          responseDetail.length > 0
+            ? `Unable to establish time margin: expected 200 but received ${postResponse.status}. Response: ${responseDetail}`
+            : `Unable to establish time margin: expected 200 but received ${postResponse.status}.`,
+        );
       }
 
       const deadline = Date.now() + 15_000;

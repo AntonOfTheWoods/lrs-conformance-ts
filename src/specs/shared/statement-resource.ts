@@ -15,7 +15,9 @@ type QueryCase = {
 };
 
 type StatementResourceOptions = {
+  includeLegacyStatementResultAttachmentCases?: boolean;
   includeV2DuplicateBatchIdCase?: boolean;
+  includeV2SupplementalCases?: boolean;
   includeV2LastModifiedCase?: boolean;
 };
 
@@ -1024,94 +1026,229 @@ export function registerStatementResourceRequirementsSuite(
             }
           });
         }
+
+        if (options.includeLegacyStatementResultAttachmentCases) {
+          runtime.it(
+            'should return multipart response format StatementResult using GET with "attachments" parameter as true',
+            async () => {
+              const { statementId } = await persistStatementWithAttachments(context, { twoAttachments: true });
+              const response = await fetchStatements(context, "GET collection with attachments=true", {
+                attachments: true,
+              });
+              if (response.status !== 200) {
+                throw new Error(
+                  `Expected GET collection with attachments=true to return 200 but received ${response.status}.`,
+                );
+              }
+
+              const parts = expectMultipartResponse(response, "GET collection with attachments=true");
+              const result = parseJsonObjectText(parts[0]?.bodyText ?? "", "GET collection with attachments=true JSON");
+              findStatementById(result, statementId, "GET collection with attachments=true JSON");
+            },
+          );
+
+          runtime.it(
+            'should not return multipart response format using GET with "attachments" parameter as false',
+            async () => {
+              await persistStatementWithAttachments(context, { twoAttachments: true });
+              const response = await fetchStatements(context, "GET collection with attachments=false", {
+                attachments: false,
+              });
+              if (response.status !== 200) {
+                throw new Error(
+                  `Expected GET collection with attachments=false to return 200 but received ${response.status}.`,
+                );
+              }
+
+              const contentType = response.headers.get("content-type") ?? "";
+              if (!contentType.startsWith("application/json")) {
+                throw new Error("Expected attachments=false collection GET to return application/json.");
+              }
+
+              parseJsonObject(response, "GET collection with attachments=false");
+            },
+          );
+        }
       },
     );
 
-    runtime.describe("GET parameter acceptance (Communication 2.1.3.s1.table1)", () => {
-      runtime.it('should process using GET with "statementId"', async () => {
-        const statement = await createStatement(context, [{ statement: "{{statements.default}}" }]);
-        const statementId = context.generateUuid();
-        statement.id = statementId;
-        await postStatement(context, statement, 200, "persist statement for GET statementId parameter");
+    const getParameterAcceptanceCases: Array<{
+      suiteTitle: string;
+      title: string;
+      run: () => Promise<void>;
+    }> = [
+      {
+        suiteTitle:
+          'An LRS\'s Statement Resource can process a GET request with "statementId" as a parameter (Communication 2.1.3.s1.table1.row1, XAPI-00158)',
+        title: 'should process using GET with "statementId"',
+        run: async () => {
+          const statement = await createStatement(context, [{ statement: "{{statements.default}}" }]);
+          const statementId = context.generateUuid();
+          statement.id = statementId;
+          await postStatement(context, statement, 200, "persist statement for GET statementId parameter");
 
-        const response = await fetchStatement(context, "statementId", statementId, 200, "GET statementId parameter");
-        if (response.status !== 200) {
-          throw new Error(`Expected GET with statementId to return 200 but received ${response.status}.`);
-        }
-      });
-
-      runtime.it('should process using GET with "voidedStatementId"', async () => {
-        const { voidedId } = await persistVoidedAndVoidingStatements(context);
-        const response = await fetchStatement(
-          context,
-          "voidedStatementId",
-          voidedId,
-          200,
-          "GET voidedStatementId parameter",
-        );
-        if (response.status !== 200) {
-          throw new Error(`Expected GET with voidedStatementId to return 200 but received ${response.status}.`);
-        }
-      });
-
-      const queryCaseBuilders: Array<{
-        createQuery: (fixture: Awaited<ReturnType<typeof persistCollectionQueryFixture>>) => Record<string, unknown>;
-        title: string;
-      }> = [
-        {
-          title: 'should process using GET with "agent"',
-          createQuery: (fixture) => ({ agent: fixture.statement.actor }),
-        },
-        {
-          title: 'should process using GET with "verb"',
-          createQuery: (fixture) => ({ verb: expectObjectProperty(fixture.statement, "verb", "fixture verb").id }),
-        },
-        {
-          title: 'should process using GET with "activity"',
-          createQuery: (fixture) => ({
-            activity: expectObjectProperty(fixture.statement, "object", "fixture object").id,
-          }),
-        },
-        {
-          title: 'should process using GET with "registration"',
-          createQuery: (fixture) => ({ registration: fixture.registration }),
-        },
-        {
-          title: 'should process using GET with "related_activities"',
-          createQuery: (fixture) => ({ activity: fixture.categoryId, related_activities: true }),
-        },
-        {
-          title: 'should process using GET with "related_agents"',
-          createQuery: (fixture) => ({ agent: fixture.instructor, related_agents: true }),
-        },
-        {
-          title: 'should process using GET with "since"',
-          createQuery: () => ({ since: "2012-06-01T19:09:13.245Z" }),
-        },
-        {
-          title: 'should process using GET with "until"',
-          createQuery: () => ({ until: "2100-06-01T19:09:13.245Z" }),
-        },
-        {
-          title: 'should process using GET with "limit"',
-          createQuery: () => ({ limit: 1 }),
-        },
-        {
-          title: 'should process using GET with "ascending"',
-          createQuery: () => ({ ascending: true }),
-        },
-      ];
-
-      for (const queryCase of queryCaseBuilders) {
-        runtime.it(queryCase.title, async () => {
-          const fixture = await persistCollectionQueryFixture(context);
-          const response = await fetchStatements(context, queryCase.title, queryCase.createQuery(fixture));
-          if (response.status !== 200) {
-            throw new Error(`Expected ${queryCase.title} to return 200 but received ${response.status}.`);
+          const response = await fetchStatement(context, "statementId", statementId, 200, "GET statementId parameter");
+          const retrieved = parseJsonObject(response, "GET statementId parameter");
+          if (retrieved.id !== statementId) {
+            throw new Error("Expected GET with statementId to return the requested statement.");
           }
-        });
-      }
-    });
+        },
+      },
+      {
+        suiteTitle:
+          'An LRS\'s Statement Resource can process a GET request with "voidedStatementId" as a parameter  (Communication 2.1.3.s1.table1.row2, XAPI-00157)',
+        title: 'should process using GET with "voidedStatementId"',
+        run: async () => {
+          const { voidedId } = await persistVoidedAndVoidingStatements(context);
+          const response = await fetchStatement(
+            context,
+            "voidedStatementId",
+            voidedId,
+            200,
+            "GET voidedStatementId parameter",
+          );
+          const retrieved = parseJsonObject(response, "GET voidedStatementId parameter");
+          if (retrieved.id !== voidedId) {
+            throw new Error("Expected GET with voidedStatementId to return the requested voided statement.");
+          }
+        },
+      },
+      {
+        suiteTitle:
+          'An LRS\'s Statement Resource can process a GET request with "agent" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row3, XAPI-00181)',
+        title: 'should process using GET with "agent"',
+        run: async () => {
+          const agent = await createTemplateObject(context, "agent", "{{agents.default}}");
+          const response = await fetchStatements(context, 'GET with "agent" parameter', { agent });
+          if (response.status !== 200) {
+            throw new Error(`Expected GET with agent to return 200 but received ${response.status}.`);
+          }
+        },
+      },
+      {
+        suiteTitle:
+          'An LRS\'s Statement Resource can process a GET request with "verb" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row4, XAPI-00180)',
+        title: 'should process using GET with "verb"',
+        run: async () => {
+          const response = await fetchStatements(context, 'GET with "verb" parameter', {
+            verb: "http://adlnet.gov/expapi/non/existent",
+          });
+          if (response.status !== 200) {
+            throw new Error(`Expected GET with verb to return 200 but received ${response.status}.`);
+          }
+        },
+      },
+      {
+        suiteTitle:
+          'An LRS\'s Statement Resource can process a GET request with "activity" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row5, XAPI-00179)',
+        title: 'should process using GET with "activity"',
+        run: async () => {
+          const response = await fetchStatements(context, 'GET with "activity" parameter', {
+            activity: "http://www.example.com/meetings/occurances/12345",
+          });
+          if (response.status !== 200) {
+            throw new Error(`Expected GET with activity to return 200 but received ${response.status}.`);
+          }
+        },
+      },
+      {
+        suiteTitle:
+          'An LRS\'s Statement Resource can process a GET request with "registration" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row6, XAPI-00178)',
+        title: 'should process using GET with "registration"',
+        run: async () => {
+          const response = await fetchStatements(context, 'GET with "registration" parameter', {
+            registration: context.generateUuid(),
+          });
+          if (response.status !== 200) {
+            throw new Error(`Expected GET with registration to return 200 but received ${response.status}.`);
+          }
+        },
+      },
+      {
+        suiteTitle:
+          'An LRS\'s Statement Resource can process a GET request with "related_activities" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row7)',
+        title: 'should process using GET with "related_activities"',
+        run: async () => {
+          const fixture = await persistCollectionQueryFixture(context);
+          const response = await fetchStatements(context, 'GET with "related_activities" parameter', {
+            activity: fixture.categoryId,
+            related_activities: true,
+          });
+          if (response.status !== 200) {
+            throw new Error(`Expected GET with related_activities to return 200 but received ${response.status}.`);
+          }
+        },
+      },
+      {
+        suiteTitle:
+          'An LRS\'s Statement Resource can process a GET request with "related_agents" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row8, XAPI-00176)',
+        title: 'should process using GET with "related_agents"',
+        run: async () => {
+          const fixture = await persistCollectionQueryFixture(context);
+          const response = await fetchStatements(context, 'GET with "related_agents" parameter', {
+            agent: fixture.instructor,
+            related_agents: true,
+          });
+          if (response.status !== 200) {
+            throw new Error(`Expected GET with related_agents to return 200 but received ${response.status}.`);
+          }
+        },
+      },
+      {
+        suiteTitle:
+          'An LRS\'s Statement Resource can process a GET request with "since" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row9, XAPI-00175)',
+        title: 'should process using GET with "since"',
+        run: async () => {
+          const response = await fetchStatements(context, 'GET with "since" parameter', {
+            since: "2012-06-01T19:09:13.245Z",
+          });
+          if (response.status !== 200) {
+            throw new Error(`Expected GET with since to return 200 but received ${response.status}.`);
+          }
+        },
+      },
+      {
+        suiteTitle:
+          'An LRS\'s Statement Resource can process a GET request with "until" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row10, XAPI-00174)',
+        title: 'should process using GET with "until"',
+        run: async () => {
+          const response = await fetchStatements(context, 'GET with "until" parameter', {
+            until: "2012-06-01T19:09:13.245Z",
+          });
+          if (response.status !== 200) {
+            throw new Error(`Expected GET with until to return 200 but received ${response.status}.`);
+          }
+        },
+      },
+      {
+        suiteTitle:
+          'An LRS\'s Statement Resource can process a GET request with "limit" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row11, XAPI-00173)',
+        title: 'should process using GET with "limit"',
+        run: async () => {
+          const response = await fetchStatements(context, 'GET with "limit" parameter', { limit: 1 });
+          if (response.status !== 200) {
+            throw new Error(`Expected GET with limit to return 200 but received ${response.status}.`);
+          }
+        },
+      },
+      {
+        suiteTitle:
+          'An LRS\'s Statement Resource can process a GET request with "ascending" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row14, XAPI-00166)',
+        title: 'should process using GET with "ascending"',
+        run: async () => {
+          const response = await fetchStatements(context, 'GET with "ascending" parameter', { ascending: true });
+          if (response.status !== 200) {
+            throw new Error(`Expected GET with ascending to return 200 but received ${response.status}.`);
+          }
+        },
+      },
+    ];
+
+    for (const queryCase of getParameterAcceptanceCases) {
+      runtime.describe(queryCase.suiteTitle, () => {
+        runtime.it(queryCase.title, queryCase.run);
+      });
+    }
 
     runtime.describe(
       'An LRS\'s Statement Resource can process a GET request with "format" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row12)',
@@ -1558,46 +1695,48 @@ export function registerStatementResourceRequirementsSuite(
     runtime.describe(
       'An LRS\'s Statement Resource can process a GET request with "attachments" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row13, XAPI-00167)',
       () => {
-        runtime.it(
-          'should return multipart response format StatementResult using GET with "attachments" parameter as true',
-          async () => {
-            const { statementId } = await persistStatementWithAttachments(context, { twoAttachments: true });
-            const response = await fetchStatements(context, "GET collection with attachments=true", {
-              attachments: true,
-            });
-            if (response.status !== 200) {
-              throw new Error(
-                `Expected GET collection with attachments=true to return 200 but received ${response.status}.`,
-              );
-            }
+        if (!options.includeLegacyStatementResultAttachmentCases) {
+          runtime.it(
+            'should return multipart response format StatementResult using GET with "attachments" parameter as true',
+            async () => {
+              const { statementId } = await persistStatementWithAttachments(context, { twoAttachments: true });
+              const response = await fetchStatements(context, "GET collection with attachments=true", {
+                attachments: true,
+              });
+              if (response.status !== 200) {
+                throw new Error(
+                  `Expected GET collection with attachments=true to return 200 but received ${response.status}.`,
+                );
+              }
 
-            const parts = expectMultipartResponse(response, "GET collection with attachments=true");
-            const result = parseJsonObjectText(parts[0]?.bodyText ?? "", "GET collection with attachments=true JSON");
-            findStatementById(result, statementId, "GET collection with attachments=true JSON");
-          },
-        );
+              const parts = expectMultipartResponse(response, "GET collection with attachments=true");
+              const result = parseJsonObjectText(parts[0]?.bodyText ?? "", "GET collection with attachments=true JSON");
+              findStatementById(result, statementId, "GET collection with attachments=true JSON");
+            },
+          );
 
-        runtime.it(
-          'should not return multipart response format using GET with "attachments" parameter as false',
-          async () => {
-            await persistStatementWithAttachments(context, { twoAttachments: true });
-            const response = await fetchStatements(context, "GET collection with attachments=false", {
-              attachments: false,
-            });
-            if (response.status !== 200) {
-              throw new Error(
-                `Expected GET collection with attachments=false to return 200 but received ${response.status}.`,
-              );
-            }
+          runtime.it(
+            'should not return multipart response format using GET with "attachments" parameter as false',
+            async () => {
+              await persistStatementWithAttachments(context, { twoAttachments: true });
+              const response = await fetchStatements(context, "GET collection with attachments=false", {
+                attachments: false,
+              });
+              if (response.status !== 200) {
+                throw new Error(
+                  `Expected GET collection with attachments=false to return 200 but received ${response.status}.`,
+                );
+              }
 
-            const contentType = response.headers.get("content-type") ?? "";
-            if (!contentType.startsWith("application/json")) {
-              throw new Error("Expected attachments=false collection GET to return application/json.");
-            }
+              const contentType = response.headers.get("content-type") ?? "";
+              if (!contentType.startsWith("application/json")) {
+                throw new Error("Expected attachments=false collection GET to return application/json.");
+              }
 
-            parseJsonObject(response, "GET collection with attachments=false");
-          },
-        );
+              parseJsonObject(response, "GET collection with attachments=false");
+            },
+          );
+        }
 
         runtime.it('should process using GET with "attachments"', async () => {
           const { attachments, statementId } = await persistStatementWithAttachments(context, { twoAttachments: true });
@@ -1630,6 +1769,64 @@ export function registerStatementResourceRequirementsSuite(
         });
       },
     );
+
+    if (options.includeV2SupplementalCases) {
+      runtime.describe(
+        "An LRS's Statement Resource rejects with error code 400 a GET request with additional properties than extensions in the locations where extensions are allowed",
+        () => {
+          runtime.it("should fail when using property not defined in specification", async () => {
+            const statement = await createStatement(context, [{ statement: "{{statements.default}}" }]);
+            statement.dummy = "dummy";
+            await postStatement(context, statement, 400, "statement with property not defined in specification");
+          });
+        },
+      );
+
+      runtime.describe(
+        'The LRS shall set the "timestamp" property to the value of the "stored" property if not provided.',
+        () => {
+          runtime.it(
+            'should set timestamp property to equal "stored" value if retrieved statement does not have its own timestamp',
+            async () => {
+              const statement = await createStatement(context, [{ statement: "{{statements.default}}" }]);
+              const statementId = context.generateUuid();
+              statement.id = statementId;
+              delete statement.timestamp;
+
+              await postStatement(context, statement, 200, "persist statement without timestamp");
+
+              const response = await fetchStatement(
+                context,
+                "statementId",
+                statementId,
+                200,
+                "GET statement without timestamp",
+              );
+              const retrieved = parseJsonObject(response, "GET statement without timestamp");
+              if (retrieved.timestamp !== retrieved.stored) {
+                throw new Error(
+                  "Expected a retrieved statement without an explicit timestamp to use the stored value.",
+                );
+              }
+            },
+          );
+        },
+      );
+
+      runtime.describe(
+        "The LRS shall not reject a timestamp for having a greater value than the current time, within an acceptable margin of error",
+        () => {
+          runtime.it("accepts statements with greater value than current time", async () => {
+            const statement = await createStatement(context, [{ statement: "{{statements.default}}" }]);
+            const futureTimestamp = new Date(Date.now() + 5 * 60_000).toISOString();
+            statement.id = context.generateUuid();
+            statement.timestamp = futureTimestamp;
+
+            await postStatement(context, statement, 200, "persist statement with future timestamp");
+          });
+        },
+      );
+    }
 
     runtime.describe(
       'An LRSs Statement Resource does not return attachment data and only returns application/json if the "attachment" parameter set to "false" (Communication 2.1.3.s1.b1, XAPI-00161)',

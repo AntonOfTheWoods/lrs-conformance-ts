@@ -20,6 +20,7 @@ type MultipartSection = {
 };
 
 type ContentTypeSuiteOptions = {
+  includeDuplicateFileUrlJsonCase?: boolean;
   includeMultipartWithoutAttachmentsCases?: boolean;
 };
 
@@ -278,22 +279,35 @@ export function registerContentTypeRequirementsSuite(
     runtime.describe(
       'An LRS rejects with error code 400 Bad Request, a Request which uses Attachments and does not have a "Content-Type" header with value "application/json" or "multipart/mixed" (Format, Data 2.4.11, XAPI-00127)',
       () => {
+        const expectFileUrlJsonSuccess = async (name: string): Promise<void> => {
+          const attachment = loadAttachmentFixture(context, "simple_text1.txt");
+          const statement = await createStatementWithAttachments(context, [attachment], name);
+          const attachments = expectJsonArray(statement.attachments, `${name} attachments`);
+          const firstAttachment = expectJsonObject(attachments[0], `${name} attachment`);
+          firstAttachment.fileUrl = "http://over.there.com/file.txt";
+
+          await sendStatementRequest(context, {
+            body: statement,
+            expectedStatus: 200,
+            name,
+          });
+        };
+
         runtime.it(
           'should succeed when attachment uses "fileUrl" and request content-type is "application/json"',
           async () => {
-            const attachment = loadAttachmentFixture(context, "simple_text1.txt");
-            const statement = await createStatementWithAttachments(context, [attachment], "fileUrl JSON statement");
-            const attachments = expectJsonArray(statement.attachments, "fileUrl JSON attachments");
-            const firstAttachment = expectJsonObject(attachments[0], "fileUrl JSON attachment");
-            firstAttachment.fileUrl = "http://over.there.com/file.txt";
-
-            await sendStatementRequest(context, {
-              body: statement,
-              expectedStatus: 200,
-              name: "fileUrl JSON statement",
-            });
+            await expectFileUrlJsonSuccess("fileUrl JSON statement");
           },
         );
+
+        if (options.includeDuplicateFileUrlJsonCase) {
+          runtime.it(
+            'should succeed when attachment uses "fileUrl" and request content-type is "application/json"',
+            async () => {
+              await expectFileUrlJsonSuccess("fileUrl JSON statement duplicate");
+            },
+          );
+        }
 
         runtime.it(
           'should fail when attachment uses "fileUrl" and request content-type is "multipart/form-data"',

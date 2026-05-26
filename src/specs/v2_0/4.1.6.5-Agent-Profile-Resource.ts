@@ -9,5 +9,6 @@ export function registerAgentProfileResourceRequirementsSuite(
 ): void {
   registerSharedAgentProfileResourceRequirementsSuite(runtime, context, {
     includeLastModifiedCases: true,
+    nestAcceptanceUnderEndpoint: true,
   });
 }

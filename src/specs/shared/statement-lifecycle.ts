@@ -265,7 +265,7 @@ export function registerStatementLifecycleRequirementsSuite(
       runtime.describe(
         "An LRS SHALL NOT reject a voided statement because it cannot find the ID of the Object of that statement, nor does the LRS have to try to find it. (4.2.4.1 LRS Rejection Cases, XAPI-00016)",
         () => {
-          runtime.it("shall not reject a voided statement", async () => {
+          runtime.it("Shall not reject a voided statement.", async () => {
             const statement = await createStatement(context, [
               { statement: "{{statements.object_statementref}}" },
               { verb: createVoidedVerb() },

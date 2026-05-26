@@ -603,101 +603,109 @@ function registerResourceConcurrencySuite(
       );
     }
 
-    runtime.describe(
-      "When responding to a PUT request, must handle the If-Match header as described in RFC 2616, HTTP/1.1 if it contains an ETag",
-      () => {
-        runtime.it(
-          "Should reject a PUT request with a 412 Precondition Failed when using an incorrect ETag",
-          async () => {
+    if (!options.includeV2IfMatchTree) {
+      runtime.describe(
+        "When responding to a PUT request, must handle the If-Match header as described in RFC 2616, HTTP/1.1 if it contains an ETag",
+        () => {
+          runtime.it(
+            "Should reject a PUT request with a 412 Precondition Failed when using an incorrect ETag",
+            async () => {
+              const parameters = resource.buildParams(context);
+              const document = context.buildDocument();
+
+              await createDocument(
+                context,
+                resource,
+                parameters,
+                `${resource.name} PUT If-Match reject setup`,
+                document,
+              );
+
+              await sendDocumentRequest(
+                context,
+                "PUT",
+                resource.path(context),
+                parameters,
+                412,
+                `${resource.name} PUT incorrect If-Match`,
+                createUpdatedDocument(document, context.generateUuid()),
+                { "If-Match": '"1234"' },
+              );
+            },
+          );
+
+          runtime.it("Should not have modified the document for PUT requests with an incorrect ETag", async () => {
             const parameters = resource.buildParams(context);
             const document = context.buildDocument();
 
-            await createDocument(context, resource, parameters, `${resource.name} PUT If-Match reject setup`, document);
-
+            await createDocument(
+              context,
+              resource,
+              parameters,
+              `${resource.name} PUT If-Match unchanged setup`,
+              document,
+            );
             await sendDocumentRequest(
               context,
               "PUT",
               resource.path(context),
               parameters,
               412,
-              `${resource.name} PUT incorrect If-Match`,
+              `${resource.name} PUT incorrect If-Match unchanged`,
               createUpdatedDocument(document, context.generateUuid()),
               { "If-Match": '"1234"' },
             );
-          },
-        );
 
-        runtime.it("Should not have modified the document for PUT requests with an incorrect ETag", async () => {
-          const parameters = resource.buildParams(context);
-          const document = context.buildDocument();
+            const fetchedDocument = await fetchDocumentObject(
+              context,
+              resource,
+              parameters,
+              `${resource.name} PUT incorrect If-Match fetch`,
+            );
+            expectJsonEquals(fetchedDocument, document, `${resource.name} PUT incorrect If-Match unchanged`);
+          });
 
-          await createDocument(
-            context,
-            resource,
-            parameters,
-            `${resource.name} PUT If-Match unchanged setup`,
-            document,
-          );
-          await sendDocumentRequest(
-            context,
-            "PUT",
-            resource.path(context),
-            parameters,
-            412,
-            `${resource.name} PUT incorrect If-Match unchanged`,
-            createUpdatedDocument(document, context.generateUuid()),
-            { "If-Match": '"1234"' },
-          );
+          runtime.it("Should accept a PUT request with a correct ETag", async () => {
+            const parameters = resource.buildParams(context);
+            const document = context.buildDocument();
+            const updatedDocument = createUpdatedDocument(document, context.generateUuid());
 
-          const fetchedDocument = await fetchDocumentObject(
-            context,
-            resource,
-            parameters,
-            `${resource.name} PUT incorrect If-Match fetch`,
-          );
-          expectJsonEquals(fetchedDocument, document, `${resource.name} PUT incorrect If-Match unchanged`);
-        });
+            await createDocument(context, resource, parameters, `${resource.name} PUT If-Match accept setup`, document);
 
-        runtime.it("Should accept a PUT request with a correct ETag", async () => {
-          const parameters = resource.buildParams(context);
-          const document = context.buildDocument();
-          const updatedDocument = createUpdatedDocument(document, context.generateUuid());
+            const getResponse = await sendDocumentRequest(
+              context,
+              "GET",
+              resource.path(context),
+              parameters,
+              200,
+              `${resource.name} PUT correct If-Match GET`,
+            );
+            const etag = expectEtag(getResponse, options.etagPattern, `${resource.name} PUT correct If-Match GET`);
 
-          await createDocument(context, resource, parameters, `${resource.name} PUT If-Match accept setup`, document);
+            await sendDocumentRequest(
+              context,
+              "PUT",
+              resource.path(context),
+              parameters,
+              204,
+              `${resource.name} PUT correct If-Match`,
+              updatedDocument,
+              { "If-Match": etag },
+            );
 
-          const getResponse = await sendDocumentRequest(
-            context,
-            "GET",
-            resource.path(context),
-            parameters,
-            200,
-            `${resource.name} PUT correct If-Match GET`,
-          );
-          const etag = expectEtag(getResponse, options.etagPattern, `${resource.name} PUT correct If-Match GET`);
+            const fetchedDocument = await fetchDocumentObject(
+              context,
+              resource,
+              parameters,
+              `${resource.name} PUT correct If-Match fetch`,
+            );
+            expectJsonEquals(fetchedDocument, updatedDocument, `${resource.name} PUT correct If-Match`);
+          });
+        },
+      );
+    }
 
-          await sendDocumentRequest(
-            context,
-            "PUT",
-            resource.path(context),
-            parameters,
-            204,
-            `${resource.name} PUT correct If-Match`,
-            updatedDocument,
-            { "If-Match": etag },
-          );
-
-          const fetchedDocument = await fetchDocumentObject(
-            context,
-            resource,
-            parameters,
-            `${resource.name} PUT correct If-Match fetch`,
-          );
-          expectJsonEquals(fetchedDocument, updatedDocument, `${resource.name} PUT correct If-Match`);
-        });
-      },
-    );
-
-    if (options.includeIfMatchPostAndDeleteCases) {
+    if (options.includeIfMatchPostAndDeleteCases && !options.includeV2IfMatchTree) {
       runtime.describe(
         "When responding to a POST request, must handle the If-Match header as described in RFC 2616, HTTP/1.1 if it contains an ETag",
         () => {

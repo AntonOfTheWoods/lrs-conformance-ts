@@ -103,7 +103,7 @@ export function registerRetrievalOfStatementsSuite(runtime: DescribeRuntime, con
     runtime.describe(
       'An LRS\'s Statement API, upon processing a successful GET request, will return a single "statements" property and a single "more" property. (Data 2.5.s2.table1, XAPI-00113)',
       () => {
-        runtime.it("will return single statements property and may return more", async () => {
+        runtime.it("will return single statements property and may return", async () => {
           await persistTwoDefaultStatements(context);
           const result = await fetchCollection(context, "XAPI-00113", { limit: 1 });
 

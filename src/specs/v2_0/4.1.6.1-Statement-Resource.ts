@@ -10,5 +10,6 @@ export function registerStatementResourceRequirementsSuite(
   registerSharedStatementResourceRequirementsSuite(runtime, context, {
     includeV2DuplicateBatchIdCase: true,
     includeV2LastModifiedCase: true,
+    includeV2SupplementalCases: true,
   });
 }
