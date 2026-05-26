@@ -3048,20 +3048,20 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1268,
-        passed: 1268,
+        total: 1271,
+        passed: 1271,
         failed: 0,
         version: "2.0.0",
       });
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "POST"),
-      ).toHaveLength(1073);
+      ).toHaveLength(1074);
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "PUT"),
       ).toHaveLength(23);
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "GET"),
-      ).toHaveLength(170);
+      ).toHaveLength(171);
       expect(harness.requests.filter((request) => request.version === null)).toHaveLength(10);
       expect(harness.requests.filter((request) => request.version === "BAD")).toHaveLength(2);
       expect(
@@ -3076,8 +3076,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1268,
-        passed: 1268,
+        total: 1271,
+        passed: 1271,
         failed: 0,
         version: "2.0.0",
       });
@@ -3099,6 +3099,7 @@ describe("console runner entrypoint", () => {
         "Statement Lifecycle Requirements (Data 2.3)",
         "Retrieval of Statements (Data 2.5)",
         "Statement Resource Requirements (Communication 2.1)",
+        "Document Resource Requirements (Communication 2.2)",
         "State Resource Requirements (Communication 2.3)",
         "Agents Resource Requirements (Communication 2.4)",
         "Activities Resource Requirements (Communication 2.5)",
@@ -3190,12 +3191,12 @@ describe("console runner entrypoint", () => {
 
       expect(execution.normalizedOptions.xapiVersion).toBe("1.0.3");
       expect(execution.runRecord.summary).toEqual({
-        total: 1215,
-        passed: 1215,
+        total: 1218,
+        passed: 1218,
         failed: 0,
         version: "1.0.3",
       });
-      expect(harness.requests).toHaveLength(1472);
+      expect(harness.requests).toHaveLength(1480);
       expect(harness.requests.filter((request) => request.version === null)).toHaveLength(10);
       expect(harness.requests.filter((request) => request.version === "BAD")).toHaveLength(2);
       expect(
@@ -3209,8 +3210,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1215,
-        passed: 1215,
+        total: 1218,
+        passed: 1218,
         failed: 0,
         version: "1.0.3",
       });
@@ -3237,13 +3238,13 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Parameters", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1296,
-        passed: 1296,
+        total: 1299,
+        passed: 1299,
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1269);
-      expect(harness.requests.filter((request) => request.path === "/xapi/activities/state")).toHaveLength(124);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1271);
+      expect(harness.requests.filter((request) => request.path === "/xapi/activities/state")).toHaveLength(130);
       expect(harness.requests.filter((request) => request.path === "/xapi/agents/profile")).toHaveLength(94);
       expect(harness.requests.filter((request) => request.path === "/xapi/activities/profile")).toHaveLength(93);
       expect(harness.requests.filter((request) => request.version === null)).toHaveLength(10);
@@ -3259,8 +3260,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1296,
-        passed: 1296,
+        total: 1299,
+        passed: 1299,
         failed: 0,
         version: "2.0.0",
       });
@@ -3287,13 +3288,13 @@ describe("console runner entrypoint", () => {
       expect(execution.normalizedOptions.directory).toEqual(["Multiplicity", "v2_0"]);
       expect(execution.normalizedOptions.xapiVersion).toBe("2.0.0");
       expect(execution.runRecord.summary).toEqual({
-        total: 1350,
-        passed: 1350,
+        total: 1353,
+        passed: 1353,
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1269);
-      expect(harness.requests.filter((request) => request.path !== "/xapi/statements")).toHaveLength(314);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1271);
+      expect(harness.requests.filter((request) => request.path !== "/xapi/statements")).toHaveLength(320);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-multiplicity-v2.log"), "utf8")) as {
         log: { tests: Array<{ title: string }> };
@@ -3301,8 +3302,8 @@ describe("console runner entrypoint", () => {
       };
 
       expect(writtenRecord.summary).toEqual({
-        total: 1350,
-        passed: 1350,
+        total: 1353,
+        passed: 1353,
         failed: 0,
         version: "2.0.0",
       });
@@ -3325,6 +3326,7 @@ describe("console runner entrypoint", () => {
         "Statement Lifecycle Requirements (Data 2.3)",
         "Retrieval of Statements (Data 2.5)",
         "Statement Resource Requirements (Communication 2.1)",
+        "Document Resource Requirements (Communication 2.2)",
         "State Resource Requirements (Communication 2.3)",
         "Agents Resource Requirements (Communication 2.4)",
         "Activities Resource Requirements (Communication 2.5)",

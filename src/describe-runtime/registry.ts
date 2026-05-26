@@ -7,6 +7,7 @@ import { registerHeadRequestImplementationSuite as registerHeadRequestImplementa
 import { registerEncodingRequirementsSuite as registerEncodingRequirementsV103 } from "../specs/v1_0_3/H.Communication1.4-Encoding.ts";
 import { registerContentTypeRequirementsSuite as registerContentTypeRequirementsV103 } from "../specs/v1_0_3/H.Communication1.5-ContentTypes.ts";
 import { registerAboutResourceRequirementsSuite as registerAboutResourceRequirementsV103 } from "../specs/v1_0_3/H.Communication2.8-AboutResource.ts";
+import { registerDocumentResourcesRequirementsSuite as registerDocumentResourcesRequirementsV103 } from "../specs/v1_0_3/H.Communication2.2-DocumentResources.ts";
 import { registerAgentsResourceRequirementsSuite as registerAgentsResourceRequirementsV103 } from "../specs/v1_0_3/H.Communication2.4-AgentsResource.ts";
 import { registerAgentProfileResourceRequirementsSuite as registerAgentProfileResourceRequirementsV103 } from "../specs/v1_0_3/H.Communication2.6-AgentProfileResource.ts";
 import { registerActivitiesResourceRequirementsSuite as registerActivitiesResourceRequirementsV103 } from "../specs/v1_0_3/H.Communication2.5-ActivitiesResource.ts";
@@ -34,6 +35,7 @@ import { registerFormattingRequirementsSuite as registerFormattingRequirementsV2
 import { registerContentTypeRequirementsSuite as registerContentTypeRequirementsV20 } from "../specs/v2_0/4.1.3-Content-Types.ts";
 import { registerHeadRequestImplementationSuite as registerHeadRequestImplementationV20 } from "../specs/v2_0/H.Communication1.1-HeadRequestImplementation.ts";
 import { registerAboutResourceRequirementsSuite as registerAboutResourceRequirementsV20 } from "../specs/v2_0/4.1.6.7-About-Resource.ts";
+import { registerDocumentResourcesRequirementsSuite as registerDocumentResourcesRequirementsV20 } from "../specs/v2_0/H.Communication2.2-DocumentResources.ts";
 import { registerAgentsResourceRequirementsSuite as registerAgentsResourceRequirementsV20 } from "../specs/v2_0/4.1.6.3-Agents-Resource.ts";
 import { registerAgentProfileResourceRequirementsSuite as registerAgentProfileResourceRequirementsV20 } from "../specs/v2_0/4.1.6.5-Agent-Profile-Resource.ts";
 import { registerActivitiesResourceRequirementsSuite as registerActivitiesResourceRequirementsV20 } from "../specs/v2_0/4.1.6.4-Activity-Resource.ts";
@@ -83,6 +85,7 @@ const registrarsByDirectory: Readonly<Record<string, readonly SuiteRegistrar[]>>
     registerStatementLifecycleRequirementsV103,
     registerRetrievalOfStatementsV103,
     registerStatementResourceRequirementsV103,
+    registerDocumentResourcesRequirementsV103,
     registerStateResourceRequirementsV103,
     registerAgentsResourceRequirementsV103,
     registerActivitiesResourceRequirementsV103,
@@ -112,6 +115,7 @@ const registrarsByDirectory: Readonly<Record<string, readonly SuiteRegistrar[]>>
     registerStatementLifecycleRequirementsV20,
     registerRetrievalOfStatementsV20,
     registerStatementResourceRequirementsV20,
+    registerDocumentResourcesRequirementsV20,
     registerStateResourceRequirementsV20,
     registerAgentsResourceRequirementsV20,
     registerActivitiesResourceRequirementsV20,

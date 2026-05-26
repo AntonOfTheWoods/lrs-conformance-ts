@@ -1,6 +1,6 @@
 import type { DescribeRuntime } from "../../describe-runtime/runtime.ts";
 import type { DescribeRuntimeContext, JsonResponse } from "../../describe-runtime/suite-context.ts";
-import type { JsonObject, JsonValue } from "../../describe-runtime/templates.ts";
+import type { JsonObject, JsonValue, TemplateLayer } from "../../describe-runtime/templates.ts";
 
 type DocumentMethod = "DELETE" | "GET" | "POST" | "PUT";
 type DocumentResourceOptions = {
@@ -90,6 +90,24 @@ function expectJsonEquals(actual: unknown, expected: JsonObject, name: string): 
   if (JSON.stringify(actual) !== JSON.stringify(expected)) {
     throw new Error(`Expected ${name} to equal the stored document.`);
   }
+}
+
+async function createTemplateStatement(
+  context: DescribeRuntimeContext,
+  layers: TemplateLayer[],
+  name: string,
+): Promise<JsonObject> {
+  const payload = await context.createFromTemplate(layers);
+  const statement = payload.statement;
+  if (!isJsonObject(statement)) {
+    throw new Error(`Expected ${name} to create a statement object.`);
+  }
+
+  return structuredClone(statement);
+}
+
+async function createDefaultStatement(context: DescribeRuntimeContext, name: string): Promise<JsonObject> {
+  return createTemplateStatement(context, [{ statement: "{{statements.default}}" }], name);
 }
 
 function parseHttpDate(value: string | null, name: string): number {
@@ -278,6 +296,146 @@ function registerLastModifiedCases(
       });
     },
   );
+}
+
+export function registerDocumentResourcesRequirementsSuite(
+  runtime: DescribeRuntime,
+  context: DescribeRuntimeContext,
+): void {
+  const endpointPath = context.getEndpointActivitiesState();
+
+  runtime.describe("Document Resource Requirements (Communication 2.2)", () => {
+    runtime.it(
+      "An LRS makes no modifications to stored data for any rejected request (Multiple, including Communication 2.1.2.s2.b4, XAPI-00182)",
+      async () => {
+        const correct = await createDefaultStatement(context, "Document resources rollback correct statement");
+        const incorrect = structuredClone(correct);
+        const correctId = context.generateUuid();
+        const incorrectId = context.generateUuid();
+
+        correct.id = correctId;
+        incorrect.id = incorrectId;
+
+        const incorrectVerb = incorrect.verb;
+        if (!isJsonObject(incorrectVerb)) {
+          throw new Error("Expected incorrect rollback statement to include a verb object.");
+        }
+        incorrectVerb.id = "should fail";
+
+        const postResponse = await context.sendRequest({
+          method: "POST",
+          path: context.getEndpointStatements(),
+          body: [correct, incorrect],
+        });
+        if (postResponse.status !== 400) {
+          throw new Error(`Expected document resources rollback POST to return 400, received ${postResponse.status}.`);
+        }
+
+        const getResponse = await context.sendRequest({
+          method: "GET",
+          path: context.getEndpointStatements(),
+          query: { statementId: correctId },
+        });
+        if (getResponse.status !== 404) {
+          throw new Error(`Expected document resources rollback GET to return 404, received ${getResponse.status}.`);
+        }
+      },
+    );
+
+    runtime.it(
+      "A Document Merge overwrites any duplicate Objects from the previous document with the new document. (Communication 2.2.s7.b1, Communication 2.2.s7.b2, Communication 2.2.s7.b3, XAPI-00184)",
+      async () => {
+        const parameters = context.buildState();
+        const firstDocument = { car: "MKX" } satisfies JsonObject;
+        const secondDocument = { car: "MKZ" } satisfies JsonObject;
+
+        await sendDocumentRequest(
+          context,
+          "POST",
+          endpointPath,
+          parameters,
+          204,
+          "Document merge overwrite first write",
+          firstDocument,
+        );
+        await sendDocumentRequest(
+          context,
+          "POST",
+          endpointPath,
+          parameters,
+          204,
+          "Document merge overwrite second write",
+          secondDocument,
+        );
+
+        const mergedDocument = await fetchDocumentObject(
+          context,
+          endpointPath,
+          parameters,
+          "Document merge overwrite fetch",
+        );
+        expectJsonEquals(mergedDocument, secondDocument, "Document merge overwrite fetch");
+      },
+    );
+
+    runtime.it(
+      "A Document Merge only performs overwrites at one level deep, although the entire object is replaced. (Communication 2.2.s7.b1, Communication 2.2.s7.b2, Communication 2.2.s7.b3, XAPI-00183)",
+      async () => {
+        const parameters = context.buildState();
+        const firstDocument = {
+          car: {
+            make: "Ford",
+            model: "Escape",
+          },
+          driver: "Dale",
+          series: {
+            nascar: {
+              series: "sprint",
+            },
+          },
+        } satisfies JsonObject;
+        const secondDocument = {
+          car: {
+            make: "Dodge",
+            model: "Ram",
+          },
+          driver: "Jeff",
+          series: {
+            nascar: {
+              series: "nextel",
+            },
+          },
+        } satisfies JsonObject;
+
+        await sendDocumentRequest(
+          context,
+          "POST",
+          endpointPath,
+          parameters,
+          204,
+          "Document merge one-level first write",
+          firstDocument,
+        );
+        await sendDocumentRequest(
+          context,
+          "POST",
+          endpointPath,
+          parameters,
+          204,
+          "Document merge one-level second write",
+          secondDocument,
+        );
+
+        const mergedDocument = await fetchDocumentObject(
+          context,
+          endpointPath,
+          parameters,
+          "Document merge one-level fetch",
+        );
+        expectJsonEquals(mergedDocument, secondDocument, "Document merge one-level fetch");
+      },
+    );
+  });
 }
 
 function registerProfileResourceRequirementsSuite(
