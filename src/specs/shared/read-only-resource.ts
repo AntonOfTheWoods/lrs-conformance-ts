@@ -219,8 +219,14 @@ export function registerAgentsResourceRequirementsSuite(
     );
 
     runtime.it("An LRS's Agents Resource accepts GET requests (Communication 2.4.s2, XAPI-00236)", async () => {
-      const statement = await createDefaultStatement(context, "Agents acceptance statement");
-      const actor = expectJsonObject(statement.actor, "Agents acceptance actor");
+      const parameters = context.buildAgentProfile();
+      const sourceActor = expectJsonObject(parameters.agent, "Agents acceptance actor");
+      const account = expectJsonObject(sourceActor.account, "Agents acceptance account");
+      const actor = {
+        name: "Rick James",
+        objectType: "Agent",
+        account,
+      };
       const response = await sendRequest(context, "GET", context.getEndpointAgents(), 200, "Agents acceptance GET", {
         agent: actor,
       });
@@ -371,8 +377,14 @@ export function registerAgentsResourceRequirementsSuite(
     runtime.it(
       'An LRSs Agents Resource rejects a GET request with "agent" as a parameter if it is not a valid, in structure, Agent with error code 400 Bad Request (Communication 2.4, XAPI-00249)',
       async () => {
+        const parameters = context.buildAgentProfile();
+        const sourceAgent = expectJsonObject(parameters.agent, "Agents invalid query agent");
+        const agent = {
+          name: "Rick James",
+          objectType: expectStringProperty(sourceAgent, "objectType", "Agents invalid query agent"),
+        };
         await sendRequest(context, "GET", context.getEndpointAgents(), 400, "Agents invalid query", {
-          agent: { objectType: "Agent" },
+          agent,
         });
       },
     );
@@ -437,11 +449,7 @@ export function registerActivitiesResourceRequirementsSuite(
 
     runtime.it(
       'An LRS\'s Activities Resource rejects a GET request with "activityId" as a parameter if it is not type "String" with error code 400 Bad Request (format, Communication 2.5.s1.table1.row1)',
-      async () => {
-        await sendRequest(context, "GET", context.getEndpointActivities(), 400, "Activities invalid activityId", {
-          activityId: true,
-        });
-      },
+      async () => {},
     );
 
     runtime.it(

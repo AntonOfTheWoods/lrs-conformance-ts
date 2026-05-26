@@ -2,13 +2,7 @@ import { createHash } from "node:crypto";
 
 const defaultCaptureBasePath = "/capture/xapi";
 const jsonContentTypes = new Set(["application/json", "application/octet-stream+json"]);
-const requestHeaderAllowList = new Set([
-  "authorization",
-  "content-type",
-  "if-match",
-  "if-none-match",
-  "x-experience-api-version",
-]);
+const requestHeaderAllowList = new Set(["content-type", "if-match", "if-none-match", "x-experience-api-version"]);
 const responseHeaderAllowList = new Set([
   "content-type",
   "etag",

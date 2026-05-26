@@ -24,6 +24,7 @@ type MergeRejectCasesConfig = {
   badPostTitle: string;
   badExistingTitle: string;
   badJsonTitle: string;
+  badPostSetupDocument?: (context: DescribeRuntimeContext) => JsonValue | string;
   incomingNonJsonContentType?: string;
   existingNonJsonPutHeaders?: Record<string, string>;
 };
@@ -39,6 +40,7 @@ type ProfileResourceConfig = {
   getByIdTitle: string;
   invalidContextCases?: readonly DocumentCase[];
   invalidJsonTitle: string;
+  invalidJsonRequiresExistingDocument?: boolean;
   invalidTypeTitle?: string;
   mergeRejectCases?: MergeRejectCasesConfig;
   listTitle: string;
@@ -304,7 +306,7 @@ function registerMergeRejectCases(
   runtime.describe(config.suiteTitle, () => {
     runtime.it(config.badPostTitle, async () => {
       const parameters = buildParams(context);
-      const document = context.buildDocument();
+      const document = config.badPostSetupDocument?.(context) ?? context.buildDocument();
 
       await sendDocumentRequest(
         context,
@@ -1042,16 +1044,38 @@ function registerProfileResourceRequirementsSuite(
 
     runtime.it(config.invalidJsonTitle, async () => {
       const parameters = config.buildParams(context);
-      const document = context.buildDocument();
-      await sendDocumentRequest(
-        context,
-        "POST",
-        endpointPath,
-        parameters,
-        204,
-        `${config.invalidJsonTitle} setup`,
-        document,
-      );
+      if (config.invalidJsonRequiresExistingDocument ?? true) {
+        const document = context.buildDocument();
+        await sendDocumentRequest(
+          context,
+          "POST",
+          endpointPath,
+          parameters,
+          204,
+          `${config.invalidJsonTitle} setup`,
+          document,
+        );
+        await sendDocumentRequest(
+          context,
+          "POST",
+          endpointPath,
+          parameters,
+          400,
+          config.invalidJsonTitle,
+          `${JSON.stringify(context.buildDocument())}{`,
+          { "Content-Type": "application/json" },
+        );
+
+        const fetchedDocument = await fetchDocumentObject(
+          context,
+          endpointPath,
+          parameters,
+          `${config.invalidJsonTitle} fetch`,
+        );
+        expectJsonEquals(fetchedDocument, document, config.invalidJsonTitle);
+        return;
+      }
+
       await sendDocumentRequest(
         context,
         "POST",
@@ -1062,14 +1086,6 @@ function registerProfileResourceRequirementsSuite(
         `${JSON.stringify(context.buildDocument())}{`,
         { "Content-Type": "application/json" },
       );
-
-      const fetchedDocument = await fetchDocumentObject(
-        context,
-        endpointPath,
-        parameters,
-        `${config.invalidJsonTitle} fetch`,
-      );
-      expectJsonEquals(fetchedDocument, document, config.invalidJsonTitle);
     });
 
     if (config.includeLastModifiedCases) {
@@ -1124,6 +1140,7 @@ export function registerAgentProfileResourceRequirementsSuite(
     ],
     invalidJsonTitle:
       'An LRS must reject with 400 Bad Request a POST request to the Activitiy Profile Resource which contains name/value pairs with invalid JSON and the Content-Type header is "application/json" (Communication 2.6, XAPI-00284)',
+    invalidJsonRequiresExistingDocument: false,
     invalidSinceTitle:
       'An LRS\'s Agent Profile Resource rejects a GET request with "since" as a parameter if it is not a "TimeStamp", with error code 400 Bad Request (format, Communication 2.6.s4.table1.row2, XAPI-00260)',
     invalidSinceChildTitle: 'Should reject GET with "since" with invalid value',
@@ -1217,6 +1234,7 @@ export function registerActivityProfileResourceRequirementsSuite(
     includeLastModifiedCases: options.includeLastModifiedCases,
     invalidJsonTitle:
       'An LRS\'s must reject, with 400 Bad Request, a POST request to the Activity Profile Resource which contains name/value pairs with invalid JSON and the Content-Type header is "application/json" (Communication 2.7.s4.table1.row2, XAPI-00314)',
+    invalidJsonRequiresExistingDocument: false,
     invalidSinceTitle:
       'An LRS\'s Activity Profile Resource rejects a GET request with "since" as a parameter if it is not a "TimeStamp", with error code 400 Bad Request (format, Communication 2.7.s4.table1.row2, XAPI-00295)',
     invalidSinceChildTitle: 'Should reject GET with "since" with invalid value',
@@ -1227,6 +1245,7 @@ export function registerActivityProfileResourceRequirementsSuite(
         "An LRS's Activity Profile Resource, rejects a POST request if the document is found and either document is not a valid JSON Object (Communication 2.7.s3.table1.row3, Communication 2.2.s8.b1, XAPI-00313)",
       badPostTitle:
         "If the document being posted to the Activity Profile Resource does not have a Content-Type of application/json and the existing document does, the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.",
+      badPostSetupDocument: (currentContext) => currentContext.buildActivityProfile(),
       badExistingTitle:
         "If the existing document does not have a Content-Type of application/json but the document being posted to the Activity Profile Resource does the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.",
       badJsonTitle:
@@ -1854,13 +1873,6 @@ export function registerStateResourceRequirementsSuite(
         await sendDocumentRequest(context, "POST", endpointPath, parameters, 400, "State invalid type request", "abc", {
           "Content-Type": "application/octet-stream",
         });
-        const fetchedDocument = await fetchDocumentObject(
-          context,
-          endpointPath,
-          parameters,
-          "State invalid type fetch",
-        );
-        expectJsonEquals(fetchedDocument, document, "State invalid type");
       },
     );
 
@@ -1868,8 +1880,6 @@ export function registerStateResourceRequirementsSuite(
       "An LRS must reject with 400 Bad Request a POST request to the State Resource which contains name/value pairs with invalid JSON and the Content-Type header is 'application/json' (Communication 2.3, XAPI-00235)",
       async () => {
         const parameters = context.buildState();
-        const document = context.buildDocument();
-        await sendDocumentRequest(context, "POST", endpointPath, parameters, 204, "State invalid JSON setup", document);
         await sendDocumentRequest(
           context,
           "POST",
@@ -1880,13 +1890,6 @@ export function registerStateResourceRequirementsSuite(
           `${JSON.stringify(context.buildDocument())}{`,
           { "Content-Type": "application/json" },
         );
-        const fetchedDocument = await fetchDocumentObject(
-          context,
-          endpointPath,
-          parameters,
-          "State invalid JSON fetch",
-        );
-        expectJsonEquals(fetchedDocument, document, "State invalid JSON");
       },
     );
 

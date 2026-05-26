@@ -320,6 +320,31 @@ function buildExtensionLayers(
   return [...baseLayers, extensionLayer];
 }
 
+function buildExtensionAcceptanceLayers(
+  statementCase: {
+    caseKey: ExtensionStatementCaseKey;
+    buildLayers: () => TemplateLayer[];
+    valueLayerKey: "definition" | "statement";
+  },
+  variantKind: ExtensionVariantKind,
+  method: "POST" | "PUT",
+  extensionLayer: JsonObject,
+): TemplateLayer[] {
+  if (method === "PUT" && statementCase.caseKey === "substatement-result" && variantKind === "nullValue") {
+    return buildExtensionLayers(
+      [
+        templateLayer({ statement: "{{statements.object_substatement}}" }),
+        templateLayer({ object: "{{substatements.activity}}" }),
+        templateLayer({ object: "{{activities.no_extensions}}" }),
+      ],
+      "definition",
+      extensionLayer,
+    );
+  }
+
+  return buildExtensionLayers(statementCase.buildLayers(), statementCase.valueLayerKey, extensionLayer);
+}
+
 function getSubStatementObject(statement: JsonObject, name: string): JsonObject {
   const object = statement.object;
   if (!isJsonObject(object)) {
@@ -739,7 +764,7 @@ export function registerSpecialDataTypesAndRulesSuite(runtime: DescribeRuntime, 
             runtime.it(title, async () => {
               const statement = await createTemplateStatement(
                 context,
-                buildExtensionLayers(statementCase.buildLayers(), statementCase.valueLayerKey, variant.layer),
+                buildExtensionAcceptanceLayers(statementCase, variant.kind, "POST", variant.layer),
                 title,
               );
               await sendPostStatement(context, statement, title);
@@ -758,7 +783,7 @@ export function registerSpecialDataTypesAndRulesSuite(runtime: DescribeRuntime, 
             runtime.it(title, async () => {
               const statement = await createTemplateStatement(
                 context,
-                buildExtensionLayers(statementCase.buildLayers(), statementCase.valueLayerKey, variant.layer),
+                buildExtensionAcceptanceLayers(statementCase, variant.kind, "PUT", variant.layer),
                 title,
               );
               await sendPutStatement(context, statement, title);

@@ -242,6 +242,45 @@ describe("traffic harness", () => {
     expect(createExchangeSignature(left.exchanges[0]!)).toBe(createExchangeSignature(right.exchanges[0]!));
   });
 
+  test("ignores request authorization header presence differences", () => {
+    const left = normalizeTrafficArtifact(
+      createArtifact(
+        createRawExchange({
+          request: {
+            bodyBase64: "",
+            headers: [["authorization", "Basic abc123"]],
+            method: "GET",
+            targetUrl: "http://localhost:8080/xapi/about",
+          },
+          response: {
+            bodyBase64: Buffer.from(JSON.stringify({ version: ["1.0.3"] })).toString("base64"),
+            headers: [["content-type", "application/json; charset=utf-8"]],
+            status: 200,
+          },
+        }),
+      ),
+    );
+    const right = normalizeTrafficArtifact(
+      createArtifact(
+        createRawExchange({
+          request: {
+            bodyBase64: "",
+            headers: [],
+            method: "GET",
+            targetUrl: "http://localhost:8080/xapi/about",
+          },
+          response: {
+            bodyBase64: Buffer.from(JSON.stringify({ version: ["1.0.3"] })).toString("base64"),
+            headers: [["content-type", "application/json; charset=utf-8"]],
+            status: 200,
+          },
+        }),
+      ),
+    );
+
+    expect(createExchangeSignature(left.exchanges[0]!)).toBe(createExchangeSignature(right.exchanges[0]!));
+  });
+
   test("compresses consecutive equivalent exchanges before bag comparison", () => {
     const normalized = normalizeTrafficArtifact({
       ...createArtifact(createRawExchange()),
