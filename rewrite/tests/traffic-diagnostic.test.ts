@@ -3,7 +3,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { createCaptureExecutionMetadata } from "../../src/describe-runtime/execution-owner.ts";
-import type { NormalizedTrafficArtifact, RawTrafficArtifact } from "../traffic.ts";
+import { compareNormalizedTrafficRuns, type NormalizedTrafficArtifact, type RawTrafficArtifact } from "../traffic.ts";
 
 import {
   buildCandidateArgs,
@@ -13,6 +13,12 @@ import {
   createTraceNodeIndex,
   readEffectiveRunnerExitCode,
   resolveRunnerScope,
+  stabilizeSignedStatementAttachments,
+  suppressSignedStatementAttachmentDbDifferences,
+  suppressSequenceOnlyDbStateDifferences,
+  stabilizeTimingDrivenStatementPolls,
+  suppressTimingDrivenStatementPollMismatches,
+  type TraceDbStateComparisonReport,
   writeTraceArtifacts,
 } from "../scripts/traffic-diagnostic.ts";
 
@@ -116,6 +122,157 @@ function createNormalizedArtifact(
     runner: "candidate",
     targetBaseUrl: "http://localhost:8080/xapi",
     version: "1.0.3",
+  };
+}
+
+function createStatementPollExecutionMetadata(caseName: string) {
+  return createCaptureExecutionMetadata({
+    directory: "v1_0_3",
+    execution: {
+      casePath: ["Retrieval of Statements (Data 2.5)", caseName],
+      hookTitle: null,
+      phase: "case",
+      suitePath: ["Retrieval of Statements (Data 2.5)"],
+    },
+    sourceFilePath: "rewrite4/test/v1_0_3/E.Data2.5-RetrievalofStatements.js",
+    sourceSymbol: "Retrieval of Statements (Data 2.5)",
+    unitKey: "test/v1_0_3/E.Data2.5-RetrievalofStatements",
+    version: "1.0.3",
+  });
+}
+
+function createStatementPollExchange(
+  execution: ReturnType<typeof createStatementPollExecutionMetadata>,
+  attempts: number,
+) {
+  return {
+    attempts,
+    execution,
+    method: "GET",
+    path: "/xapi/statements",
+    query: [["limit", "1"]],
+    request: {
+      body: { kind: "empty" as const },
+      headers: {
+        "x-experience-api-version": "1.0.3",
+      },
+    },
+    response: {
+      body: {
+        body: {
+          more: "/xapi/statements?limit=1&from=next-page",
+          statements: [{ id: "statement-1" }],
+        },
+        kind: "json" as const,
+      },
+      headers: {
+        "content-type": "application/json",
+      },
+      status: 200,
+    },
+    sourceSequences: Array.from({ length: attempts }, (_, index) => index),
+  };
+}
+
+function createSignedStatementExecutionMetadata(caseName: string) {
+  return createCaptureExecutionMetadata({
+    directory: "v1_0_3",
+    execution: {
+      casePath: [
+        "Signed Statements (Data 2.6)",
+        'The JWS signature MUST use an algorithm of "RS256", "RS384", or "RS512". (Data 2.6.s4.b4, XAPI-00117)',
+        caseName,
+      ],
+      hookTitle: null,
+      phase: "case",
+      suitePath: [
+        "Signed Statements (Data 2.6)",
+        'The JWS signature MUST use an algorithm of "RS256", "RS384", or "RS512". (Data 2.6.s4.b4, XAPI-00117)',
+      ],
+    },
+    sourceFilePath: "rewrite4/test/v1_0_3/E.Data2.6-SignedStatements.js",
+    sourceSymbol: "Signed Statements (Data 2.6)",
+    unitKey: "test/v1_0_3/E.Data2.6-SignedStatements",
+    version: "1.0.3",
+  });
+}
+
+function createSignedStatementExchange(
+  execution: ReturnType<typeof createSignedStatementExecutionMetadata>,
+  signatureSha: string,
+) {
+  return {
+    attempts: 1,
+    execution,
+    method: "POST",
+    path: "/xapi/statements",
+    query: [],
+    request: {
+      body: {
+        body: [
+          {
+            body: {
+              body: {
+                actor: {
+                  mbox: "mailto:xapi@adlnet.gov",
+                  name: "xAPI mbox",
+                  objectType: "Agent",
+                },
+                attachments: [
+                  {
+                    contentType: "application/octet-stream",
+                    description: { "en-US": "Signed by the Test Suite" },
+                    display: { "en-US": "Signed by the Test Suite" },
+                    length: 796,
+                    sha2: signatureSha,
+                    usageType: "http://adlnet.gov/expapi/attachments/signature",
+                  },
+                ],
+                id: "{{uuid:0}}",
+                object: {
+                  id: "http://www.example.com/meetings/occurances/34534",
+                  objectType: "Activity",
+                },
+                verb: {
+                  display: { "en-GB": "attended", "en-US": "attended" },
+                  id: "http://adlnet.gov/expapi/verbs/attended",
+                },
+              },
+              kind: "json" as const,
+            },
+            headers: {
+              "content-type": "application/json",
+            },
+          },
+          {
+            body: {
+              byteLength: 796,
+              kind: "binary" as const,
+              sha256: signatureSha,
+            },
+            headers: {
+              "content-type": "application/octet-stream",
+            },
+          },
+        ],
+        kind: "multipart" as const,
+      },
+      headers: {
+        "content-type": "multipart/mixed",
+        "x-experience-api-version": "1.0.3",
+      },
+    },
+    response: {
+      body: {
+        body: ["{{uuid:0}}"],
+        kind: "json" as const,
+      },
+      headers: {
+        "content-type": "application/json",
+      },
+      status: 200,
+    },
+    sourceSequences: [0],
   };
 }
 
@@ -272,6 +429,341 @@ test("createTraceNodeIndex falls back to the requested unitKey when upstream met
       unitKey: "test/v1_0_3/Data2.2-FormattingRequirements",
     }),
   ]);
+});
+
+test("suppressTimingDrivenStatementPollMismatches ignores wait-loop retry drift for identical statement polls", () => {
+  const xapi113 = createStatementPollExecutionMetadata(
+    `An LRS's Statement API, upon processing a successful GET request, will return a single "statements" property and a single "more" property. (Data 2.5.s2.table1, XAPI-00113) > will return single statements property and may return`,
+  );
+  const xapi114 = createStatementPollExecutionMetadata(
+    `A "statements" property which is too large for a single page will create a container for each additional page (Data 2.5.s2.table1.row1, XAPI-00114)`,
+  );
+
+  const candidate: NormalizedTrafficArtifact = {
+    ...createNormalizedArtifact(xapi113),
+    compareMode: "bag",
+    exchanges: [createStatementPollExchange(xapi113, 4), createStatementPollExchange(xapi114, 12)],
+  };
+  const upstream: NormalizedTrafficArtifact = {
+    ...createNormalizedArtifact(xapi113),
+    compareMode: "bag",
+    exchanges: [createStatementPollExchange(xapi113, 5), createStatementPollExchange(xapi114, 12)],
+    runner: "upstream",
+  };
+
+  const comparison = compareNormalizedTrafficRuns(candidate, upstream, "bag");
+  expect(comparison.signatureMismatches).toHaveLength(1);
+
+  const effective = suppressTimingDrivenStatementPollMismatches(candidate, upstream, comparison);
+  expect(effective.leftCount).toBe(16);
+  expect(effective.rightCount).toBe(16);
+  expect(effective.matchedCount).toBe(16);
+  expect(effective.signatureMismatches).toHaveLength(0);
+  expect(effective.ignoredSignatureMismatches).toHaveLength(1);
+});
+
+test("stabilizeTimingDrivenStatementPolls strips volatile statement timestamps from repeated poll bursts", () => {
+  const xapi110 = createStatementPollExecutionMetadata(
+    'A "statements" property is an Array of Statements (Type, Data 2.5.s2.table1.row1, XAPI-00110) > should return StatementResult with statements as array using GET without "statementId" or "voidedStatementId"',
+  );
+
+  const candidate: NormalizedTrafficArtifact = {
+    ...createNormalizedArtifact(xapi110),
+    compareMode: "bag",
+    exchanges: [
+      {
+        ...createStatementPollExchange(xapi110, 8),
+        response: {
+          body: {
+            body: {
+              more: "",
+              statements: [
+                { id: "statement-1", stored: "2026-05-27T12:00:01.000Z", timestamp: "2026-05-27T12:00:01.000Z" },
+                { id: "statement-2", stored: "2026-05-27T12:00:02.000Z", timestamp: "2026-05-27T12:00:02.000Z" },
+              ],
+            },
+            kind: "json",
+          },
+          headers: {
+            "content-type": "application/json",
+          },
+          status: 200,
+        },
+      },
+    ],
+  };
+  const upstream: NormalizedTrafficArtifact = {
+    ...createNormalizedArtifact(xapi110),
+    compareMode: "bag",
+    exchanges: [
+      {
+        ...createStatementPollExchange(xapi110, 4),
+        response: {
+          body: {
+            body: {
+              more: "",
+              statements: [
+                { id: "statement-1", stored: "2026-05-27T12:10:01.000Z", timestamp: "2026-05-27T12:10:01.000Z" },
+                { id: "statement-2", stored: "2026-05-27T12:10:02.000Z", timestamp: "2026-05-27T12:10:02.000Z" },
+              ],
+            },
+            kind: "json",
+          },
+          headers: {
+            "content-type": "application/json",
+          },
+          status: 200,
+        },
+      },
+    ],
+    runner: "upstream",
+  };
+
+  const rawComparison = compareNormalizedTrafficRuns(candidate, upstream, "bag");
+  expect(rawComparison.signatureMismatches).toHaveLength(2);
+
+  const comparison = compareNormalizedTrafficRuns(
+    stabilizeTimingDrivenStatementPolls(candidate),
+    stabilizeTimingDrivenStatementPolls(upstream),
+    "bag",
+  );
+  expect(comparison.leftCount).toBe(1);
+  expect(comparison.rightCount).toBe(1);
+  expect(comparison.matchedCount).toBe(1);
+  expect(comparison.signatureMismatches).toHaveLength(0);
+});
+
+test("stabilizeSignedStatementAttachments strips volatile signature hashes from signed multipart requests", () => {
+  const execution = createSignedStatementExecutionMetadata('Accepts signed statement with "RS256"');
+
+  const candidate: NormalizedTrafficArtifact = {
+    ...createNormalizedArtifact(execution),
+    compareMode: "bag",
+    exchanges: [
+      createSignedStatementExchange(execution, "2da56d1f2a7c58a9e695381b7ef892e522a68df551207b30151944d6016a4b51"),
+    ],
+  };
+  const upstream: NormalizedTrafficArtifact = {
+    ...createNormalizedArtifact(execution),
+    compareMode: "bag",
+    exchanges: [
+      createSignedStatementExchange(execution, "4f0a646fd358f88cb60575a1c3f82b4ec47ac6cbda613daa50f25996041f0fd0"),
+    ],
+    runner: "upstream",
+  };
+
+  const rawComparison = compareNormalizedTrafficRuns(candidate, upstream, "bag");
+  expect(rawComparison.signatureMismatches).toHaveLength(2);
+
+  const comparison = compareNormalizedTrafficRuns(
+    stabilizeSignedStatementAttachments(candidate),
+    stabilizeSignedStatementAttachments(upstream),
+    "bag",
+  );
+  expect(comparison.leftCount).toBe(1);
+  expect(comparison.rightCount).toBe(1);
+  expect(comparison.matchedCount).toBe(1);
+  expect(comparison.signatureMismatches).toHaveLength(0);
+});
+
+test("suppressSequenceOnlyDbStateDifferences ignores aligned-boundary sequence drift in diagnostic reports", () => {
+  const report: TraceDbStateComparisonReport = {
+    candidateCapturedExchangeCount: 21,
+    candidateCompletedRawSequenceEnd: 14,
+    candidateManifestPath: "/tmp/candidate-manifest.json",
+    candidateReplayIssues: [],
+    comparedBoundaryCount: 2,
+    different: true,
+    divergentBoundaries: [],
+    firstDivergentBoundary: null,
+    firstReplayIssue: null,
+    upstreamCapturedExchangeCount: 19,
+    upstreamCompletedRawSequenceEnd: 12,
+    upstreamManifestPath: "/tmp/upstream-manifest.json",
+    upstreamReplayIssues: [],
+  };
+
+  const effective = suppressSequenceOnlyDbStateDifferences(report);
+  expect(effective.different).toBe(false);
+  expect(effective.candidateCompletedRawSequenceEnd).toBe(14);
+  expect(effective.upstreamCompletedRawSequenceEnd).toBe(12);
+});
+
+test("suppressSignedStatementAttachmentDbDifferences ignores hash-only signed statement storage drift", () => {
+  const report: TraceDbStateComparisonReport = {
+    candidateCapturedExchangeCount: 7,
+    candidateCompletedRawSequenceEnd: 6,
+    candidateManifestPath: "/tmp/candidate-manifest.json",
+    candidateReplayIssues: [],
+    comparedBoundaryCount: 7,
+    different: true,
+    divergentBoundaries: [
+      {
+        candidate: {
+          entryKinds: ["case"],
+          fingerprintPath: "/tmp/candidate-sequence-3.json",
+          nodeKeys: [
+            'case:test/v1_0_3/E.Data2.6-SignedStatements:Signed Statements (Data 2.6) > The JWS signature MUST use an algorithm of "RS256", "RS384", or "RS512". (Data 2.6.s4.b4, XAPI-00117) > Accepts signed statement with "RS256"',
+          ],
+          rawSequenceEnd: 3,
+          unitKeys: ["test/v1_0_3/E.Data2.6-SignedStatements"],
+        },
+        different: true,
+        fingerprintComparison: {
+          different: true,
+          onlyLeft: [],
+          onlyRight: [],
+          rowHashOrCountDifferences: [
+            {
+              left: {
+                columnNames: ["id", "statement_id", "attachment_sha", "content_type", "content_length", "contents"],
+                rowCount: 1,
+                rowHash: "candidate-attachment-hash",
+              },
+              right: {
+                columnNames: ["id", "statement_id", "attachment_sha", "content_type", "content_length", "contents"],
+                rowCount: 1,
+                rowHash: "upstream-attachment-hash",
+              },
+              table: "attachment",
+            },
+            {
+              left: {
+                columnNames: [
+                  "id",
+                  "statement_id",
+                  "registration",
+                  "verb_iri",
+                  "is_voided",
+                  "payload",
+                  "timestamp",
+                  "stored",
+                  "reaction_id",
+                  "trigger_id",
+                ],
+                rowCount: 1,
+                rowHash: "candidate-statement-hash",
+              },
+              right: {
+                columnNames: [
+                  "id",
+                  "statement_id",
+                  "registration",
+                  "verb_iri",
+                  "is_voided",
+                  "payload",
+                  "timestamp",
+                  "stored",
+                  "reaction_id",
+                  "trigger_id",
+                ],
+                rowCount: 1,
+                rowHash: "upstream-statement-hash",
+              },
+              table: "xapi_statement",
+            },
+          ],
+        },
+        rawSequenceEnd: 3,
+        upstream: {
+          entryKinds: ["case"],
+          fingerprintPath: "/tmp/upstream-sequence-3.json",
+          nodeKeys: [
+            'case:test/v1_0_3/E.Data2.6-SignedStatements:Signed Statements (Data 2.6) > The JWS signature MUST use an algorithm of "RS256", "RS384", or "RS512". (Data 2.6.s4.b4, XAPI-00117) > Accepts signed statement with "RS256"',
+          ],
+          rawSequenceEnd: 3,
+          unitKeys: ["test/v1_0_3/E.Data2.6-SignedStatements"],
+        },
+      },
+    ],
+    firstDivergentBoundary: {
+      candidate: {
+        entryKinds: ["case"],
+        fingerprintPath: "/tmp/candidate-sequence-3.json",
+        nodeKeys: [
+          'case:test/v1_0_3/E.Data2.6-SignedStatements:Signed Statements (Data 2.6) > The JWS signature MUST use an algorithm of "RS256", "RS384", or "RS512". (Data 2.6.s4.b4, XAPI-00117) > Accepts signed statement with "RS256"',
+        ],
+        rawSequenceEnd: 3,
+        unitKeys: ["test/v1_0_3/E.Data2.6-SignedStatements"],
+      },
+      different: true,
+      fingerprintComparison: {
+        different: true,
+        onlyLeft: [],
+        onlyRight: [],
+        rowHashOrCountDifferences: [
+          {
+            left: {
+              columnNames: ["id", "statement_id", "attachment_sha", "content_type", "content_length", "contents"],
+              rowCount: 1,
+              rowHash: "candidate-attachment-hash",
+            },
+            right: {
+              columnNames: ["id", "statement_id", "attachment_sha", "content_type", "content_length", "contents"],
+              rowCount: 1,
+              rowHash: "upstream-attachment-hash",
+            },
+            table: "attachment",
+          },
+          {
+            left: {
+              columnNames: [
+                "id",
+                "statement_id",
+                "registration",
+                "verb_iri",
+                "is_voided",
+                "payload",
+                "timestamp",
+                "stored",
+                "reaction_id",
+                "trigger_id",
+              ],
+              rowCount: 1,
+              rowHash: "candidate-statement-hash",
+            },
+            right: {
+              columnNames: [
+                "id",
+                "statement_id",
+                "registration",
+                "verb_iri",
+                "is_voided",
+                "payload",
+                "timestamp",
+                "stored",
+                "reaction_id",
+                "trigger_id",
+              ],
+              rowCount: 1,
+              rowHash: "upstream-statement-hash",
+            },
+            table: "xapi_statement",
+          },
+        ],
+      },
+      rawSequenceEnd: 3,
+      upstream: {
+        entryKinds: ["case"],
+        fingerprintPath: "/tmp/upstream-sequence-3.json",
+        nodeKeys: [
+          'case:test/v1_0_3/E.Data2.6-SignedStatements:Signed Statements (Data 2.6) > The JWS signature MUST use an algorithm of "RS256", "RS384", or "RS512". (Data 2.6.s4.b4, XAPI-00117) > Accepts signed statement with "RS256"',
+        ],
+        rawSequenceEnd: 3,
+        unitKeys: ["test/v1_0_3/E.Data2.6-SignedStatements"],
+      },
+    },
+    firstReplayIssue: null,
+    upstreamCapturedExchangeCount: 7,
+    upstreamCompletedRawSequenceEnd: 6,
+    upstreamManifestPath: "/tmp/upstream-manifest.json",
+    upstreamReplayIssues: [],
+  };
+
+  const effective = suppressSignedStatementAttachmentDbDifferences(report);
+  expect(effective.different).toBe(false);
+  expect(effective.divergentBoundaries).toHaveLength(0);
+  expect(effective.firstDivergentBoundary).toBeNull();
 });
 
 test("writeTraceArtifacts emits per-unit manifests and filtered slices", async () => {
@@ -493,6 +985,261 @@ test("compareTraceDbStateManifests reports the first divergent boundary", async 
             table: "statements",
           }),
         ],
+      }),
+    );
+  } finally {
+    await rm(tempDir, { force: true, recursive: true });
+  }
+});
+
+test("compareTraceDbStateManifests ignores raw-sequence shifts when node-aligned snapshots still match", async () => {
+  const tempDir = await mkdtemp(join(process.cwd(), "tmp/agents/db-state-align-"));
+
+  try {
+    const matchingFingerprint = {
+      tables: {
+        statements: {
+          columnNames: ["id"],
+          rowCount: 1,
+          rowHash: "same-row-hash",
+        },
+      },
+    };
+
+    const candidateCasePath = join(tempDir, "candidate-sequence-000012.json");
+    const candidateHookPath = join(tempDir, "candidate-sequence-000014.json");
+    const upstreamCasePath = join(tempDir, "upstream-sequence-000010.json");
+    const upstreamHookPath = join(tempDir, "upstream-sequence-000012.json");
+    await writeFile(candidateCasePath, `${JSON.stringify(matchingFingerprint, null, 2)}\n`, "utf8");
+    await writeFile(candidateHookPath, `${JSON.stringify(matchingFingerprint, null, 2)}\n`, "utf8");
+    await writeFile(upstreamCasePath, `${JSON.stringify(matchingFingerprint, null, 2)}\n`, "utf8");
+    await writeFile(upstreamHookPath, `${JSON.stringify(matchingFingerprint, null, 2)}\n`, "utf8");
+
+    const unitKey = "test/v1_0_3/Data2.3-StatementLifecycle";
+    const candidateManifestPath = join(tempDir, "candidate-db-state-manifest.json");
+    const upstreamManifestPath = join(tempDir, "upstream-db-state-manifest.json");
+    await writeFile(
+      candidateManifestPath,
+      `${JSON.stringify(
+        {
+          capturedExchangeCount: 21,
+          completedRawSequenceEnd: 14,
+          entries: [
+            {
+              entryKind: "case",
+              fingerprintPath: candidateCasePath,
+              nodeKey: `case:${unitKey}:voided statement 404 lookup`,
+              rawSequenceEnd: 12,
+              runner: "candidate",
+              selectionMode: "captured-execution",
+              unitKey,
+            },
+            {
+              entryKind: "hook",
+              fingerprintPath: candidateHookPath,
+              nodeKey: `hook:${unitKey}:voiding statement guard:`,
+              rawSequenceEnd: 14,
+              runner: "candidate",
+              selectionMode: "captured-execution",
+              unitKey,
+            },
+          ],
+          mode: "all",
+          rawArtifactPath: join(tempDir, "candidate-raw.json"),
+          replayIssues: [],
+          runner: "candidate",
+          schemaVersion: "trace-node-db-state-manifest.v1",
+          selectedUnitKeys: [unitKey],
+          traceNodeIndexPath: join(tempDir, "candidate-node-index.json"),
+          version: "1.0.3",
+        },
+        null,
+        2,
+      )}\n`,
+      "utf8",
+    );
+    await writeFile(
+      upstreamManifestPath,
+      `${JSON.stringify(
+        {
+          capturedExchangeCount: 19,
+          completedRawSequenceEnd: 12,
+          entries: [
+            {
+              entryKind: "case",
+              fingerprintPath: upstreamCasePath,
+              nodeKey: `case:${unitKey}:voided statement 404 lookup`,
+              rawSequenceEnd: 10,
+              runner: "upstream",
+              selectionMode: "captured-execution",
+              unitKey,
+            },
+            {
+              entryKind: "hook",
+              fingerprintPath: upstreamHookPath,
+              nodeKey: `hook:${unitKey}:voiding statement guard:`,
+              rawSequenceEnd: 12,
+              runner: "upstream",
+              selectionMode: "captured-execution",
+              unitKey,
+            },
+          ],
+          mode: "all",
+          rawArtifactPath: join(tempDir, "upstream-raw.json"),
+          replayIssues: [],
+          runner: "upstream",
+          schemaVersion: "trace-node-db-state-manifest.v1",
+          selectedUnitKeys: [unitKey],
+          traceNodeIndexPath: join(tempDir, "upstream-node-index.json"),
+          version: "1.0.3",
+        },
+        null,
+        2,
+      )}\n`,
+      "utf8",
+    );
+
+    const report = await compareTraceDbStateManifests({
+      candidateManifestPath,
+      upstreamManifestPath,
+    });
+
+    expect(report.different).toBe(true);
+    expect(report.comparedBoundaryCount).toBe(2);
+    expect(report.divergentBoundaries).toHaveLength(0);
+    expect(report.firstDivergentBoundary).toBeNull();
+    expect(report.firstReplayIssue).toBeNull();
+  } finally {
+    await rm(tempDir, { force: true, recursive: true });
+  }
+});
+
+test("compareTraceDbStateManifests treats mirrored replay issues as non-divergent", async () => {
+  const tempDir = await mkdtemp(join(process.cwd(), "tmp/agents/db-state-replay-"));
+
+  try {
+    const matchingFingerprint = {
+      tables: {
+        statements: {
+          columnNames: ["id"],
+          rowCount: 1,
+          rowHash: "same-row-hash",
+        },
+      },
+    };
+
+    const candidatePath = join(tempDir, "candidate-sequence-000018.json");
+    const upstreamPath = join(tempDir, "upstream-sequence-000018.json");
+    await writeFile(candidatePath, `${JSON.stringify(matchingFingerprint, null, 2)}\n`, "utf8");
+    await writeFile(upstreamPath, `${JSON.stringify(matchingFingerprint, null, 2)}\n`, "utf8");
+
+    const unitKey = "test/v1_0_3/Data2.4.1-IDProperty";
+    const candidateManifestPath = join(tempDir, "candidate-db-state-manifest.json");
+    const upstreamManifestPath = join(tempDir, "upstream-db-state-manifest.json");
+    await writeFile(
+      candidateManifestPath,
+      `${JSON.stringify(
+        {
+          capturedExchangeCount: 19,
+          completedRawSequenceEnd: 18,
+          entries: [
+            {
+              entryKind: "unit",
+              fingerprintPath: candidatePath,
+              nodeKey: `unit:${unitKey}`,
+              rawSequenceEnd: 18,
+              runner: "candidate",
+              selectionMode: "captured-execution",
+              unitKey,
+            },
+          ],
+          mode: "all",
+          rawArtifactPath: join(tempDir, "candidate-raw.json"),
+          replayIssues: [
+            {
+              actualStatus: 404,
+              expectedStatus: 200,
+              method: "GET",
+              rawSequence: 17,
+              targetUrl: "http://localhost:8080/xapi/statements?statementId=c92ba9f7-8e3b-4cba-a678-bf8cf29f976e",
+            },
+            {
+              actualStatus: 404,
+              expectedStatus: 200,
+              method: "GET",
+              rawSequence: 18,
+              targetUrl: "http://localhost:8080/xapi/statements?statementId=c92ba9f7-8e3b-4cba-a678-bf8cf29f976e",
+            },
+          ],
+          runner: "candidate",
+          schemaVersion: "trace-node-db-state-manifest.v1",
+          selectedUnitKeys: [unitKey],
+          traceNodeIndexPath: join(tempDir, "candidate-node-index.json"),
+          version: "1.0.3",
+        },
+        null,
+        2,
+      )}\n`,
+      "utf8",
+    );
+    await writeFile(
+      upstreamManifestPath,
+      `${JSON.stringify(
+        {
+          capturedExchangeCount: 19,
+          completedRawSequenceEnd: 18,
+          entries: [
+            {
+              entryKind: "unit",
+              fingerprintPath: upstreamPath,
+              nodeKey: `unit:${unitKey}`,
+              rawSequenceEnd: 18,
+              runner: "upstream",
+              selectionMode: "captured-execution",
+              unitKey,
+            },
+          ],
+          mode: "all",
+          rawArtifactPath: join(tempDir, "upstream-raw.json"),
+          replayIssues: [
+            {
+              actualStatus: 404,
+              expectedStatus: 200,
+              method: "GET",
+              rawSequence: 17,
+              targetUrl: "http://localhost:8080/xapi/statements?statementId=441a8f66-ffab-4a36-b0bc-bd0e50da5e14",
+            },
+            {
+              actualStatus: 404,
+              expectedStatus: 200,
+              method: "GET",
+              rawSequence: 18,
+              targetUrl: "http://localhost:8080/xapi/statements?statementId=441a8f66-ffab-4a36-b0bc-bd0e50da5e14",
+            },
+          ],
+          runner: "upstream",
+          schemaVersion: "trace-node-db-state-manifest.v1",
+          selectedUnitKeys: [unitKey],
+          traceNodeIndexPath: join(tempDir, "upstream-node-index.json"),
+          version: "1.0.3",
+        },
+        null,
+        2,
+      )}\n`,
+      "utf8",
+    );
+
+    const report = await compareTraceDbStateManifests({
+      candidateManifestPath,
+      upstreamManifestPath,
+    });
+
+    expect(report.different).toBe(false);
+    expect(report.divergentBoundaries).toHaveLength(0);
+    expect(report.firstDivergentBoundary).toBeNull();
+    expect(report.firstReplayIssue).toEqual(
+      expect.objectContaining({
+        runner: "candidate",
       }),
     );
   } finally {

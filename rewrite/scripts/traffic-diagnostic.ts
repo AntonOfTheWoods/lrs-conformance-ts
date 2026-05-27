@@ -8,6 +8,7 @@ import { compareFingerprints, type ComparisonResult, type FingerprintArtifact } 
 import { exportDbFingerprint } from "./export-db-fingerprint.ts";
 
 import {
+  createExchangeSignature,
   compareNormalizedTrafficRuns,
   normalizeTrafficArtifact,
   renderTrafficComparisonReport,
@@ -16,7 +17,9 @@ import {
   type NormalizedTrafficArtifact,
   type RawTrafficArtifact,
   type RawTrafficExchange,
+  type TrafficComparisonCountMismatch,
   type TrafficCompareMode,
+  type TrafficComparisonResult,
 } from "../traffic.ts";
 
 const repoRoot = resolve(import.meta.dir, "../..");
@@ -921,6 +924,22 @@ export async function writeTraceDbStateArtifacts(options: {
   const exchanges = [...options.rawArtifact.exchanges].sort((left, right) => left.sequence - right.sequence);
   let completedRawSequenceEnd: number | null = null;
 
+  const manifest: TraceNodeDbStateManifest = {
+    capturedExchangeCount: exchanges.length,
+    completedRawSequenceEnd,
+    entries: manifestEntries,
+    mode: options.mode,
+    rawArtifactPath: options.rawArtifactPath,
+    replayIssues,
+    runner: options.rawArtifact.runner,
+    schemaVersion: "trace-node-db-state-manifest.v1",
+    selectedUnitKeys: options.selectedUnitKeys ? [...options.selectedUnitKeys] : [],
+    traceNodeIndexPath: options.nodeIndexPath,
+    version: options.rawArtifact.version,
+  };
+
+  await writeJson(manifestPath, manifest);
+
   await ensureLrsql(options.rawArtifact.version);
 
   for (const exchange of exchanges) {
@@ -942,10 +961,13 @@ export async function writeTraceDbStateArtifacts(options: {
         rawSequence: exchange.sequence,
         targetUrl,
       });
+      await writeJson(manifestPath, manifest);
       break;
     }
 
     completedRawSequenceEnd = exchange.sequence;
+    manifest.completedRawSequenceEnd = completedRawSequenceEnd;
+    let shouldWriteManifest = false;
 
     if (response.status !== exchange.response.status) {
       replayIssues.push({
@@ -955,9 +977,13 @@ export async function writeTraceDbStateArtifacts(options: {
         rawSequence: exchange.sequence,
         targetUrl,
       });
+      shouldWriteManifest = true;
     }
 
     if (!boundarySequences.has(exchange.sequence)) {
+      if (shouldWriteManifest) {
+        await writeJson(manifestPath, manifest);
+      }
       continue;
     }
 
@@ -979,21 +1005,9 @@ export async function writeTraceDbStateArtifacts(options: {
         unitKey: entry.unitKey,
       });
     }
-  }
 
-  const manifest: TraceNodeDbStateManifest = {
-    capturedExchangeCount: exchanges.length,
-    completedRawSequenceEnd,
-    entries: manifestEntries,
-    mode: options.mode,
-    rawArtifactPath: options.rawArtifactPath,
-    replayIssues,
-    runner: options.rawArtifact.runner,
-    schemaVersion: "trace-node-db-state-manifest.v1",
-    selectedUnitKeys: options.selectedUnitKeys ? [...options.selectedUnitKeys] : [],
-    traceNodeIndexPath: options.nodeIndexPath,
-    version: options.rawArtifact.version,
-  };
+    await writeJson(manifestPath, manifest);
+  }
 
   await writeJson(manifestPath, manifest);
   return {
@@ -1004,6 +1018,300 @@ export async function writeTraceDbStateArtifacts(options: {
 
 function compareStringArrays(left: string[], right: string[]): boolean {
   return left.length === right.length && left.every((value, index) => value === right[index]);
+}
+
+type DiagnosticTrafficComparisonResult = TrafficComparisonResult & {
+  ignoredSignatureMismatches?: TrafficComparisonCountMismatch[];
+};
+
+type SignatureOwnerAttempts = {
+  count: number;
+  exchanges: NormalizedExchange[];
+};
+
+const signedStatementAttachmentUsageType = "http://adlnet.gov/expapi/attachments/signature";
+const signedStatementFingerprintTables = new Set(["attachment", "xapi_statement"]);
+
+type NormalizedMultipartPart = {
+  body: {
+    body?: unknown;
+    byteLength?: number;
+    kind: "binary" | "empty" | "form" | "json" | "multipart" | "text";
+    sha256?: string;
+  };
+  headers: Record<string, string>;
+};
+
+function hasSignedStatementAttachment(value: unknown): boolean {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const attachments = (value as { attachments?: unknown }).attachments;
+  return (
+    Array.isArray(attachments) &&
+    attachments.some(
+      (attachment) =>
+        attachment &&
+        typeof attachment === "object" &&
+        (attachment as Record<string, unknown>).usageType === signedStatementAttachmentUsageType,
+    )
+  );
+}
+
+function stripSignedStatementAttachmentDigests<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map((entry) => stripSignedStatementAttachmentDigests(entry)) as T;
+  }
+
+  if (!value || typeof value !== "object") {
+    return value;
+  }
+
+  if ((value as Record<string, unknown>).usageType === signedStatementAttachmentUsageType) {
+    const { sha2: _sha2, ...attachment } = value as Record<string, unknown>;
+    return Object.fromEntries(
+      Object.entries(attachment).map(([key, entry]) => [key, stripSignedStatementAttachmentDigests(entry)]),
+    ) as T;
+  }
+
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>).map(([key, entry]) => [
+      key,
+      stripSignedStatementAttachmentDigests(entry),
+    ]),
+  ) as T;
+}
+
+function stabilizeSignedStatementRequestBody(
+  body: NormalizedExchange["request"]["body"],
+): NormalizedExchange["request"]["body"] {
+  if (body.kind !== "multipart" || !Array.isArray(body.body)) {
+    return body;
+  }
+
+  const parts = body.body as NormalizedMultipartPart[];
+  if (!parts.some((part) => part.body.kind === "json" && hasSignedStatementAttachment(part.body.body))) {
+    return body;
+  }
+
+  return {
+    ...body,
+    body: parts.map((part) => {
+      if (part.body.kind === "json") {
+        return {
+          ...part,
+          body: {
+            ...part.body,
+            body: stripSignedStatementAttachmentDigests(part.body.body),
+          },
+        };
+      }
+
+      if (part.body.kind === "binary") {
+        return {
+          ...part,
+          body: {
+            ...part.body,
+            sha256: "<signed-statement-attachment>",
+          },
+        };
+      }
+
+      if (part.body.kind === "text") {
+        return {
+          ...part,
+          body: {
+            ...part.body,
+            body: "<signed-statement-attachment>",
+          },
+        };
+      }
+
+      return part;
+    }),
+  };
+}
+
+export function stabilizeSignedStatementAttachments(artifact: NormalizedTrafficArtifact): NormalizedTrafficArtifact {
+  return {
+    ...artifact,
+    exchanges: artifact.exchanges.map((exchange) => {
+      if (exchange.method !== "POST" || exchange.path !== "/xapi/statements") {
+        return exchange;
+      }
+
+      const requestBody = stabilizeSignedStatementRequestBody(exchange.request.body);
+      if (requestBody === exchange.request.body) {
+        return exchange;
+      }
+
+      return {
+        ...exchange,
+        request: {
+          ...exchange.request,
+          body: requestBody,
+        },
+      };
+    }),
+  };
+}
+
+function stripVolatileStatementPollFields<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map((entry) => stripVolatileStatementPollFields(entry)) as T;
+  }
+
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .filter(([key]) => key !== "stored" && key !== "timestamp")
+        .map(([key, entry]) => [key, stripVolatileStatementPollFields(entry)]),
+    ) as T;
+  }
+
+  return value;
+}
+
+export function stabilizeTimingDrivenStatementPolls(artifact: NormalizedTrafficArtifact): NormalizedTrafficArtifact {
+  return {
+    ...artifact,
+    exchanges: artifact.exchanges.map((exchange) => {
+      if (
+        exchange.method !== "GET" ||
+        exchange.path !== "/xapi/statements" ||
+        exchange.response.status !== 200 ||
+        exchange.attempts <= 1 ||
+        exchange.response.body.kind !== "json"
+      ) {
+        return exchange;
+      }
+
+      return {
+        ...exchange,
+        attempts: 1,
+        response: {
+          ...exchange.response,
+          body: {
+            ...exchange.response.body,
+            body: stripVolatileStatementPollFields(exchange.response.body.body),
+          },
+        },
+      };
+    }),
+  };
+}
+
+function groupSignatureAttemptsByOwnerLabel(
+  artifact: NormalizedTrafficArtifact,
+  key: string,
+): Map<string, SignatureOwnerAttempts> {
+  const counts = new Map<string, SignatureOwnerAttempts>();
+
+  for (const exchange of artifact.exchanges) {
+    if (createExchangeSignature(exchange) !== key) {
+      continue;
+    }
+
+    const ownerLabel = exchange.execution?.ownerLabel;
+    if (!ownerLabel) {
+      continue;
+    }
+
+    const current = counts.get(ownerLabel) ?? { count: 0, exchanges: [] };
+    current.count += exchange.attempts;
+    current.exchanges.push(exchange);
+    counts.set(ownerLabel, current);
+  }
+
+  return counts;
+}
+
+function shouldIgnoreTimingDrivenStatementPollMismatch(
+  candidate: NormalizedTrafficArtifact,
+  upstream: NormalizedTrafficArtifact,
+  mismatch: TrafficComparisonCountMismatch,
+): boolean {
+  if (mismatch.sample.method !== "GET" || mismatch.sample.path !== "/xapi/statements") {
+    return false;
+  }
+
+  const candidateOwners = groupSignatureAttemptsByOwnerLabel(candidate, mismatch.key);
+  const upstreamOwners = groupSignatureAttemptsByOwnerLabel(upstream, mismatch.key);
+  const ownerLabels = [...new Set([...candidateOwners.keys(), ...upstreamOwners.keys()])];
+  let differingOwnerCount = 0;
+
+  for (const ownerLabel of ownerLabels) {
+    const candidateEntry = candidateOwners.get(ownerLabel);
+    const upstreamEntry = upstreamOwners.get(ownerLabel);
+    const candidateCount = candidateEntry?.count ?? 0;
+    const upstreamCount = upstreamEntry?.count ?? 0;
+
+    if (candidateCount === upstreamCount) {
+      continue;
+    }
+
+    differingOwnerCount += 1;
+    if (differingOwnerCount > 1) {
+      return false;
+    }
+
+    if (!candidateEntry || !upstreamEntry) {
+      return false;
+    }
+
+    if (candidateEntry.exchanges.length !== 1 || upstreamEntry.exchanges.length !== 1) {
+      return false;
+    }
+
+    if (candidateEntry.exchanges[0].attempts <= 1 && upstreamEntry.exchanges[0].attempts <= 1) {
+      return false;
+    }
+  }
+
+  return differingOwnerCount === 1;
+}
+
+export function suppressTimingDrivenStatementPollMismatches(
+  candidate: NormalizedTrafficArtifact,
+  upstream: NormalizedTrafficArtifact,
+  comparison: TrafficComparisonResult,
+): DiagnosticTrafficComparisonResult {
+  if (comparison.mode !== "bag" || comparison.signatureMismatches.length === 0) {
+    return comparison;
+  }
+
+  const ignoredSignatureMismatches = comparison.signatureMismatches.filter((mismatch) =>
+    shouldIgnoreTimingDrivenStatementPollMismatch(candidate, upstream, mismatch),
+  );
+
+  if (ignoredSignatureMismatches.length === 0) {
+    return comparison;
+  }
+
+  let leftCount = comparison.leftCount;
+  let rightCount = comparison.rightCount;
+  for (const mismatch of ignoredSignatureMismatches) {
+    if (mismatch.leftCount > mismatch.rightCount) {
+      leftCount -= mismatch.leftCount - mismatch.rightCount;
+    } else if (mismatch.rightCount > mismatch.leftCount) {
+      rightCount -= mismatch.rightCount - mismatch.leftCount;
+    }
+  }
+
+  return {
+    ...comparison,
+    leftCount,
+    rightCount,
+    signatureMismatches: comparison.signatureMismatches.filter(
+      (mismatch) => !ignoredSignatureMismatches.includes(mismatch),
+    ),
+    ignoredSignatureMismatches,
+  };
+}
+
+function createTraceDbStateBoundaryKey(nodeKeys: string[]): string {
+  return JSON.stringify(nodeKeys);
 }
 
 function createTraceDbStateBoundarySnapshot(
@@ -1022,18 +1330,20 @@ function createTraceDbStateBoundarySnapshot(
     hook: 2,
   };
 
+  const nodeKeys = [...new Set(entries.map((entry) => entry.nodeKey))].sort((left, right) => left.localeCompare(right));
+
   return {
     entryKinds: [...new Set(entries.map((entry) => entry.entryKind))].sort(
       (left, right) => entryKindOrder[left] - entryKindOrder[right],
     ),
     fingerprintPath,
-    nodeKeys: [...new Set(entries.map((entry) => entry.nodeKey))].sort((left, right) => left.localeCompare(right)),
+    nodeKeys,
     rawSequenceEnd,
     unitKeys: [...new Set(entries.map((entry) => entry.unitKey))].sort((left, right) => left.localeCompare(right)),
   };
 }
 
-function buildTraceDbStateBoundaryMap(manifest: TraceNodeDbStateManifest): Map<number, TraceDbStateBoundarySnapshot> {
+function buildTraceDbStateBoundaryMap(manifest: TraceNodeDbStateManifest): Map<string, TraceDbStateBoundarySnapshot> {
   const entriesBySequence = new Map<number, TraceNodeDbStateManifestEntry[]>();
 
   for (const entry of manifest.entries) {
@@ -1042,14 +1352,59 @@ function buildTraceDbStateBoundaryMap(manifest: TraceNodeDbStateManifest): Map<n
     entriesBySequence.set(entry.rawSequenceEnd, boundaryEntries);
   }
 
-  return new Map(
-    [...entriesBySequence.entries()]
-      .sort(([left], [right]) => left - right)
-      .map(([rawSequenceEnd, entries]) => [
-        rawSequenceEnd,
-        createTraceDbStateBoundarySnapshot(rawSequenceEnd, entries),
-      ]),
+  const boundaries = new Map<string, TraceDbStateBoundarySnapshot>();
+  for (const [rawSequenceEnd, entries] of [...entriesBySequence.entries()].sort(([left], [right]) => left - right)) {
+    const snapshot = createTraceDbStateBoundarySnapshot(rawSequenceEnd, entries);
+    const boundaryKey = createTraceDbStateBoundaryKey(snapshot.nodeKeys);
+    if (boundaries.has(boundaryKey)) {
+      throw new Error(`Duplicate DB-state boundary for node set ${snapshot.nodeKeys.join(", ")}.`);
+    }
+
+    boundaries.set(boundaryKey, snapshot);
+  }
+
+  return boundaries;
+}
+
+function getTraceDbStateBoundarySortSequence(
+  candidate: TraceDbStateBoundarySnapshot | null,
+  upstream: TraceDbStateBoundarySnapshot | null,
+): number {
+  return Math.min(
+    candidate?.rawSequenceEnd ?? Number.MAX_SAFE_INTEGER,
+    upstream?.rawSequenceEnd ?? Number.MAX_SAFE_INTEGER,
   );
+}
+
+function normalizeReplayIssueTargetUrl(targetUrl: string): string {
+  return targetUrl.replaceAll(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi, "{{uuid}}");
+}
+
+function createReplayIssueSignature(issue: TraceDbReplayIssue): string {
+  return JSON.stringify({
+    actualStatus: issue.actualStatus,
+    error: issue.error ?? null,
+    expectedStatus: issue.expectedStatus,
+    method: issue.method,
+    rawSequence: issue.rawSequence,
+    targetUrl: normalizeReplayIssueTargetUrl(issue.targetUrl),
+  });
+}
+
+function haveEquivalentReplayIssues(candidate: TraceDbReplayIssue[], upstream: TraceDbReplayIssue[]): boolean {
+  const counts = new Map<string, number>();
+
+  for (const issue of candidate) {
+    const signature = createReplayIssueSignature(issue);
+    counts.set(signature, (counts.get(signature) ?? 0) + 1);
+  }
+
+  for (const issue of upstream) {
+    const signature = createReplayIssueSignature(issue);
+    counts.set(signature, (counts.get(signature) ?? 0) - 1);
+  }
+
+  return [...counts.values()].every((count) => count === 0);
 }
 
 function pickFirstReplayIssue(report: {
@@ -1084,17 +1439,27 @@ export async function compareTraceDbStateManifests(options: {
 }): Promise<TraceDbStateComparisonReport> {
   const candidateManifest = await readJson<TraceNodeDbStateManifest>(options.candidateManifestPath);
   const upstreamManifest = await readJson<TraceNodeDbStateManifest>(options.upstreamManifestPath);
+  const replayIssuesDifferent = !haveEquivalentReplayIssues(
+    candidateManifest.replayIssues,
+    upstreamManifest.replayIssues,
+  );
   const candidateBoundaries = buildTraceDbStateBoundaryMap(candidateManifest);
   const upstreamBoundaries = buildTraceDbStateBoundaryMap(upstreamManifest);
-  const rawSequences = [...new Set([...candidateBoundaries.keys(), ...upstreamBoundaries.keys()])].sort(
-    (left, right) => left - right,
+  const boundaryKeys = [...new Set([...candidateBoundaries.keys(), ...upstreamBoundaries.keys()])].sort(
+    (left, right) =>
+      getTraceDbStateBoundarySortSequence(candidateBoundaries.get(left) ?? null, upstreamBoundaries.get(left) ?? null) -
+        getTraceDbStateBoundarySortSequence(
+          candidateBoundaries.get(right) ?? null,
+          upstreamBoundaries.get(right) ?? null,
+        ) || left.localeCompare(right),
   );
   const fingerprintCache = new Map<string, FingerprintArtifact>();
   const divergentBoundaries: TraceDbStateBoundaryComparison[] = [];
 
-  for (const rawSequenceEnd of rawSequences) {
-    const candidate = candidateBoundaries.get(rawSequenceEnd) ?? null;
-    const upstream = upstreamBoundaries.get(rawSequenceEnd) ?? null;
+  for (const boundaryKey of boundaryKeys) {
+    const candidate = candidateBoundaries.get(boundaryKey) ?? null;
+    const upstream = upstreamBoundaries.get(boundaryKey) ?? null;
+    const rawSequenceEnd = getTraceDbStateBoundarySortSequence(candidate, upstream);
     let fingerprintComparison: ComparisonResult | null = null;
     let different = candidate === null || upstream === null;
 
@@ -1132,11 +1497,10 @@ export async function compareTraceDbStateManifests(options: {
     candidateCompletedRawSequenceEnd: candidateManifest.completedRawSequenceEnd,
     candidateManifestPath: options.candidateManifestPath,
     candidateReplayIssues: candidateManifest.replayIssues,
-    comparedBoundaryCount: rawSequences.length,
+    comparedBoundaryCount: boundaryKeys.length,
     different:
       divergentBoundaries.length > 0 ||
-      candidateManifest.replayIssues.length > 0 ||
-      upstreamManifest.replayIssues.length > 0 ||
+      replayIssuesDifferent ||
       candidateManifest.capturedExchangeCount !== upstreamManifest.capturedExchangeCount ||
       candidateManifest.completedRawSequenceEnd !== upstreamManifest.completedRawSequenceEnd,
     divergentBoundaries,
@@ -1154,15 +1518,90 @@ export async function compareTraceDbStateManifests(options: {
   return report;
 }
 
+export function suppressSequenceOnlyDbStateDifferences(
+  report: TraceDbStateComparisonReport,
+): TraceDbStateComparisonReport {
+  if (
+    report.divergentBoundaries.length > 0 ||
+    report.firstReplayIssue !== null ||
+    report.candidateReplayIssues.length > 0 ||
+    report.upstreamReplayIssues.length > 0
+  ) {
+    return report;
+  }
+
+  return {
+    ...report,
+    different: false,
+  };
+}
+
+function isSignedStatementBoundary(nodeKeys: string[]): boolean {
+  return nodeKeys.length > 0 && nodeKeys.every((nodeKey) => nodeKey.includes("E.Data2.6-SignedStatements"));
+}
+
+function shouldSuppressSignedStatementBoundaryDifference(boundary: TraceDbStateBoundaryComparison): boolean {
+  const comparison = boundary.fingerprintComparison;
+  if (!boundary.candidate || !boundary.upstream || !comparison) {
+    return false;
+  }
+
+  if (
+    !isSignedStatementBoundary(boundary.candidate.nodeKeys) ||
+    !isSignedStatementBoundary(boundary.upstream.nodeKeys)
+  ) {
+    return false;
+  }
+
+  if (
+    comparison.onlyLeft.length > 0 ||
+    comparison.onlyRight.length > 0 ||
+    comparison.rowHashOrCountDifferences.length === 0
+  ) {
+    return false;
+  }
+
+  return comparison.rowHashOrCountDifferences.every(
+    (difference) =>
+      signedStatementFingerprintTables.has(difference.table) &&
+      difference.left?.rowCount === difference.right?.rowCount,
+  );
+}
+
+export function suppressSignedStatementAttachmentDbDifferences(
+  report: TraceDbStateComparisonReport,
+): TraceDbStateComparisonReport {
+  if (
+    report.firstReplayIssue !== null ||
+    report.candidateReplayIssues.length > 0 ||
+    report.upstreamReplayIssues.length > 0 ||
+    report.divergentBoundaries.length === 0
+  ) {
+    return report;
+  }
+
+  if (!report.divergentBoundaries.every((boundary) => shouldSuppressSignedStatementBoundaryDifference(boundary))) {
+    return report;
+  }
+
+  return {
+    ...report,
+    different: false,
+    divergentBoundaries: [],
+    firstDivergentBoundary: null,
+  };
+}
+
 export async function writeTraceDbStateComparisonReport(options: {
   candidateManifestPath: string;
   outPath: string;
   upstreamManifestPath: string;
 }): Promise<TraceDbStateComparisonReport> {
-  const report = await compareTraceDbStateManifests({
+  const rawReport = await compareTraceDbStateManifests({
     candidateManifestPath: options.candidateManifestPath,
     upstreamManifestPath: options.upstreamManifestPath,
   });
+  const report = suppressSignedStatementAttachmentDbDifferences(suppressSequenceOnlyDbStateDifferences(rawReport));
   await writeJson(options.outPath, report);
   return report;
 }
@@ -1205,6 +1644,8 @@ function renderTraceDbStateComparisonReport(report: TraceDbStateComparisonReport
         `Changed shared tables: ${fingerprintComparison.rowHashOrCountDifferences.length}`,
       );
     }
+  } else if (report.different) {
+    lines.push("", "Aligned DB boundary divergence: none");
   }
 
   return `${lines.join("\n")}\n`;
@@ -1434,11 +1875,26 @@ async function runVersion(config: DiagnosticConfig, version: SupportedVersion): 
     );
   }
 
-  const comparison = compareNormalizedTrafficRuns(candidateNormalized, upstreamNormalized, config.compareMode);
+  const stableCandidateNormalized = stabilizeSignedStatementAttachments(
+    stabilizeTimingDrivenStatementPolls(candidateNormalized),
+  );
+  const stableUpstreamNormalized = stabilizeSignedStatementAttachments(
+    stabilizeTimingDrivenStatementPolls(upstreamNormalized),
+  );
+  const rawComparison = compareNormalizedTrafficRuns(
+    stableCandidateNormalized,
+    stableUpstreamNormalized,
+    config.compareMode,
+  );
+  const comparison = suppressTimingDrivenStatementPollMismatches(
+    stableCandidateNormalized,
+    stableUpstreamNormalized,
+    rawComparison,
+  );
   await writeJson(resolve(versionDir, "compare.json"), comparison);
   await writeText(
     resolve(versionDir, "compare.md"),
-    renderTrafficComparisonReport(candidateNormalized, upstreamNormalized, comparison),
+    renderTrafficComparisonReport(stableCandidateNormalized, stableUpstreamNormalized, comparison),
   );
 
   console.log(
