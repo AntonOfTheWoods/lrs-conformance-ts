@@ -14,6 +14,9 @@ export interface ActiveExecutionMetadata {
 export interface CaptureExecutionMetadata extends ActiveExecutionMetadata {
   directory: string;
   ownerLabel: string;
+  sourceFilePath: string | null;
+  sourceSymbol: string | null;
+  unitKey: string;
   version: string;
 }
 
@@ -43,6 +46,9 @@ export function formatExecutionOwnerLabel(metadata: ActiveExecutionMetadata): st
 export function createCaptureExecutionMetadata(options: {
   directory: string;
   execution: ActiveExecutionMetadata;
+  sourceFilePath: string | null;
+  sourceSymbol: string | null;
+  unitKey: string;
   version: string;
 }): CaptureExecutionMetadata {
   return {
@@ -51,7 +57,10 @@ export function createCaptureExecutionMetadata(options: {
     hookTitle: options.execution.hookTitle,
     ownerLabel: formatExecutionOwnerLabel(options.execution),
     phase: options.execution.phase,
+    sourceFilePath: options.sourceFilePath,
+    sourceSymbol: options.sourceSymbol,
     suitePath: [...options.execution.suitePath],
+    unitKey: options.unitKey,
     version: options.version,
   };
 }
@@ -76,7 +85,10 @@ export function decodeCaptureExecutionMetadata(value: string | null): CaptureExe
     if (
       typeof candidate.directory !== "string" ||
       typeof candidate.ownerLabel !== "string" ||
+      typeof candidate.unitKey !== "string" ||
       typeof candidate.version !== "string" ||
+      (typeof candidate.sourceFilePath !== "string" && candidate.sourceFilePath !== null) ||
+      (typeof candidate.sourceSymbol !== "string" && candidate.sourceSymbol !== null) ||
       (typeof candidate.hookTitle !== "string" && candidate.hookTitle !== null) ||
       !isExecutionPhase(candidate.phase) ||
       !isStringArray(candidate.suitePath) ||
@@ -91,7 +103,10 @@ export function decodeCaptureExecutionMetadata(value: string | null): CaptureExe
       hookTitle: candidate.hookTitle,
       ownerLabel: candidate.ownerLabel,
       phase: candidate.phase,
+      sourceFilePath: candidate.sourceFilePath,
+      sourceSymbol: candidate.sourceSymbol,
       suitePath: [...candidate.suitePath],
+      unitKey: candidate.unitKey,
       version: candidate.version,
     };
   } catch {

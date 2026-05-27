@@ -13,6 +13,7 @@ describe("runner option normalization", () => {
       directory: ["v2_0"],
       endpoint: "http://localhost:8000/xapi",
       grep: undefined,
+      unitKeys: undefined,
       optional: undefined,
       basicAuth: false,
       authUser: undefined,
@@ -75,6 +76,46 @@ describe("runner option normalization", () => {
       directory: ["Multiplicity", "Parameters", "Untested", "v1_0_3"],
       optional: ["Multiplicity", "Parameters", "Untested"],
     });
+  });
+
+  test("infers a single versioned directory from selected migration unit keys", () => {
+    expect(
+      normalizeRunnerOptions({
+        endpoint: "http://localhost:8000/xapi",
+        unitKeys: ["test/v1_0_3/Data2.2-FormattingRequirements"],
+      }),
+    ).toMatchObject({
+      xapiVersion: "1.0.3",
+      directory: ["v1_0_3"],
+      unitKeys: ["test/v1_0_3/Data2.2-FormattingRequirements"],
+    });
+  });
+
+  test("allows optional-suite unit selection when the run version is explicit", () => {
+    expect(
+      normalizeRunnerOptions({
+        endpoint: "http://localhost:8000/xapi",
+        unitKeys: ["test/Parameters/testing"],
+        xapiVersion: "2.0.0",
+      }),
+    ).toMatchObject({
+      xapiVersion: "2.0.0",
+      directory: ["Parameters"],
+      unitKeys: ["test/Parameters/testing"],
+    });
+  });
+
+  test("rejects mixed-version unit key selection", () => {
+    expect(() =>
+      normalizeRunnerOptions({
+        endpoint: "http://localhost:8000/xapi",
+        unitKeys: ["test/v1_0_3/Data2.2-FormattingRequirements", "test/v2_0/Data2.2-FormattingRequirements"],
+      }),
+    ).toThrow(
+      new RunnerOptionsError(
+        "Multiple unit keys specified which refer to different versions of the xAPI spec: 1.0.3 vs. 2.0.0",
+      ),
+    );
   });
 
   test("requires an endpoint URI", () => {

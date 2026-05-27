@@ -3559,6 +3559,36 @@ describe("console runner entrypoint", () => {
     }
   });
 
+  test("runs a single migration unit by stable unit key", async () => {
+    const harness = startMockLrs("1.0.3");
+    const logDirectory = join(import.meta.dir, "..", "..", "tmp", "agents", crypto.randomUUID());
+
+    try {
+      const execution = await runConsoleRunnerArgv(
+        withBasicAuthArgs(["--endpoint", harness.endpoint, "--unitKey", "test/v1_0_3/Data2.2-FormattingRequirements"]),
+        {
+          createUuid: () => "run-formatting-unit-v103",
+          logDirectory,
+          logger: silentLogger,
+          now: createNowSequence([300, 360]),
+        },
+      );
+
+      expect(execution.normalizedOptions.directory).toEqual(["v1_0_3"]);
+      expect(execution.normalizedOptions.unitKeys).toEqual(["test/v1_0_3/Data2.2-FormattingRequirements"]);
+      expect(execution.runRecord.summary.total).toBeGreaterThan(0);
+      expect(execution.runRecord.summary.failed).toBe(0);
+
+      const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-formatting-unit-v103.log"), "utf8")) as {
+        log: { tests: Array<{ title: string }> };
+      };
+
+      expectLoggedSuiteTitles(writtenRecord.log.tests, ["Formatting Requirements (Data 2.2)"]);
+    } finally {
+      await harness.server.stop(true);
+    }
+  });
+
   test("runs the Multiplicity slice alongside v2_0 without adding HTTP traffic", async () => {
     const harness = startMockLrs("2.0.0");
     const logDirectory = join(import.meta.dir, "..", "..", "tmp", "agents", crypto.randomUUID());

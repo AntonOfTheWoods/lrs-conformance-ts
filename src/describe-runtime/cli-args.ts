@@ -16,7 +16,8 @@ type ValueOptionKey =
   | "auth_token_path"
   | "authorization_path"
   | "grep"
-  | "directory";
+  | "directory"
+  | "unitKeys";
 
 type FlagDefinition =
   | {
@@ -57,6 +58,7 @@ const flagDefinitions: Record<string, FlagDefinition> = {
   "--bail": { key: "bail", expectsValue: false },
   "-d": { key: "directory", expectsValue: true },
   "--directory": { key: "directory", expectsValue: true },
+  "--unitKey": { key: "unitKeys", expectsValue: true },
   "-z": { key: "errors", expectsValue: false },
   "--errors": { key: "errors", expectsValue: false },
 };
@@ -80,9 +82,21 @@ function parseDirectoryValue(value: string): string[] {
     .filter((segment) => segment.length > 0);
 }
 
+function parseCsvValue(value: string): string[] {
+  return value
+    .split(",")
+    .map((segment) => segment.trim())
+    .filter((segment) => segment.length > 0);
+}
+
 function assignValue(options: ConsoleRunnerOptions, key: ValueOptionKey, value: string): void {
   if (key === "directory") {
     options.directory = parseDirectoryValue(value);
+    return;
+  }
+
+  if (key === "unitKeys") {
+    options.unitKeys = parseCsvValue(value);
     return;
   }
 

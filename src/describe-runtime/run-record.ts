@@ -7,6 +7,7 @@ export interface RuntimeRunRecordFlags {
   oAuth1?: boolean;
   consumer_key?: string;
   grep?: string;
+  unitKeys?: string[];
   optional?: string[];
 }
 

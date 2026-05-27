@@ -15,6 +15,23 @@ import {
   type RawTrafficExchange,
 } from "../traffic.ts";
 
+function createExecutionMetadata(overrides: Partial<ReturnType<typeof createCaptureExecutionMetadata>> = {}) {
+  return createCaptureExecutionMetadata({
+    directory: "v1_0_3",
+    execution: {
+      casePath: ["Formatting Requirements (Data 2.2)", "default case"],
+      hookTitle: null,
+      phase: "case",
+      suitePath: ["Formatting Requirements (Data 2.2)"],
+    },
+    sourceFilePath: "src/specs/v1_0_3/Data2.2-FormattingRequirements.ts",
+    sourceSymbol: "registerFormattingRequirementsV103",
+    unitKey: "test/v1_0_3/Data2.2-FormattingRequirements",
+    version: "1.0.3",
+    ...overrides,
+  });
+}
+
 function createRawExchange(overrides: Partial<RawTrafficExchange> = {}): RawTrafficExchange {
   return {
     durationMs: 5,
@@ -454,25 +471,21 @@ describe("traffic harness", () => {
   });
 
   test("does not compress equivalent exchanges across different execution metadata", () => {
-    const leftExecution = createCaptureExecutionMetadata({
-      directory: "v1_0_3",
+    const leftExecution = createExecutionMetadata({
       execution: {
         casePath: ["Formatting Requirements (Data 2.2)", "left case"],
         hookTitle: null,
         phase: "case",
         suitePath: ["Formatting Requirements (Data 2.2)"],
       },
-      version: "1.0.3",
     });
-    const rightExecution = createCaptureExecutionMetadata({
-      directory: "v1_0_3",
+    const rightExecution = createExecutionMetadata({
       execution: {
         casePath: ["Formatting Requirements (Data 2.2)", "right case"],
         hookTitle: null,
         phase: "case",
         suitePath: ["Formatting Requirements (Data 2.2)"],
       },
-      version: "1.0.3",
     });
 
     const normalized = normalizeTrafficArtifact({
@@ -487,6 +500,7 @@ describe("traffic harness", () => {
     expect(normalized.exchanges).toHaveLength(2);
     expect(normalized.exchanges[0]?.attempts).toBe(2);
     expect(normalized.exchanges[0]?.execution?.casePath?.at(-1)).toBe("left case");
+    expect(normalized.exchanges[0]?.execution?.unitKey).toBe("test/v1_0_3/Data2.2-FormattingRequirements");
     expect(normalized.exchanges[0]?.sourceSequences).toEqual([0, 1]);
     expect(normalized.exchanges[1]?.attempts).toBe(1);
     expect(normalized.exchanges[1]?.execution?.casePath?.at(-1)).toBe("right case");
@@ -536,15 +550,16 @@ describe("traffic harness", () => {
     });
 
     try {
-      const execution = createCaptureExecutionMetadata({
-        directory: "v1_0_3",
+      const execution = createExecutionMetadata({
         execution: {
           casePath: ["Statement Lifecycle Requirements", "probe case"],
           hookTitle: null,
           phase: "case",
           suitePath: ["Statement Lifecycle Requirements"],
         },
-        version: "1.0.3",
+        sourceFilePath: "src/specs/v1_0_3/Data2.3-StatementLifecycle.ts",
+        sourceSymbol: "registerStatementLifecycleRequirementsV103",
+        unitKey: "test/v1_0_3/Data2.3-StatementLifecycle",
       });
       const response = await fetch(`${recorder.captureBaseUrl}/statements?limit=1`, {
         method: "GET",
@@ -574,6 +589,7 @@ describe("traffic harness", () => {
         `http://127.0.0.1:${targetServer.port}/xapi/statements?limit=1`,
       );
       expect(artifact.exchanges[0]?.execution).toEqual(execution);
+      expect(artifact.exchanges[0]?.execution?.unitKey).toBe("test/v1_0_3/Data2.3-StatementLifecycle");
       expect(artifact.exchanges[0]?.response.status).toBe(201);
     } finally {
       await recorder.stop();

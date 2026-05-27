@@ -7,6 +7,7 @@ import {
   encodeCaptureExecutionMetadata,
   getActiveExecutionMetadata,
 } from "./execution-owner.ts";
+import { resolveMigrationUnitBinding } from "./migration-ledger.ts";
 import {
   createFromTemplate as createFromTemplateFromFixtures,
   type JsonObject,
@@ -113,12 +114,17 @@ function addCaptureOwnerHeader(
     return headers;
   }
 
+  const binding = resolveMigrationUnitBinding(directory, execution.suitePath);
+
   return {
     ...headers,
     [captureOwnerHeaderName]: encodeCaptureExecutionMetadata(
       createCaptureExecutionMetadata({
         directory,
         execution,
+        sourceFilePath: binding.sourceFilePath,
+        sourceSymbol: binding.sourceSymbol,
+        unitKey: binding.unitKey,
         version: options.xapiVersion,
       }),
     ),

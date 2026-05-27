@@ -49,6 +49,7 @@ function createRecordFlags(options: NormalizedRunnerOptions): RuntimeRunRecord["
     oAuth1: options.oAuth1,
     consumer_key: options.consumer_key,
     grep: options.grep,
+    unitKeys: options.unitKeys,
     optional: options.optional,
   };
 }

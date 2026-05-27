@@ -3,6 +3,8 @@ import { mkdir, readdir, readFile, rm, stat, writeFile } from "node:fs/promises"
 import { spawnSync } from "node:child_process";
 import { dirname, isAbsolute, posix, relative, resolve } from "node:path";
 
+import { getMigrationLedgerUnitByUnitKey } from "../../src/describe-runtime/migration-ledger.ts";
+
 const repoRoot = resolve(import.meta.dir, "../..");
 const defaultNodeImage = "docker.io/library/node:22";
 const defaultUpstreamRepoUrl = "https://github.com/adlnet/lrs-conformance-test-suite.git";
@@ -16,11 +18,13 @@ type SuiteLocation = {
   suiteDir: string;
 };
 
+type SupportedVersion = "2.0.0" | "1.0.3";
+
 interface ExportUpstreamConfig {
   baseUrl: string;
   username: string;
   password: string;
-  version: "2.0.0" | "1.0.3";
+  version: SupportedVersion;
   outputPath: string;
   logDir: string;
   nodeImage: string;
@@ -33,6 +37,13 @@ interface ExportUpstreamConfig {
   grep?: string;
   directory?: string;
   optional?: string;
+  unitKeys?: string[];
+}
+
+export interface UpstreamUnitSelection {
+  directory: "v1_0_3" | "v2_0";
+  filePaths: string[];
+  optionalDirectories: string[];
 }
 
 function getFlagValue(args: string[], flag: string): string | undefined {
@@ -44,10 +55,60 @@ function getFlagValue(args: string[], flag: string): string | undefined {
   return args[index + 1];
 }
 
+function parseCsvFlag(args: string[], flag: string): string[] | undefined {
+  const value = getFlagValue(args, flag);
+  if (!value) {
+    return undefined;
+  }
+
+  const parsed = value
+    .split(",")
+    .map((segment) => segment.trim())
+    .filter((segment, index, list) => segment.length > 0 && list.indexOf(segment) === index);
+
+  return parsed.length > 0 ? parsed : undefined;
+}
+
+function getVersionDirectory(version: SupportedVersion): "v1_0_3" | "v2_0" {
+  return version === "1.0.3" ? "v1_0_3" : "v2_0";
+}
+
+export function resolveUpstreamUnitSelection(unitKeys: string[], version: SupportedVersion): UpstreamUnitSelection {
+  if (unitKeys.length === 0) {
+    throw new Error("--unitKey requires at least one migration ledger unit key.");
+  }
+
+  const versionDirectory = getVersionDirectory(version);
+  const filePathSet = new Set<string>();
+  const optionalDirectorySet = new Set<string>();
+
+  for (const unitKey of unitKeys) {
+    const unit = getMigrationLedgerUnitByUnitKey(unitKey);
+    if (!unit) {
+      throw new Error(`Unknown --unitKey value: ${unitKey}`);
+    }
+
+    if (unit.version && unit.version !== version) {
+      throw new Error(`Unit key ${unitKey} does not belong to xAPI version ${version}.`);
+    }
+
+    filePathSet.add(unit.upstreamFilePath);
+    if (unit.directory !== versionDirectory) {
+      optionalDirectorySet.add(unit.directory);
+    }
+  }
+
+  return {
+    directory: versionDirectory,
+    filePaths: [...filePathSet],
+    optionalDirectories: [...optionalDirectorySet].sort((left, right) => left.localeCompare(right)),
+  };
+}
+
 function usage(): string {
   return [
     "Usage:",
-    "  bun run rewrite:export:upstream:lrsql -- [--base-url <url>] [--username <user>] [--password <pass>] [--version 2.0.0|1.0.3] [--out <path>] [--grep <pattern>] [--directory <csv>] [--optional <csv>] [--log-dir <path>] [--node-image <ref>] [--upstream-repo-url <url>] [--upstream-ref <ref>] [--clone-depth <n>] [--clone-base-dir <path>] [--keep-clone]",
+    "  bun run rewrite:export:upstream:lrsql -- [--base-url <url>] [--username <user>] [--password <pass>] [--version 2.0.0|1.0.3] [--out <path>] [--grep <pattern>] [--directory <csv>] [--optional <csv>] [--unitKey <csv>] [--log-dir <path>] [--node-image <ref>] [--upstream-repo-url <url>] [--upstream-ref <ref>] [--clone-depth <n>] [--clone-base-dir <path>] [--keep-clone]",
     "",
     "Defaults:",
     "  --base-url http://localhost:8080/xapi",
@@ -65,6 +126,7 @@ function usage(): string {
     "Notes:",
     "  The upstream suite source is always fetched from GitHub by shallow clone.",
     "  Local suite source paths are intentionally unsupported.",
+    "  --unitKey is mutually exclusive with --grep, --directory, and --optional.",
   ].join("\n");
 }
 
@@ -89,6 +151,7 @@ function parseConfig(args: string[]): ExportUpstreamConfig {
   const grep = getFlagValue(args, "--grep");
   const directory = getFlagValue(args, "--directory");
   const optional = getFlagValue(args, "--optional");
+  const unitKeys = parseCsvFlag(args, "--unitKey");
   const cloneDepth = Number.parseInt(cloneDepthValue, 10);
 
   if (versionFlag !== "2.0.0" && versionFlag !== "1.0.3") {
@@ -103,7 +166,11 @@ function parseConfig(args: string[]): ExportUpstreamConfig {
     throw new Error("--upstream-ref must not be empty");
   }
 
-  const version: ExportUpstreamConfig["version"] = versionFlag;
+  if (unitKeys && (grep || directory || optional)) {
+    throw new Error("--unitKey cannot be combined with --grep, --directory, or --optional.");
+  }
+
+  const version: SupportedVersion = versionFlag;
 
   return {
     baseUrl,
@@ -122,31 +189,119 @@ function parseConfig(args: string[]): ExportUpstreamConfig {
     grep,
     directory,
     optional,
+    unitKeys,
   };
 }
 
-function ensureOptionalFlagSupport(suiteDir: string): void {
+function ensureRunnerSelectionFlagSupport(suiteDir: string): void {
   const consoleRunnerPath = resolve(suiteDir, "bin/console_runner.js");
-  const source = readFileSync(consoleRunnerPath, "utf8");
+  let source = readFileSync(consoleRunnerPath, "utf8");
 
-  if (source.includes("program.optional") || source.includes("--optional")) {
-    return;
+  const directoryOptionLine =
+    "    .option('-d, --directory [value]', 'Specific directories of tests (as a comma-separated list with no spaces).', clean_dir, [...[]])\n";
+  const optionalOptionLine =
+    "    .option('-m, --optional [value]', 'Optional directories of tests (as a comma-separated list with no spaces).', clean_dir, [...[]])\n";
+  const fileOptionLine =
+    "    .option('-f, --file [value]', 'Specific suite files (as a comma-separated list with no spaces).', clean_dir, [...[]])\n";
+  const directoryConfigLine = "    directory: program.directory,\n";
+  const optionalConfigLine =
+    "    optional: Array.isArray(program.optional) && program.optional.length > 0 ? program.optional : undefined,\n";
+  const fileConfigLine =
+    "    file: Array.isArray(program.file) && program.file.length > 0 ? program.file : undefined,\n";
+
+  if (!source.includes("--optional [value]")) {
+    const patched = source.replace(directoryOptionLine, `${directoryOptionLine}${optionalOptionLine}`);
+    if (patched === source) {
+      throw new Error(`Unable to patch optional flag support into ${consoleRunnerPath}.`);
+    }
+    source = patched;
   }
 
-  const optionAnchor =
-    "    .option('-d, --directory [value]', 'Specific directories of tests (as a comma-separated list with no spaces).', clean_dir, [...[]])\n    .option('-z, --errors', 'Results log of failing tests only.')";
-  const optionReplacement =
-    "    .option('-d, --directory [value]', 'Specific directories of tests (as a comma-separated list with no spaces).', clean_dir, [...[]])\n    .option('-m, --optional [value]', 'Optional directories of tests (as a comma-separated list with no spaces).', clean_dir, [...[]])\n    .option('-z, --errors', 'Results log of failing tests only.')";
-  const optionsAnchor = "    directory: program.directory,\n    errors: program.errors\n}";
-  const optionsReplacement =
-    "    directory: program.directory,\n    optional: Array.isArray(program.optional) && program.optional.length > 0 ? program.optional : undefined,\n    errors: program.errors\n}";
-
-  if (!source.includes(optionAnchor) || !source.includes(optionsAnchor)) {
-    throw new Error(`Unable to patch optional flag support into ${consoleRunnerPath}.`);
+  if (!source.includes("--file [value]")) {
+    const optionAnchor = source.includes(optionalOptionLine) ? optionalOptionLine : directoryOptionLine;
+    const patched = source.replace(optionAnchor, `${optionAnchor}${fileOptionLine}`);
+    if (patched === source) {
+      throw new Error(`Unable to patch file flag support into ${consoleRunnerPath}.`);
+    }
+    source = patched;
   }
 
-  const patched = source.replace(optionAnchor, optionReplacement).replace(optionsAnchor, optionsReplacement);
-  writeFileSync(consoleRunnerPath, patched, "utf8");
+  if (!source.includes("program.optional")) {
+    const patched = source.replace(directoryConfigLine, `${directoryConfigLine}${optionalConfigLine}`);
+    if (patched === source) {
+      throw new Error(`Unable to patch optional config support into ${consoleRunnerPath}.`);
+    }
+    source = patched;
+  }
+
+  if (!source.includes("program.file")) {
+    const configAnchor = source.includes(optionalConfigLine) ? optionalConfigLine : directoryConfigLine;
+    const patched = source.replace(configAnchor, `${configAnchor}${fileConfigLine}`);
+    if (patched === source) {
+      throw new Error(`Unable to patch file config support into ${consoleRunnerPath}.`);
+    }
+    source = patched;
+  }
+
+  writeFileSync(consoleRunnerPath, source, "utf8");
+}
+
+function ensureUpstreamFileSelectionSupport(suiteDir: string): void {
+  const lrsTestPath = resolve(suiteDir, "bin/lrs-test.js");
+  let source = readFileSync(lrsTestPath, "utf8");
+
+  const optionalValidatorLine = "            optional: Joi.array().items(Joi.string().required()),\n";
+  const fileValidatorLine = "            file: Joi.array().items(Joi.string().required()),\n";
+  const optionalOptionsLine = "            optional: _options.optional,\n";
+  const fileOptionsLine = "            file: _options.file,\n";
+  const directoryLoopAnchor = "        options.directory.forEach(function(dir) {\n";
+  const selectedFilesBlock = [
+    "        var selectedFiles = Array.isArray(options.file) && options.file.length > 0",
+    "            ? options.file.map(function(filePath) {",
+    "                return path.normalize(filePath).replace(/\\\\/g, '/');",
+    "            })",
+    "            : null;",
+    "",
+  ].join("\n");
+  const fileFilterLine = "                return file.substr(-3) === '.js';";
+  const fileFilterReplacement = [
+    "                var relativeFilePath = path.join('test', dir, file).replace(/\\\\/g, '/');",
+    "                return file.substr(-3) === '.js' && (!selectedFiles || selectedFiles.indexOf(relativeFilePath) !== -1);",
+  ].join("\n");
+
+  if (!source.includes("file: Joi.array().items(Joi.string().required())")) {
+    const patched = source.replace(optionalValidatorLine, `${optionalValidatorLine}${fileValidatorLine}`);
+    if (patched === source) {
+      throw new Error(`Unable to patch file validation support into ${lrsTestPath}.`);
+    }
+    source = patched;
+  }
+
+  if (!source.includes("file: _options.file")) {
+    const patched = source.replace(optionalOptionsLine, `${optionalOptionsLine}${fileOptionsLine}`);
+    if (patched === source) {
+      throw new Error(`Unable to patch file option support into ${lrsTestPath}.`);
+    }
+    source = patched;
+  }
+
+  if (!source.includes("var selectedFiles = Array.isArray(options.file)")) {
+    const patched = source.replace(directoryLoopAnchor, `${selectedFilesBlock}${directoryLoopAnchor}`);
+    if (patched === source) {
+      throw new Error(`Unable to patch selected file filtering into ${lrsTestPath}.`);
+    }
+    source = patched;
+  }
+
+  if (!source.includes("relativeFilePath = path.join('test', dir, file)")) {
+    const patched = source.replace(fileFilterLine, fileFilterReplacement);
+    if (patched === source) {
+      throw new Error(`Unable to patch file filter support into ${lrsTestPath}.`);
+    }
+    source = patched;
+  }
+
+  writeFileSync(lrsTestPath, source, "utf8");
 }
 
 function ensureSuiteReady(suiteDir: string, missingMessage: string): string {
@@ -234,7 +389,8 @@ function cloneUpstreamSuite(config: ExportUpstreamConfig): SuiteLocation {
   }
 
   ensureSuiteReady(cloneDir, `The cloned ADL conformance suite at ${cloneDir} is incomplete.`);
-  ensureOptionalFlagSupport(cloneDir);
+  ensureRunnerSelectionFlagSupport(cloneDir);
+  ensureUpstreamFileSelectionSupport(cloneDir);
 
   return {
     suiteDir: cloneDir,
@@ -312,6 +468,8 @@ function buildSuiteBootstrapCommand(
 function runConsoleRunnerInContainer(config: ExportUpstreamConfig, suiteLocation: SuiteLocation): number {
   ensurePodmanAvailable();
 
+  const unitSelection = config.unitKeys ? resolveUpstreamUnitSelection(config.unitKeys, config.version) : null;
+
   const upstreamArgs = [
     "--endpoint",
     config.baseUrl,
@@ -322,19 +480,27 @@ function runConsoleRunnerInContainer(config: ExportUpstreamConfig, suiteLocation
     "--basicAuth",
   ];
 
-  if (!config.directory) {
+  if (!config.directory && !unitSelection) {
     upstreamArgs.push("--xapiVersion", config.version);
   }
 
-  if (config.grep) {
+  if (unitSelection) {
+    upstreamArgs.push("--directory", unitSelection.directory);
+    upstreamArgs.push("--file", unitSelection.filePaths.join(","));
+    if (unitSelection.optionalDirectories.length > 0) {
+      upstreamArgs.push("--optional", unitSelection.optionalDirectories.join(","));
+    }
+  }
+
+  if (config.grep && !unitSelection) {
     upstreamArgs.push("--grep", config.grep);
   }
 
-  if (config.directory) {
+  if (config.directory && !unitSelection) {
     upstreamArgs.push("--directory", config.directory);
   }
 
-  if (config.optional) {
+  if (config.optional && !unitSelection) {
     upstreamArgs.push("--optional", config.optional);
   }
 
@@ -445,6 +611,7 @@ async function main(): Promise<number> {
 
   const latestLogPath = resolve(config.logDir, latestLogName);
   const raw = await readFile(latestLogPath, "utf8");
+  const unitSelection = config.unitKeys ? resolveUpstreamUnitSelection(config.unitKeys, config.version) : null;
   const parsed = JSON.parse(raw) as {
     summary?: { failed?: number; total?: number; passed?: number; version?: string };
     log?: { tests?: unknown[] };
@@ -471,6 +638,8 @@ async function main(): Promise<number> {
   const absoluteOutputPath = config.outputPath;
   const outputPayload = {
     ...parsed,
+    selectedFiles: unitSelection?.filePaths ?? null,
+    selectedUnitKeys: config.unitKeys ?? null,
     sourceLogPath: latestLogPath,
     upstreamExitCode: exitCode,
   };
@@ -481,6 +650,8 @@ async function main(): Promise<number> {
     JSON.stringify(
       {
         outputPath: absoluteOutputPath,
+        selectedFiles: unitSelection?.filePaths ?? null,
+        selectedUnitKeys: config.unitKeys ?? null,
         sourceLogPath: latestLogPath,
         upstreamExitCode: exitCode,
         summary: parsed.summary ?? null,
@@ -493,10 +664,12 @@ async function main(): Promise<number> {
   return 0;
 }
 
-try {
-  process.exitCode = await main();
-} catch (error) {
-  const message = error instanceof Error ? error.message : String(error);
-  console.error(message);
-  process.exitCode = 1;
+if (import.meta.main) {
+  try {
+    process.exitCode = await main();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(message);
+    process.exitCode = 1;
+  }
 }

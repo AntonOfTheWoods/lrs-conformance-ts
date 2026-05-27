@@ -61,6 +61,20 @@ describe("console runner argv parsing", () => {
     });
   });
 
+  test("parses stable migration unit keys as a CSV value", () => {
+    expect(
+      parseConsoleRunnerArgv([
+        "--endpoint",
+        "http://localhost:8000/xapi",
+        "--unitKey",
+        "test/v1_0_3/Data2.2-FormattingRequirements,test/v1_0_3/Data2.3-StatementLifecycle",
+      ]),
+    ).toEqual({
+      endpoint: "http://localhost:8000/xapi",
+      unitKeys: ["test/v1_0_3/Data2.2-FormattingRequirements", "test/v1_0_3/Data2.3-StatementLifecycle"],
+    });
+  });
+
   test("rejects unknown flags", () => {
     expect(() => parseConsoleRunnerArgv(["--wat"])).toThrow(
       new ConsoleRunnerArgsError("Unknown console runner flag: --wat"),

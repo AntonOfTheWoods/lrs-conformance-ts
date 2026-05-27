@@ -1,12 +1,18 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, isAbsolute, relative, resolve } from "node:path";
 
+import type { CaptureExecutionMetadata } from "../../src/describe-runtime/execution-owner.ts";
+import { getMigrationLedgerUnitByUnitKey } from "../../src/describe-runtime/migration-ledger.ts";
+
 import {
   compareNormalizedTrafficRuns,
   normalizeTrafficArtifact,
   renderTrafficComparisonReport,
   startTrafficRecorder,
+  type NormalizedExchange,
+  type NormalizedTrafficArtifact,
   type RawTrafficArtifact,
+  type RawTrafficExchange,
   type TrafficCompareMode,
 } from "../traffic.ts";
 
@@ -93,14 +99,77 @@ interface DiagnosticConfig {
   outDir: string;
   password: string;
   targetBaseUrl: string;
+  unitKeys?: string[];
   username: string;
   version: SupportedVersion | "all";
+}
+
+type TraceSelectionMode = "captured-execution" | "requested-unit-fallback";
+
+type TraceNodeEntryKind = "case" | "hook" | "unit";
+
+export interface TraceNodeIndexEntry {
+  attemptCount: number;
+  casePath: string[] | null;
+  entryKind: TraceNodeEntryKind;
+  hookTitle: string | null;
+  nodeKey: string;
+  normalizedExchangeCount: number;
+  normalizedIndexEnd: number | null;
+  normalizedIndexStart: number | null;
+  ownerLabel: string | null;
+  rawExchangeCount: number;
+  rawSequenceEnd: number | null;
+  rawSequenceStart: number | null;
+  runner: RawTrafficArtifact["runner"];
+  selectionMode: TraceSelectionMode;
+  suitePath: string[] | null;
+  unitKey: string;
+}
+
+export interface TraceNodeIndexArtifact {
+  entries: TraceNodeIndexEntry[];
+  runner: RawTrafficArtifact["runner"];
+  schemaVersion: "trace-node-index.v1";
+  selectedUnitKeys: string[];
+  version: SupportedVersion;
+}
+
+export interface TraceUnitManifest {
+  attemptCount: number;
+  manifestPath: string;
+  nodeIndexPath: string;
+  nodeKeys: string[];
+  normalizedArtifactPath: string;
+  normalizedExchangeCount: number;
+  rawArtifactPath: string;
+  rawExchangeCount: number;
+  runner: RawTrafficArtifact["runner"];
+  schemaVersion: "trace-unit-manifest.v1";
+  selectionMode: TraceSelectionMode;
+  unitKey: string;
+  version: SupportedVersion;
+}
+
+export interface TraceRunManifest {
+  nodeIndexPath: string;
+  normalizedArtifactPath: string;
+  rawArtifactPath: string;
+  runner: RawTrafficArtifact["runner"];
+  schemaVersion: "trace-run-manifest.v1";
+  selectedUnitKeys: string[];
+  unitManifests: Array<{
+    manifestPath: string;
+    selectionMode: TraceSelectionMode;
+    unitKey: string;
+  }>;
+  version: SupportedVersion;
 }
 
 function usage(): string {
   return [
     "Usage:",
-    "  bun ./rewrite/scripts/traffic-diagnostic.ts [--version 1.0.3|2.0.0|all] [--compare-mode bag|ordered] [--grep <pattern>] [--directory <csv>] [--target-base-url <url>] [--username <user>] [--password <pass>] [--out-dir <path>] [--keep-clone]",
+    "  bun ./rewrite/scripts/traffic-diagnostic.ts [--version 1.0.3|2.0.0|all] [--compare-mode bag|ordered] [--grep <pattern>] [--directory <csv>] [--unitKey <ledger-id>] [--target-base-url <url>] [--username <user>] [--password <pass>] [--out-dir <path>] [--keep-clone]",
     "",
     "Defaults:",
     "  --version all",
@@ -109,6 +178,7 @@ function usage(): string {
     "  --username janedoe",
     "  --password supersecret",
     "  --out-dir tmp/agents/traffic/<timestamp>",
+    "  --unitKey is single-unit only and is mutually exclusive with --grep and --directory.",
   ].join("\n");
 }
 
@@ -119,6 +189,43 @@ function getFlagValue(args: string[], flag: string): string | undefined {
   }
 
   return args[index + 1];
+}
+
+function parseCsvFlag(args: string[], flag: string): string[] | undefined {
+  const value = getFlagValue(args, flag);
+  if (!value) {
+    return undefined;
+  }
+
+  const parsed = value
+    .split(",")
+    .map((segment) => segment.trim())
+    .filter((segment, index, list) => segment.length > 0 && list.indexOf(segment) === index);
+
+  return parsed.length > 0 ? parsed : undefined;
+}
+
+function validateDiagnosticUnitSelection(unitKeys: string[], version: SupportedVersion | "all"): string[] {
+  if (version === "all") {
+    throw new Error("--unitKey requires an explicit --version so both runners stay on one migration unit.");
+  }
+
+  if (unitKeys.length !== 1) {
+    throw new Error("--unitKey in traffic-diagnostic currently accepts exactly one migration ledger unit key.");
+  }
+
+  for (const unitKey of unitKeys) {
+    const unit = getMigrationLedgerUnitByUnitKey(unitKey);
+    if (!unit) {
+      throw new Error(`Unknown --unitKey value: ${unitKey}`);
+    }
+
+    if (unit.version && unit.version !== version) {
+      throw new Error(`Unit key ${unitKey} does not belong to xAPI version ${version}.`);
+    }
+  }
+
+  return unitKeys;
 }
 
 function isWithinPath(basePath: string, candidatePath: string): boolean {
@@ -144,6 +251,7 @@ function parseConfig(args: string[]): DiagnosticConfig {
   const outDirArg = getFlagValue(args, "--out-dir") ?? resolve(repoRoot, "tmp/agents/traffic", `${Date.now()}`);
   const grep = getFlagValue(args, "--grep");
   const directory = getFlagValue(args, "--directory");
+  const unitKeys = parseCsvFlag(args, "--unitKey");
   const keepClone = args.includes("--keep-clone");
 
   if (version !== "all" && version !== "1.0.3" && version !== "2.0.0") {
@@ -152,6 +260,10 @@ function parseConfig(args: string[]): DiagnosticConfig {
 
   if (compareMode !== "bag" && compareMode !== "ordered") {
     throw new Error("Unsupported --compare-mode value.");
+  }
+
+  if (unitKeys && (directory || grep)) {
+    throw new Error("--unitKey cannot be combined with --grep or --directory.");
   }
 
   if (directory && version === "all") {
@@ -166,6 +278,7 @@ function parseConfig(args: string[]): DiagnosticConfig {
     outDir: resolveSafeArtifactPath(outDirArg),
     password,
     targetBaseUrl,
+    unitKeys: unitKeys ? validateDiagnosticUnitSelection(unitKeys, version) : undefined,
     username,
     version,
   };
@@ -251,6 +364,23 @@ export async function readEffectiveRunnerExitCode(
 }
 
 export function buildRewriteArgs(config: DiagnosticConfig, endpoint: string, version: SupportedVersion): string[] {
+  if (config.unitKeys) {
+    return [
+      "./src/describe-runtime/describe-run.ts",
+      "--endpoint",
+      endpoint,
+      "--basicAuth",
+      "--authUser",
+      config.username,
+      "--authPassword",
+      config.password,
+      "--xapiVersion",
+      version,
+      "--unitKey",
+      config.unitKeys.join(","),
+    ];
+  }
+
   const scope = resolveRunnerScope(config.directory, config.grep, version);
   const args = [
     "./src/describe-runtime/describe-run.ts",
@@ -284,6 +414,27 @@ export function buildUpstreamArgs(
   version: SupportedVersion,
   versionDir: string,
 ): string[] {
+  if (config.unitKeys) {
+    return [
+      "./rewrite/scripts/export-upstream-run.ts",
+      "--base-url",
+      endpoint,
+      "--username",
+      config.username,
+      "--password",
+      config.password,
+      "--version",
+      version,
+      "--out",
+      resolve(versionDir, "upstream-run.json"),
+      "--log-dir",
+      resolve(versionDir, "upstream-logs"),
+      "--unitKey",
+      config.unitKeys.join(","),
+      ...(config.keepClone ? ["--keep-clone"] : []),
+    ];
+  }
+
   const scope = resolveRunnerScope(config.directory, config.grep, version);
   const args = [
     "./rewrite/scripts/export-upstream-run.ts",
@@ -318,6 +469,340 @@ export function buildUpstreamArgs(
   }
 
   return args;
+}
+
+function getRequestedUnitFallback(unitKeys: string[] | undefined): string | null {
+  return unitKeys?.length === 1 ? unitKeys[0] : null;
+}
+
+function resolveExchangeUnitKey(
+  execution: CaptureExecutionMetadata | null,
+  fallbackUnitKey: string | null,
+): string | null {
+  return execution?.unitKey ?? fallbackUnitKey;
+}
+
+function buildExecutionNodeKey(
+  unitKey: string,
+  execution: CaptureExecutionMetadata,
+): { entryKind: "case" | "hook"; nodeKey: string } {
+  if (execution.phase === "before") {
+    return {
+      entryKind: "hook",
+      nodeKey: `hook:${unitKey}:${execution.suitePath.join(" > ")}:${execution.hookTitle ?? ""}`,
+    };
+  }
+
+  return {
+    entryKind: "case",
+    nodeKey: `case:${unitKey}:${(execution.casePath ?? execution.suitePath).join(" > ")}`,
+  };
+}
+
+function createTraceSelectionMode(
+  execution: CaptureExecutionMetadata | null,
+  fallbackUnitKey: string | null,
+): TraceSelectionMode | null {
+  if (execution) {
+    return "captured-execution";
+  }
+
+  if (fallbackUnitKey) {
+    return "requested-unit-fallback";
+  }
+
+  return null;
+}
+
+function mergeTraceSelectionMode(current: TraceSelectionMode, next: TraceSelectionMode): TraceSelectionMode {
+  return current === "captured-execution" || next === "captured-execution"
+    ? "captured-execution"
+    : "requested-unit-fallback";
+}
+
+function noteRawBounds(entry: TraceNodeIndexEntry, exchange: RawTrafficExchange): void {
+  entry.rawExchangeCount += 1;
+  entry.rawSequenceStart =
+    entry.rawSequenceStart === null ? exchange.sequence : Math.min(entry.rawSequenceStart, exchange.sequence);
+  entry.rawSequenceEnd =
+    entry.rawSequenceEnd === null ? exchange.sequence : Math.max(entry.rawSequenceEnd, exchange.sequence);
+}
+
+function noteNormalizedBounds(entry: TraceNodeIndexEntry, exchange: NormalizedExchange, index: number): void {
+  entry.attemptCount += exchange.attempts;
+  entry.normalizedExchangeCount += 1;
+  entry.normalizedIndexStart =
+    entry.normalizedIndexStart === null ? index : Math.min(entry.normalizedIndexStart, index);
+  entry.normalizedIndexEnd = entry.normalizedIndexEnd === null ? index : Math.max(entry.normalizedIndexEnd, index);
+}
+
+function createBaseTraceNodeEntry(options: {
+  entryKind: TraceNodeEntryKind;
+  execution: CaptureExecutionMetadata | null;
+  nodeKey: string;
+  runner: RawTrafficArtifact["runner"];
+  selectionMode: TraceSelectionMode;
+  unitKey: string;
+}): TraceNodeIndexEntry {
+  return {
+    attemptCount: 0,
+    casePath:
+      options.entryKind === "case" ? [...(options.execution?.casePath ?? options.execution?.suitePath ?? [])] : null,
+    entryKind: options.entryKind,
+    hookTitle: options.entryKind === "hook" ? (options.execution?.hookTitle ?? null) : null,
+    nodeKey: options.nodeKey,
+    normalizedExchangeCount: 0,
+    normalizedIndexEnd: null,
+    normalizedIndexStart: null,
+    ownerLabel: options.entryKind === "unit" ? null : (options.execution?.ownerLabel ?? null),
+    rawExchangeCount: 0,
+    rawSequenceEnd: null,
+    rawSequenceStart: null,
+    runner: options.runner,
+    selectionMode: options.selectionMode,
+    suitePath: options.execution ? [...options.execution.suitePath] : null,
+    unitKey: options.unitKey,
+  };
+}
+
+function getOrCreateTraceNodeEntry(
+  entries: Map<string, TraceNodeIndexEntry>,
+  options: {
+    entryKind: TraceNodeEntryKind;
+    execution: CaptureExecutionMetadata | null;
+    nodeKey: string;
+    runner: RawTrafficArtifact["runner"];
+    selectionMode: TraceSelectionMode;
+    unitKey: string;
+  },
+): TraceNodeIndexEntry {
+  const existing = entries.get(options.nodeKey);
+  if (existing) {
+    existing.selectionMode = mergeTraceSelectionMode(existing.selectionMode, options.selectionMode);
+    if (!existing.suitePath && options.execution) {
+      existing.suitePath = [...options.execution.suitePath];
+    }
+    return existing;
+  }
+
+  const entry = createBaseTraceNodeEntry(options);
+  entries.set(options.nodeKey, entry);
+  return entry;
+}
+
+function sortTraceNodeEntries(left: TraceNodeIndexEntry, right: TraceNodeIndexEntry): number {
+  const kindOrder: Record<TraceNodeEntryKind, number> = {
+    unit: 0,
+    case: 1,
+    hook: 2,
+  };
+
+  return (
+    left.unitKey.localeCompare(right.unitKey) ||
+    kindOrder[left.entryKind] - kindOrder[right.entryKind] ||
+    (left.rawSequenceStart ?? Number.MAX_SAFE_INTEGER) - (right.rawSequenceStart ?? Number.MAX_SAFE_INTEGER) ||
+    (left.normalizedIndexStart ?? Number.MAX_SAFE_INTEGER) - (right.normalizedIndexStart ?? Number.MAX_SAFE_INTEGER) ||
+    left.nodeKey.localeCompare(right.nodeKey)
+  );
+}
+
+export function createTraceNodeIndex(
+  rawArtifact: RawTrafficArtifact,
+  normalizedArtifact: NormalizedTrafficArtifact,
+  selectedUnitKeys?: string[],
+): TraceNodeIndexArtifact {
+  const fallbackUnitKey = getRequestedUnitFallback(selectedUnitKeys);
+  const entries = new Map<string, TraceNodeIndexEntry>();
+
+  for (const exchange of rawArtifact.exchanges) {
+    const unitKey = resolveExchangeUnitKey(exchange.execution, fallbackUnitKey);
+    const selectionMode = createTraceSelectionMode(exchange.execution, fallbackUnitKey);
+    if (!unitKey || !selectionMode) {
+      continue;
+    }
+
+    const unitEntry = getOrCreateTraceNodeEntry(entries, {
+      entryKind: "unit",
+      execution: exchange.execution,
+      nodeKey: `unit:${unitKey}`,
+      runner: rawArtifact.runner,
+      selectionMode,
+      unitKey,
+    });
+    noteRawBounds(unitEntry, exchange);
+
+    if (!exchange.execution) {
+      continue;
+    }
+
+    const executionNode = buildExecutionNodeKey(unitKey, exchange.execution);
+    const executionEntry = getOrCreateTraceNodeEntry(entries, {
+      entryKind: executionNode.entryKind,
+      execution: exchange.execution,
+      nodeKey: executionNode.nodeKey,
+      runner: rawArtifact.runner,
+      selectionMode,
+      unitKey,
+    });
+    noteRawBounds(executionEntry, exchange);
+  }
+
+  normalizedArtifact.exchanges.forEach((exchange, index) => {
+    const unitKey = resolveExchangeUnitKey(exchange.execution, fallbackUnitKey);
+    const selectionMode = createTraceSelectionMode(exchange.execution, fallbackUnitKey);
+    if (!unitKey || !selectionMode) {
+      return;
+    }
+
+    const unitEntry = getOrCreateTraceNodeEntry(entries, {
+      entryKind: "unit",
+      execution: exchange.execution,
+      nodeKey: `unit:${unitKey}`,
+      runner: normalizedArtifact.runner,
+      selectionMode,
+      unitKey,
+    });
+    noteNormalizedBounds(unitEntry, exchange, index);
+
+    if (!exchange.execution) {
+      return;
+    }
+
+    const executionNode = buildExecutionNodeKey(unitKey, exchange.execution);
+    const executionEntry = getOrCreateTraceNodeEntry(entries, {
+      entryKind: executionNode.entryKind,
+      execution: exchange.execution,
+      nodeKey: executionNode.nodeKey,
+      runner: normalizedArtifact.runner,
+      selectionMode,
+      unitKey,
+    });
+    noteNormalizedBounds(executionEntry, exchange, index);
+  });
+
+  return {
+    entries: [...entries.values()].sort(sortTraceNodeEntries),
+    runner: rawArtifact.runner,
+    schemaVersion: "trace-node-index.v1",
+    selectedUnitKeys: selectedUnitKeys ? [...selectedUnitKeys] : [],
+    version: rawArtifact.version,
+  };
+}
+
+function encodeArtifactPathSegment(segment: string): string {
+  return encodeURIComponent(segment);
+}
+
+function resolveUnitArtifactDirectory(
+  versionDir: string,
+  runner: RawTrafficArtifact["runner"],
+  unitKey: string,
+): string {
+  return resolve(versionDir, `${runner}-units`, ...unitKey.split("/").map(encodeArtifactPathSegment));
+}
+
+function filterRawArtifactByUnitKey(
+  rawArtifact: RawTrafficArtifact,
+  unitKey: string,
+  fallbackUnitKey: string | null,
+): RawTrafficArtifact {
+  return {
+    ...rawArtifact,
+    exchanges: rawArtifact.exchanges.filter(
+      (exchange) => resolveExchangeUnitKey(exchange.execution, fallbackUnitKey) === unitKey,
+    ),
+  };
+}
+
+function filterNormalizedArtifactByUnitKey(
+  normalizedArtifact: NormalizedTrafficArtifact,
+  unitKey: string,
+  fallbackUnitKey: string | null,
+): NormalizedTrafficArtifact {
+  return {
+    ...normalizedArtifact,
+    exchanges: normalizedArtifact.exchanges.filter(
+      (exchange) => resolveExchangeUnitKey(exchange.execution, fallbackUnitKey) === unitKey,
+    ),
+  };
+}
+
+export async function writeTraceArtifacts(
+  versionDir: string,
+  rawArtifact: RawTrafficArtifact,
+  normalizedArtifact: NormalizedTrafficArtifact,
+  selectedUnitKeys?: string[],
+): Promise<{
+  nodeIndex: TraceNodeIndexArtifact;
+  nodeIndexPath: string;
+  traceManifest: TraceRunManifest;
+  traceManifestPath: string;
+}> {
+  const fallbackUnitKey = getRequestedUnitFallback(selectedUnitKeys);
+  const nodeIndex = createTraceNodeIndex(rawArtifact, normalizedArtifact, selectedUnitKeys);
+  const nodeIndexPath = resolve(versionDir, `${rawArtifact.runner}-node-index.json`);
+  const rawArtifactPath = resolve(versionDir, `${rawArtifact.runner}-raw.json`);
+  const normalizedArtifactPath = resolve(versionDir, `${rawArtifact.runner}-normalized.json`);
+  const unitEntries = nodeIndex.entries.filter((entry) => entry.entryKind === "unit");
+  const unitManifests: TraceRunManifest["unitManifests"] = [];
+
+  await writeJson(nodeIndexPath, nodeIndex);
+
+  for (const unitEntry of unitEntries) {
+    const unitDir = resolveUnitArtifactDirectory(versionDir, rawArtifact.runner, unitEntry.unitKey);
+    const unitRawArtifactPath = resolve(unitDir, "raw.json");
+    const unitNormalizedArtifactPath = resolve(unitDir, "normalized.json");
+    const manifestPath = resolve(unitDir, "manifest.json");
+    const unitManifest: TraceUnitManifest = {
+      attemptCount: unitEntry.attemptCount,
+      manifestPath,
+      nodeIndexPath,
+      nodeKeys: nodeIndex.entries.filter((entry) => entry.unitKey === unitEntry.unitKey).map((entry) => entry.nodeKey),
+      normalizedArtifactPath: unitNormalizedArtifactPath,
+      normalizedExchangeCount: unitEntry.normalizedExchangeCount,
+      rawArtifactPath: unitRawArtifactPath,
+      rawExchangeCount: unitEntry.rawExchangeCount,
+      runner: rawArtifact.runner,
+      schemaVersion: "trace-unit-manifest.v1",
+      selectionMode: unitEntry.selectionMode,
+      unitKey: unitEntry.unitKey,
+      version: rawArtifact.version,
+    };
+
+    await writeJson(unitRawArtifactPath, filterRawArtifactByUnitKey(rawArtifact, unitEntry.unitKey, fallbackUnitKey));
+    await writeJson(
+      unitNormalizedArtifactPath,
+      filterNormalizedArtifactByUnitKey(normalizedArtifact, unitEntry.unitKey, fallbackUnitKey),
+    );
+    await writeJson(manifestPath, unitManifest);
+
+    unitManifests.push({
+      manifestPath,
+      selectionMode: unitManifest.selectionMode,
+      unitKey: unitManifest.unitKey,
+    });
+  }
+
+  const traceManifest: TraceRunManifest = {
+    nodeIndexPath,
+    normalizedArtifactPath,
+    rawArtifactPath,
+    runner: rawArtifact.runner,
+    schemaVersion: "trace-run-manifest.v1",
+    selectedUnitKeys: selectedUnitKeys ? [...selectedUnitKeys] : [],
+    unitManifests,
+    version: rawArtifact.version,
+  };
+  const traceManifestPath = resolve(versionDir, `${rawArtifact.runner}-trace-manifest.json`);
+
+  await writeJson(traceManifestPath, traceManifest);
+
+  return {
+    nodeIndex,
+    nodeIndexPath,
+    traceManifest,
+    traceManifestPath,
+  };
 }
 
 async function captureRunner(
@@ -361,11 +846,13 @@ async function runVersion(config: DiagnosticConfig, version: SupportedVersion): 
   const rewriteNormalized = normalizeTrafficArtifact(rewriteRaw);
   await writeJson(resolve(versionDir, "rewrite-raw.json"), rewriteRaw);
   await writeJson(resolve(versionDir, "rewrite-normalized.json"), rewriteNormalized);
+  await writeTraceArtifacts(versionDir, rewriteRaw, rewriteNormalized, config.unitKeys);
 
   const upstreamRaw = await captureRunner("upstream", config, version, versionDir);
   const upstreamNormalized = normalizeTrafficArtifact(upstreamRaw);
   await writeJson(resolve(versionDir, "upstream-raw.json"), upstreamRaw);
   await writeJson(resolve(versionDir, "upstream-normalized.json"), upstreamNormalized);
+  await writeTraceArtifacts(versionDir, upstreamRaw, upstreamNormalized, config.unitKeys);
 
   const comparison = compareNormalizedTrafficRuns(rewriteNormalized, upstreamNormalized, config.compareMode);
   await writeJson(resolve(versionDir, "compare.json"), comparison);

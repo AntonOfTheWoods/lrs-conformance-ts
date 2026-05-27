@@ -66,97 +66,148 @@ import { registerTimestampPropertyRequirementsSuite as registerTimestampProperty
 import { registerVersionPropertyRequirementsSuite as registerVersionPropertyRequirementsV20 } from "../specs/v2_0/4.2.4.3-Version-Requirements.ts";
 import { registerMultiplicityTestingSuite } from "../specs/Multiplicity/testing.ts";
 import { registerParametersTestingSuite } from "../specs/Parameters/testing.ts";
+import {
+  getMigrationLedgerUnitsForDirectory,
+  recordObservedMigrationUnitTitle,
+  type MigrationLedgerUnit,
+} from "./migration-ledger.ts";
 import type { NormalizedRunnerOptions } from "./options.ts";
 import type { DescribeRuntime } from "./runtime.ts";
 import { createDescribeRuntimeContext, type DescribeRuntimeContext } from "./suite-context.ts";
 
 type SuiteRegistrar = (runtime: DescribeRuntime, context: DescribeRuntimeContext) => void;
 
-const registrarsByDirectory: Readonly<Record<string, readonly SuiteRegistrar[]>> = {
-  Multiplicity: [registerMultiplicityTestingSuite],
-  Parameters: [registerParametersTestingSuite],
-  v1_0_3: [
-    registerFormattingRequirementsV103,
-    registerStatementLifecycleRequirementsV103,
-    registerIdPropertyRequirementsV103,
-    registerActorPropertyRequirementsV103,
-    registerVerbPropertyRequirementsV103,
-    registerObjectPropertyRequirementsV103,
-    registerResultPropertyRequirementsV103,
-    registerContextPropertyRequirementsV103,
-    registerTimestampPropertyRequirementsV103,
-    registerStoredPropertyRequirementsV103,
-    registerAuthorityPropertyRequirementsV103,
-    registerVersionPropertyRequirementsV103,
-    registerAttachmentsPropertyRequirementsV103,
-    registerRetrievalOfStatementsV103,
-    registerSignedStatementsV103,
-    registerSpecialDataTypesAndRulesV103,
-    registerHeadRequestImplementationV103,
-    registerAlternateRequestSyntaxRequirementsV103,
-    registerEncodingRequirementsV103,
-    registerContentTypeRequirementsV103,
-    registerStatementResourceRequirementsV103,
-    registerDocumentResourcesRequirementsV103,
-    registerStateResourceRequirementsV103,
-    registerAgentsResourceRequirementsV103,
-    registerActivitiesResourceRequirementsV103,
-    registerAgentProfileResourceRequirementsV103,
-    registerActivityProfileResourceRequirementsV103,
-    registerAboutResourceRequirementsV103,
-    registerConcurrencyRequirementsV103,
-    registerErrorCodesRequirementsV103,
-    registerVersioningRequirementsV103Protocol,
-    registerAuthenticationRequirementsV103,
-  ],
-  v2_0: [
-    registerFormattingRequirementsV20,
-    registerHeadRequestImplementationV20,
-    registerHeadersRequirementsV20,
-    registerAlternateRequestSyntaxRequirementsV20,
-    registerEncodingRequirementsV20,
-    registerContentTypeRequirementsV20,
-    registerIdPropertyRequirementsV20,
-    registerTimestampPropertyRequirementsV20,
-    registerStoredPropertyRequirementsV20,
-    registerVerbPropertyRequirementsV20,
-    registerVersionPropertyRequirementsV20,
-    registerResultPropertyRequirementsV20,
-    registerActorPropertyRequirementsV20,
-    registerObjectPropertyRequirementsV20,
-    registerContextPropertyRequirementsV20,
-    registerAuthorityPropertyRequirementsV20,
-    registerAttachmentsPropertyRequirementsV20,
-    registerStatementLifecycleRequirementsV20,
-    registerRetrievalOfStatementsV20,
-    registerSignedStatementsV20,
-    registerSpecialDataTypesAndRulesV20,
-    registerAdditionalRequirementsForDataTypesV20,
-    registerStatementResourceRequirementsV20,
-    registerDocumentResourcesRequirementsV20,
-    registerStateResourceRequirementsV20,
-    registerAgentsResourceRequirementsV20,
-    registerActivitiesResourceRequirementsV20,
-    registerAgentProfileResourceRequirementsV20,
-    registerActivityProfileResourceRequirementsV20,
-    registerAboutResourceRequirementsV20,
-    registerConcurrencyRequirementsV20,
-    registerErrorCodesRequirementsV20,
-    registerVersioningRequirementsV20Protocol,
-    registerAuthenticationRequirementsV20,
-  ],
+const registrarBySymbol: Readonly<Record<string, SuiteRegistrar>> = {
+  registerMultiplicityTestingSuite,
+  registerParametersTestingSuite,
+  registerFormattingRequirementsV103,
+  registerStatementLifecycleRequirementsV103,
+  registerIdPropertyRequirementsV103,
+  registerActorPropertyRequirementsV103,
+  registerVerbPropertyRequirementsV103,
+  registerObjectPropertyRequirementsV103,
+  registerResultPropertyRequirementsV103,
+  registerContextPropertyRequirementsV103,
+  registerTimestampPropertyRequirementsV103,
+  registerStoredPropertyRequirementsV103,
+  registerAuthorityPropertyRequirementsV103,
+  registerVersionPropertyRequirementsV103,
+  registerAttachmentsPropertyRequirementsV103,
+  registerRetrievalOfStatementsV103,
+  registerSignedStatementsV103,
+  registerSpecialDataTypesAndRulesV103,
+  registerHeadRequestImplementationV103,
+  registerAlternateRequestSyntaxRequirementsV103,
+  registerEncodingRequirementsV103,
+  registerContentTypeRequirementsV103,
+  registerStatementResourceRequirementsV103,
+  registerDocumentResourcesRequirementsV103,
+  registerStateResourceRequirementsV103,
+  registerAgentsResourceRequirementsV103,
+  registerActivitiesResourceRequirementsV103,
+  registerAgentProfileResourceRequirementsV103,
+  registerActivityProfileResourceRequirementsV103,
+  registerAboutResourceRequirementsV103,
+  registerConcurrencyRequirementsV103,
+  registerErrorCodesRequirementsV103,
+  registerVersioningRequirementsV103Protocol,
+  registerAuthenticationRequirementsV103,
+  registerFormattingRequirementsV20,
+  registerHeadRequestImplementationV20,
+  registerHeadersRequirementsV20,
+  registerAlternateRequestSyntaxRequirementsV20,
+  registerEncodingRequirementsV20,
+  registerContentTypeRequirementsV20,
+  registerIdPropertyRequirementsV20,
+  registerTimestampPropertyRequirementsV20,
+  registerStoredPropertyRequirementsV20,
+  registerVerbPropertyRequirementsV20,
+  registerVersionPropertyRequirementsV20,
+  registerResultPropertyRequirementsV20,
+  registerActorPropertyRequirementsV20,
+  registerObjectPropertyRequirementsV20,
+  registerContextPropertyRequirementsV20,
+  registerAuthorityPropertyRequirementsV20,
+  registerAttachmentsPropertyRequirementsV20,
+  registerStatementLifecycleRequirementsV20,
+  registerRetrievalOfStatementsV20,
+  registerSignedStatementsV20,
+  registerSpecialDataTypesAndRulesV20,
+  registerAdditionalRequirementsForDataTypesV20,
+  registerStatementResourceRequirementsV20,
+  registerDocumentResourcesRequirementsV20,
+  registerStateResourceRequirementsV20,
+  registerAgentsResourceRequirementsV20,
+  registerActivitiesResourceRequirementsV20,
+  registerAgentProfileResourceRequirementsV20,
+  registerActivityProfileResourceRequirementsV20,
+  registerAboutResourceRequirementsV20,
+  registerConcurrencyRequirementsV20,
+  registerErrorCodesRequirementsV20,
+  registerVersioningRequirementsV20Protocol,
+  registerAuthenticationRequirementsV20,
 };
 
+function getRegistrar(symbol: string | null): SuiteRegistrar {
+  if (!symbol) {
+    throw new Error("Migration ledger entry is missing a rewrite registrar symbol.");
+  }
+
+  const registrar = registrarBySymbol[symbol];
+  if (!registrar) {
+    throw new Error(`No suite registrar found for symbol: ${symbol}`);
+  }
+
+  return registrar;
+}
+
+function createMigrationAwareRuntime(
+  runtime: DescribeRuntime,
+  directory: string,
+  unit: MigrationLedgerUnit,
+): DescribeRuntime {
+  let describeDepth = 0;
+
+  return {
+    ...runtime,
+    describe(title, build) {
+      const isTopLevelDescribe = describeDepth === 0;
+      describeDepth += 1;
+
+      runtime.describe(title, () => {
+        if (isTopLevelDescribe) {
+          recordObservedMigrationUnitTitle(directory, title, unit);
+        }
+
+        try {
+          build();
+        } finally {
+          describeDepth -= 1;
+        }
+      });
+    },
+  };
+}
+
 export function registerDirectorySuites(runtime: DescribeRuntime, options: NormalizedRunnerOptions): void {
+  const selectedUnitKeys = new Set(options.unitKeys ?? []);
+
   for (const directory of options.directory) {
-    const registrars = registrarsByDirectory[directory];
-    if (!registrars || registrars.length === 0) {
+    const units = getMigrationLedgerUnitsForDirectory(directory).filter(
+      (unit) => selectedUnitKeys.size === 0 || selectedUnitKeys.has(unit.unitKey),
+    );
+    if (units.length === 0) {
+      if (selectedUnitKeys.size > 0) {
+        continue;
+      }
+
       throw new Error(`No suite definitions registered for directory: ${directory}`);
     }
 
     const context = createDescribeRuntimeContext(directory, options);
-    for (const registrar of registrars) {
-      registrar(runtime, context);
+    for (const unit of units) {
+      const registrar = getRegistrar(unit.rewriteRegistrarSymbol);
+      registrar(createMigrationAwareRuntime(runtime, directory, unit), context);
     }
   }
 }
