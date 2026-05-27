@@ -1,6 +1,12 @@
 import { describe, expect, test } from "bun:test";
 
 import {
+  captureOwnerHeaderName,
+  createCaptureExecutionMetadata,
+  encodeCaptureExecutionMetadata,
+} from "../../src/describe-runtime/execution-owner.ts";
+
+import {
   compareNormalizedTrafficRuns,
   createExchangeSignature,
   normalizeTrafficArtifact,
@@ -13,6 +19,7 @@ function createRawExchange(overrides: Partial<RawTrafficExchange> = {}): RawTraf
   return {
     durationMs: 5,
     endedAt: "2026-05-26T12:00:01.000Z",
+    execution: null,
     request: {
       bodyBase64: Buffer.from(
         JSON.stringify({
@@ -446,6 +453,46 @@ describe("traffic harness", () => {
     expect(comparison.matchedCount).toBe(3);
   });
 
+  test("does not compress equivalent exchanges across different execution metadata", () => {
+    const leftExecution = createCaptureExecutionMetadata({
+      directory: "v1_0_3",
+      execution: {
+        casePath: ["Formatting Requirements (Data 2.2)", "left case"],
+        hookTitle: null,
+        phase: "case",
+        suitePath: ["Formatting Requirements (Data 2.2)"],
+      },
+      version: "1.0.3",
+    });
+    const rightExecution = createCaptureExecutionMetadata({
+      directory: "v1_0_3",
+      execution: {
+        casePath: ["Formatting Requirements (Data 2.2)", "right case"],
+        hookTitle: null,
+        phase: "case",
+        suitePath: ["Formatting Requirements (Data 2.2)"],
+      },
+      version: "1.0.3",
+    });
+
+    const normalized = normalizeTrafficArtifact({
+      ...createArtifact(createRawExchange()),
+      exchanges: [
+        createRawExchange({ execution: leftExecution }),
+        createRawExchange({ execution: leftExecution, sequence: 1 }),
+        createRawExchange({ execution: rightExecution, sequence: 2 }),
+      ],
+    });
+
+    expect(normalized.exchanges).toHaveLength(2);
+    expect(normalized.exchanges[0]?.attempts).toBe(2);
+    expect(normalized.exchanges[0]?.execution?.casePath?.at(-1)).toBe("left case");
+    expect(normalized.exchanges[0]?.sourceSequences).toEqual([0, 1]);
+    expect(normalized.exchanges[1]?.attempts).toBe(1);
+    expect(normalized.exchanges[1]?.execution?.casePath?.at(-1)).toBe("right case");
+    expect(normalized.exchanges[1]?.sourceSequences).toEqual([2]);
+  });
+
   test("bag comparison detects attempt-count drift after compression", () => {
     const left = normalizeTrafficArtifact({
       ...createArtifact(createRawExchange()),
@@ -471,6 +518,7 @@ describe("traffic harness", () => {
         return new Response(
           JSON.stringify({
             method: request.method,
+            ownerHeader: request.headers.get(captureOwnerHeaderName),
             path: new URL(request.url).pathname,
           }),
           {
@@ -488,14 +536,30 @@ describe("traffic harness", () => {
     });
 
     try {
+      const execution = createCaptureExecutionMetadata({
+        directory: "v1_0_3",
+        execution: {
+          casePath: ["Statement Lifecycle Requirements", "probe case"],
+          hookTitle: null,
+          phase: "case",
+          suitePath: ["Statement Lifecycle Requirements"],
+        },
+        version: "1.0.3",
+      });
       const response = await fetch(`${recorder.captureBaseUrl}/statements?limit=1`, {
         method: "GET",
         headers: {
           "X-Experience-API-Version": "2.0.0",
+          [captureOwnerHeaderName]: encodeCaptureExecutionMetadata(execution),
         },
       });
 
       expect(response.status).toBe(201);
+      expect((await response.json()) as { ownerHeader: string | null }).toEqual({
+        ownerHeader: null,
+        method: "GET",
+        path: "/xapi/statements",
+      });
 
       const artifact = recorder.takeArtifact({
         compareMode: "bag",
@@ -509,6 +573,7 @@ describe("traffic harness", () => {
       expect(artifact.exchanges[0]?.request.targetUrl).toBe(
         `http://127.0.0.1:${targetServer.port}/xapi/statements?limit=1`,
       );
+      expect(artifact.exchanges[0]?.execution).toEqual(execution);
       expect(artifact.exchanges[0]?.response.status).toBe(201);
     } finally {
       await recorder.stop();

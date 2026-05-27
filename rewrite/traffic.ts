@@ -1,6 +1,10 @@
 import { createHash } from "node:crypto";
 
-import { captureOwnerHeaderName } from "../src/describe-runtime/execution-owner.ts";
+import {
+  captureOwnerHeaderName,
+  decodeCaptureExecutionMetadata,
+  type CaptureExecutionMetadata,
+} from "../src/describe-runtime/execution-owner.ts";
 
 const defaultCaptureBasePath = "/capture/xapi";
 const jsonContentTypes = new Set(["application/json", "application/octet-stream+json"]);
@@ -30,6 +34,7 @@ export interface RawTrafficMessage {
 export interface RawTrafficExchange {
   durationMs: number;
   endedAt: string;
+  execution: CaptureExecutionMetadata | null;
   request: RawTrafficMessage & {
     method: string;
     targetUrl: string;
@@ -62,6 +67,7 @@ export interface NormalizedBody {
 
 export interface NormalizedExchange {
   attempts: number;
+  execution: CaptureExecutionMetadata | null;
   method: string;
   path: string;
   query: Array<[string, string]>;
@@ -74,6 +80,7 @@ export interface NormalizedExchange {
     headers: Record<string, string>;
     status: number;
   };
+  sourceSequences: number[];
 }
 
 export interface NormalizedTrafficArtifact {
@@ -280,6 +287,22 @@ function normalizeHeaders(
   return Object.fromEntries(normalizedEntries.map(([name, value]) => [name, normalizeHeaderValue(name, value, state)]));
 }
 
+function getHeaderValue(entries: Array<[string, string]>, name: string): string | null {
+  const match = entries.find(([headerName]) => headerName.toLowerCase() === name.toLowerCase());
+  return match?.[1] ?? null;
+}
+
+function getRawExchangeExecution(exchange: RawTrafficExchange): CaptureExecutionMetadata | null {
+  return (
+    exchange.execution ??
+    decodeCaptureExecutionMetadata(getHeaderValue(exchange.request.headers, captureOwnerHeaderName))
+  );
+}
+
+function executionMetadataKey(execution: CaptureExecutionMetadata | null): string {
+  return execution ? JSON.stringify(execution) : "null";
+}
+
 function omitRequestContentTypeForEmptyBody(
   headers: Record<string, string>,
   body: NormalizedBody,
@@ -472,9 +495,11 @@ export function normalizeTrafficArtifact(rawArtifact: RawTrafficArtifact): Norma
     const requestContentType = exchange.request.headers.find(([name]) => name.toLowerCase() === "content-type")?.[1];
     const responseContentType = exchange.response.headers.find(([name]) => name.toLowerCase() === "content-type")?.[1];
     const requestBody = normalizeBody(base64ToBuffer(exchange.request.bodyBase64), requestContentType, state);
+    const execution = getRawExchangeExecution(exchange);
 
     return {
       attempts: 1,
+      execution,
       method: exchange.request.method,
       path: requestUrl.pathname,
       query: normalizeQuery(requestUrl, state),
@@ -490,6 +515,7 @@ export function normalizeTrafficArtifact(rawArtifact: RawTrafficArtifact): Norma
         headers: normalizeHeaders(exchange.response.headers, responseHeaderAllowList, state),
         body: normalizeBody(base64ToBuffer(exchange.response.bodyBase64), responseContentType, state),
       },
+      sourceSequences: [exchange.sequence],
     } satisfies NormalizedExchange;
   });
 
@@ -518,14 +544,20 @@ export function compressConsecutiveEquivalentExchanges(exchanges: NormalizedExch
 
   for (const exchange of exchanges) {
     const previous = compressed.at(-1);
-    if (!previous || createExchangeSignature(previous) !== createExchangeSignature(exchange)) {
+    if (
+      !previous ||
+      createExchangeSignature(previous) !== createExchangeSignature(exchange) ||
+      executionMetadataKey(previous.execution) !== executionMetadataKey(exchange.execution)
+    ) {
       compressed.push({
         ...exchange,
+        sourceSequences: [...exchange.sourceSequences],
       });
       continue;
     }
 
     previous.attempts += exchange.attempts;
+    previous.sourceSequences.push(...exchange.sourceSequences);
   }
 
   return compressed;
@@ -724,6 +756,7 @@ export async function startTrafficRecorder(options: TrafficRecorderOptions): Pro
       const targetUrl = `${targetBaseUrl}${requestPath}${incomingUrl.search}`;
       const requestHeaders = [...request.headers.entries()];
       const requestBody = await request.arrayBuffer();
+      const execution = decodeCaptureExecutionMetadata(request.headers.get(captureOwnerHeaderName));
       const forwardHeaders = new Headers(request.headers);
       forwardHeaders.delete(captureOwnerHeaderName);
       forwardHeaders.delete("host");
@@ -742,6 +775,7 @@ export async function startTrafficRecorder(options: TrafficRecorderOptions): Pro
       exchanges.push({
         durationMs: endedAt.valueOf() - startedAt.valueOf(),
         endedAt: endedAt.toISOString(),
+        execution,
         request: {
           bodyBase64: arrayBufferToBase64(requestBody),
           headers: requestHeaders,

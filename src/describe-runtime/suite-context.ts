@@ -1,7 +1,12 @@
 import { Buffer } from "node:buffer";
 
 import type { NormalizedRunnerOptions } from "./options.ts";
-import { captureOwnerHeaderName, getActiveExecutionPath } from "./execution-owner.ts";
+import {
+  captureOwnerHeaderName,
+  createCaptureExecutionMetadata,
+  encodeCaptureExecutionMetadata,
+  getActiveExecutionMetadata,
+} from "./execution-owner.ts";
 import {
   createFromTemplate as createFromTemplateFromFixtures,
   type JsonObject,
@@ -98,15 +103,25 @@ function addBasicAuthenticationHeader(
   };
 }
 
-function addCaptureOwnerHeader(headers: Record<string, string>): Record<string, string> {
-  const executionPath = getActiveExecutionPath();
-  if (!executionPath || executionPath.length === 0) {
+function addCaptureOwnerHeader(
+  headers: Record<string, string>,
+  directory: string,
+  options: NormalizedRunnerOptions,
+): Record<string, string> {
+  const execution = getActiveExecutionMetadata();
+  if (!execution) {
     return headers;
   }
 
   return {
     ...headers,
-    [captureOwnerHeaderName]: encodeURIComponent(executionPath.join(" > ")),
+    [captureOwnerHeaderName]: encodeCaptureExecutionMetadata(
+      createCaptureExecutionMetadata({
+        directory,
+        execution,
+        version: options.xapiVersion,
+      }),
+    ),
   };
 }
 
@@ -173,7 +188,7 @@ export function createDescribeRuntimeContext(
   const sendRequest = async (request: RequestOptions): Promise<JsonResponse> => {
     const queryString = request.query ? getUrlEncoding(request.query) : "";
     const requestPath = queryString.length > 0 ? `${request.path}?${queryString}` : request.path;
-    const headers = addCaptureOwnerHeader({ ...(request.headers ?? {}) });
+    const headers = addCaptureOwnerHeader({ ...(request.headers ?? {}) }, directory, options);
     let bodyText: string | undefined;
 
     if (typeof request.body === "string") {

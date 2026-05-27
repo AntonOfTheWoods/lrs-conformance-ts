@@ -2,6 +2,8 @@ import { readFile, mkdir, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { dirname, isAbsolute, relative, resolve } from "node:path";
 
+import { captureOwnerHeaderName, decodeCaptureOwnerLabel } from "../../src/describe-runtime/execution-owner.ts";
+
 type FingerprintTable = {
   columnNames: string[];
   rowCount: number;
@@ -113,8 +115,6 @@ type Config = {
 
 const repoRoot = resolve(import.meta.dir, "../..");
 const allowedArtifactsRoot = resolve(repoRoot, "tmp/agents");
-const ownerHeaderName = "x-lrs-conformance-owner";
-
 function usage(): string {
   return [
     "Usage:",
@@ -216,18 +216,6 @@ function getHeaderValue(headers: Array<[string, string]>, name: string): string 
   return match?.[1] ?? null;
 }
 
-function decodeOwnerHeaderValue(value: string | null): string | null {
-  if (!value) {
-    return value;
-  }
-
-  try {
-    return decodeURIComponent(value);
-  } catch {
-    return value;
-  }
-}
-
 function isPrintableAsciiText(value: string): boolean {
   return Array.from(value).every((character) => {
     const codePoint = character.codePointAt(0) ?? 0;
@@ -284,7 +272,7 @@ function summarizeExchange(exchange: RawTrafficExchange, index: number): Exchang
     endedAt: exchange.endedAt,
     index,
     method: exchange.request.method,
-    owner: decodeOwnerHeaderValue(getHeaderValue(exchange.request.headers, ownerHeaderName)),
+    owner: decodeCaptureOwnerLabel(getHeaderValue(exchange.request.headers, captureOwnerHeaderName)),
     path: requestUrl.pathname,
     query: requestUrl.searchParams.toString(),
     requestBody: decodeBody(exchange.request.bodyBase64, requestContentType),

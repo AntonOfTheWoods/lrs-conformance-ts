@@ -1,4 +1,4 @@
-import { runWithExecutionPath } from "./execution-owner.ts";
+import { runWithExecutionMetadata } from "./execution-owner.ts";
 
 export type RuntimeStatus = "passed" | "failed" | "skipped" | "cancelled";
 
@@ -295,7 +295,15 @@ async function executeCase(
   }
 
   try {
-    await runWithExecutionPath([...path, definition.title], () => runRunnable(runnable));
+    await runWithExecutionMetadata(
+      {
+        casePath: [...path, definition.title],
+        hookTitle: null,
+        phase: "case",
+        suitePath: [...path],
+      },
+      () => runRunnable(runnable),
+    );
     state.summary.passed += 1;
     return createCaseResult(definition.title, "passed");
   } catch (error) {
@@ -322,7 +330,15 @@ async function executeSuite(
 
   for (const hook of definition.beforeHooks) {
     try {
-      await runWithExecutionPath([...suitePath, `[before] ${hook.title}`], () => runRunnable(hook.fn));
+      await runWithExecutionMetadata(
+        {
+          casePath: null,
+          hookTitle: hook.title,
+          phase: "before",
+          suitePath: [...suitePath],
+        },
+        () => runRunnable(hook.fn),
+      );
     } catch (error) {
       state.summary.failed += 1;
       result.status = "failed";
