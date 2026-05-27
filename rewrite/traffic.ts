@@ -153,7 +153,7 @@ function canonicalizeContentType(value: string | undefined): string | undefined 
       const [rawName = "", rawValue = ""] = part.split("=", 2);
       return [rawName.trim().toLowerCase(), rawValue.trim()] as const;
     })
-    .filter(([name]) => name !== "boundary")
+    .filter(([name]) => name !== "boundary" && name !== "charset")
     .sort(([left], [right]) => left.localeCompare(right));
 
   if (parameters.length === 0) {
@@ -201,9 +201,8 @@ function normalizeStringValue(value: string, state: PlaceholderState): string {
     (match) => normalizeWithPlaceholder(match, "isoTimestamp", state),
   );
 
-  return withIsoTimestamps.replace(
-    /(?<![0-9a-f])[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}(?![0-9a-f])/gi,
-    (match) => normalizeWithPlaceholder(match.toLowerCase(), "uuid", state),
+  return withIsoTimestamps.replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, (match) =>
+    normalizeWithPlaceholder(match.toLowerCase(), "uuid", state),
   );
 }
 

@@ -130,10 +130,11 @@ async function createDefaultStatement(context: DescribeRuntimeContext, name: str
 }
 
 async function postStatements(context: DescribeRuntimeContext, statements: JsonObject[], name: string): Promise<void> {
+  const body = statements.length === 1 ? statements[0] : statements;
   const response = await context.sendRequest({
     method: "POST",
     path: context.getEndpointStatements(),
-    body: statements,
+    body,
   });
 
   if (response.status !== 200) {

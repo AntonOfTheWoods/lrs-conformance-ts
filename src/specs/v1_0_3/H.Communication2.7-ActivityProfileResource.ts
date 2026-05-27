@@ -11,5 +11,6 @@ export function registerActivityProfileResourceRequirementsSuite(
     nestPutAcceptance: true,
     putAcceptancePassTitle: "passes with 204 no content",
     putAcceptanceWithoutHeaderTitle: "fails without ETag header",
+    reusePutAcceptanceParametersForPostAcceptance: true,
   });
 }

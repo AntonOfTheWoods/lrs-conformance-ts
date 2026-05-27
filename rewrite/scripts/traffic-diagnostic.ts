@@ -22,7 +22,7 @@ type RunnerScope = {
   upstreamOptional?: string;
 };
 
-const optionalDirectoryNames = new Set(["Multiplicity", "Parameters"]);
+const optionalDirectoryNames = new Set(["Multiplicity"]);
 
 function getVersionDirectory(version: SupportedVersion): "v1_0_3" | "v2_0" {
   return version === "1.0.3" ? "v1_0_3" : "v2_0";

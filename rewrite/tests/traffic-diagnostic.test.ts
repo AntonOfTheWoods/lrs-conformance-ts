@@ -9,19 +9,19 @@ import {
   resolveRunnerScope,
 } from "../scripts/traffic-diagnostic.ts";
 
-test("resolveRunnerScope converts extra directory names into a shared grep filter", () => {
-  expect(resolveRunnerScope("Parameters,v1_0_3", undefined, "1.0.3")).toEqual({
-    rewriteDirectory: "Parameters,v1_0_3",
+test("resolveRunnerScope only treats supported optional suites as separate matrix dimensions", () => {
+  expect(resolveRunnerScope("Multiplicity,v1_0_3", undefined, "1.0.3")).toEqual({
+    rewriteDirectory: "Multiplicity,v1_0_3",
     upstreamDirectory: "v1_0_3",
-    upstreamOptional: "Parameters",
+    upstreamOptional: "Multiplicity",
     grep: undefined,
   });
 
   expect(resolveRunnerScope("Parameters", "Actor", "2.0.0")).toEqual({
     rewriteDirectory: "Parameters,v2_0",
     upstreamDirectory: "v2_0",
-    upstreamOptional: "Parameters",
-    grep: "Actor",
+    upstreamOptional: undefined,
+    grep: "(?=.*(?:Actor))(?=.*(?:\\b(?:Parameters)\\b))",
   });
 });
 
@@ -48,7 +48,7 @@ test("buildRewriteArgs omits explicit version when directory scope already impli
   expect(args).not.toContain("--xapiVersion");
 });
 
-test("buildUpstreamArgs passes optional suites separately from the version directory", () => {
+test("buildUpstreamArgs passes only supported optional suites separately from the version directory", () => {
   const args = buildUpstreamArgs(
     {
       compareMode: "bag",
@@ -68,8 +68,7 @@ test("buildUpstreamArgs passes optional suites separately from the version direc
 
   expect(args).toContain("--directory");
   expect(args).toContain("v1_0_3");
-  expect(args).toContain("--optional");
-  expect(args).toContain("Parameters");
+  expect(args).not.toContain("--optional");
 });
 
 test("readEffectiveRunnerExitCode prefers the recorded upstream suite exit code", async () => {

@@ -200,6 +200,155 @@ describe("traffic harness", () => {
     expect(createExchangeSignature(left.exchanges[0]!)).toBe(createExchangeSignature(right.exchanges[0]!));
   });
 
+  test("normalizes UUIDs embedded inside hex-adjacent scalar strings", () => {
+    const left = normalizeTrafficArtifact(
+      createArtifact(
+        createRawExchange({
+          request: {
+            bodyBase64: "",
+            headers: [["x-experience-api-version", "2.0.0"]],
+            method: "GET",
+            targetUrl:
+              "http://localhost:8080/xapi/statements?activity=http://www.example.com/meetings/occurances/3453411111111-1111-4111-8111-111111111111",
+          },
+          response: {
+            bodyBase64: Buffer.from(
+              JSON.stringify({
+                activity: "http://www.example.com/meetings/occurances/3453411111111-1111-4111-8111-111111111111",
+              }),
+            ).toString("base64"),
+            headers: [["content-type", "application/json"]],
+            status: 200,
+          },
+        }),
+      ),
+    );
+    const right = normalizeTrafficArtifact(
+      createArtifact(
+        createRawExchange({
+          request: {
+            bodyBase64: "",
+            headers: [["x-experience-api-version", "2.0.0"]],
+            method: "GET",
+            targetUrl:
+              "http://localhost:8080/xapi/statements?activity=http://www.example.com/meetings/occurances/3453422222222-2222-4222-8222-222222222222",
+          },
+          response: {
+            bodyBase64: Buffer.from(
+              JSON.stringify({
+                activity: "http://www.example.com/meetings/occurances/3453422222222-2222-4222-8222-222222222222",
+              }),
+            ).toString("base64"),
+            headers: [["content-type", "application/json"]],
+            status: 200,
+          },
+        }),
+      ),
+    );
+
+    expect(createExchangeSignature(left.exchanges[0]!)).toBe(createExchangeSignature(right.exchanges[0]!));
+  });
+
+  test("normalizes UUIDv8-style identifiers in nested JSON fields", () => {
+    const left = normalizeTrafficArtifact(
+      createArtifact(
+        createRawExchange({
+          response: {
+            bodyBase64: Buffer.from(
+              JSON.stringify({
+                authority: {
+                  account: {
+                    homePage: "http://example.org",
+                    name: "019e6450-12e7-8e6a-97a0-55d528ae6626",
+                  },
+                  objectType: "Agent",
+                },
+              }),
+            ).toString("base64"),
+            headers: [["content-type", "application/json"]],
+            status: 200,
+          },
+        }),
+      ),
+    );
+    const right = normalizeTrafficArtifact(
+      createArtifact(
+        createRawExchange({
+          response: {
+            bodyBase64: Buffer.from(
+              JSON.stringify({
+                authority: {
+                  account: {
+                    homePage: "http://example.org",
+                    name: "019e6450-8c10-8d70-8d4a-57f11b613504",
+                  },
+                  objectType: "Agent",
+                },
+              }),
+            ).toString("base64"),
+            headers: [["content-type", "application/json"]],
+            status: 200,
+          },
+        }),
+      ),
+    );
+
+    expect(createExchangeSignature(left.exchanges[0]!)).toBe(createExchangeSignature(right.exchanges[0]!));
+  });
+
+  test("ignores charset parameters in content-type headers", () => {
+    const bodyBase64 = Buffer.from("limit=1").toString("base64");
+    const responseBodyBase64 = Buffer.from(
+      JSON.stringify({
+        more: "/xapi/statements?limit=1&from=11111111-1111-4111-8111-111111111111",
+        statements: [],
+      }),
+    ).toString("base64");
+
+    const left = normalizeTrafficArtifact(
+      createArtifact(
+        createRawExchange({
+          request: {
+            bodyBase64,
+            headers: [
+              ["content-type", "application/x-www-form-urlencoded"],
+              ["x-experience-api-version", "1.0.3"],
+            ],
+            method: "POST",
+            targetUrl: "http://localhost:8080/xapi/statements?method=GET",
+          },
+          response: {
+            bodyBase64: responseBodyBase64,
+            headers: [["content-type", "application/json"]],
+            status: 200,
+          },
+        }),
+      ),
+    );
+    const right = normalizeTrafficArtifact(
+      createArtifact(
+        createRawExchange({
+          request: {
+            bodyBase64,
+            headers: [
+              ["content-type", "application/x-www-form-urlencoded; charset=utf-8"],
+              ["x-experience-api-version", "1.0.3"],
+            ],
+            method: "POST",
+            targetUrl: "http://localhost:8080/xapi/statements?method=GET",
+          },
+          response: {
+            bodyBase64: responseBodyBase64,
+            headers: [["content-type", "application/json; charset=utf-8"]],
+            status: 200,
+          },
+        }),
+      ),
+    );
+
+    expect(createExchangeSignature(left.exchanges[0]!)).toBe(createExchangeSignature(right.exchanges[0]!));
+  });
+
   test("ignores request content-type when the request body is empty", () => {
     const left = normalizeTrafficArtifact(
       createArtifact(

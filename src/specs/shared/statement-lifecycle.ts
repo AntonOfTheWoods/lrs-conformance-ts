@@ -12,15 +12,7 @@ const statementLifecycleGroups: ConfigDrivenGroupDefinition[] = [
     config: [
       {
         name: 'statement verb voided IRI ends with "voided" (WARNING: this applies "Upon receiving a Statement that voids another, the LRS SHOULD NOT* reject the request on the grounds of the Object of that voiding Statement not being present")',
-        templates: [
-          { statement: "{{statements.object_statementref}}" },
-          {
-            verb: {
-              id: "http://adlnet.gov/expapi/verbs/voided",
-              display: { "en-US": "voided" },
-            },
-          },
-        ],
+        templates: [{ statement: "{{statements.voiding}}" }],
         expect: [200],
       },
     ],
@@ -30,15 +22,7 @@ const statementLifecycleGroups: ConfigDrivenGroupDefinition[] = [
     config: [
       {
         name: 'statement verb voided uses substatement with "StatementRef"',
-        templates: [
-          { statement: "{{statements.object_statementref}}" },
-          {
-            verb: {
-              id: "http://adlnet.gov/expapi/verbs/voided",
-              display: { "en-US": "voided" },
-            },
-          },
-        ],
+        templates: [{ statement: "{{statements.voiding}}" }],
         expect: [200],
       },
       {
@@ -87,7 +71,7 @@ async function expectPostStatus(
   statement: JsonObject,
   expectedStatus: number,
   name: string,
-): Promise<void> {
+): Promise<JsonResponse> {
   const response = await context.sendJsonRequest({
     method: "POST",
     path: context.getEndpointStatements(),
@@ -97,6 +81,8 @@ async function expectPostStatus(
   if (response.status !== expectedStatus) {
     throw new Error(`Expected status ${expectedStatus} for "${name}" but received ${response.status}.`);
   }
+
+  return response;
 }
 
 function parseJsonObject(response: JsonResponse, name: string): JsonObject {
@@ -134,19 +120,36 @@ async function fetchStatement(
 
 async function persistVoidedAndVoidingStatements(
   context: DescribeRuntimeContext,
+  options: {
+    assignVoidedId?: boolean;
+    assignVoidingId?: boolean;
+  } = {},
 ): Promise<{ voidedId: string; voidingId: string }> {
-  const voidedId = context.generateUuid();
-  const voidingId = context.generateUuid();
+  const assignVoidedId = options.assignVoidedId ?? true;
+  const assignVoidingId = options.assignVoidingId ?? false;
+  const generatedVoidedId = context.generateUuid();
+  const generatedVoidingId = context.generateUuid();
 
   const voidedStatement = await createStatement(context, [{ statement: "{{statements.default}}" }]);
-  voidedStatement.id = voidedId;
-  await expectPostStatus(context, voidedStatement, 200, "persist voided statement");
+  if (assignVoidedId) {
+    voidedStatement.id = generatedVoidedId;
+  }
+  const voidedResponse = await expectPostStatus(context, voidedStatement, 200, "persist voided statement");
+  const voidedId =
+    assignVoidedId && typeof voidedStatement.id === "string"
+      ? voidedStatement.id
+      : (() => {
+          const ids = JSON.parse(voidedResponse.bodyText) as unknown;
+          if (!Array.isArray(ids) || typeof ids[0] !== "string") {
+            throw new Error("Expected persist voided statement to return an array containing a statement id.");
+          }
+          return ids[0];
+        })();
 
-  const voidingStatement = await createStatement(context, [
-    { statement: "{{statements.object_statementref}}" },
-    { verb: createVoidedVerb() },
-  ]);
-  voidingStatement.id = voidingId;
+  const voidingStatement = await createStatement(context, [{ statement: "{{statements.voiding}}" }]);
+  if (assignVoidingId) {
+    voidingStatement.id = generatedVoidingId;
+  }
 
   const voidingObject = voidingStatement.object;
   if (!isJsonObject(voidingObject)) {
@@ -154,7 +157,17 @@ async function persistVoidedAndVoidingStatements(
   }
 
   voidingObject.id = voidedId;
-  await expectPostStatus(context, voidingStatement, 200, "persist voiding statement");
+  const voidingResponse = await expectPostStatus(context, voidingStatement, 200, "persist voiding statement");
+  const voidingId =
+    assignVoidingId && typeof voidingStatement.id === "string"
+      ? voidingStatement.id
+      : (() => {
+          const ids = JSON.parse(voidingResponse.bodyText) as unknown;
+          if (!Array.isArray(ids) || typeof ids[0] !== "string") {
+            throw new Error("Expected persist voiding statement to return an array containing a statement id.");
+          }
+          return ids[0];
+        })();
 
   return { voidedId, voidingId };
 }
@@ -177,8 +190,17 @@ export function registerStatementLifecycleRequirementsSuite(
     runtime.describe(
       "A Voided Statement is defined as a Statement that is not a Voiding Statement and is the Target of a Voiding Statement within the LRS (Data 2.3.2.s2.b3, XAPI-00018)",
       () => {
+        let voidedFixturePromise: Promise<{ voidedId: string; voidingId: string }> | undefined;
+        const getVoidedFixture = async (): Promise<{ voidedId: string; voidingId: string }> => {
+          voidedFixturePromise ??= persistVoidedAndVoidingStatements(context, {
+            assignVoidedId: true,
+            assignVoidingId: false,
+          });
+          return voidedFixturePromise;
+        };
+
         runtime.it('should return a voided statement when using GET "voidedStatementId"', async () => {
-          const { voidedId } = await persistVoidedAndVoidingStatements(context);
+          const { voidedId } = await getVoidedFixture();
           const statement = await fetchStatement(
             context,
             "voidedStatementId",
@@ -193,7 +215,7 @@ export function registerStatementLifecycleRequirementsSuite(
         });
 
         runtime.it('should return 404 when using GET with "statementId"', async () => {
-          const { voidedId } = await persistVoidedAndVoidingStatements(context);
+          const { voidedId } = await getVoidedFixture();
           await fetchStatement(context, "statementId", voidedId, 404, 'GET with "statementId"');
         });
       },
@@ -202,13 +224,18 @@ export function registerStatementLifecycleRequirementsSuite(
     runtime.describe(
       "A Voiding Statement cannot Target another Voiding Statement (Data 2.3.2.s2.b7, XAPI-00016)",
       () => {
+        let voidingFixturePromise: Promise<{ voidedId: string; voidingId: string }> | undefined;
+        const getVoidingFixture = async (): Promise<{ voidedId: string; voidingId: string }> => {
+          voidingFixturePromise ??= persistVoidedAndVoidingStatements(context, {
+            assignVoidedId: false,
+            assignVoidingId: false,
+          });
+          return voidingFixturePromise;
+        };
+
         runtime.it("should not void an already voided statement", async () => {
-          const { voidedId } = await persistVoidedAndVoidingStatements(context);
-          const repeatedVoidingStatement = await createStatement(context, [
-            { statement: "{{statements.object_statementref}}" },
-            { verb: createVoidedVerb() },
-          ]);
-          repeatedVoidingStatement.id = context.generateUuid();
+          const { voidedId } = await getVoidingFixture();
+          const repeatedVoidingStatement = await createStatement(context, [{ statement: "{{statements.voiding}}" }]);
 
           const repeatedObject = repeatedVoidingStatement.object;
           if (!isJsonObject(repeatedObject)) {
@@ -227,12 +254,8 @@ export function registerStatementLifecycleRequirementsSuite(
         });
 
         runtime.it("should not void a voiding statement", async () => {
-          const { voidingId } = await persistVoidedAndVoidingStatements(context);
-          const invalidTargetStatement = await createStatement(context, [
-            { statement: "{{statements.object_statementref}}" },
-            { verb: createVoidedVerb() },
-          ]);
-          invalidTargetStatement.id = context.generateUuid();
+          const { voidingId } = await getVoidingFixture();
+          const invalidTargetStatement = await createStatement(context, [{ statement: "{{statements.voiding}}" }]);
 
           const invalidTargetObject = invalidTargetStatement.object;
           if (!isJsonObject(invalidTargetObject)) {

@@ -856,45 +856,86 @@ export function registerSpecialDataTypesAndRulesSuite(runtime: DescribeRuntime, 
       "A Timestamp MUST preserve precision to at least milliseconds, 3 decimal points beyond seconds. (Data 4.5.s1.b3, XAPI-00122)",
       () => {
         runtime.it("retrieve statements, test a timestamp property", async () => {
-          const statement = await createDefaultStatement(context, "Timestamp precision statement");
-          const statementId = context.generateUuid();
-          statement.id = statementId;
-          statement.timestamp = "2023-05-04T17:00:00.12345Z";
-
-          const postResponse = await context.sendRequest({
-            method: "POST",
+          const response = await context.sendRequest({
+            method: "GET",
             path: context.getEndpointStatements(),
-            body: statement,
           });
-          if (postResponse.status !== 200) {
-            throw new Error(`Expected Timestamp precision POST to return 200, received ${postResponse.status}.`);
+          if (response.status !== 200) {
+            throw new Error(`Expected Timestamp precision GET to return 200, received ${response.status}.`);
           }
 
-          const storedStatement = await fetchExactStatement(context, statementId, "Timestamp precision exact GET");
-          const storedTimestamp = getString(storedStatement, "timestamp", "Timestamp precision exact GET");
-          if (!/\.\d{3,}Z$/.test(storedTimestamp)) {
-            throw new Error("Expected retrieved timestamp to preserve at least millisecond precision.");
+          const result = parseJsonObject(response, "Timestamp precision GET");
+          const statements = result.statements;
+          if (!Array.isArray(statements) || statements.length === 0) {
+            throw new Error("Expected Timestamp precision GET to return one or more statements.");
+          }
+
+          let foundSubTenMillisecondDigit = false;
+          for (const value of statements) {
+            if (!isJsonObject(value)) {
+              throw new Error("Expected Timestamp precision GET statements to be objects.");
+            }
+            const timestamp = getString(value, "timestamp", "Timestamp precision statement");
+            if (Number.isNaN(Date.parse(timestamp))) {
+              throw new Error(`Expected timestamp to be valid ISO 8601, received ${timestamp}.`);
+            }
+            const fraction = timestamp.match(/\.(\d+)(?:Z|[+-]\d{2}:?\d{2})$/)?.[1];
+            if (!fraction || fraction.length < 3) {
+              throw new Error(`Expected timestamp to include at least millisecond precision, received ${timestamp}.`);
+            }
+            const milliseconds = Number.parseInt(fraction.slice(0, 3), 10);
+            if (!Number.isNaN(milliseconds) && milliseconds % 10 > 0) {
+              foundSubTenMillisecondDigit = true;
+              break;
+            }
+          }
+
+          if (!foundSubTenMillisecondDigit) {
+            throw new Error(
+              "Expected at least one retrieved timestamp to preserve precision beyond a trailing zero millisecond digit.",
+            );
           }
         });
 
         runtime.it("retrieve statements, test a stored property", async () => {
-          const statement = await createDefaultStatement(context, "Stored precision statement");
-          const statementId = context.generateUuid();
-          statement.id = statementId;
-
-          const postResponse = await context.sendRequest({
-            method: "POST",
+          const response = await context.sendRequest({
+            method: "GET",
             path: context.getEndpointStatements(),
-            body: statement,
           });
-          if (postResponse.status !== 200) {
-            throw new Error(`Expected Stored precision POST to return 200, received ${postResponse.status}.`);
+          if (response.status !== 200) {
+            throw new Error(`Expected Stored precision GET to return 200, received ${response.status}.`);
           }
 
-          const storedStatement = await fetchExactStatement(context, statementId, "Stored precision exact GET");
-          const storedTimestamp = getString(storedStatement, "stored", "Stored precision exact GET");
-          if (!/\.\d{3,}Z$/.test(storedTimestamp)) {
-            throw new Error("Expected retrieved stored timestamp to preserve at least millisecond precision.");
+          const result = parseJsonObject(response, "Stored precision GET");
+          const statements = result.statements;
+          if (!Array.isArray(statements) || statements.length === 0) {
+            throw new Error("Expected Stored precision GET to return one or more statements.");
+          }
+
+          let foundSubTenMillisecondDigit = false;
+          for (const value of statements) {
+            if (!isJsonObject(value)) {
+              throw new Error("Expected Stored precision GET statements to be objects.");
+            }
+            const stored = getString(value, "stored", "Stored precision statement");
+            if (Number.isNaN(Date.parse(stored))) {
+              throw new Error(`Expected stored to be valid ISO 8601, received ${stored}.`);
+            }
+            const fraction = stored.match(/\.(\d+)(?:Z|[+-]\d{2}:?\d{2})$/)?.[1];
+            if (!fraction || fraction.length < 3) {
+              throw new Error(`Expected stored to include at least millisecond precision, received ${stored}.`);
+            }
+            const milliseconds = Number.parseInt(fraction.slice(0, 3), 10);
+            if (!Number.isNaN(milliseconds) && milliseconds % 10 > 0) {
+              foundSubTenMillisecondDigit = true;
+              break;
+            }
+          }
+
+          if (!foundSubTenMillisecondDigit) {
+            throw new Error(
+              "Expected at least one retrieved stored timestamp to preserve precision beyond a trailing zero millisecond digit.",
+            );
           }
         });
       },

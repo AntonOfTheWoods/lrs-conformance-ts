@@ -83,9 +83,7 @@ async function fetchMore(context: DescribeRuntimeContext, more: string, name: st
 
 async function persistTwoDefaultStatements(context: DescribeRuntimeContext): Promise<void> {
   const first = await createStatement(context, [{ statement: "{{statements.default}}" }]);
-  first.id = context.generateUuid();
   const second = await createStatement(context, [{ statement: "{{statements.default}}" }]);
-  second.id = context.generateUuid();
   await expectPostStatus(context, [first, second], 200, "persist two statements");
 }
 
@@ -131,7 +129,42 @@ export function registerRetrievalOfStatementsSuite(runtime: DescribeRuntime, con
                 },
               },
             ]);
-            statement.id = context.generateUuid();
+
+            const statementContext = statement.context;
+            if (!isJsonObject(statementContext)) {
+              throw new Error("Expected the retrieval statement to include a context object.");
+            }
+            const statementContextActivities = statementContext.contextActivities;
+            if (!isJsonObject(statementContextActivities)) {
+              throw new Error("Expected the retrieval statement to include context activities.");
+            }
+            const statementCategory = statementContextActivities.category;
+            if (!isJsonObject(statementCategory)) {
+              throw new Error("Expected the retrieval statement to include a category activity.");
+            }
+            const statementActor = statement.actor;
+            if (!isJsonObject(statementActor)) {
+              throw new Error("Expected the retrieval statement to include an actor.");
+            }
+            const statementVerb = statement.verb;
+            if (!isJsonObject(statementVerb)) {
+              throw new Error("Expected the retrieval statement to include a verb.");
+            }
+            const statementObject = statement.object;
+            if (!isJsonObject(statementObject)) {
+              throw new Error("Expected the retrieval statement to include an object.");
+            }
+            const statementInstructor = statementContext.instructor;
+            if (!isJsonObject(statementInstructor)) {
+              throw new Error("Expected the retrieval statement to include an instructor.");
+            }
+
+            statementCategory.id = "http://www.example.com/test/array/statements/pri";
+            statementVerb.id = `${String(statementVerb.id)}${context.generateUuid()}`;
+            statementActor.mbox = `mailto:${context.generateUuid()}@adlnet.gov`;
+            statementContext.registration = context.generateUuid();
+            statementInstructor.mbox = `mailto:${context.generateUuid()}@adlnet.gov`;
+            statementObject.id = `${String(statementObject.id)}${context.generateUuid()}`;
 
             const substatement = await createStatement(context, [
               { statement: "{{statements.object_substatement}}" },
@@ -145,7 +178,50 @@ export function registerRetrievalOfStatementsSuite(runtime: DescribeRuntime, con
                 },
               },
             ]);
-            substatement.id = context.generateUuid();
+
+            const substatementActor = substatement.actor;
+            if (!isJsonObject(substatementActor)) {
+              throw new Error("Expected the retrieval substatement to include an actor.");
+            }
+            const substatementVerb = substatement.verb;
+            if (!isJsonObject(substatementVerb)) {
+              throw new Error("Expected the retrieval substatement to include a verb.");
+            }
+            const nestedSubstatement = substatement.object;
+            if (!isJsonObject(nestedSubstatement)) {
+              throw new Error("Expected the retrieval substatement to include a nested substatement.");
+            }
+            const nestedActor = nestedSubstatement.actor;
+            if (!isJsonObject(nestedActor)) {
+              throw new Error("Expected the retrieval nested substatement to include an actor.");
+            }
+            const nestedVerb = nestedSubstatement.verb;
+            if (!isJsonObject(nestedVerb)) {
+              throw new Error("Expected the retrieval nested substatement to include a verb.");
+            }
+            const nestedObject = nestedSubstatement.object;
+            if (!isJsonObject(nestedObject)) {
+              throw new Error("Expected the retrieval nested substatement to include an object.");
+            }
+            const nestedContext = nestedSubstatement.context;
+            if (!isJsonObject(nestedContext)) {
+              throw new Error("Expected the retrieval nested substatement to include a context.");
+            }
+            const nestedContextActivities = nestedContext.contextActivities;
+            if (!isJsonObject(nestedContextActivities)) {
+              throw new Error("Expected the retrieval nested substatement to include context activities.");
+            }
+            const nestedCategory = nestedContextActivities.category;
+            if (!isJsonObject(nestedCategory)) {
+              throw new Error("Expected the retrieval nested substatement to include a category activity.");
+            }
+
+            substatementVerb.id = `${String(substatementVerb.id)}${context.generateUuid()}`;
+            substatementActor.mbox = `mailto:${context.generateUuid()}@adlnet.gov`;
+            nestedVerb.id = `${String(nestedVerb.id)}${context.generateUuid()}`;
+            nestedActor.mbox = `mailto:${context.generateUuid()}@adlnet.gov`;
+            nestedObject.id = `${String(nestedObject.id)}${context.generateUuid()}`;
+            nestedCategory.id = "http://www.example.com/test/array/statements/sub";
 
             await expectPostStatus(context, statement, 200, "persist retrieval statement");
             await expectPostStatus(context, substatement, 200, "persist retrieval substatement");
