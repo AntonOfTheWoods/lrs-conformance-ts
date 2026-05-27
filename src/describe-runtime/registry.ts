@@ -4,7 +4,6 @@ import { registerAuthorityPropertyRequirementsSuite as registerAuthorityProperty
 import { registerContextPropertyRequirementsSuite as registerContextPropertyRequirementsV103 } from "../specs/v1_0_3/Data2.4.6-ContextProperty.ts";
 import { registerFormattingRequirementsSuite as registerFormattingRequirementsV103 } from "../specs/v1_0_3/Data2.2-FormattingRequirements.ts";
 import { registerHeadRequestImplementationSuite as registerHeadRequestImplementationV103 } from "../specs/v1_0_3/H.Communication1.1-HeadRequestImplementation.ts";
-import { registerHeadersRequirementsSuite as registerHeadersRequirementsV103 } from "../specs/v1_0_3/H.Communication1.2-Headers.ts";
 import { registerAlternateRequestSyntaxRequirementsSuite as registerAlternateRequestSyntaxRequirementsV103 } from "../specs/v1_0_3/H.Communication1.3-AlternateRequestSyntax.ts";
 import { registerEncodingRequirementsSuite as registerEncodingRequirementsV103 } from "../specs/v1_0_3/H.Communication1.4-Encoding.ts";
 import { registerContentTypeRequirementsSuite as registerContentTypeRequirementsV103 } from "../specs/v1_0_3/H.Communication1.5-ContentTypes.ts";
@@ -78,26 +77,25 @@ const registrarsByDirectory: Readonly<Record<string, readonly SuiteRegistrar[]>>
   Parameters: [registerParametersTestingSuite],
   v1_0_3: [
     registerFormattingRequirementsV103,
-    registerHeadRequestImplementationV103,
-    registerHeadersRequirementsV103,
-    registerAlternateRequestSyntaxRequirementsV103,
-    registerEncodingRequirementsV103,
-    registerContentTypeRequirementsV103,
+    registerStatementLifecycleRequirementsV103,
     registerIdPropertyRequirementsV103,
+    registerActorPropertyRequirementsV103,
+    registerVerbPropertyRequirementsV103,
+    registerObjectPropertyRequirementsV103,
+    registerResultPropertyRequirementsV103,
+    registerContextPropertyRequirementsV103,
     registerTimestampPropertyRequirementsV103,
     registerStoredPropertyRequirementsV103,
-    registerVerbPropertyRequirementsV103,
-    registerVersionPropertyRequirementsV103,
-    registerResultPropertyRequirementsV103,
-    registerActorPropertyRequirementsV103,
-    registerObjectPropertyRequirementsV103,
-    registerContextPropertyRequirementsV103,
     registerAuthorityPropertyRequirementsV103,
+    registerVersionPropertyRequirementsV103,
     registerAttachmentsPropertyRequirementsV103,
-    registerStatementLifecycleRequirementsV103,
     registerRetrievalOfStatementsV103,
     registerSignedStatementsV103,
     registerSpecialDataTypesAndRulesV103,
+    registerHeadRequestImplementationV103,
+    registerAlternateRequestSyntaxRequirementsV103,
+    registerEncodingRequirementsV103,
+    registerContentTypeRequirementsV103,
     registerStatementResourceRequirementsV103,
     registerDocumentResourcesRequirementsV103,
     registerStateResourceRequirementsV103,

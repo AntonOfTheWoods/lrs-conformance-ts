@@ -1,6 +1,7 @@
 import { Buffer } from "node:buffer";
 
 import type { NormalizedRunnerOptions } from "./options.ts";
+import { captureOwnerHeaderName, getActiveExecutionPath } from "./execution-owner.ts";
 import {
   createFromTemplate as createFromTemplateFromFixtures,
   type JsonObject,
@@ -97,6 +98,18 @@ function addBasicAuthenticationHeader(
   };
 }
 
+function addCaptureOwnerHeader(headers: Record<string, string>): Record<string, string> {
+  const executionPath = getActiveExecutionPath();
+  if (!executionPath || executionPath.length === 0) {
+    return headers;
+  }
+
+  return {
+    ...headers,
+    [captureOwnerHeaderName]: encodeURIComponent(executionPath.join(" > ")),
+  };
+}
+
 function isJsonObject(value: unknown): value is JsonObject {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -160,7 +173,7 @@ export function createDescribeRuntimeContext(
   const sendRequest = async (request: RequestOptions): Promise<JsonResponse> => {
     const queryString = request.query ? getUrlEncoding(request.query) : "";
     const requestPath = queryString.length > 0 ? `${request.path}?${queryString}` : request.path;
-    const headers = { ...(request.headers ?? {}) };
+    const headers = addCaptureOwnerHeader({ ...(request.headers ?? {}) });
     let bodyText: string | undefined;
 
     if (typeof request.body === "string") {

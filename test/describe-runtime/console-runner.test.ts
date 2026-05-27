@@ -3326,10 +3326,10 @@ describe("console runner entrypoint", () => {
       ).toHaveLength(1113);
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "PUT"),
-      ).toHaveLength(47);
+      ).toHaveLength(36);
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "GET"),
-      ).toHaveLength(232);
+      ).toHaveLength(231);
       expect(harness.requests.filter((request) => request.version === null)).toHaveLength(10);
       expect(harness.requests.filter((request) => request.version === "BAD")).toHaveLength(2);
       expect(
@@ -3385,7 +3385,6 @@ describe("console runner entrypoint", () => {
         "Authentication Requirements (Communication 4.0)",
       ]);
       expectLoggedNestedSuiteTitles(writtenRecord.log.tests, "Formatting Requirements (Data 2.2)", [
-        "An LRS stores 32-bit floating point numbers with at least the precision of IEEE 754 (Data 2.2.s4.b3, XAPI-00002)",
         'A Statement contains an "actor" property (Multiplicity, Data 2.2.s2.b3, XAPI-00003)',
         'A Statement contains a "verb" property (Multiplicity, Data 2.2.s2.b3, XAPI-00004)',
         'A Statement contains an "object" property (Multiplicity, Data 2.2.s2.b3, XAPI-00005)',
@@ -3395,9 +3394,10 @@ describe("console runner entrypoint", () => {
         "An LRS rejects with error code 400 Bad Request a Statement where the case of a key does not match the case specified in this specification. (Data 2.2.s4.b1.b5, XAPI-00008, XAPI-00010)",
         "An LRS rejects with error code 400 Bad Request a Statement where the case of a value restricted to enumerated values does not match an enumerated value given in this specification exactly. (Data 2.2.s4.b1.b6, XAPI-00009)",
         "The LRS rejects with error code 400 Bad Request a token with does not validate as matching the RFC 5646 standard in the sequence of token lengths for language map keys. (Format, Data 2.2.s4.b2, Data 2.4.6.s3.table1.row7, RFC5646, XAPI-00013)",
+        "An LRS stores 32-bit floating point numbers with at least the precision of IEEE 754 (Data 2.2.s4.b3, XAPI-00002)",
+        "The LRS rejects with error code 400 Bad Request parameter values which do not validate to the same standards required for values of the same types in Statements (Data 2.2.s4.b4, XAPI-00012)",
         "All Objects are well-created JSON Objects (Nature of binding, Data 2.1, XAPI-00014) **Implicit**",
         "An LRS rejects with error code 400 Bad Request a Statement containing IRL or IRI values without a scheme. (Data 2.2.s4.b1.b8, XAPI-00011)",
-        "The LRS rejects with error code 400 Bad Request parameter values which do not validate to the same standards required for values of the same types in Statements (Data 2.2.s4.b4, XAPI-00012)",
       ]);
       const formattingSuite = writtenRecord.log.tests.find(
         (entry) => entry.title === "Formatting Requirements (Data 2.2)",
@@ -3410,6 +3410,7 @@ describe("console runner entrypoint", () => {
         formattingNestedSuites,
         "All Objects are well-created JSON Objects (Nature of binding, Data 2.1, XAPI-00014) **Implicit**",
         [
+          "An LRS rejects a not well-created JSON Object",
           "Statements Verify Templates",
           "Agents Verify Templates",
           "Groups Verify Templates",
@@ -3425,7 +3426,6 @@ describe("console runner entrypoint", () => {
           "Contexts Verify Templates",
           'A ContextActivity is defined as a single Activity of the "value" of the "contextActivities" property (definition, Data 2.4.6.2.s4.b2)',
           "Languages Verify Templates",
-          "An LRS rejects a not well-created JSON Object",
         ],
       );
       expectLoggedNestedSuiteTitles(writtenRecord.log.tests, "Id Property Requirements (Data 2.4.1)", [
@@ -3485,7 +3485,7 @@ describe("console runner entrypoint", () => {
         failed: 0,
         version: "1.0.3",
       });
-      expect(harness.requests).toHaveLength(1595);
+      expect(harness.requests).toHaveLength(1583);
       expect(harness.requests.filter((request) => request.version === null)).toHaveLength(12);
       expect(harness.requests.filter((request) => request.version === "BAD")).toHaveLength(2);
       expect(
@@ -3532,7 +3532,7 @@ describe("console runner entrypoint", () => {
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1395);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1383);
       expect(harness.requests.filter((request) => request.path === "/xapi/activities/state")).toHaveLength(153);
       expect(harness.requests.filter((request) => request.path === "/xapi/agents/profile")).toHaveLength(109);
       expect(harness.requests.filter((request) => request.path === "/xapi/activities/profile")).toHaveLength(118);
@@ -3582,7 +3582,7 @@ describe("console runner entrypoint", () => {
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1395);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1383);
       expect(harness.requests.filter((request) => request.path !== "/xapi/statements")).toHaveLength(354);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-multiplicity-v2.log"), "utf8")) as {

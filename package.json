@@ -28,6 +28,7 @@
     "rewrite:db:fingerprint": "bun ./rewrite/scripts/export-db-fingerprint.ts",
     "rewrite:db:compare": "bun ./rewrite/scripts/compare-db-fingerprints.ts",
     "rewrite:db:bisect": "bun ./rewrite/scripts/bisect-db-divergence.ts",
+    "rewrite:db:attribute": "bun ./rewrite/scripts/attribute-db-divergence.ts",
     "rewrite:report:compare": "bun ./rewrite/scripts/analyze-compare-output.ts",
     "rewrite:diagnose:scope": "bun ./rewrite/scripts/diagnose-scope.ts",
     "rewrite:compare": "bun ./rewrite/scripts/compare-parity.ts",

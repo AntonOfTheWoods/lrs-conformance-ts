@@ -12,7 +12,7 @@ const statementLifecycleGroups: ConfigDrivenGroupDefinition[] = [
     config: [
       {
         name: 'statement verb voided IRI ends with "voided" (WARNING: this applies "Upon receiving a Statement that voids another, the LRS SHOULD NOT* reject the request on the grounds of the Object of that voiding Statement not being present")',
-        templates: [{ statement: "{{statements.voiding}}" }],
+        templates: [{ statement: "{{statements.object_statementref}}" }, { verb: createVoidedVerb() }],
         expect: [200],
       },
     ],
@@ -22,7 +22,7 @@ const statementLifecycleGroups: ConfigDrivenGroupDefinition[] = [
     config: [
       {
         name: 'statement verb voided uses substatement with "StatementRef"',
-        templates: [{ statement: "{{statements.voiding}}" }],
+        templates: [{ statement: "{{statements.object_statementref}}" }, { verb: createVoidedVerb() }],
         expect: [200],
       },
       {
@@ -51,6 +51,10 @@ function createVoidedVerb(): JsonObject {
     id: "http://adlnet.gov/expapi/verbs/voided",
     display: { "en-US": "voided" },
   };
+}
+
+function createVoidingStatement(context: DescribeRuntimeContext): Promise<JsonObject> {
+  return createStatement(context, [{ statement: "{{statements.object_statementref}}" }, { verb: createVoidedVerb() }]);
 }
 
 async function createStatement(
@@ -101,6 +105,13 @@ async function fetchStatement(
   expectedStatus: number,
   name: string,
 ): Promise<JsonObject | undefined> {
+  // Upstream's helper.genDelay issues a probe GET before the assertion GET.
+  await context.sendRequest({
+    method: "GET",
+    path: context.getEndpointStatements(),
+    query: { [queryKey]: statementId },
+  });
+
   const response = await context.sendJsonRequest({
     method: "GET",
     path: context.getEndpointStatements(),
@@ -190,17 +201,25 @@ export function registerStatementLifecycleRequirementsSuite(
     runtime.describe(
       "A Voided Statement is defined as a Statement that is not a Voiding Statement and is the Target of a Voiding Statement within the LRS (Data 2.3.2.s2.b3, XAPI-00018)",
       () => {
-        let voidedFixturePromise: Promise<{ voidedId: string; voidingId: string }> | undefined;
-        const getVoidedFixture = async (): Promise<{ voidedId: string; voidingId: string }> => {
-          voidedFixturePromise ??= persistVoidedAndVoidingStatements(context, {
+        let voidedFixture: { voidedId: string; voidingId: string } | undefined;
+
+        runtime.before("persist voided and voiding statements", async () => {
+          voidedFixture = await persistVoidedAndVoidingStatements(context, {
             assignVoidedId: true,
             assignVoidingId: false,
           });
-          return voidedFixturePromise;
+        });
+
+        const getVoidedFixture = (): { voidedId: string; voidingId: string } => {
+          if (!voidedFixture) {
+            throw new Error("Expected the voided statement fixture to be initialized before running XAPI-00018 tests.");
+          }
+
+          return voidedFixture;
         };
 
         runtime.it('should return a voided statement when using GET "voidedStatementId"', async () => {
-          const { voidedId } = await getVoidedFixture();
+          const { voidedId } = getVoidedFixture();
           const statement = await fetchStatement(
             context,
             "voidedStatementId",
@@ -215,7 +234,7 @@ export function registerStatementLifecycleRequirementsSuite(
         });
 
         runtime.it('should return 404 when using GET with "statementId"', async () => {
-          const { voidedId } = await getVoidedFixture();
+          const { voidedId } = getVoidedFixture();
           await fetchStatement(context, "statementId", voidedId, 404, 'GET with "statementId"');
         });
       },
@@ -224,18 +243,28 @@ export function registerStatementLifecycleRequirementsSuite(
     runtime.describe(
       "A Voiding Statement cannot Target another Voiding Statement (Data 2.3.2.s2.b7, XAPI-00016)",
       () => {
-        let voidingFixturePromise: Promise<{ voidedId: string; voidingId: string }> | undefined;
-        const getVoidingFixture = async (): Promise<{ voidedId: string; voidingId: string }> => {
-          voidingFixturePromise ??= persistVoidedAndVoidingStatements(context, {
+        let voidingFixture: { voidedId: string; voidingId: string } | undefined;
+
+        runtime.before("persist voided and voiding statements", async () => {
+          voidingFixture = await persistVoidedAndVoidingStatements(context, {
             assignVoidedId: false,
             assignVoidingId: false,
           });
-          return voidingFixturePromise;
+        });
+
+        const getVoidingFixture = (): { voidedId: string; voidingId: string } => {
+          if (!voidingFixture) {
+            throw new Error(
+              "Expected the voiding statement fixture to be initialized before running XAPI-00016 tests.",
+            );
+          }
+
+          return voidingFixture;
         };
 
         runtime.it("should not void an already voided statement", async () => {
-          const { voidedId } = await getVoidingFixture();
-          const repeatedVoidingStatement = await createStatement(context, [{ statement: "{{statements.voiding}}" }]);
+          const { voidedId } = getVoidingFixture();
+          const repeatedVoidingStatement = await createVoidingStatement(context);
 
           const repeatedObject = repeatedVoidingStatement.object;
           if (!isJsonObject(repeatedObject)) {
@@ -244,18 +273,26 @@ export function registerStatementLifecycleRequirementsSuite(
 
           repeatedObject.id = voidedId;
           await expectPostStatus(context, repeatedVoidingStatement, 200, "repeat void already voided statement");
-          await fetchStatement(
-            context,
-            "voidedStatementId",
-            voidedId,
-            200,
-            "GET voided statement after repeated voiding",
-          );
+          await context.sendRequest({
+            method: "GET",
+            path: context.getEndpointStatements(),
+            query: { voidedStatementId: voidedId },
+          });
+          const response = await context.sendRequest({
+            method: "GET",
+            path: context.getEndpointStatements(),
+          });
+
+          if (response.status !== 200) {
+            throw new Error(
+              `Expected status 200 for "GET voided statement after repeated voiding" but received ${response.status}.`,
+            );
+          }
         });
 
         runtime.it("should not void a voiding statement", async () => {
-          const { voidingId } = await getVoidingFixture();
-          const invalidTargetStatement = await createStatement(context, [{ statement: "{{statements.voiding}}" }]);
+          const { voidingId } = getVoidingFixture();
+          const invalidTargetStatement = await createVoidingStatement(context);
 
           const invalidTargetObject = invalidTargetStatement.object;
           if (!isJsonObject(invalidTargetObject)) {

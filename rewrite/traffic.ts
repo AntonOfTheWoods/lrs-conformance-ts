@@ -1,5 +1,7 @@
 import { createHash } from "node:crypto";
 
+import { captureOwnerHeaderName } from "../src/describe-runtime/execution-owner.ts";
+
 const defaultCaptureBasePath = "/capture/xapi";
 const jsonContentTypes = new Set(["application/json", "application/octet-stream+json"]);
 const requestHeaderAllowList = new Set(["content-type", "if-match", "if-none-match", "x-experience-api-version"]);
@@ -723,6 +725,7 @@ export async function startTrafficRecorder(options: TrafficRecorderOptions): Pro
       const requestHeaders = [...request.headers.entries()];
       const requestBody = await request.arrayBuffer();
       const forwardHeaders = new Headers(request.headers);
+      forwardHeaders.delete(captureOwnerHeaderName);
       forwardHeaders.delete("host");
       forwardHeaders.delete("content-length");
 

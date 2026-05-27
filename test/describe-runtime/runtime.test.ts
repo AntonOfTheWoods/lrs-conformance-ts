@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
+import { getActiveExecutionPath } from "../../src/describe-runtime/execution-owner.ts";
 import { createRunRecord } from "../../src/describe-runtime/run-record.ts";
 import { createDescribeRuntime } from "../../src/describe-runtime/runtime.ts";
 
@@ -84,6 +85,34 @@ describe("describe runtime core", () => {
         },
       ],
     });
+  });
+
+  test("tracks the active execution path for before hooks and cases", async () => {
+    const seenPaths: string[] = [];
+    const runtime = createDescribeRuntime({
+      rootTitle: "xAPI 2.0.0",
+      version: "2.0.0",
+    });
+
+    runtime.describe("Statement Resource", () => {
+      runtime.describe("Retrieval", () => {
+        runtime.before("prepare fixture", () => {
+          seenPaths.push((getActiveExecutionPath() ?? []).join(" > "));
+        });
+
+        runtime.it("returns statement", () => {
+          seenPaths.push((getActiveExecutionPath() ?? []).join(" > "));
+        });
+      });
+    });
+
+    await runtime.run();
+
+    expect(seenPaths).toEqual([
+      "Statement Resource > Retrieval > [before] prepare fixture",
+      "Statement Resource > Retrieval > returns statement",
+    ]);
+    expect(getActiveExecutionPath()).toBeUndefined();
   });
 
   test("cancels remaining matching tests after a failure when bail is enabled", async () => {

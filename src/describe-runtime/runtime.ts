@@ -1,3 +1,5 @@
+import { runWithExecutionPath } from "./execution-owner.ts";
+
 export type RuntimeStatus = "passed" | "failed" | "skipped" | "cancelled";
 
 export interface RuntimeNodeBase {
@@ -281,14 +283,19 @@ function buildCancelledSuite(
   return result;
 }
 
-async function executeCase(definition: CaseDefinition, state: ExecutionState): Promise<RuntimeCaseResult> {
-  if (!definition.fn) {
+async function executeCase(
+  definition: CaseDefinition,
+  path: string[],
+  state: ExecutionState,
+): Promise<RuntimeCaseResult> {
+  const runnable = definition.fn;
+  if (!runnable) {
     state.summary.skipped += 1;
     return createCaseResult(definition.title, "skipped");
   }
 
   try {
-    await runRunnable(definition.fn);
+    await runWithExecutionPath([...path, definition.title], () => runRunnable(runnable));
     state.summary.passed += 1;
     return createCaseResult(definition.title, "passed");
   } catch (error) {
@@ -315,7 +322,7 @@ async function executeSuite(
 
   for (const hook of definition.beforeHooks) {
     try {
-      await runRunnable(hook.fn);
+      await runWithExecutionPath([...suitePath, `[before] ${hook.title}`], () => runRunnable(hook.fn));
     } catch (error) {
       state.summary.failed += 1;
       result.status = "failed";
@@ -367,7 +374,7 @@ async function executeSuite(
           state.summary.cancelled += 1;
           return createCaseResult(child.title, "cancelled");
         })()
-      : await executeCase(child, state);
+      : await executeCase(child, suitePath, state);
 
     result.children.push(childResult);
   }
