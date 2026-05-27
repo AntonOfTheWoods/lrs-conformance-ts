@@ -25,7 +25,7 @@ type MergeRejectCasesConfig = {
   badPostTitle: string;
   badExistingTitle: string;
   badJsonTitle: string;
-  badPostSetupDocument?: (context: DescribeRuntimeContext) => JsonValue | string;
+  badPostSetupDocument?: (context: DescribeRuntimeContext) => JsonObject;
   incomingNonJsonContentType?: string;
   existingNonJsonPutHeaders?: Record<string, string>;
 };
@@ -1928,8 +1928,7 @@ export function registerStateResourceRequirementsSuite(
       registerDocumentCase(runtime, invalidCase.title, invalidCase.childTitle, async () => {
         const parameters = context.buildState();
         parameters.registration = true;
-        const body =
-          invalidCase.method === "GET" || invalidCase.method === "DELETE" ? undefined : context.buildDocument();
+        const body = context.buildDocument();
         await sendDocumentRequest(context, invalidCase.method, endpointPath, parameters, 400, invalidCase.title, body);
       });
     }

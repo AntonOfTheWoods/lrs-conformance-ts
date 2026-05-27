@@ -31,7 +31,7 @@
     "rewrite:report:compare": "bun ./rewrite/scripts/analyze-compare-output.ts",
     "rewrite:diagnose:scope": "bun ./rewrite/scripts/diagnose-scope.ts",
     "rewrite:compare": "bun ./rewrite/scripts/compare-parity.ts",
-    "check": "bun run validate:archive-boundary && bun run typecheck && bun run lint && bun run test"
+    "validate": "bun run validate:archive-boundary && bun run typecheck && bun run lint && bun run test"
   },
   "devDependencies": {
     "@types/bun": "^1.3.14",

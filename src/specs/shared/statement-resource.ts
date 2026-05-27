@@ -92,6 +92,15 @@ function expectArrayProperty(parent: JsonObject, key: string, name: string): Jso
   return expectJsonArray(parent[key], name);
 }
 
+function expectStringProperty(parent: JsonObject, key: string, name: string): string {
+  const value = parent[key];
+  if (typeof value !== "string") {
+    throw new Error(`Expected ${name} to include a string "${key}" property.`);
+  }
+
+  return value;
+}
+
 function createVoidedVerb(): JsonObject {
   return {
     id: "http://adlnet.gov/expapi/verbs/voided",
@@ -636,10 +645,12 @@ async function persistFilterCorrectnessFixture(
       },
     },
   ]);
-  expectObjectProperty(statement, "verb", "filter correctness statement verb").id += context.generateUuid();
+  const statementVerb = expectObjectProperty(statement, "verb", "filter correctness statement verb");
+  statementVerb.id = `${expectStringProperty(statementVerb, "id", "filter correctness statement verb")}${context.generateUuid()}`;
   expectObjectProperty(statement, "actor", "filter correctness statement actor").mbox =
     `mailto:${context.generateUuid()}@adlnet.gov`;
-  expectObjectProperty(statement, "object", "filter correctness statement object").id += context.generateUuid();
+  const statementObject = expectObjectProperty(statement, "object", "filter correctness statement object");
+  statementObject.id = `${expectStringProperty(statementObject, "id", "filter correctness statement object")}${context.generateUuid()}`;
   const statementContext = expectObjectProperty(statement, "context", "filter correctness statement context");
   statementContext.registration = context.generateUuid();
   expectObjectProperty(statementContext, "instructor", "filter correctness statement instructor").mbox =
@@ -665,15 +676,18 @@ async function persistFilterCorrectnessFixture(
       },
     },
   ]);
-  expectObjectProperty(substatement, "verb", "filter correctness substatement verb").id += context.generateUuid();
+  const substatementVerb = expectObjectProperty(substatement, "verb", "filter correctness substatement verb");
+  substatementVerb.id = `${expectStringProperty(substatementVerb, "id", "filter correctness substatement verb")}${context.generateUuid()}`;
   expectObjectProperty(substatement, "actor", "filter correctness substatement actor").mbox =
     `mailto:${context.generateUuid()}@adlnet.gov`;
 
   const nestedSubstatement = expectObjectProperty(substatement, "object", "filter correctness nested substatement");
-  expectObjectProperty(nestedSubstatement, "verb", "filter correctness nested verb").id += context.generateUuid();
+  const nestedVerb = expectObjectProperty(nestedSubstatement, "verb", "filter correctness nested verb");
+  nestedVerb.id = `${expectStringProperty(nestedVerb, "id", "filter correctness nested verb")}${context.generateUuid()}`;
   expectObjectProperty(nestedSubstatement, "actor", "filter correctness nested actor").mbox =
     `mailto:${context.generateUuid()}@adlnet.gov`;
-  expectObjectProperty(nestedSubstatement, "object", "filter correctness nested object").id += context.generateUuid();
+  const nestedObject = expectObjectProperty(nestedSubstatement, "object", "filter correctness nested object");
+  nestedObject.id = `${expectStringProperty(nestedObject, "id", "filter correctness nested object")}${context.generateUuid()}`;
   const nestedContext = expectObjectProperty(nestedSubstatement, "context", "filter correctness nested context");
   const nestedContextActivities = expectObjectProperty(
     nestedContext,

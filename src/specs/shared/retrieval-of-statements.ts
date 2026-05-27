@@ -6,6 +6,15 @@ function isJsonObject(value: unknown): value is JsonObject {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function expectStringProperty(parent: JsonObject, key: string, name: string): string {
+  const value = parent[key];
+  if (typeof value !== "string") {
+    throw new Error(`Expected ${name} to include a string "${key}" property.`);
+  }
+
+  return value;
+}
+
 async function createStatement(
   context: DescribeRuntimeContext,
   templates: Array<Record<string, JsonValue>>,
@@ -160,11 +169,11 @@ export function registerRetrievalOfStatementsSuite(runtime: DescribeRuntime, con
             }
 
             statementCategory.id = "http://www.example.com/test/array/statements/pri";
-            statementVerb.id = `${String(statementVerb.id)}${context.generateUuid()}`;
+            statementVerb.id = `${expectStringProperty(statementVerb, "id", "the retrieval statement verb")}${context.generateUuid()}`;
             statementActor.mbox = `mailto:${context.generateUuid()}@adlnet.gov`;
             statementContext.registration = context.generateUuid();
             statementInstructor.mbox = `mailto:${context.generateUuid()}@adlnet.gov`;
-            statementObject.id = `${String(statementObject.id)}${context.generateUuid()}`;
+            statementObject.id = `${expectStringProperty(statementObject, "id", "the retrieval statement object")}${context.generateUuid()}`;
 
             const substatement = await createStatement(context, [
               { statement: "{{statements.object_substatement}}" },
@@ -216,11 +225,11 @@ export function registerRetrievalOfStatementsSuite(runtime: DescribeRuntime, con
               throw new Error("Expected the retrieval nested substatement to include a category activity.");
             }
 
-            substatementVerb.id = `${String(substatementVerb.id)}${context.generateUuid()}`;
+            substatementVerb.id = `${expectStringProperty(substatementVerb, "id", "the retrieval substatement verb")}${context.generateUuid()}`;
             substatementActor.mbox = `mailto:${context.generateUuid()}@adlnet.gov`;
-            nestedVerb.id = `${String(nestedVerb.id)}${context.generateUuid()}`;
+            nestedVerb.id = `${expectStringProperty(nestedVerb, "id", "the retrieval nested substatement verb")}${context.generateUuid()}`;
             nestedActor.mbox = `mailto:${context.generateUuid()}@adlnet.gov`;
-            nestedObject.id = `${String(nestedObject.id)}${context.generateUuid()}`;
+            nestedObject.id = `${expectStringProperty(nestedObject, "id", "the retrieval nested substatement object")}${context.generateUuid()}`;
             nestedCategory.id = "http://www.example.com/test/array/statements/sub";
 
             await expectPostStatus(context, statement, 200, "persist retrieval statement");

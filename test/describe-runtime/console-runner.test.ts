@@ -229,6 +229,8 @@ const isoTimestampPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|
 const voidedVerbSuffix = "voided";
 const statementAttachmentResponseBoundary = "mock-xapi-statement-attachments";
 
+let lastStoredTimestampMs = 0;
+
 type StatementResponseFormat = "canonical" | "exact" | "ids";
 
 type ActorRole = "Agent" | "Group" | "Either";
@@ -1171,12 +1173,9 @@ function hasInvalidTimestamp(value: unknown, path: readonly string[] = []): bool
 }
 
 function createStoredTimestamp(): string {
-  const timestamp = new Date();
-  if (timestamp.getMilliseconds() % 10 === 0) {
-    timestamp.setMilliseconds(timestamp.getMilliseconds() + 7);
-  }
-
-  return `${timestamp.toISOString().slice(0, -1)}000000Z`;
+  const nextTimestampMs = Math.max(Date.now(), lastStoredTimestampMs + 1);
+  lastStoredTimestampMs = nextTimestampMs;
+  return `${new Date(nextTimestampMs).toISOString().slice(0, -1)}000000Z`;
 }
 
 function createDefaultAuthority(): Record<string, unknown> {
@@ -3324,13 +3323,13 @@ describe("console runner entrypoint", () => {
       });
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "POST"),
-      ).toHaveLength(1191);
+      ).toHaveLength(1113);
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "PUT"),
       ).toHaveLength(47);
       expect(
         harness.requests.filter((request) => request.path === "/xapi/statements" && request.method === "GET"),
-      ).toHaveLength(177);
+      ).toHaveLength(232);
       expect(harness.requests.filter((request) => request.version === null)).toHaveLength(10);
       expect(harness.requests.filter((request) => request.version === "BAD")).toHaveLength(2);
       expect(
@@ -3486,7 +3485,7 @@ describe("console runner entrypoint", () => {
         failed: 0,
         version: "1.0.3",
       });
-      expect(harness.requests).toHaveLength(1625);
+      expect(harness.requests).toHaveLength(1595);
       expect(harness.requests.filter((request) => request.version === null)).toHaveLength(12);
       expect(harness.requests.filter((request) => request.version === "BAD")).toHaveLength(2);
       expect(
@@ -3533,10 +3532,10 @@ describe("console runner entrypoint", () => {
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1418);
-      expect(harness.requests.filter((request) => request.path === "/xapi/activities/state")).toHaveLength(156);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1395);
+      expect(harness.requests.filter((request) => request.path === "/xapi/activities/state")).toHaveLength(153);
       expect(harness.requests.filter((request) => request.path === "/xapi/agents/profile")).toHaveLength(109);
-      expect(harness.requests.filter((request) => request.path === "/xapi/activities/profile")).toHaveLength(121);
+      expect(harness.requests.filter((request) => request.path === "/xapi/activities/profile")).toHaveLength(118);
       expect(harness.requests.filter((request) => request.version === null)).toHaveLength(10);
       expect(harness.requests.filter((request) => request.version === "BAD")).toHaveLength(2);
       expect(
@@ -3583,8 +3582,8 @@ describe("console runner entrypoint", () => {
         failed: 0,
         version: "2.0.0",
       });
-      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1418);
-      expect(harness.requests.filter((request) => request.path !== "/xapi/statements")).toHaveLength(361);
+      expect(harness.requests.filter((request) => request.path === "/xapi/statements")).toHaveLength(1395);
+      expect(harness.requests.filter((request) => request.path !== "/xapi/statements")).toHaveLength(354);
 
       const writtenRecord = JSON.parse(readFileSync(join(logDirectory, "run-multiplicity-v2.log"), "utf8")) as {
         log: { tests: Array<{ title: string }> };
