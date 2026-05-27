@@ -7,7 +7,7 @@ type FingerprintTable = {
   rowHash: string;
 };
 
-type FingerprintArtifact = {
+export type FingerprintArtifact = {
   composeFile: string;
   database: string;
   generatedAt: string;
@@ -16,6 +16,17 @@ type FingerprintArtifact = {
   tables: Record<string, FingerprintTable>;
   user: string;
 };
+
+export interface ExportDbFingerprintOptions {
+  composeFile?: string;
+  database?: string;
+  excludedTables?: Iterable<string>;
+  outPath: string;
+  schema?: string;
+  service?: string;
+  tableFilterRegex?: RegExp;
+  user?: string;
+}
 
 type Config = {
   composeFile: string;
@@ -228,8 +239,18 @@ async function writeJson(pathValue: string, value: unknown): Promise<void> {
   await writeFile(pathValue, `${JSON.stringify(value, null, 2)}\n`, "utf8");
 }
 
-async function main(): Promise<void> {
-  const config = parseConfig(process.argv.slice(2));
+export async function exportDbFingerprint(options: ExportDbFingerprintOptions): Promise<FingerprintArtifact> {
+  const config: Config = {
+    composeFile: options.composeFile ?? "compose/lrsql/podman-compose.yml",
+    database: options.database ?? process.env.LRSQL_DB_NAME ?? "lrsql_db",
+    excludedTables: new Set(options.excludedTables ?? volatileSeedTables),
+    outPath: resolveSafeArtifactPath(options.outPath),
+    schema: options.schema ?? "public",
+    service: options.service ?? "db",
+    tableFilterRegex: options.tableFilterRegex,
+    user: options.user ?? process.env.LRSQL_DB_USER ?? "lrsql_user",
+  };
+
   const tables = await listTables(config);
 
   const tableFingerprints: Record<string, FingerprintTable> = {};
@@ -248,7 +269,15 @@ async function main(): Promise<void> {
   };
 
   await writeJson(config.outPath, artifact);
-  console.log(JSON.stringify({ outPath: config.outPath, tableCount: tables.length }, null, 2));
+  return artifact;
 }
 
-await main();
+async function main(): Promise<void> {
+  const config = parseConfig(process.argv.slice(2));
+  const artifact = await exportDbFingerprint(config);
+  console.log(JSON.stringify({ outPath: config.outPath, tableCount: Object.keys(artifact.tables).length }, null, 2));
+}
+
+if (import.meta.main) {
+  await main();
+}

@@ -8,6 +8,7 @@
     "lint": "oxlint --config .oxlintrc.jsonc .",
     "format": "oxfmt --config .oxfmtrc.jsonc --write .",
     "validate:archive-boundary": "bun ./scripts/validate-archive-boundary.ts",
+    "rewrite:bootstrap:candidate": "bun ./rewrite/scripts/bootstrap-fresh-candidate.ts",
     "lrsql:up": "podman compose -f compose/lrsql/podman-compose.yml up -d",
     "lrsql:down": "podman compose -f compose/lrsql/podman-compose.yml down",
     "lrsql:reset": "podman compose -f compose/lrsql/podman-compose.yml down -v && podman compose -f compose/lrsql/podman-compose.yml up -d",

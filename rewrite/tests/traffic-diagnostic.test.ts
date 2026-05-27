@@ -6,8 +6,10 @@ import { createCaptureExecutionMetadata } from "../../src/describe-runtime/execu
 import type { NormalizedTrafficArtifact, RawTrafficArtifact } from "../traffic.ts";
 
 import {
-  buildRewriteArgs,
+  buildCandidateArgs,
+  buildTraceDbStateReplayPlan,
   buildUpstreamArgs,
+  compareTraceDbStateManifests,
   createTraceNodeIndex,
   readEffectiveRunnerExitCode,
   resolveRunnerScope,
@@ -23,14 +25,16 @@ function createExecutionMetadata() {
       phase: "case",
       suitePath: ["Formatting Requirements (Data 2.2)"],
     },
-    sourceFilePath: "archive/deprecated-rewrite3/src/specs/v1_0_3/Data2.2-FormattingRequirements.ts",
-    sourceSymbol: "registerFormattingRequirementsV103",
+    sourceFilePath: "rewrite4/test/v1_0_3/Data2.2-FormattingRequirements.js",
+    sourceSymbol: "Formatting Requirements (Data 2.2)",
     unitKey: "test/v1_0_3/Data2.2-FormattingRequirements",
     version: "1.0.3",
   });
 }
 
-function createRawArtifact(execution = createExecutionMetadata()): RawTrafficArtifact {
+function createRawArtifact(
+  execution: ReturnType<typeof createExecutionMetadata> | null = createExecutionMetadata(),
+): RawTrafficArtifact {
   return {
     captureBaseUrl: "http://127.0.0.1:12345/capture/xapi",
     compareMode: "ordered",
@@ -75,13 +79,15 @@ function createRawArtifact(execution = createExecutionMetadata()): RawTrafficArt
       },
     ],
     generatedAt: "2026-05-27T12:00:00.000Z",
-    runner: "rewrite",
+    runner: "candidate",
     targetBaseUrl: "http://localhost:8080/xapi",
     version: "1.0.3",
   };
 }
 
-function createNormalizedArtifact(execution = createExecutionMetadata()): NormalizedTrafficArtifact {
+function createNormalizedArtifact(
+  execution: ReturnType<typeof createExecutionMetadata> | null = createExecutionMetadata(),
+): NormalizedTrafficArtifact {
   return {
     captureBaseUrl: "http://127.0.0.1:12345/capture/xapi",
     compareMode: "ordered",
@@ -107,7 +113,7 @@ function createNormalizedArtifact(execution = createExecutionMetadata()): Normal
       },
     ],
     generatedAt: "2026-05-27T12:00:00.000Z",
-    runner: "rewrite",
+    runner: "candidate",
     targetBaseUrl: "http://localhost:8080/xapi",
     version: "1.0.3",
   };
@@ -115,24 +121,24 @@ function createNormalizedArtifact(execution = createExecutionMetadata()): Normal
 
 test("resolveRunnerScope only treats supported optional suites as separate matrix dimensions", () => {
   expect(resolveRunnerScope("Multiplicity,v1_0_3", undefined, "1.0.3")).toEqual({
-    rewriteDirectory: "Multiplicity,v1_0_3",
-    upstreamDirectory: "v1_0_3",
-    upstreamOptional: "Multiplicity",
+    directory: "v1_0_3",
+    optional: "Multiplicity",
     grep: undefined,
   });
 
   expect(resolveRunnerScope("Parameters", "Actor", "2.0.0")).toEqual({
-    rewriteDirectory: "Parameters,v2_0",
-    upstreamDirectory: "v2_0",
-    upstreamOptional: undefined,
+    directory: "v2_0",
+    optional: undefined,
     grep: "(?=.*(?:Actor))(?=.*(?:\\b(?:Parameters)\\b))",
   });
 });
 
-test("buildRewriteArgs omits explicit version when directory scope already implies it", () => {
-  const args = buildRewriteArgs(
+test("buildCandidateArgs targets the active rewrite4 candidate tree", () => {
+  const args = buildCandidateArgs(
     {
+      candidateDir: "/tmp/rewrite4",
       compareMode: "bag",
+      dbStateMode: "none",
       directory: "Parameters,v1_0_3",
       grep: undefined,
       keepClone: false,
@@ -146,16 +152,21 @@ test("buildRewriteArgs omits explicit version when directory scope already impli
     "1.0.3",
   );
 
+  expect(args).toContain("--suite-dir");
+  expect(args).toContain("/tmp/rewrite4");
   expect(args).toContain("--directory");
-  expect(args).toContain("Parameters,v1_0_3");
+  expect(args).toContain("v1_0_3");
+  expect(args).toContain("--grep");
+  expect(args).toContain("\\b(?:Parameters)\\b");
   expect(args).not.toContain("--optional");
-  expect(args).not.toContain("--xapiVersion");
 });
 
-test("buildRewriteArgs uses stable unitKey selection for single-unit migration runs", () => {
-  const args = buildRewriteArgs(
+test("buildCandidateArgs uses stable unitKey selection for single-unit migration runs", () => {
+  const args = buildCandidateArgs(
     {
+      candidateDir: "/tmp/rewrite4",
       compareMode: "ordered",
+      dbStateMode: "all",
       keepClone: false,
       outDir: "/tmp/unused",
       password: "supersecret",
@@ -168,7 +179,9 @@ test("buildRewriteArgs uses stable unitKey selection for single-unit migration r
     "1.0.3",
   );
 
-  expect(args).toContain("--xapiVersion");
+  expect(args).toContain("--suite-dir");
+  expect(args).toContain("/tmp/rewrite4");
+  expect(args).toContain("--version");
   expect(args).toContain("1.0.3");
   expect(args).toContain("--unitKey");
   expect(args).toContain("test/v1_0_3/Data2.2-FormattingRequirements");
@@ -179,7 +192,9 @@ test("buildRewriteArgs uses stable unitKey selection for single-unit migration r
 test("buildUpstreamArgs passes only supported optional suites separately from the version directory", () => {
   const args = buildUpstreamArgs(
     {
+      candidateDir: "/tmp/rewrite4",
       compareMode: "bag",
+      dbStateMode: "none",
       directory: "Parameters,v1_0_3",
       grep: undefined,
       keepClone: false,
@@ -202,7 +217,9 @@ test("buildUpstreamArgs passes only supported optional suites separately from th
 test("buildUpstreamArgs forwards unitKey selection to the upstream export wrapper", () => {
   const args = buildUpstreamArgs(
     {
+      candidateDir: "/tmp/rewrite4",
       compareMode: "ordered",
+      dbStateMode: "all",
       keepClone: false,
       outDir: "/tmp/unused",
       password: "supersecret",
@@ -309,14 +326,189 @@ test("writeTraceArtifacts emits per-unit manifests and filtered slices", async (
   }
 });
 
+test("buildTraceDbStateReplayPlan groups trace entries by terminal raw sequence", () => {
+  const nodeIndex = createTraceNodeIndex(createRawArtifact(), createNormalizedArtifact(), [
+    "test/v1_0_3/Data2.2-FormattingRequirements",
+  ]);
+
+  expect(buildTraceDbStateReplayPlan(nodeIndex, "all")).toEqual([
+    {
+      entryKinds: ["unit", "case"],
+      nodeKeys: [
+        "case:test/v1_0_3/Data2.2-FormattingRequirements:Formatting Requirements (Data 2.2) > default case",
+        "unit:test/v1_0_3/Data2.2-FormattingRequirements",
+      ],
+      rawSequenceEnd: 1,
+      unitKeys: ["test/v1_0_3/Data2.2-FormattingRequirements"],
+    },
+  ]);
+  expect(buildTraceDbStateReplayPlan(nodeIndex, "unit")).toEqual([
+    {
+      entryKinds: ["unit"],
+      nodeKeys: ["unit:test/v1_0_3/Data2.2-FormattingRequirements"],
+      rawSequenceEnd: 1,
+      unitKeys: ["test/v1_0_3/Data2.2-FormattingRequirements"],
+    },
+  ]);
+});
+
+test("compareTraceDbStateManifests reports the first divergent boundary", async () => {
+  const tempDir = await mkdtemp(join(process.cwd(), "tmp/agents/db-state-compare-"));
+
+  try {
+    const matchingFingerprint = {
+      tables: {
+        statements: {
+          columnNames: ["id"],
+          rowCount: 1,
+          rowHash: "same-row-hash",
+        },
+      },
+    };
+    const candidateDivergentFingerprint = {
+      tables: {
+        statements: {
+          columnNames: ["id"],
+          rowCount: 2,
+          rowHash: "candidate-row-hash",
+        },
+      },
+    };
+    const upstreamDivergentFingerprint = {
+      tables: {
+        statements: {
+          columnNames: ["id"],
+          rowCount: 1,
+          rowHash: "upstream-row-hash",
+        },
+      },
+    };
+
+    const candidateSeq1Path = join(tempDir, "candidate-sequence-000001.json");
+    const candidateSeq2Path = join(tempDir, "candidate-sequence-000002.json");
+    const upstreamSeq1Path = join(tempDir, "upstream-sequence-000001.json");
+    const upstreamSeq2Path = join(tempDir, "upstream-sequence-000002.json");
+    await writeFile(candidateSeq1Path, `${JSON.stringify(matchingFingerprint, null, 2)}\n`, "utf8");
+    await writeFile(candidateSeq2Path, `${JSON.stringify(candidateDivergentFingerprint, null, 2)}\n`, "utf8");
+    await writeFile(upstreamSeq1Path, `${JSON.stringify(matchingFingerprint, null, 2)}\n`, "utf8");
+    await writeFile(upstreamSeq2Path, `${JSON.stringify(upstreamDivergentFingerprint, null, 2)}\n`, "utf8");
+
+    const unitKey = "test/v1_0_3/Data2.2-FormattingRequirements";
+    const candidateManifestPath = join(tempDir, "candidate-db-state-manifest.json");
+    const upstreamManifestPath = join(tempDir, "upstream-db-state-manifest.json");
+    await writeFile(
+      candidateManifestPath,
+      `${JSON.stringify(
+        {
+          capturedExchangeCount: 2,
+          completedRawSequenceEnd: 2,
+          entries: [
+            {
+              entryKind: "case",
+              fingerprintPath: candidateSeq1Path,
+              nodeKey: `case:${unitKey}:first case`,
+              rawSequenceEnd: 1,
+              runner: "candidate",
+              selectionMode: "captured-execution",
+              unitKey,
+            },
+            {
+              entryKind: "case",
+              fingerprintPath: candidateSeq2Path,
+              nodeKey: `case:${unitKey}:second case`,
+              rawSequenceEnd: 2,
+              runner: "candidate",
+              selectionMode: "captured-execution",
+              unitKey,
+            },
+          ],
+          mode: "all",
+          rawArtifactPath: join(tempDir, "candidate-raw.json"),
+          replayIssues: [],
+          runner: "candidate",
+          schemaVersion: "trace-node-db-state-manifest.v1",
+          selectedUnitKeys: [unitKey],
+          traceNodeIndexPath: join(tempDir, "candidate-node-index.json"),
+          version: "1.0.3",
+        },
+        null,
+        2,
+      )}\n`,
+      "utf8",
+    );
+    await writeFile(
+      upstreamManifestPath,
+      `${JSON.stringify(
+        {
+          capturedExchangeCount: 2,
+          completedRawSequenceEnd: 2,
+          entries: [
+            {
+              entryKind: "case",
+              fingerprintPath: upstreamSeq1Path,
+              nodeKey: `case:${unitKey}:first case`,
+              rawSequenceEnd: 1,
+              runner: "upstream",
+              selectionMode: "captured-execution",
+              unitKey,
+            },
+            {
+              entryKind: "case",
+              fingerprintPath: upstreamSeq2Path,
+              nodeKey: `case:${unitKey}:second case`,
+              rawSequenceEnd: 2,
+              runner: "upstream",
+              selectionMode: "captured-execution",
+              unitKey,
+            },
+          ],
+          mode: "all",
+          rawArtifactPath: join(tempDir, "upstream-raw.json"),
+          replayIssues: [],
+          runner: "upstream",
+          schemaVersion: "trace-node-db-state-manifest.v1",
+          selectedUnitKeys: [unitKey],
+          traceNodeIndexPath: join(tempDir, "upstream-node-index.json"),
+          version: "1.0.3",
+        },
+        null,
+        2,
+      )}\n`,
+      "utf8",
+    );
+
+    const report = await compareTraceDbStateManifests({
+      candidateManifestPath,
+      upstreamManifestPath,
+    });
+
+    expect(report.different).toBe(true);
+    expect(report.firstReplayIssue).toBeNull();
+    expect(report.firstDivergentBoundary?.rawSequenceEnd).toBe(2);
+    expect(report.firstDivergentBoundary?.fingerprintComparison).toEqual(
+      expect.objectContaining({
+        different: true,
+        rowHashOrCountDifferences: [
+          expect.objectContaining({
+            table: "statements",
+          }),
+        ],
+      }),
+    );
+  } finally {
+    await rm(tempDir, { force: true, recursive: true });
+  }
+});
+
 test("readEffectiveRunnerExitCode prefers the recorded upstream suite exit code", async () => {
   const tempDir = await mkdtemp(join(process.cwd(), "tmp/agents/traffic-exit-"));
 
   try {
-    await writeFile(join(tempDir, "upstream-run.json"), `${JSON.stringify({ upstreamExitCode: 2 })}\n`, "utf8");
+    await writeFile(join(tempDir, "upstream-run.json"), `${JSON.stringify({ suiteExitCode: 2 })}\n`, "utf8");
+    await writeFile(join(tempDir, "candidate-run.json"), `${JSON.stringify({ suiteExitCode: 3 })}\n`, "utf8");
 
     expect(await readEffectiveRunnerExitCode("upstream", tempDir, 0)).toBe(2);
-    expect(await readEffectiveRunnerExitCode("rewrite", tempDir, 0)).toBe(0);
+    expect(await readEffectiveRunnerExitCode("candidate", tempDir, 0)).toBe(3);
   } finally {
     await rm(tempDir, { force: true, recursive: true });
   }

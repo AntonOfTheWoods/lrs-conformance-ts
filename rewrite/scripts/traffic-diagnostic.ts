@@ -1,8 +1,11 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, isAbsolute, relative, resolve } from "node:path";
 
-import type { CaptureExecutionMetadata } from "../../src/describe-runtime/execution-owner.ts";
+import { captureOwnerHeaderName, type CaptureExecutionMetadata } from "../../src/describe-runtime/execution-owner.ts";
 import { getMigrationLedgerUnitByUnitKey } from "../../src/describe-runtime/migration-ledger.ts";
+
+import { compareFingerprints, type ComparisonResult, type FingerprintArtifact } from "./compare-db-fingerprints.ts";
+import { exportDbFingerprint } from "./export-db-fingerprint.ts";
 
 import {
   compareNormalizedTrafficRuns,
@@ -18,15 +21,22 @@ import {
 
 const repoRoot = resolve(import.meta.dir, "../..");
 const allowedArtifactsRoot = resolve(repoRoot, "tmp/agents");
-const legacyRewrite3RunnerPath = "./archive/deprecated-rewrite3/src/describe-runtime/describe-run.ts";
+const defaultCandidateSuiteDir = resolve(repoRoot, "rewrite4");
+const hopByHopReplayHeaders = new Set([
+  "connection",
+  "host",
+  "content-length",
+  "transfer-encoding",
+  "accept-encoding",
+  captureOwnerHeaderName,
+]);
 
 type SupportedVersion = "1.0.3" | "2.0.0";
 
 type RunnerScope = {
+  directory?: string;
   grep?: string;
-  rewriteDirectory?: string;
-  upstreamDirectory?: string;
-  upstreamOptional?: string;
+  optional?: string;
 };
 
 const optionalDirectoryNames = new Set(["Multiplicity"]);
@@ -80,20 +90,18 @@ export function resolveRunnerScope(
   const nonVersionSegments = parsedSegments.filter((segment) => !isVersionDirectory(segment));
   const optionalSegments = nonVersionSegments.filter((segment) => optionalDirectoryNames.has(segment));
   const fallbackSegments = nonVersionSegments.filter((segment) => !optionalDirectoryNames.has(segment));
-  const rewriteSegments = [...nonVersionSegments, versionDirectory].filter(
-    (segment, index, list) => list.indexOf(segment) === index,
-  );
 
   return {
-    rewriteDirectory: rewriteSegments.join(","),
-    upstreamDirectory: versionDirectory,
-    upstreamOptional: optionalSegments.length > 0 ? optionalSegments.join(",") : undefined,
+    directory: versionDirectory,
+    optional: optionalSegments.length > 0 ? optionalSegments.join(",") : undefined,
     grep: combineGreps(grep, createDirectoryScopeGrep(fallbackSegments)),
   };
 }
 
 interface DiagnosticConfig {
+  candidateDir: string;
   compareMode: TrafficCompareMode;
+  dbStateMode: TraceDbStateMode;
   directory?: string;
   grep?: string;
   keepClone: boolean;
@@ -106,6 +114,7 @@ interface DiagnosticConfig {
 }
 
 type TraceSelectionMode = "captured-execution" | "requested-unit-fallback";
+type TraceDbStateMode = "all" | "none" | "unit";
 
 type TraceNodeEntryKind = "case" | "hook" | "unit";
 
@@ -153,6 +162,7 @@ export interface TraceUnitManifest {
 }
 
 export interface TraceRunManifest {
+  dbStateManifestPath?: string;
   nodeIndexPath: string;
   normalizedArtifactPath: string;
   rawArtifactPath: string;
@@ -167,14 +177,91 @@ export interface TraceRunManifest {
   version: SupportedVersion;
 }
 
+export interface TraceDbStateBoundary {
+  entryKinds: TraceNodeEntryKind[];
+  nodeKeys: string[];
+  rawSequenceEnd: number;
+  unitKeys: string[];
+}
+
+export interface TraceNodeDbStateManifestEntry {
+  entryKind: TraceNodeEntryKind;
+  fingerprintPath: string;
+  nodeKey: string;
+  rawSequenceEnd: number;
+  runner: RawTrafficArtifact["runner"];
+  selectionMode: TraceSelectionMode;
+  unitKey: string;
+}
+
+export interface TraceDbReplayIssue {
+  actualStatus: number | null;
+  error?: string;
+  expectedStatus: number;
+  method: string;
+  rawSequence: number;
+  targetUrl: string;
+}
+
+export interface TraceNodeDbStateManifest {
+  capturedExchangeCount: number;
+  completedRawSequenceEnd: number | null;
+  entries: TraceNodeDbStateManifestEntry[];
+  mode: TraceDbStateMode;
+  rawArtifactPath: string;
+  replayIssues: TraceDbReplayIssue[];
+  runner: RawTrafficArtifact["runner"];
+  schemaVersion: "trace-node-db-state-manifest.v1";
+  selectedUnitKeys: string[];
+  traceNodeIndexPath: string;
+  version: SupportedVersion;
+}
+
+export interface TraceDbStateBoundarySnapshot {
+  entryKinds: TraceNodeEntryKind[];
+  fingerprintPath: string;
+  nodeKeys: string[];
+  rawSequenceEnd: number;
+  unitKeys: string[];
+}
+
+export interface TraceDbStateBoundaryComparison {
+  candidate: TraceDbStateBoundarySnapshot | null;
+  different: boolean;
+  fingerprintComparison: ComparisonResult | null;
+  rawSequenceEnd: number;
+  upstream: TraceDbStateBoundarySnapshot | null;
+}
+
+export interface TraceDbStateComparisonReport {
+  candidateCapturedExchangeCount: number;
+  candidateCompletedRawSequenceEnd: number | null;
+  candidateManifestPath: string;
+  candidateReplayIssues: TraceDbReplayIssue[];
+  comparedBoundaryCount: number;
+  different: boolean;
+  divergentBoundaries: TraceDbStateBoundaryComparison[];
+  firstDivergentBoundary: TraceDbStateBoundaryComparison | null;
+  firstReplayIssue: {
+    issue: TraceDbReplayIssue;
+    runner: "candidate" | "upstream";
+  } | null;
+  upstreamCapturedExchangeCount: number;
+  upstreamCompletedRawSequenceEnd: number | null;
+  upstreamManifestPath: string;
+  upstreamReplayIssues: TraceDbReplayIssue[];
+}
+
 function usage(): string {
   return [
     "Usage:",
-    "  bun ./rewrite/scripts/traffic-diagnostic.ts [--version 1.0.3|2.0.0|all] [--compare-mode bag|ordered] [--grep <pattern>] [--directory <csv>] [--unitKey <ledger-id>] [--target-base-url <url>] [--username <user>] [--password <pass>] [--out-dir <path>] [--keep-clone]",
+    "  bun ./rewrite/scripts/traffic-diagnostic.ts [--version 1.0.3|2.0.0|all] [--compare-mode bag|ordered] [--db-state-mode none|unit|all] [--candidate-dir <path>] [--grep <pattern>] [--directory <csv>] [--unitKey <ledger-id>] [--target-base-url <url>] [--username <user>] [--password <pass>] [--out-dir <path>] [--keep-clone]",
     "",
     "Defaults:",
     "  --version all",
     "  --compare-mode bag",
+    "  --db-state-mode all for --unitKey runs, otherwise none",
+    "  --candidate-dir rewrite4",
     "  --target-base-url http://localhost:8080/xapi",
     "  --username janedoe",
     "  --password supersecret",
@@ -244,15 +331,17 @@ function resolveSafeArtifactPath(pathValue: string): string {
 }
 
 function parseConfig(args: string[]): DiagnosticConfig {
+  const candidateDirArg = getFlagValue(args, "--candidate-dir");
   const version = (getFlagValue(args, "--version") ?? "all") as DiagnosticConfig["version"];
   const compareMode = (getFlagValue(args, "--compare-mode") ?? "bag") as TrafficCompareMode;
+  const unitKeys = parseCsvFlag(args, "--unitKey");
+  const dbStateMode = (getFlagValue(args, "--db-state-mode") ?? (unitKeys ? "all" : "none")) as TraceDbStateMode;
   const targetBaseUrl = getFlagValue(args, "--target-base-url") ?? "http://localhost:8080/xapi";
   const username = getFlagValue(args, "--username") ?? "janedoe";
   const password = getFlagValue(args, "--password") ?? "supersecret";
   const outDirArg = getFlagValue(args, "--out-dir") ?? resolve(repoRoot, "tmp/agents/traffic", `${Date.now()}`);
   const grep = getFlagValue(args, "--grep");
   const directory = getFlagValue(args, "--directory");
-  const unitKeys = parseCsvFlag(args, "--unitKey");
   const keepClone = args.includes("--keep-clone");
 
   if (version !== "all" && version !== "1.0.3" && version !== "2.0.0") {
@@ -261,6 +350,10 @@ function parseConfig(args: string[]): DiagnosticConfig {
 
   if (compareMode !== "bag" && compareMode !== "ordered") {
     throw new Error("Unsupported --compare-mode value.");
+  }
+
+  if (dbStateMode !== "none" && dbStateMode !== "unit" && dbStateMode !== "all") {
+    throw new Error("Unsupported --db-state-mode value.");
   }
 
   if (unitKeys && (directory || grep)) {
@@ -272,7 +365,13 @@ function parseConfig(args: string[]): DiagnosticConfig {
   }
 
   return {
+    candidateDir: candidateDirArg
+      ? isAbsolute(candidateDirArg)
+        ? candidateDirArg
+        : resolve(repoRoot, candidateDirArg)
+      : defaultCandidateSuiteDir,
     compareMode,
+    dbStateMode,
     directory,
     grep,
     keepClone,
@@ -336,6 +435,11 @@ async function ensureLrsql(version: SupportedVersion): Promise<void> {
   await runRequiredCommand("bash", ["./scripts/lrsql-auth-check.sh"], env, "LRSQL auth check");
 }
 
+async function readJson<T>(pathValue: string): Promise<T> {
+  const raw = await readFile(pathValue, "utf8");
+  return JSON.parse(raw) as T;
+}
+
 async function writeJson(pathValue: string, value: unknown): Promise<void> {
   await mkdir(dirname(pathValue), { recursive: true });
   await writeFile(pathValue, `${JSON.stringify(value, null, 2)}\n`, "utf8");
@@ -347,36 +451,45 @@ async function writeText(pathValue: string, value: string): Promise<void> {
 }
 
 export async function readEffectiveRunnerExitCode(
-  runner: "rewrite" | "upstream",
+  runner: "candidate" | "upstream",
   versionDir: string,
   wrapperExitCode: number,
 ): Promise<number> {
-  if (runner !== "upstream" || wrapperExitCode !== 0) {
+  if (wrapperExitCode !== 0) {
     return wrapperExitCode;
   }
 
   try {
-    const raw = await readFile(resolve(versionDir, "upstream-run.json"), "utf8");
-    const parsed = JSON.parse(raw) as { upstreamExitCode?: unknown };
+    const raw = await readFile(resolve(versionDir, `${runner}-run.json`), "utf8");
+    const parsed = JSON.parse(raw) as { suiteExitCode?: unknown; upstreamExitCode?: unknown };
+    if (typeof parsed.suiteExitCode === "number") {
+      return parsed.suiteExitCode;
+    }
+
     return typeof parsed.upstreamExitCode === "number" ? parsed.upstreamExitCode : wrapperExitCode;
   } catch {
     return wrapperExitCode;
   }
 }
 
-export function buildRewriteArgs(config: DiagnosticConfig, endpoint: string, version: SupportedVersion): string[] {
+export function buildCandidateArgs(config: DiagnosticConfig, endpoint: string, version: SupportedVersion): string[] {
   if (config.unitKeys) {
     return [
-      legacyRewrite3RunnerPath,
-      "--endpoint",
+      "./rewrite/scripts/export-upstream-run.ts",
+      "--suite-dir",
+      config.candidateDir,
+      "--base-url",
       endpoint,
-      "--basicAuth",
-      "--authUser",
+      "--username",
       config.username,
-      "--authPassword",
+      "--password",
       config.password,
-      "--xapiVersion",
+      "--version",
       version,
+      "--out",
+      resolve(config.outDir, version, "candidate-run.json"),
+      "--log-dir",
+      resolve(config.outDir, version, "candidate-logs"),
       "--unitKey",
       config.unitKeys.join(","),
     ];
@@ -384,26 +497,33 @@ export function buildRewriteArgs(config: DiagnosticConfig, endpoint: string, ver
 
   const scope = resolveRunnerScope(config.directory, config.grep, version);
   const args = [
-    legacyRewrite3RunnerPath,
-    "--endpoint",
+    "./rewrite/scripts/export-upstream-run.ts",
+    "--suite-dir",
+    config.candidateDir,
+    "--base-url",
     endpoint,
-    "--basicAuth",
-    "--authUser",
+    "--username",
     config.username,
-    "--authPassword",
+    "--password",
     config.password,
+    "--version",
+    version,
+    "--out",
+    resolve(config.outDir, version, "candidate-run.json"),
+    "--log-dir",
+    resolve(config.outDir, version, "candidate-logs"),
   ];
-
-  if (!scope.rewriteDirectory) {
-    args.push("--xapiVersion", version);
-  }
 
   if (scope.grep) {
     args.push("--grep", scope.grep);
   }
 
-  if (scope.rewriteDirectory) {
-    args.push("--directory", scope.rewriteDirectory);
+  if (scope.directory) {
+    args.push("--directory", scope.directory);
+  }
+
+  if (scope.optional) {
+    args.push("--optional", scope.optional);
   }
 
   return args;
@@ -457,12 +577,12 @@ export function buildUpstreamArgs(
     args.push("--grep", scope.grep);
   }
 
-  if (scope.upstreamDirectory) {
-    args.push("--directory", scope.upstreamDirectory);
+  if (scope.directory) {
+    args.push("--directory", scope.directory);
   }
 
-  if (scope.upstreamOptional) {
-    args.push("--optional", scope.upstreamOptional);
+  if (scope.optional) {
+    args.push("--optional", scope.optional);
   }
 
   if (config.keepClone) {
@@ -473,7 +593,7 @@ export function buildUpstreamArgs(
 }
 
 function getRequestedUnitFallback(unitKeys: string[] | undefined): string | null {
-  return unitKeys?.length === 1 ? unitKeys[0] : null;
+  return unitKeys?.length === 1 ? (unitKeys[0] ?? null) : null;
 }
 
 function resolveExchangeUnitKey(
@@ -690,6 +810,406 @@ export function createTraceNodeIndex(
   };
 }
 
+export function buildTraceDbStateReplayPlan(
+  nodeIndex: TraceNodeIndexArtifact,
+  mode: TraceDbStateMode,
+): TraceDbStateBoundary[] {
+  if (mode === "none") {
+    return [];
+  }
+
+  const entriesBySequence = new Map<number, TraceNodeIndexEntry[]>();
+  for (const entry of nodeIndex.entries) {
+    if (entry.rawSequenceEnd === null) {
+      continue;
+    }
+
+    if (mode === "unit" && entry.entryKind !== "unit") {
+      continue;
+    }
+
+    const sequenceEntries = entriesBySequence.get(entry.rawSequenceEnd) ?? [];
+    sequenceEntries.push(entry);
+    entriesBySequence.set(entry.rawSequenceEnd, sequenceEntries);
+  }
+
+  return [...entriesBySequence.entries()]
+    .sort(([left], [right]) => left - right)
+    .map(([rawSequenceEnd, entries]) => ({
+      entryKinds: [...new Set(entries.map((entry) => entry.entryKind))],
+      nodeKeys: entries.map((entry) => entry.nodeKey).sort((left, right) => left.localeCompare(right)),
+      rawSequenceEnd,
+      unitKeys: [...new Set(entries.map((entry) => entry.unitKey))].sort((left, right) => left.localeCompare(right)),
+    }));
+}
+
+function decodeReplayBody(bodyBase64: string): Uint8Array | undefined {
+  if (!bodyBase64) {
+    return undefined;
+  }
+
+  const buffer = Buffer.from(bodyBase64, "base64");
+  if (buffer.byteLength === 0) {
+    return undefined;
+  }
+
+  return new Uint8Array(buffer);
+}
+
+function mapReplayTargetUrl(originalUrl: string, targetBaseUrl: string): string {
+  const original = new URL(originalUrl);
+  const targetBase = new URL(targetBaseUrl);
+  const targetPrefix = targetBase.pathname.replace(/\/$/, "");
+  const relativePath = original.pathname.startsWith(targetPrefix)
+    ? original.pathname.slice(targetPrefix.length)
+    : original.pathname;
+  const finalPath = `${targetPrefix}${relativePath.startsWith("/") ? relativePath : `/${relativePath}`}`;
+  const mapped = new URL(targetBase.origin);
+  mapped.pathname = finalPath;
+  mapped.search = original.search;
+  return mapped.toString();
+}
+
+function normalizeReplayHeaders(entries: Array<[string, string]>): Headers {
+  const headers = new Headers();
+  for (const [nameRaw, value] of entries) {
+    const name = nameRaw.toLowerCase();
+    if (hopByHopReplayHeaders.has(name)) {
+      continue;
+    }
+
+    headers.set(name, value);
+  }
+
+  return headers;
+}
+
+export async function writeTraceDbStateArtifacts(options: {
+  mode: TraceDbStateMode;
+  nodeIndex: TraceNodeIndexArtifact;
+  nodeIndexPath: string;
+  rawArtifact: RawTrafficArtifact;
+  rawArtifactPath: string;
+  selectedUnitKeys?: string[];
+  versionDir: string;
+}): Promise<{
+  manifest: TraceNodeDbStateManifest;
+  manifestPath: string;
+} | null> {
+  const replayPlan = buildTraceDbStateReplayPlan(options.nodeIndex, options.mode);
+  if (replayPlan.length === 0) {
+    return null;
+  }
+
+  const manifestPath = resolve(options.versionDir, `${options.rawArtifact.runner}-db-state-manifest.json`);
+  const dbStateDir = resolve(options.versionDir, `${options.rawArtifact.runner}-db-states`);
+  const entriesBySequence = new Map<number, TraceNodeIndexEntry[]>();
+
+  for (const entry of options.nodeIndex.entries) {
+    if (entry.rawSequenceEnd === null) {
+      continue;
+    }
+
+    const sequenceEntries = entriesBySequence.get(entry.rawSequenceEnd) ?? [];
+    sequenceEntries.push(entry);
+    entriesBySequence.set(entry.rawSequenceEnd, sequenceEntries);
+  }
+
+  const boundarySequences = new Set(replayPlan.map((entry) => entry.rawSequenceEnd));
+  const manifestEntries: TraceNodeDbStateManifestEntry[] = [];
+  const replayIssues: TraceDbReplayIssue[] = [];
+  const exchanges = [...options.rawArtifact.exchanges].sort((left, right) => left.sequence - right.sequence);
+  let completedRawSequenceEnd: number | null = null;
+
+  await ensureLrsql(options.rawArtifact.version);
+
+  for (const exchange of exchanges) {
+    const targetUrl = mapReplayTargetUrl(exchange.request.targetUrl, options.rawArtifact.targetBaseUrl);
+    let response: Response;
+    try {
+      response = await fetch(targetUrl, {
+        body: decodeReplayBody(exchange.request.bodyBase64),
+        headers: normalizeReplayHeaders(exchange.request.headers),
+        method: exchange.request.method.toUpperCase(),
+        redirect: "manual",
+      });
+    } catch (error) {
+      replayIssues.push({
+        actualStatus: null,
+        error: error instanceof Error ? error.message : String(error),
+        expectedStatus: exchange.response.status,
+        method: exchange.request.method.toUpperCase(),
+        rawSequence: exchange.sequence,
+        targetUrl,
+      });
+      break;
+    }
+
+    completedRawSequenceEnd = exchange.sequence;
+
+    if (response.status !== exchange.response.status) {
+      replayIssues.push({
+        actualStatus: response.status,
+        expectedStatus: exchange.response.status,
+        method: exchange.request.method.toUpperCase(),
+        rawSequence: exchange.sequence,
+        targetUrl,
+      });
+    }
+
+    if (!boundarySequences.has(exchange.sequence)) {
+      continue;
+    }
+
+    const fingerprintPath = resolve(dbStateDir, `sequence-${String(exchange.sequence).padStart(6, "0")}.json`);
+    await exportDbFingerprint({ outPath: fingerprintPath });
+
+    for (const entry of entriesBySequence.get(exchange.sequence) ?? []) {
+      if (options.mode === "unit" && entry.entryKind !== "unit") {
+        continue;
+      }
+
+      manifestEntries.push({
+        entryKind: entry.entryKind,
+        fingerprintPath,
+        nodeKey: entry.nodeKey,
+        rawSequenceEnd: exchange.sequence,
+        runner: options.rawArtifact.runner,
+        selectionMode: entry.selectionMode,
+        unitKey: entry.unitKey,
+      });
+    }
+  }
+
+  const manifest: TraceNodeDbStateManifest = {
+    capturedExchangeCount: exchanges.length,
+    completedRawSequenceEnd,
+    entries: manifestEntries,
+    mode: options.mode,
+    rawArtifactPath: options.rawArtifactPath,
+    replayIssues,
+    runner: options.rawArtifact.runner,
+    schemaVersion: "trace-node-db-state-manifest.v1",
+    selectedUnitKeys: options.selectedUnitKeys ? [...options.selectedUnitKeys] : [],
+    traceNodeIndexPath: options.nodeIndexPath,
+    version: options.rawArtifact.version,
+  };
+
+  await writeJson(manifestPath, manifest);
+  return {
+    manifest,
+    manifestPath,
+  };
+}
+
+function compareStringArrays(left: string[], right: string[]): boolean {
+  return left.length === right.length && left.every((value, index) => value === right[index]);
+}
+
+function createTraceDbStateBoundarySnapshot(
+  rawSequenceEnd: number,
+  entries: TraceNodeDbStateManifestEntry[],
+): TraceDbStateBoundarySnapshot {
+  const fingerprintPaths = [...new Set(entries.map((entry) => entry.fingerprintPath))];
+  const fingerprintPath = fingerprintPaths[0];
+  if (!fingerprintPath || fingerprintPaths.length !== 1) {
+    throw new Error(`Expected exactly one fingerprint path for raw sequence ${rawSequenceEnd}.`);
+  }
+
+  const entryKindOrder: Record<TraceNodeEntryKind, number> = {
+    unit: 0,
+    case: 1,
+    hook: 2,
+  };
+
+  return {
+    entryKinds: [...new Set(entries.map((entry) => entry.entryKind))].sort(
+      (left, right) => entryKindOrder[left] - entryKindOrder[right],
+    ),
+    fingerprintPath,
+    nodeKeys: [...new Set(entries.map((entry) => entry.nodeKey))].sort((left, right) => left.localeCompare(right)),
+    rawSequenceEnd,
+    unitKeys: [...new Set(entries.map((entry) => entry.unitKey))].sort((left, right) => left.localeCompare(right)),
+  };
+}
+
+function buildTraceDbStateBoundaryMap(manifest: TraceNodeDbStateManifest): Map<number, TraceDbStateBoundarySnapshot> {
+  const entriesBySequence = new Map<number, TraceNodeDbStateManifestEntry[]>();
+
+  for (const entry of manifest.entries) {
+    const boundaryEntries = entriesBySequence.get(entry.rawSequenceEnd) ?? [];
+    boundaryEntries.push(entry);
+    entriesBySequence.set(entry.rawSequenceEnd, boundaryEntries);
+  }
+
+  return new Map(
+    [...entriesBySequence.entries()]
+      .sort(([left], [right]) => left - right)
+      .map(([rawSequenceEnd, entries]) => [
+        rawSequenceEnd,
+        createTraceDbStateBoundarySnapshot(rawSequenceEnd, entries),
+      ]),
+  );
+}
+
+function pickFirstReplayIssue(report: {
+  candidateReplayIssues: TraceDbReplayIssue[];
+  upstreamReplayIssues: TraceDbReplayIssue[];
+}): TraceDbStateComparisonReport["firstReplayIssue"] {
+  const ordered = [
+    ...report.candidateReplayIssues.map((issue) => ({ issue, runner: "candidate" as const })),
+    ...report.upstreamReplayIssues.map((issue) => ({ issue, runner: "upstream" as const })),
+  ].sort((left, right) => left.issue.rawSequence - right.issue.rawSequence || left.runner.localeCompare(right.runner));
+
+  return ordered[0] ?? null;
+}
+
+async function readFingerprintWithCache(
+  fingerprintPath: string,
+  cache: Map<string, FingerprintArtifact>,
+): Promise<FingerprintArtifact> {
+  const cached = cache.get(fingerprintPath);
+  if (cached) {
+    return cached;
+  }
+
+  const fingerprint = await readJson<FingerprintArtifact>(fingerprintPath);
+  cache.set(fingerprintPath, fingerprint);
+  return fingerprint;
+}
+
+export async function compareTraceDbStateManifests(options: {
+  candidateManifestPath: string;
+  upstreamManifestPath: string;
+}): Promise<TraceDbStateComparisonReport> {
+  const candidateManifest = await readJson<TraceNodeDbStateManifest>(options.candidateManifestPath);
+  const upstreamManifest = await readJson<TraceNodeDbStateManifest>(options.upstreamManifestPath);
+  const candidateBoundaries = buildTraceDbStateBoundaryMap(candidateManifest);
+  const upstreamBoundaries = buildTraceDbStateBoundaryMap(upstreamManifest);
+  const rawSequences = [...new Set([...candidateBoundaries.keys(), ...upstreamBoundaries.keys()])].sort(
+    (left, right) => left - right,
+  );
+  const fingerprintCache = new Map<string, FingerprintArtifact>();
+  const divergentBoundaries: TraceDbStateBoundaryComparison[] = [];
+
+  for (const rawSequenceEnd of rawSequences) {
+    const candidate = candidateBoundaries.get(rawSequenceEnd) ?? null;
+    const upstream = upstreamBoundaries.get(rawSequenceEnd) ?? null;
+    let fingerprintComparison: ComparisonResult | null = null;
+    let different = candidate === null || upstream === null;
+
+    if (candidate && upstream) {
+      if (
+        !compareStringArrays(candidate.entryKinds, upstream.entryKinds) ||
+        !compareStringArrays(candidate.nodeKeys, upstream.nodeKeys) ||
+        !compareStringArrays(candidate.unitKeys, upstream.unitKeys)
+      ) {
+        different = true;
+      }
+
+      fingerprintComparison = compareFingerprints(
+        await readFingerprintWithCache(candidate.fingerprintPath, fingerprintCache),
+        await readFingerprintWithCache(upstream.fingerprintPath, fingerprintCache),
+      );
+      if (fingerprintComparison.different) {
+        different = true;
+      }
+    }
+
+    if (different) {
+      divergentBoundaries.push({
+        candidate,
+        different,
+        fingerprintComparison,
+        rawSequenceEnd,
+        upstream,
+      });
+    }
+  }
+
+  const report: TraceDbStateComparisonReport = {
+    candidateCapturedExchangeCount: candidateManifest.capturedExchangeCount,
+    candidateCompletedRawSequenceEnd: candidateManifest.completedRawSequenceEnd,
+    candidateManifestPath: options.candidateManifestPath,
+    candidateReplayIssues: candidateManifest.replayIssues,
+    comparedBoundaryCount: rawSequences.length,
+    different:
+      divergentBoundaries.length > 0 ||
+      candidateManifest.replayIssues.length > 0 ||
+      upstreamManifest.replayIssues.length > 0 ||
+      candidateManifest.capturedExchangeCount !== upstreamManifest.capturedExchangeCount ||
+      candidateManifest.completedRawSequenceEnd !== upstreamManifest.completedRawSequenceEnd,
+    divergentBoundaries,
+    firstDivergentBoundary: divergentBoundaries[0] ?? null,
+    firstReplayIssue: pickFirstReplayIssue({
+      candidateReplayIssues: candidateManifest.replayIssues,
+      upstreamReplayIssues: upstreamManifest.replayIssues,
+    }),
+    upstreamCapturedExchangeCount: upstreamManifest.capturedExchangeCount,
+    upstreamCompletedRawSequenceEnd: upstreamManifest.completedRawSequenceEnd,
+    upstreamManifestPath: options.upstreamManifestPath,
+    upstreamReplayIssues: upstreamManifest.replayIssues,
+  };
+
+  return report;
+}
+
+export async function writeTraceDbStateComparisonReport(options: {
+  candidateManifestPath: string;
+  outPath: string;
+  upstreamManifestPath: string;
+}): Promise<TraceDbStateComparisonReport> {
+  const report = await compareTraceDbStateManifests({
+    candidateManifestPath: options.candidateManifestPath,
+    upstreamManifestPath: options.upstreamManifestPath,
+  });
+  await writeJson(options.outPath, report);
+  return report;
+}
+
+function renderTraceDbStateComparisonReport(report: TraceDbStateComparisonReport): string {
+  const lines = [
+    "# DB State Comparison",
+    "",
+    `Different: ${report.different ? "yes" : "no"}`,
+    `Compared boundaries: ${report.comparedBoundaryCount}`,
+    `Candidate replay issues: ${report.candidateReplayIssues.length}`,
+    `Upstream replay issues: ${report.upstreamReplayIssues.length}`,
+    `Candidate completed sequence: ${report.candidateCompletedRawSequenceEnd ?? "n/a"}`,
+    `Upstream completed sequence: ${report.upstreamCompletedRawSequenceEnd ?? "n/a"}`,
+  ];
+
+  if (report.firstReplayIssue) {
+    lines.push(
+      "",
+      `First replay issue: ${report.firstReplayIssue.runner} sequence ${report.firstReplayIssue.issue.rawSequence}`,
+      `Expected status: ${report.firstReplayIssue.issue.expectedStatus}`,
+      `Actual status: ${report.firstReplayIssue.issue.actualStatus ?? "error"}`,
+      `Target: ${report.firstReplayIssue.issue.method} ${report.firstReplayIssue.issue.targetUrl}`,
+    );
+  }
+
+  if (report.firstDivergentBoundary) {
+    lines.push(
+      "",
+      `First divergent boundary: sequence ${report.firstDivergentBoundary.rawSequenceEnd}`,
+      `Candidate nodes: ${report.firstDivergentBoundary.candidate?.nodeKeys.join(", ") ?? "missing"}`,
+      `Upstream nodes: ${report.firstDivergentBoundary.upstream?.nodeKeys.join(", ") ?? "missing"}`,
+    );
+
+    const fingerprintComparison = report.firstDivergentBoundary.fingerprintComparison;
+    if (fingerprintComparison) {
+      lines.push(
+        `Only candidate tables: ${fingerprintComparison.onlyLeft.length}`,
+        `Only upstream tables: ${fingerprintComparison.onlyRight.length}`,
+        `Changed shared tables: ${fingerprintComparison.rowHashOrCountDifferences.length}`,
+      );
+    }
+  }
+
+  return `${lines.join("\n")}\n`;
+}
+
 function encodeArtifactPathSegment(segment: string): string {
   return encodeURIComponent(segment);
 }
@@ -807,7 +1327,7 @@ export async function writeTraceArtifacts(
 }
 
 async function captureRunner(
-  runner: "rewrite" | "upstream",
+  runner: "candidate" | "upstream",
   config: DiagnosticConfig,
   version: SupportedVersion,
   versionDir: string,
@@ -821,8 +1341,8 @@ async function captureRunner(
   let exitCode = 0;
   try {
     const args =
-      runner === "rewrite"
-        ? buildRewriteArgs(config, recorder.captureBaseUrl, version)
+      runner === "candidate"
+        ? buildCandidateArgs(config, recorder.captureBaseUrl, version)
         : buildUpstreamArgs(config, recorder.captureBaseUrl, version, versionDir);
 
     exitCode = await runCommand("bun", args, createVersionEnvironment(version));
@@ -843,23 +1363,82 @@ async function runVersion(config: DiagnosticConfig, version: SupportedVersion): 
   const versionDir = resolve(config.outDir, version);
   await mkdir(versionDir, { recursive: true });
 
-  const rewriteRaw = await captureRunner("rewrite", config, version, versionDir);
-  const rewriteNormalized = normalizeTrafficArtifact(rewriteRaw);
-  await writeJson(resolve(versionDir, "rewrite-raw.json"), rewriteRaw);
-  await writeJson(resolve(versionDir, "rewrite-normalized.json"), rewriteNormalized);
-  await writeTraceArtifacts(versionDir, rewriteRaw, rewriteNormalized, config.unitKeys);
+  const candidateRaw = await captureRunner("candidate", config, version, versionDir);
+  const candidateNormalized = normalizeTrafficArtifact(candidateRaw);
+  const candidateRawPath = resolve(versionDir, "candidate-raw.json");
+  const candidateNormalizedPath = resolve(versionDir, "candidate-normalized.json");
+  await writeJson(candidateRawPath, candidateRaw);
+  await writeJson(candidateNormalizedPath, candidateNormalized);
+  const candidateTraceArtifacts = await writeTraceArtifacts(
+    versionDir,
+    candidateRaw,
+    candidateNormalized,
+    config.unitKeys,
+  );
+  const candidateDbStateArtifacts = await writeTraceDbStateArtifacts({
+    mode: config.dbStateMode,
+    nodeIndex: candidateTraceArtifacts.nodeIndex,
+    nodeIndexPath: candidateTraceArtifacts.nodeIndexPath,
+    rawArtifact: candidateRaw,
+    rawArtifactPath: candidateRawPath,
+    selectedUnitKeys: config.unitKeys,
+    versionDir,
+  });
+  if (candidateDbStateArtifacts) {
+    await writeJson(candidateTraceArtifacts.traceManifestPath, {
+      ...candidateTraceArtifacts.traceManifest,
+      dbStateManifestPath: candidateDbStateArtifacts.manifestPath,
+    } satisfies TraceRunManifest);
+  }
 
   const upstreamRaw = await captureRunner("upstream", config, version, versionDir);
   const upstreamNormalized = normalizeTrafficArtifact(upstreamRaw);
-  await writeJson(resolve(versionDir, "upstream-raw.json"), upstreamRaw);
-  await writeJson(resolve(versionDir, "upstream-normalized.json"), upstreamNormalized);
-  await writeTraceArtifacts(versionDir, upstreamRaw, upstreamNormalized, config.unitKeys);
+  const upstreamRawPath = resolve(versionDir, "upstream-raw.json");
+  const upstreamNormalizedPath = resolve(versionDir, "upstream-normalized.json");
+  await writeJson(upstreamRawPath, upstreamRaw);
+  await writeJson(upstreamNormalizedPath, upstreamNormalized);
+  const upstreamTraceArtifacts = await writeTraceArtifacts(
+    versionDir,
+    upstreamRaw,
+    upstreamNormalized,
+    config.unitKeys,
+  );
+  const upstreamDbStateArtifacts = await writeTraceDbStateArtifacts({
+    mode: config.dbStateMode,
+    nodeIndex: upstreamTraceArtifacts.nodeIndex,
+    nodeIndexPath: upstreamTraceArtifacts.nodeIndexPath,
+    rawArtifact: upstreamRaw,
+    rawArtifactPath: upstreamRawPath,
+    selectedUnitKeys: config.unitKeys,
+    versionDir,
+  });
+  if (upstreamDbStateArtifacts) {
+    await writeJson(upstreamTraceArtifacts.traceManifestPath, {
+      ...upstreamTraceArtifacts.traceManifest,
+      dbStateManifestPath: upstreamDbStateArtifacts.manifestPath,
+    } satisfies TraceRunManifest);
+  }
 
-  const comparison = compareNormalizedTrafficRuns(rewriteNormalized, upstreamNormalized, config.compareMode);
+  const dbStateComparisonReport =
+    candidateDbStateArtifacts && upstreamDbStateArtifacts
+      ? await writeTraceDbStateComparisonReport({
+          candidateManifestPath: candidateDbStateArtifacts.manifestPath,
+          outPath: resolve(versionDir, "compare-db-state.json"),
+          upstreamManifestPath: upstreamDbStateArtifacts.manifestPath,
+        })
+      : null;
+  if (dbStateComparisonReport) {
+    await writeText(
+      resolve(versionDir, "compare-db-state.md"),
+      renderTraceDbStateComparisonReport(dbStateComparisonReport),
+    );
+  }
+
+  const comparison = compareNormalizedTrafficRuns(candidateNormalized, upstreamNormalized, config.compareMode);
   await writeJson(resolve(versionDir, "compare.json"), comparison);
   await writeText(
     resolve(versionDir, "compare.md"),
-    renderTrafficComparisonReport(rewriteNormalized, upstreamNormalized, comparison),
+    renderTrafficComparisonReport(candidateNormalized, upstreamNormalized, comparison),
   );
 
   console.log(
@@ -867,11 +1446,13 @@ async function runVersion(config: DiagnosticConfig, version: SupportedVersion): 
       {
         version,
         mode: comparison.mode,
-        rewriteExitCode: rewriteRaw.exitCode,
+        candidateExitCode: candidateRaw.exitCode,
         upstreamExitCode: upstreamRaw.exitCode,
-        rewriteCount: comparison.leftCount,
+        candidateCount: comparison.leftCount,
         upstreamCount: comparison.rightCount,
         matchedCount: comparison.matchedCount,
+        dbStateDifferent: dbStateComparisonReport?.different ?? null,
+        firstDbStateDivergenceSequence: dbStateComparisonReport?.firstDivergentBoundary?.rawSequenceEnd ?? null,
         mismatches:
           comparison.mode === "ordered" ? comparison.orderedMismatches.length : comparison.signatureMismatches.length,
         outputDir: versionDir,

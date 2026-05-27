@@ -34,6 +34,7 @@ interface ExportUpstreamConfig {
   cloneBaseDir: string;
   keepClone: boolean;
   allowUnsafeOutputPath: boolean;
+  suiteDir?: string;
   grep?: string;
   directory?: string;
   optional?: string;
@@ -108,7 +109,7 @@ export function resolveUpstreamUnitSelection(unitKeys: string[], version: Suppor
 function usage(): string {
   return [
     "Usage:",
-    "  bun run rewrite:export:upstream:lrsql -- [--base-url <url>] [--username <user>] [--password <pass>] [--version 2.0.0|1.0.3] [--out <path>] [--grep <pattern>] [--directory <csv>] [--optional <csv>] [--unitKey <csv>] [--log-dir <path>] [--node-image <ref>] [--upstream-repo-url <url>] [--upstream-ref <ref>] [--clone-depth <n>] [--clone-base-dir <path>] [--keep-clone]",
+    "  bun run rewrite:export:upstream:lrsql -- [--suite-dir <path>] [--base-url <url>] [--username <user>] [--password <pass>] [--version 2.0.0|1.0.3] [--out <path>] [--grep <pattern>] [--directory <csv>] [--optional <csv>] [--unitKey <csv>] [--log-dir <path>] [--node-image <ref>] [--upstream-repo-url <url>] [--upstream-ref <ref>] [--clone-depth <n>] [--clone-base-dir <path>] [--keep-clone]",
     "",
     "Defaults:",
     "  --base-url http://localhost:8080/xapi",
@@ -122,10 +123,11 @@ function usage(): string {
     `  --clone-depth ${defaultCloneDepth}`,
     "  --clone-base-dir tmp/agents/upstream-clones",
     `  --node-image ${defaultNodeImage}`,
+    "  --suite-dir rewrite4",
     "",
     "Notes:",
-    "  The upstream suite source is always fetched from GitHub by shallow clone.",
-    "  Local suite source paths are intentionally unsupported.",
+    "  Without --suite-dir, the upstream suite source is fetched from GitHub by shallow clone.",
+    "  With --suite-dir, the local suite source is used as the active migration candidate.",
     "  --unitKey is mutually exclusive with --grep, --directory, and --optional.",
   ].join("\n");
 }
@@ -148,6 +150,7 @@ function parseConfig(args: string[]): ExportUpstreamConfig {
   const keepClone = args.includes("--keep-clone") || process.env.UPSTREAM_KEEP_CLONE === "1";
   const allowUnsafeOutputPath =
     args.includes("--allow-unsafe-output-path") || process.env.ALLOW_UNSAFE_OUTPUT_PATH === "1";
+  const suiteDirArg = getFlagValue(args, "--suite-dir");
   const grep = getFlagValue(args, "--grep");
   const directory = getFlagValue(args, "--directory");
   const optional = getFlagValue(args, "--optional");
@@ -186,11 +189,307 @@ function parseConfig(args: string[]): ExportUpstreamConfig {
     cloneBaseDir: isAbsolute(cloneBaseDirArg) ? cloneBaseDirArg : resolve(repoRoot, cloneBaseDirArg),
     keepClone,
     allowUnsafeOutputPath,
+    suiteDir: suiteDirArg ? (isAbsolute(suiteDirArg) ? suiteDirArg : resolve(repoRoot, suiteDirArg)) : undefined,
     grep,
     directory,
     optional,
     unitKeys,
   };
+}
+
+function ensureOwnerCaptureSupport(suiteDir: string): void {
+  const lrsTestPath = resolve(suiteDir, "bin/lrs-test.js");
+  let lrsTestSource = readFileSync(lrsTestPath, "utf8");
+
+  if (!lrsTestSource.includes("global.__lrsConformanceCaptureExecutionState")) {
+    const processMessageReporterAnchor = "    function processMessageReporter(p) {\n";
+    const processMessageReporterReplacement = [
+      "    function getOrCreateCaptureExecutionState() {",
+      "        if (!global.__lrsConformanceCaptureExecutionState) {",
+      "            global.__lrsConformanceCaptureExecutionState = {",
+      "                suitePath: [],",
+      "                testTitle: null",
+      "            };",
+      "        }",
+      "",
+      "        return global.__lrsConformanceCaptureExecutionState;",
+      "    }",
+      "",
+      "    function processMessageReporter(p) {",
+    ].join("\n");
+    const patched = lrsTestSource.replace(processMessageReporterAnchor, processMessageReporterReplacement);
+    if (patched === lrsTestSource) {
+      throw new Error(`Unable to patch capture execution state support into ${lrsTestPath}.`);
+    }
+    lrsTestSource = patched;
+  }
+
+  if (!lrsTestSource.includes("getOrCreateCaptureExecutionState().testTitle = test.title")) {
+    const testStartAnchor = [
+      "            runner.on('test', function(test) {",
+      '                p.postMessage("test start", test.title);',
+      "            })",
+    ].join("\n");
+    const testStartReplacement = [
+      "            runner.on('test', function(test) {",
+      "                getOrCreateCaptureExecutionState().testTitle = test.title;",
+      '                p.postMessage("test start", test.title);',
+      "            })",
+    ].join("\n");
+    const patched = lrsTestSource.replace(testStartAnchor, testStartReplacement);
+    if (patched === lrsTestSource) {
+      throw new Error(`Unable to patch test-start execution state support into ${lrsTestPath}.`);
+    }
+    lrsTestSource = patched;
+  }
+
+  if (!lrsTestSource.includes("executionState.testTitle = null;")) {
+    const testEndAnchor = [
+      "            runner.on('test end', function(test) {",
+      '                p.postMessage("test end", test.title);',
+      "            })",
+    ].join("\n");
+    const testEndReplacement = [
+      "            runner.on('test end', function(test) {",
+      "                var executionState = getOrCreateCaptureExecutionState();",
+      "                if (executionState.testTitle === test.title) {",
+      "                    executionState.testTitle = null;",
+      "                }",
+      '                p.postMessage("test end", test.title);',
+      "            })",
+    ].join("\n");
+    const patched = lrsTestSource.replace(testEndAnchor, testEndReplacement);
+    if (patched === lrsTestSource) {
+      throw new Error(`Unable to patch test-end execution state support into ${lrsTestPath}.`);
+    }
+    lrsTestSource = patched;
+  }
+
+  if (!lrsTestSource.includes("executionState.suitePath.push(suite.title);")) {
+    const suiteStartAnchor = [
+      "            runner.on('suite', function(suite) {",
+      '                p.postMessage("suite start", suite.title);',
+      "            });",
+    ].join("\n");
+    const suiteStartReplacement = [
+      "            runner.on('suite', function(suite) {",
+      "                var executionState = getOrCreateCaptureExecutionState();",
+      "                if (suite.title) {",
+      "                    executionState.suitePath.push(suite.title);",
+      "                }",
+      '                p.postMessage("suite start", suite.title);',
+      "            });",
+    ].join("\n");
+    const patched = lrsTestSource.replace(suiteStartAnchor, suiteStartReplacement);
+    if (patched === lrsTestSource) {
+      throw new Error(`Unable to patch suite-start execution state support into ${lrsTestPath}.`);
+    }
+    lrsTestSource = patched;
+  }
+
+  if (!lrsTestSource.includes("executionState.suitePath[executionState.suitePath.length - 1] === suite.title")) {
+    const suiteEndAnchor = [
+      "            runner.on('suite end', function(suite) {",
+      "                p.postMessage('suite end', suite.title);",
+      "            });",
+    ].join("\n");
+    const suiteEndReplacement = [
+      "            runner.on('suite end', function(suite) {",
+      "                var executionState = getOrCreateCaptureExecutionState();",
+      "                if (suite.title && executionState.suitePath[executionState.suitePath.length - 1] === suite.title) {",
+      "                    executionState.suitePath.pop();",
+      "                }",
+      "                p.postMessage('suite end', suite.title);",
+      "            });",
+    ].join("\n");
+    const patched = lrsTestSource.replace(suiteEndAnchor, suiteEndReplacement);
+    if (patched === lrsTestSource) {
+      throw new Error(`Unable to patch suite-end execution state support into ${lrsTestPath}.`);
+    }
+    lrsTestSource = patched;
+  }
+
+  if (!lrsTestSource.includes("executionState.suitePath = [];")) {
+    const endAnchor = [
+      "            runner.on('end', function() {",
+      "                p.postMessage(\"end\", 'All done');",
+      "            });",
+    ].join("\n");
+    const endReplacement = [
+      "            runner.on('end', function() {",
+      "                var executionState = getOrCreateCaptureExecutionState();",
+      "                executionState.suitePath = [];",
+      "                executionState.testTitle = null;",
+      "                p.postMessage(\"end\", 'All done');",
+      "            });",
+    ].join("\n");
+    const patched = lrsTestSource.replace(endAnchor, endReplacement);
+    if (patched === lrsTestSource) {
+      throw new Error(`Unable to patch run-end execution state reset into ${lrsTestPath}.`);
+    }
+    lrsTestSource = patched;
+  }
+
+  writeFileSync(lrsTestPath, lrsTestSource, "utf8");
+
+  const helperPath = resolve(suiteDir, "test/helper.js");
+  let helperSource = readFileSync(helperPath, "utf8");
+
+  if (!helperSource.includes("var CAPTURE_OWNER_HEADER = 'x-lrs-conformance-owner';")) {
+    const anchor = "    var URL_STATEMENTS = '/statements';\n";
+    const replacement = `${anchor}\n    var CAPTURE_OWNER_HEADER = 'x-lrs-conformance-owner';\n`;
+    const patched = helperSource.replace(anchor, replacement);
+    if (patched === helperSource) {
+      throw new Error(`Unable to patch capture owner header constant into ${helperPath}.`);
+    }
+    helperSource = patched;
+  }
+
+  if (!helperSource.includes("buildCaptureOwnerMetadata: function ()")) {
+    const anchor = [
+      "        addBasicAuthenicationHeader: function (header) {",
+      "            var newHeader = extend(true, {}, header);",
+      "            if (process.env.BASIC_AUTH_ENABLED === 'true') {",
+      "                var userPass = new Buffer(process.env.BASIC_AUTH_USER + ':' + process.env.BASIC_AUTH_PASSWORD).toString('base64');",
+      "                newHeader['Authorization'] = 'Basic ' + userPass;",
+      "            }",
+      "            return newHeader;",
+      "        },",
+    ].join("\n");
+    const replacement = [
+      "        addBasicAuthenicationHeader: function (header) {",
+      "            var newHeader = extend(true, {}, header);",
+      "            if (process.env.BASIC_AUTH_ENABLED === 'true') {",
+      "                var userPass = new Buffer(process.env.BASIC_AUTH_USER + ':' + process.env.BASIC_AUTH_PASSWORD).toString('base64');",
+      "                newHeader['Authorization'] = 'Basic ' + userPass;",
+      "            }",
+      "            return newHeader;",
+      "        },",
+      "        buildCaptureOwnerMetadata: function () {",
+      "            var executionState = global.__lrsConformanceCaptureExecutionState;",
+      "            if (!executionState || !Array.isArray(executionState.suitePath)) {",
+      "                return null;",
+      "            }",
+      "",
+      "            var suitePath = executionState.suitePath.filter(function (segment) {",
+      "                return typeof segment === 'string' && segment.length > 0;",
+      "            });",
+      "            var testTitle = typeof executionState.testTitle === 'string' && executionState.testTitle.length > 0 ? executionState.testTitle : null;",
+      "            if (suitePath.length === 0 && !testTitle) {",
+      "                return null;",
+      "            }",
+      "",
+      "            var casePath = testTitle ? suitePath.concat([testTitle]) : null;",
+      "            var ownerPath = casePath || suitePath;",
+      "            var fallbackSuiteTitle = suitePath.length > 0 ? suitePath[0] : 'unmapped';",
+      "            var sourceFilePath = process.env.LRS_CAPTURE_SOURCE_FILE_PATH || null;",
+      "            var sourceSymbol = process.env.LRS_CAPTURE_SOURCE_SYMBOL || null;",
+      "",
+      "            return encodeURIComponent(JSON.stringify({",
+      "                casePath: casePath,",
+      "                directory: process.env.LRS_CAPTURE_DIRECTORY || DIRECTORY || '',",
+      "                hookTitle: null,",
+      "                ownerLabel: ownerPath.join(' > '),",
+      "                phase: testTitle ? 'case' : 'before',",
+      "                sourceFilePath: sourceFilePath,",
+      "                sourceSymbol: sourceSymbol,",
+      "                suitePath: suitePath,",
+      "                unitKey: process.env.LRS_CAPTURE_UNIT_KEY || ((process.env.LRS_CAPTURE_DIRECTORY || DIRECTORY || 'unmapped') + ':' + fallbackSuiteTitle),",
+      "                version: process.env.LRS_CAPTURE_VERSION || process.env.XAPI_VERSION || ''",
+      "            }));",
+      "        },",
+      "        addCaptureOwnerHeader: function (header) {",
+      "            var newHeader = extend(true, {}, header);",
+      "            var metadata = module.exports.buildCaptureOwnerMetadata();",
+      "            if (metadata) {",
+      "                newHeader[CAPTURE_OWNER_HEADER] = metadata;",
+      "            }",
+      "            return newHeader;",
+      "        },",
+    ].join("\n");
+    const patched = helperSource.replace(anchor, replacement);
+    if (patched === helperSource) {
+      throw new Error(`Unable to patch capture owner metadata helpers into ${helperPath}.`);
+    }
+    helperSource = patched;
+  }
+
+  if (!helperSource.includes("module.exports.addCaptureOwnerHeader(newHeader)")) {
+    const anchor = [
+      "            else{",
+      "                newHeader = module.exports.addBasicAuthenicationHeader(newHeader);",
+      "            }",
+      "            return newHeader;",
+    ].join("\n");
+    const replacement = [
+      "            else{",
+      "                newHeader = module.exports.addBasicAuthenicationHeader(newHeader);",
+      "            }",
+      "            newHeader = module.exports.addCaptureOwnerHeader(newHeader);",
+      "            return newHeader;",
+    ].join("\n");
+    const patched = helperSource.replace(anchor, replacement);
+    if (patched === helperSource) {
+      throw new Error(`Unable to patch addAllHeaders capture owner support into ${helperPath}.`);
+    }
+    helperSource = patched;
+  }
+
+  if (!helperSource.includes("headers[CAPTURE_OWNER_HEADER]")) {
+    const anchor = [
+      "            if (process.env.BASIC_AUTH_ENABLED === 'true') {",
+      "                pre.set('Authorization', headers['Authorization']);",
+      "            }",
+      "            //If we're doing oauth, set it up!",
+    ].join("\n");
+    const replacement = [
+      "            if (process.env.BASIC_AUTH_ENABLED === 'true') {",
+      "                pre.set('Authorization', headers['Authorization']);",
+      "            }",
+      "            if (headers[CAPTURE_OWNER_HEADER]) {",
+      "                pre.set(CAPTURE_OWNER_HEADER, headers[CAPTURE_OWNER_HEADER]);",
+      "            }",
+      "            //If we're doing oauth, set it up!",
+    ].join("\n");
+    const patched = helperSource.replace(anchor, replacement);
+    if (patched === helperSource) {
+      throw new Error(`Unable to patch sendRequest capture owner support into ${helperPath}.`);
+    }
+    helperSource = patched;
+  }
+
+  writeFileSync(helperPath, helperSource, "utf8");
+
+  const parametersPath = resolve(suiteDir, "test/Parameters/testing.js");
+  if (!existsSync(parametersPath)) {
+    return;
+  }
+
+  let parametersSource = readFileSync(parametersPath, "utf8");
+  if (!parametersSource.includes("headers['x-lrs-conformance-owner']")) {
+    const anchor = [
+      "        if (process.env.BASIC_AUTH_ENABLED === 'true') {",
+      "            pre.set('Authorization', headers['Authorization']);",
+      "        }",
+      "        //If we're doing oauth, set it up!",
+    ].join("\n");
+    const replacement = [
+      "        if (process.env.BASIC_AUTH_ENABLED === 'true') {",
+      "            pre.set('Authorization', headers['Authorization']);",
+      "        }",
+      "        if (headers['x-lrs-conformance-owner']) {",
+      "            pre.set('x-lrs-conformance-owner', headers['x-lrs-conformance-owner']);",
+      "        }",
+      "        //If we're doing oauth, set it up!",
+    ].join("\n");
+    const patched = parametersSource.replace(anchor, replacement);
+    if (patched === parametersSource) {
+      throw new Error(`Unable to patch Parameters capture owner support into ${parametersPath}.`);
+    }
+    parametersSource = patched;
+  }
+
+  writeFileSync(parametersPath, parametersSource, "utf8");
 }
 
 function ensureRunnerSelectionFlagSupport(suiteDir: string): void {
@@ -391,9 +690,26 @@ function cloneUpstreamSuite(config: ExportUpstreamConfig): SuiteLocation {
   ensureSuiteReady(cloneDir, `The cloned ADL conformance suite at ${cloneDir} is incomplete.`);
   ensureRunnerSelectionFlagSupport(cloneDir);
   ensureUpstreamFileSelectionSupport(cloneDir);
+  ensureOwnerCaptureSupport(cloneDir);
 
   return {
     suiteDir: cloneDir,
+  };
+}
+
+function prepareProvidedSuite(config: ExportUpstreamConfig): SuiteLocation {
+  const suiteDir = config.suiteDir;
+  if (!suiteDir) {
+    throw new Error("Expected a local suite directory.");
+  }
+
+  ensureSuiteReady(suiteDir, `The local suite source at ${suiteDir} is incomplete.`);
+  ensureRunnerSelectionFlagSupport(suiteDir);
+  ensureUpstreamFileSelectionSupport(suiteDir);
+  ensureOwnerCaptureSupport(suiteDir);
+
+  return {
+    suiteDir,
   };
 }
 
@@ -469,6 +785,8 @@ function runConsoleRunnerInContainer(config: ExportUpstreamConfig, suiteLocation
   ensurePodmanAvailable();
 
   const unitSelection = config.unitKeys ? resolveUpstreamUnitSelection(config.unitKeys, config.version) : null;
+  const requestedCaptureUnitKey = config.unitKeys?.length === 1 ? (config.unitKeys[0] ?? undefined) : undefined;
+  const captureUnit = requestedCaptureUnitKey ? getMigrationLedgerUnitByUnitKey(requestedCaptureUnitKey) : undefined;
 
   const upstreamArgs = [
     "--endpoint",
@@ -519,6 +837,25 @@ function runConsoleRunnerInContainer(config: ExportUpstreamConfig, suiteLocation
   podmanArgs.push("--volume", `${repoRoot}:${repoMountTarget}${mountSuffix}`);
 
   podmanArgs.push("--workdir", suiteMountTarget, "--env", "HOME=/tmp");
+
+  if (captureUnit) {
+    const suiteSourcePrefix = config.suiteDir ? toPosixRelativePath(relative(repoRoot, suiteLocation.suiteDir)) : "";
+    const captureSourcePath =
+      suiteSourcePrefix.length > 0
+        ? `${suiteSourcePrefix}/${captureUnit.upstreamFilePath}`
+        : captureUnit.upstreamFilePath;
+
+    podmanArgs.push(
+      "--env",
+      `LRS_CAPTURE_DIRECTORY=${captureUnit.directory}`,
+      "--env",
+      `LRS_CAPTURE_SOURCE_FILE_PATH=${captureSourcePath}`,
+      "--env",
+      `LRS_CAPTURE_UNIT_KEY=${captureUnit.unitKey}`,
+      "--env",
+      `LRS_CAPTURE_VERSION=${config.version}`,
+    );
+  }
 
   if (process.platform !== "linux" && typeof process.getuid === "function" && typeof process.getgid === "function") {
     podmanArgs.push("--user", `${process.getuid()}:${process.getgid()}`);
@@ -580,21 +917,25 @@ async function main(): Promise<number> {
   }
 
   const config = parseConfig(args);
-  ensureCommandAvailable("git", "git is required to clone the upstream conformance suite.");
+  if (!config.suiteDir) {
+    ensureCommandAvailable("git", "git is required to clone the upstream conformance suite.");
+  }
 
   const safeLogDir = resolveSafeArtifactPath(config.logDir, "Log directory", config.allowUnsafeOutputPath);
   const safeOutputPath = resolveSafeArtifactPath(config.outputPath, "Output", config.allowUnsafeOutputPath);
   config.logDir = safeLogDir;
   config.outputPath = safeOutputPath;
 
-  const suiteLocation = cloneUpstreamSuite(config);
+  const suiteLocation = config.suiteDir ? prepareProvidedSuite(config) : cloneUpstreamSuite(config);
   const existingFiles = new Set(await listLogFiles(config.logDir));
 
   let exitCode = 1;
   try {
     exitCode = runConsoleRunnerInContainer(config, suiteLocation);
   } finally {
-    if (config.keepClone) {
+    if (config.suiteDir) {
+      // keep the active candidate tree in place
+    } else if (config.keepClone) {
       console.log(`[upstream-clone] preserved clone directory at ${suiteLocation.suiteDir}`);
     } else {
       await rm(suiteLocation.suiteDir, { recursive: true, force: true });
@@ -638,9 +979,12 @@ async function main(): Promise<number> {
   const absoluteOutputPath = config.outputPath;
   const outputPayload = {
     ...parsed,
+    mode: config.suiteDir ? "candidate" : "upstream-oracle",
     selectedFiles: unitSelection?.filePaths ?? null,
     selectedUnitKeys: config.unitKeys ?? null,
+    sourceSuiteDir: config.suiteDir ?? null,
     sourceLogPath: latestLogPath,
+    suiteExitCode: exitCode,
     upstreamExitCode: exitCode,
   };
   await mkdir(dirname(absoluteOutputPath), { recursive: true });
@@ -649,10 +993,13 @@ async function main(): Promise<number> {
   console.log(
     JSON.stringify(
       {
+        mode: config.suiteDir ? "candidate" : "upstream-oracle",
         outputPath: absoluteOutputPath,
         selectedFiles: unitSelection?.filePaths ?? null,
         selectedUnitKeys: config.unitKeys ?? null,
+        sourceSuiteDir: config.suiteDir ?? null,
         sourceLogPath: latestLogPath,
+        suiteExitCode: exitCode,
         upstreamExitCode: exitCode,
         summary: parsed.summary ?? null,
       },

@@ -1,23 +1,23 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
-type FingerprintTable = {
+export type FingerprintTable = {
   columnNames: string[];
   rowCount: number;
   rowHash: string;
 };
 
-type FingerprintArtifact = {
+export type FingerprintArtifact = {
   tables: Record<string, FingerprintTable>;
 };
 
-type TableDifference = {
+export type TableDifference = {
   left?: FingerprintTable;
   right?: FingerprintTable;
   table: string;
 };
 
-type ComparisonResult = {
+export type ComparisonResult = {
   different: boolean;
   onlyLeft: string[];
   onlyRight: string[];
@@ -50,7 +50,7 @@ async function writeJson(pathValue: string, value: unknown): Promise<void> {
   await writeFile(pathValue, `${JSON.stringify(value, null, 2)}\n`, "utf8");
 }
 
-function compareFingerprints(left: FingerprintArtifact, right: FingerprintArtifact): ComparisonResult {
+export function compareFingerprints(left: FingerprintArtifact, right: FingerprintArtifact): ComparisonResult {
   const leftTables = Object.keys(left.tables).sort();
   const rightTables = Object.keys(right.tables).sort();
 
@@ -114,4 +114,6 @@ async function main(): Promise<void> {
   }
 }
 
-await main();
+if (import.meta.main) {
+  await main();
+}

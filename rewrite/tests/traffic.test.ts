@@ -15,8 +15,14 @@ import {
   type RawTrafficExchange,
 } from "../traffic.ts";
 
-function createExecutionMetadata(overrides: Partial<ReturnType<typeof createCaptureExecutionMetadata>> = {}) {
-  return createCaptureExecutionMetadata({
+type CreateExecutionMetadataInput = Parameters<typeof createCaptureExecutionMetadata>[0];
+
+function createExecutionMetadata(
+  overrides: Partial<Omit<CreateExecutionMetadataInput, "execution">> & {
+    execution?: Partial<CreateExecutionMetadataInput["execution"]>;
+  } = {},
+) {
+  const baseInput: CreateExecutionMetadataInput = {
     directory: "v1_0_3",
     execution: {
       casePath: ["Formatting Requirements (Data 2.2)", "default case"],
@@ -28,7 +34,15 @@ function createExecutionMetadata(overrides: Partial<ReturnType<typeof createCapt
     sourceSymbol: "registerFormattingRequirementsV103",
     unitKey: "test/v1_0_3/Data2.2-FormattingRequirements",
     version: "1.0.3",
+  };
+
+  return createCaptureExecutionMetadata({
+    ...baseInput,
     ...overrides,
+    execution: {
+      ...baseInput.execution,
+      ...overrides.execution,
+    },
   });
 }
 
@@ -570,7 +584,7 @@ describe("traffic harness", () => {
       });
 
       expect(response.status).toBe(201);
-      expect((await response.json()) as { ownerHeader: string | null }).toEqual({
+      expect((await response.json()) as { method: string; ownerHeader: string | null; path: string }).toEqual({
         ownerHeader: null,
         method: "GET",
         path: "/xapi/statements",

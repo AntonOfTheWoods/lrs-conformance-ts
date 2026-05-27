@@ -53,7 +53,7 @@ export interface RawTrafficArtifact {
   exitCode: number;
   exchanges: RawTrafficExchange[];
   generatedAt: string;
-  runner: "rewrite" | "upstream";
+  runner: "candidate" | "rewrite" | "upstream";
   targetBaseUrl: string;
   version: "1.0.3" | "2.0.0";
 }
@@ -90,7 +90,7 @@ export interface NormalizedTrafficArtifact {
   exitCode: number;
   exchanges: NormalizedExchange[];
   generatedAt: string;
-  runner: "rewrite" | "upstream";
+  runner: "candidate" | "rewrite" | "upstream";
   targetBaseUrl: string;
   version: "1.0.3" | "2.0.0";
 }
