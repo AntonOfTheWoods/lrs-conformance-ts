@@ -24,7 +24,7 @@ function createExecutionMetadata(overrides: Partial<ReturnType<typeof createCapt
       phase: "case",
       suitePath: ["Formatting Requirements (Data 2.2)"],
     },
-    sourceFilePath: "src/specs/v1_0_3/Data2.2-FormattingRequirements.ts",
+    sourceFilePath: "archive/deprecated-rewrite3/src/specs/v1_0_3/Data2.2-FormattingRequirements.ts",
     sourceSymbol: "registerFormattingRequirementsV103",
     unitKey: "test/v1_0_3/Data2.2-FormattingRequirements",
     version: "1.0.3",
@@ -557,7 +557,7 @@ describe("traffic harness", () => {
           phase: "case",
           suitePath: ["Statement Lifecycle Requirements"],
         },
-        sourceFilePath: "src/specs/v1_0_3/Data2.3-StatementLifecycle.ts",
+        sourceFilePath: "archive/deprecated-rewrite3/src/specs/v1_0_3/Data2.3-StatementLifecycle.ts",
         sourceSymbol: "registerStatementLifecycleRequirementsV103",
         unitKey: "test/v1_0_3/Data2.3-StatementLifecycle",
       });

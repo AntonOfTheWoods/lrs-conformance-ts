@@ -18,6 +18,7 @@ import {
 
 const repoRoot = resolve(import.meta.dir, "../..");
 const allowedArtifactsRoot = resolve(repoRoot, "tmp/agents");
+const legacyRewrite3RunnerPath = "./archive/deprecated-rewrite3/src/describe-runtime/describe-run.ts";
 
 type SupportedVersion = "1.0.3" | "2.0.0";
 
@@ -366,7 +367,7 @@ export async function readEffectiveRunnerExitCode(
 export function buildRewriteArgs(config: DiagnosticConfig, endpoint: string, version: SupportedVersion): string[] {
   if (config.unitKeys) {
     return [
-      "./src/describe-runtime/describe-run.ts",
+      legacyRewrite3RunnerPath,
       "--endpoint",
       endpoint,
       "--basicAuth",
@@ -383,7 +384,7 @@ export function buildRewriteArgs(config: DiagnosticConfig, endpoint: string, ver
 
   const scope = resolveRunnerScope(config.directory, config.grep, version);
   const args = [
-    "./src/describe-runtime/describe-run.ts",
+    legacyRewrite3RunnerPath,
     "--endpoint",
     endpoint,
     "--basicAuth",

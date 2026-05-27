@@ -23,6 +23,8 @@ export interface MigrationUnitBinding {
   unitKey: string;
 }
 
+const archivedRewrite3Root = "archive/deprecated-rewrite3";
+
 type UnitSpec = readonly [
   upstreamFileStem: string,
   rewriteRegistrarFilePath: string,
@@ -40,7 +42,7 @@ function defineUnit(
   return {
     directory,
     mode: "rewrite-active",
-    rewriteRegistrarFilePath,
+    rewriteRegistrarFilePath: `${archivedRewrite3Root}/${rewriteRegistrarFilePath}`,
     rewriteRegistrarSymbol,
     unitKey: upstreamFileStem,
     upstreamFilePath: `${upstreamFileStem}.js`,

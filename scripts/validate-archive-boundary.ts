@@ -2,12 +2,23 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 
 const repoRoot = resolve(import.meta.dir, "..");
-const archivePath = "archive/deprecated-rewrite";
+const deprecatedArchivePaths = ["archive/deprecated-rewrite", "archive/deprecated-rewrite3"] as const;
 
 interface BoundaryViolation {
+  archivePath: string;
   filePath: string;
   reason: string;
   detail: string;
+}
+
+function escapeRegex(value: string): string {
+  return value.replaceAll(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function findDeprecatedArchivePath(line: string): string | undefined {
+  return deprecatedArchivePaths.find((archivePath) =>
+    new RegExp(`${escapeRegex(archivePath)}(?=(?:/|\\b))`).test(line),
+  );
 }
 
 function collectFiles(
@@ -40,22 +51,28 @@ function isImportLike(filePath: string): boolean {
   return filePath.endsWith(".ts") || filePath.endsWith(".js") || filePath.endsWith(".sh");
 }
 
-function lineContainsActiveArchiveReference(line: string): boolean {
-  if (!line.includes(archivePath)) {
-    return false;
+function lineContainsActiveArchiveReference(line: string): string | undefined {
+  const archivePath = findDeprecatedArchivePath(line);
+  if (!archivePath) {
+    return undefined;
   }
 
   return /\b(?:bun\s+run|bun\s+\.|node\s+|bash\s+|sh\s+|npm\s+run|yarn\s+run|pnpm\s+run|deno\s+|tsx\s+|tsgo\s+|run\s+|execute\s+|invoke\s+|start\s+|launch\s+)/i.test(
     line,
-  );
+  )
+    ? archivePath
+    : undefined;
 }
 
-function lineContainsArchiveImportReference(line: string): boolean {
-  if (!line.includes(archivePath)) {
-    return false;
+function lineContainsArchiveImportReference(line: string): string | undefined {
+  const archivePath = findDeprecatedArchivePath(line);
+  if (!archivePath) {
+    return undefined;
   }
 
-  return /\bimport\b|\bexport\b\s+.*\bfrom\b|\brequire\s*\(|\bsource\b|^\s*\.\s+|\bimport\s*\(/.test(line);
+  return /\bimport\b|\bexport\b\s+.*\bfrom\b|\brequire\s*\(|\bsource\b|^\s*\.\s+|\bimport\s*\(/.test(line)
+    ? archivePath
+    : undefined;
 }
 
 function scanPackageScripts(): BoundaryViolation[] {
@@ -65,11 +82,13 @@ function scanPackageScripts(): BoundaryViolation[] {
   const violations: BoundaryViolation[] = [];
 
   for (const [scriptName, scriptValue] of Object.entries(scripts)) {
-    if (!scriptValue.includes(archivePath)) {
+    const archivePath = findDeprecatedArchivePath(scriptValue);
+    if (!archivePath) {
       continue;
     }
 
     violations.push({
+      archivePath,
       filePath: packageJsonPath,
       reason: "package script points at deprecated archive path",
       detail: `${scriptName} = ${scriptValue}`,
@@ -95,11 +114,13 @@ function scanDocsAndScripts(): BoundaryViolation[] {
     const lines = text.split(/\r?\n/);
 
     lines.forEach((line, index) => {
-      if (!lineContainsActiveArchiveReference(line)) {
+      const archivePath = lineContainsActiveArchiveReference(line);
+      if (!archivePath) {
         return;
       }
 
       violations.push({
+        archivePath,
         filePath,
         reason: "documentation or script line presents archive path as runnable",
         detail: `${index + 1}: ${line.trim()}`,
@@ -126,11 +147,13 @@ function scanArchiveImports(): BoundaryViolation[] {
     const lines = text.split(/\r?\n/);
 
     lines.forEach((line, index) => {
-      if (!lineContainsArchiveImportReference(line)) {
+      const archivePath = lineContainsArchiveImportReference(line);
+      if (!archivePath) {
         return;
       }
 
       violations.push({
+        archivePath,
         filePath,
         reason: "active code imports or sources the deprecated archive path",
         detail: `${index + 1}: ${line.trim()}`,
@@ -142,19 +165,19 @@ function scanArchiveImports(): BoundaryViolation[] {
 }
 
 function formatViolation(violation: BoundaryViolation): string {
-  return `${relative(repoRoot, violation.filePath)}\n  ${violation.reason}\n  ${violation.detail}`;
+  return `${relative(repoRoot, violation.filePath)}\n  ${violation.reason} (${violation.archivePath})\n  ${violation.detail}`;
 }
 
 function main(): void {
   const violations = [...scanPackageScripts(), ...scanDocsAndScripts(), ...scanArchiveImports()];
 
   if (violations.length === 0) {
-    console.log(`Archive boundary check passed: no active references to ${archivePath}.`);
+    console.log(`Archive boundary check passed: no active references to ${deprecatedArchivePaths.join(", ")}.`);
     return;
   }
 
   const message = [
-    `Archive boundary check failed: active references to ${archivePath} were found.`,
+    `Archive boundary check failed: active references to deprecated archive paths were found.`,
     ...violations.map(formatViolation),
   ].join("\n");
 

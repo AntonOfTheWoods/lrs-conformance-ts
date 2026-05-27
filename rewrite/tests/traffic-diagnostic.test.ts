@@ -23,7 +23,7 @@ function createExecutionMetadata() {
       phase: "case",
       suitePath: ["Formatting Requirements (Data 2.2)"],
     },
-    sourceFilePath: "src/specs/v1_0_3/Data2.2-FormattingRequirements.ts",
+    sourceFilePath: "archive/deprecated-rewrite3/src/specs/v1_0_3/Data2.2-FormattingRequirements.ts",
     sourceSymbol: "registerFormattingRequirementsV103",
     unitKey: "test/v1_0_3/Data2.2-FormattingRequirements",
     version: "1.0.3",
