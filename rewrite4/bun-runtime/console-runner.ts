@@ -7,14 +7,14 @@ import { createRunRecord, createOutputRunRecord } from "./run-record.ts";
 import { installRunnerEnvironment, registerSuiteFiles } from "./suite-loader.ts";
 import { createDescribeRuntime, type RuntimeRunResult } from "./runtime.ts";
 
-export type BunConsoleRunnerMode = "legacy-forward" | "native";
+export type BunConsoleRunnerMode = "compat-forward" | "native";
 
-export interface LegacyConsoleRunnerInvocation {
+export interface CompatConsoleRunnerInvocation {
   cwd: string;
   env: Record<string, string>;
   execPath: string;
   forwardedArgv: string[];
-  legacyConsoleRunnerPath: string;
+  compatConsoleRunnerPath: string;
 }
 
 export interface BunConsoleRunnerDependencies {
@@ -36,7 +36,7 @@ export interface BunConsoleRunnerDependencies {
     };
     now?: () => number;
   }) => Promise<number>;
-  runLegacyConsoleRunner?: (invocation: LegacyConsoleRunnerInvocation) => Promise<number>;
+  runCompatConsoleRunner?: (invocation: CompatConsoleRunnerInvocation) => Promise<number>;
 }
 
 export interface BunConsoleRunnerExecution {
@@ -140,16 +140,16 @@ function canExecTypeScriptEntry(execPath: string): boolean {
   return executableName === "bun" || executableName.startsWith("bun.");
 }
 
-function resolveLegacyConsoleRunnerPath(runtimeRoot: string): string {
-  return resolve(runtimeRoot, "bin", "console_runner_legacy.ts");
+function resolveCompatConsoleRunnerPath(runtimeRoot: string): string {
+  return resolve(runtimeRoot, "bin", "console_runner_compat.ts");
 }
 
 function resolveRunnerMode(value: string | undefined): BunConsoleRunnerMode {
-  return value === "legacy-forward" ? "legacy-forward" : "native";
+  return value === "compat-forward" ? "compat-forward" : "native";
 }
 
 function readLegacyVersionNumber(runtimeRoot: string): string {
-  const requireFromRuntimeRoot = createRequire(resolve(runtimeRoot, "bin", "console_runner.js"));
+  const requireFromRuntimeRoot = createRequire(resolve(runtimeRoot, "package.json"));
   const versionModule = requireFromRuntimeRoot(resolve(runtimeRoot, "version.js")) as {
     versionNumber?: unknown;
   };
@@ -264,9 +264,9 @@ async function defaultRunNativeConsoleRunner(options: {
   }
 }
 
-async function defaultRunLegacyConsoleRunner(invocation: LegacyConsoleRunnerInvocation): Promise<number> {
+async function defaultRunCompatConsoleRunner(invocation: CompatConsoleRunnerInvocation): Promise<number> {
   const processHandle = Bun.spawn(
-    [invocation.execPath, invocation.legacyConsoleRunnerPath, ...invocation.forwardedArgv],
+    [invocation.execPath, invocation.compatConsoleRunnerPath, ...invocation.forwardedArgv],
     {
       cwd: invocation.cwd,
       env: invocation.env,
@@ -297,20 +297,20 @@ export async function runConsoleRunnerArgv(
           now: dependencies.now,
         })
       : await (() => {
-          const runLegacyConsoleRunner = dependencies.runLegacyConsoleRunner ?? defaultRunLegacyConsoleRunner;
+          const runCompatConsoleRunner = dependencies.runCompatConsoleRunner ?? defaultRunCompatConsoleRunner;
           const executionEnvironment = sanitizeEnv(process.env);
           const execPath = dependencies.execPath ?? process.execPath;
           if (!canExecTypeScriptEntry(execPath)) {
-            throw new Error(`rewrite4 legacy-forward requires Bun as the exec path, received: ${execPath}`);
+            throw new Error(`rewrite4 compat-forward requires Bun as the exec path, received: ${execPath}`);
           }
 
-          const legacyConsoleRunnerPath = resolveLegacyConsoleRunnerPath(runtimeRoot);
-          return runLegacyConsoleRunner({
+          const compatConsoleRunnerPath = resolveCompatConsoleRunnerPath(runtimeRoot);
+          return runCompatConsoleRunner({
             cwd: runtimeRoot,
             env: executionEnvironment,
             execPath,
             forwardedArgv,
-            legacyConsoleRunnerPath,
+            compatConsoleRunnerPath,
           });
         })();
 

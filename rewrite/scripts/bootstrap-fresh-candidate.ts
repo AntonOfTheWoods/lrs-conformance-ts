@@ -4,7 +4,6 @@ import { dirname, isAbsolute, relative, resolve } from "node:path";
 import { resolveUpstreamRoot } from "../upstream-root.ts";
 
 const repoRoot = resolve(import.meta.dir, "../..");
-const candidateRuntimeModeField = "lrsConformanceRuntimeMode";
 
 interface BootstrapConfig {
   force: boolean;
@@ -107,13 +106,6 @@ async function main(): Promise<void> {
     force: false,
     recursive: true,
   });
-
-  const packageJsonPath = resolve(config.targetDir, "package.json");
-  const packageJson = JSON.parse(await Bun.file(packageJsonPath).text()) as Record<string, unknown>;
-  if (packageJson[candidateRuntimeModeField] !== "bun-ts") {
-    packageJson[candidateRuntimeModeField] = "bun-ts";
-    await writeFile(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
-  }
 
   const metadataPath = resolve(config.targetDir, ".rewrite4-origin.json");
   await writeFile(

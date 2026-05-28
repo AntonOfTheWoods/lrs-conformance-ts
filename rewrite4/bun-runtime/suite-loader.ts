@@ -262,7 +262,7 @@ export function registerSuiteFiles(options: SuiteLoaderOptions): string[] {
   const normalizedOptions = options.normalizedOptions;
   const directoriesToLoad = getDirectoriesToLoad(normalizedOptions);
   const selectedFiles = normalizeSelectedFiles(normalizedOptions.file);
-  const requireFromRuntimeRoot = createRequire(resolve(runtimeRoot, "bin", "console_runner.js"));
+  const requireFromRuntimeRoot = createRequire(resolve(runtimeRoot, "package.json"));
   installAssertionPlugins(requireFromRuntimeRoot);
   installSelectedFileBootstrapHooks({
     requireFromRuntimeRoot,

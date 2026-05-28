@@ -13,12 +13,12 @@
     "url": "git://github.com/adlnet/lrs-conformance-test-suite.git"
   },
   "bin": {
-    "lrs-test": "./bin/console_runner.js"
+    "lrs-test": "./bin/console_runner.ts"
   },
-  "main": "./bin/console_runner.js",
+  "main": "./bin/console_runner.ts",
   "scripts": {
-    "test": "node node_modules/mocha/bin/mocha test/v1_0_2/*.js --reporter nyan",
-    "start": "node ./bin/console_runner.js",
+    "test": "bun ./node_modules/mocha/bin/mocha test/v1_0_2/*.js --reporter nyan",
+    "start": "bun ./bin/console_runner.ts",
     "update-batteries": "bun ./bin/update-batteries.ts"
   },
   "dependencies": {
@@ -49,6 +49,5 @@
     "supertest-as-promised": "^1.0.0",
     "uuid": "^9.0.0",
     "validator": "^5.7.0"
-  },
-  "lrsConformanceRuntimeMode": "bun-ts"
+  }
 }

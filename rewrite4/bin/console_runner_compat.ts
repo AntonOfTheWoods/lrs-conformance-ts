@@ -258,16 +258,12 @@ if (!program.oAuth1) {
   oAuthModule.auth(config, function (error: unknown, oAuth: OAuthResponse) {
     if (error) {
       console.log(error);
-      process.exit();
       return;
     }
 
-    options.consumer_key = options.consumer_key;
-    options.consumer_secret = options.consumer_secret;
     options.token = oAuth.token;
     options.token_secret = oAuth.token_secret;
     options.verifier = oAuth.verifier;
-
     start(options);
   });
 }

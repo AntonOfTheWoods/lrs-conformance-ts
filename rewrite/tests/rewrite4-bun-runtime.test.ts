@@ -166,14 +166,14 @@ test("rewrite4 bun runtime preserves caller selection mode when forwarding to le
   ]);
 });
 
-test("rewrite4 bun runtime delegates to the direct legacy console runner entry", async () => {
+test("rewrite4 bun runtime delegates to the direct compat console runner entry", async () => {
   let invocation:
     | {
         cwd: string;
         env: Record<string, string>;
         execPath: string;
         forwardedArgv: string[];
-        legacyConsoleRunnerPath: string;
+        compatConsoleRunnerPath: string;
       }
     | undefined;
 
@@ -194,8 +194,8 @@ test("rewrite4 bun runtime delegates to the direct legacy console runner entry",
     {
       cwd: "/tmp/rewrite4-suite",
       execPath: "/usr/bin/bun",
-      runnerMode: "legacy-forward",
-      runLegacyConsoleRunner: async (nextInvocation) => {
+      runnerMode: "compat-forward",
+      runCompatConsoleRunner: async (nextInvocation) => {
         invocation = nextInvocation;
         return 7;
       },
@@ -220,8 +220,8 @@ test("rewrite4 bun runtime delegates to the direct legacy console runner entry",
     "--file",
     "test/v1_0_3/Data2.2-FormattingRequirements.js",
   ]);
-  expect(invocation?.legacyConsoleRunnerPath).toBe("/tmp/rewrite4-suite/bin/console_runner_legacy.ts");
-  expect(execution.runnerMode).toBe("legacy-forward");
+  expect(invocation?.compatConsoleRunnerPath).toBe("/tmp/rewrite4-suite/bin/console_runner_compat.ts");
+  expect(execution.runnerMode).toBe("compat-forward");
 });
 
 test("rewrite4 bun runtime defaults to native mode", async () => {
@@ -239,7 +239,7 @@ test("rewrite4 bun runtime defaults to native mode", async () => {
     ],
     {
       cwd: "/tmp/rewrite4-suite",
-      runLegacyConsoleRunner: async () => {
+      runCompatConsoleRunner: async () => {
         legacyInvocationCount += 1;
         return 99;
       },
@@ -256,7 +256,7 @@ test("rewrite4 bun runtime defaults to native mode", async () => {
   expect(legacyInvocationCount).toBe(0);
 });
 
-test("rewrite4 bun runtime rejects non-Bun exec paths for legacy-forward mode", async () => {
+test("rewrite4 bun runtime rejects non-Bun exec paths for compat-forward mode", async () => {
   expect(
     runConsoleRunnerArgv(
       [
@@ -270,10 +270,10 @@ test("rewrite4 bun runtime rejects non-Bun exec paths for legacy-forward mode", 
       {
         cwd: "/tmp/rewrite4-suite",
         execPath: "node",
-        runnerMode: "legacy-forward",
+        runnerMode: "compat-forward",
       },
     ),
-  ).rejects.toThrow("rewrite4 legacy-forward requires Bun as the exec path, received: node");
+  ).rejects.toThrow("rewrite4 compat-forward requires Bun as the exec path, received: node");
 });
 
 test("rewrite4 bun test runner prefers the TypeScript lrs-test entry under Bun", () => {
@@ -316,7 +316,7 @@ test("rewrite4 bun runtime dispatches native mode without forwarding to the lega
     ],
     {
       cwd: "/tmp/rewrite4-suite",
-      runLegacyConsoleRunner: async () => {
+      runCompatConsoleRunner: async () => {
         legacyInvocationCount += 1;
         return 99;
       },
@@ -547,7 +547,6 @@ test("rewrite4 suite loader prioritizes optional directories and selected files"
     await mkdir(join(runtimeRoot, "bin"), { recursive: true });
     await mkdir(join(runtimeRoot, "test", "Parameters"), { recursive: true });
     await mkdir(join(runtimeRoot, "test", "v1_0_3"), { recursive: true });
-    await writeFile(join(runtimeRoot, "bin", "console_runner.js"), "module.exports = {};\n", "utf8");
     await writeFile(
       join(runtimeRoot, "test", "Parameters", "testing.js"),
       'global.__suiteLoadTrace.push("Parameters/testing.js");\n',
@@ -599,7 +598,6 @@ test("rewrite4 suite loader installs chai-things before loading selected files",
     await mkdir(join(runtimeRoot, "node_modules", "chai"), { recursive: true });
     await mkdir(join(runtimeRoot, "node_modules", "chai-things"), { recursive: true });
     await mkdir(join(runtimeRoot, "test", "v1_0_3"), { recursive: true });
-    await writeFile(join(runtimeRoot, "bin", "console_runner.js"), "module.exports = {};\n", "utf8");
     await writeFile(
       join(runtimeRoot, "node_modules", "chai", "index.js"),
       [
@@ -662,7 +660,6 @@ test("rewrite4 suite loader registers time margin bootstrap for selected time-se
     await mkdir(join(runtimeRoot, "node_modules", "chai"), { recursive: true });
     await mkdir(join(runtimeRoot, "node_modules", "chai-things"), { recursive: true });
     await mkdir(join(runtimeRoot, "test", "v1_0_3"), { recursive: true });
-    await writeFile(join(runtimeRoot, "bin", "console_runner.js"), "module.exports = {};\n", "utf8");
     await writeFile(join(runtimeRoot, "node_modules", "chai", "index.js"), "module.exports = { use() {} };\n", "utf8");
     await writeFile(join(runtimeRoot, "node_modules", "chai-things", "index.js"), "module.exports = {};\n", "utf8");
     await writeFile(join(runtimeRoot, "test", "helper.js"), "module.exports = { setTimeMargin() {} };\n", "utf8");

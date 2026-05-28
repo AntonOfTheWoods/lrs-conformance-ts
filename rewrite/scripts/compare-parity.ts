@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 
-import { compareParityTrees, getRuntimeRunRoot } from "../comparison";
+import { compareRuntimeRunOutputs } from "../comparison";
 
 function getFlagValue(args: string[], flag: string): string | undefined {
   const index = args.indexOf(flag);
@@ -25,7 +25,8 @@ function usage(): string {
     "Usage:",
     "  bun run rewrite:compare -- --left <left-run.json> --right <right-run.json>",
     "",
-    "Use --left-include-root and --right-include-root to control whether the top-level tree wrapper should be compared.",
+    "Saved exported run artifacts strip both top-level runtime wrappers by default.",
+    "Use --left-include-root and --right-include-root to compare those wrappers explicitly.",
   ].join("\n");
 }
 
@@ -39,7 +40,7 @@ async function main(): Promise<number> {
   const leftPath = getFlagValue(args, "--left");
   const rightPath = getFlagValue(args, "--right");
   const leftIncludeRoot = getBooleanFlag(args, "--left-include-root", false);
-  const rightIncludeRoot = getBooleanFlag(args, "--right-include-root", true);
+  const rightIncludeRoot = getBooleanFlag(args, "--right-include-root", false);
 
   if (!leftPath || !rightPath) {
     console.error(usage());
@@ -47,9 +48,12 @@ async function main(): Promise<number> {
   }
 
   const [leftRun, rightRun] = await Promise.all([loadJson(leftPath), loadJson(rightPath)]);
-  const comparison = compareParityTrees(
-    getRuntimeRunRoot(leftRun as { root?: unknown; log?: unknown }),
-    getRuntimeRunRoot(rightRun as { root?: unknown; log?: unknown }),
+  const comparison = compareRuntimeRunOutputs(
+    leftRun as { root?: unknown; log?: unknown },
+    rightRun as {
+      root?: unknown;
+      log?: unknown;
+    },
     {
       leftIncludeRoot,
       rightIncludeRoot,
