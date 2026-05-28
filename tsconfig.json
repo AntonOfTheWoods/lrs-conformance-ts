@@ -27,5 +27,5 @@
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false
   },
-  "exclude": ["archive", "rewrite4", "tmp", "node_modules"]
+  "exclude": ["archive", "rewrite4/local", "rewrite4/node_modules", "rewrite4/test", "tmp", "node_modules"]
 }

@@ -6,10 +6,12 @@ import { dirname, isAbsolute, posix, relative, resolve } from "node:path";
 import { getMigrationLedgerUnitByUnitKey } from "../../src/describe-runtime/migration-ledger.ts";
 
 const repoRoot = resolve(import.meta.dir, "../..");
+const defaultBunImage = "docker.io/oven/bun:1";
 const defaultNodeImage = "docker.io/library/node:22";
 const defaultUpstreamRepoUrl = "https://github.com/adlnet/lrs-conformance-test-suite.git";
 const defaultUpstreamRef = "5bc232d349c60faded8240da698f195106091638";
 const defaultCloneDepth = 1;
+const candidateRuntimeModeField = "lrsConformanceRuntimeMode";
 const repoMountTarget = "/workspace";
 const suiteMountTarget = "/adl-suite-src";
 const allowedArtifactsRoot = resolve(repoRoot, "tmp/agents");
@@ -20,8 +22,12 @@ type SuiteLocation = {
 
 type SupportedVersion = "2.0.0" | "1.0.3";
 
+export type CandidateRuntimeMode = "legacy-node" | "bun-ts";
+
 interface ExportUpstreamConfig {
   baseUrl: string;
+  bunImage: string;
+  candidateRuntimeMode?: CandidateRuntimeMode;
   username: string;
   password: string;
   version: SupportedVersion;
@@ -45,6 +51,41 @@ export interface UpstreamUnitSelection {
   directory: "v1_0_3" | "v2_0";
   filePaths: string[];
   optionalDirectories: string[];
+}
+
+function isCandidateRuntimeMode(value: string): value is CandidateRuntimeMode {
+  return value === "legacy-node" || value === "bun-ts";
+}
+
+export function parseCandidateRuntimeMode(value: string | undefined): CandidateRuntimeMode | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  if (!isCandidateRuntimeMode(value)) {
+    throw new Error(`Unsupported --candidate-runtime-mode value: ${value}`);
+  }
+
+  return value;
+}
+
+export function readCandidateRuntimeModeFromSuiteDir(suiteDir: string): CandidateRuntimeMode {
+  const packageJsonPath = resolve(suiteDir, "package.json");
+  if (!existsSync(packageJsonPath)) {
+    return "legacy-node";
+  }
+
+  const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8")) as Record<string, unknown>;
+  const runtimeMode = packageJson[candidateRuntimeModeField];
+  if (typeof runtimeMode === "undefined") {
+    return "legacy-node";
+  }
+
+  if (!isCandidateRuntimeMode(runtimeMode)) {
+    throw new Error(`Unsupported ${candidateRuntimeModeField} value in ${packageJsonPath}: ${String(runtimeMode)}`);
+  }
+
+  return runtimeMode;
 }
 
 function getFlagValue(args: string[], flag: string): string | undefined {
@@ -109,7 +150,7 @@ export function resolveUpstreamUnitSelection(unitKeys: string[], version: Suppor
 function usage(): string {
   return [
     "Usage:",
-    "  bun run rewrite:export:upstream:lrsql -- [--suite-dir <path>] [--base-url <url>] [--username <user>] [--password <pass>] [--version 2.0.0|1.0.3] [--out <path>] [--grep <pattern>] [--directory <csv>] [--optional <csv>] [--unitKey <csv>] [--log-dir <path>] [--node-image <ref>] [--upstream-repo-url <url>] [--upstream-ref <ref>] [--clone-depth <n>] [--clone-base-dir <path>] [--keep-clone]",
+    "  bun run rewrite:export:upstream:lrsql -- [--suite-dir <path>] [--candidate-runtime-mode legacy-node|bun-ts] [--base-url <url>] [--username <user>] [--password <pass>] [--version 2.0.0|1.0.3] [--out <path>] [--grep <pattern>] [--directory <csv>] [--optional <csv>] [--unitKey <csv>] [--log-dir <path>] [--node-image <ref>] [--bun-image <ref>] [--upstream-repo-url <url>] [--upstream-ref <ref>] [--clone-depth <n>] [--clone-base-dir <path>] [--keep-clone]",
     "",
     "Defaults:",
     "  --base-url http://localhost:8080/xapi",
@@ -123,7 +164,9 @@ function usage(): string {
     `  --clone-depth ${defaultCloneDepth}`,
     "  --clone-base-dir tmp/agents/upstream-clones",
     `  --node-image ${defaultNodeImage}`,
+    `  --bun-image ${defaultBunImage}`,
     "  --suite-dir rewrite4",
+    "  --candidate-runtime-mode defaults to lrsConformanceRuntimeMode in package.json or legacy-node",
     "",
     "Notes:",
     "  Without --suite-dir, the upstream suite source is fetched from GitHub by shallow clone.",
@@ -134,6 +177,8 @@ function usage(): string {
 
 function parseConfig(args: string[]): ExportUpstreamConfig {
   const baseUrl = getFlagValue(args, "--base-url") ?? "http://localhost:8080/xapi";
+  const bunImage = getFlagValue(args, "--bun-image") ?? process.env.BUN_IMAGE ?? defaultBunImage;
+  const candidateRuntimeModeArg = getFlagValue(args, "--candidate-runtime-mode");
   const username = getFlagValue(args, "--username") ?? "janedoe";
   const password = getFlagValue(args, "--password") ?? "supersecret";
   const versionFlag = getFlagValue(args, "--version") ?? "2.0.0";
@@ -173,10 +218,20 @@ function parseConfig(args: string[]): ExportUpstreamConfig {
     throw new Error("--unitKey cannot be combined with --grep, --directory, or --optional.");
   }
 
+  if (candidateRuntimeModeArg && !suiteDirArg) {
+    throw new Error("--candidate-runtime-mode can only be used with --suite-dir.");
+  }
+
   const version: SupportedVersion = versionFlag;
+  const suiteDir = suiteDirArg ? (isAbsolute(suiteDirArg) ? suiteDirArg : resolve(repoRoot, suiteDirArg)) : undefined;
+  const candidateRuntimeMode = suiteDir
+    ? (parseCandidateRuntimeMode(candidateRuntimeModeArg) ?? readCandidateRuntimeModeFromSuiteDir(suiteDir))
+    : undefined;
 
   return {
     baseUrl,
+    bunImage,
+    candidateRuntimeMode,
     username,
     password,
     version,
@@ -189,7 +244,7 @@ function parseConfig(args: string[]): ExportUpstreamConfig {
     cloneBaseDir: isAbsolute(cloneBaseDirArg) ? cloneBaseDirArg : resolve(repoRoot, cloneBaseDirArg),
     keepClone,
     allowUnsafeOutputPath,
-    suiteDir: suiteDirArg ? (isAbsolute(suiteDirArg) ? suiteDirArg : resolve(repoRoot, suiteDirArg)) : undefined,
+    suiteDir,
     grep,
     directory,
     optional,
@@ -496,6 +551,10 @@ function ensureRunnerSelectionFlagSupport(suiteDir: string): void {
   const consoleRunnerPath = resolve(suiteDir, "bin/console_runner.js");
   let source = readFileSync(consoleRunnerPath, "utf8");
 
+  if (source.includes("console_runner_legacy.js")) {
+    return;
+  }
+
   const directoryOptionLine =
     "    .option('-d, --directory [value]', 'Specific directories of tests (as a comma-separated list with no spaces).', clean_dir, [...[]])\n";
   const optionalOptionLine =
@@ -716,7 +775,7 @@ function prepareProvidedSuite(config: ExportUpstreamConfig): SuiteLocation {
 function ensurePodmanAvailable(): void {
   ensureCommandAvailable(
     "podman",
-    "podman is required to run the ADL conformance suite in the Node 22 container path.",
+    "podman is required to run the ADL conformance suite in its containerized execution paths.",
   );
 }
 
@@ -728,7 +787,7 @@ function shellEscape(value: string): string {
   return `'${value.replaceAll("'", `"'"'"`)}'`;
 }
 
-function buildSuiteBootstrapCommand(
+function buildLegacyNodeSuiteBootstrapCommand(
   upstreamArgs: string[],
   logDirInContainer: string,
   suiteSourceDirInContainer: string,
@@ -781,14 +840,75 @@ function buildSuiteBootstrapCommand(
   ].join("\n");
 }
 
-function runConsoleRunnerInContainer(config: ExportUpstreamConfig, suiteLocation: SuiteLocation): number {
-  ensurePodmanAvailable();
+function buildCandidateBunSuiteBootstrapCommand(
+  upstreamArgs: string[],
+  logDirInContainer: string,
+  suiteSourceDirInContainer: string,
+): string {
+  const shellQuotedUpstreamArgs = upstreamArgs.map(shellEscape).join(" ");
+  const runtimePrefixDir = "/tmp/adl-suite-runtime";
+  const runtimeSuiteDir = posix.resolve(runtimePrefixDir, "adl-lrs-conformance-tests");
+  const runtimeSuiteNodeModulesDir = posix.resolve(runtimeSuiteDir, "node_modules");
+  const runtimeSuiteLogsDir = posix.resolve(runtimeSuiteDir, "logs");
+  const runtimeConsoleRunnerPath = posix.resolve(runtimeSuiteDir, "bin/console_runner.js");
+  const runtimeBunBinaryPath = "/usr/local/bin/bun";
 
+  return [
+    "set -eu",
+    `suite_source_dir=${shellEscape(suiteSourceDirInContainer)}`,
+    `artifact_dir=${shellEscape(logDirInContainer)}`,
+    `runtime_prefix_dir=${shellEscape(runtimePrefixDir)}`,
+    `runtime_suite_dir=${shellEscape(runtimeSuiteDir)}`,
+    `runtime_suite_node_modules_dir=${shellEscape(runtimeSuiteNodeModulesDir)}`,
+    `runtime_suite_logs_dir=${shellEscape(runtimeSuiteLogsDir)}`,
+    `runtime_console_runner_path=${shellEscape(runtimeConsoleRunnerPath)}`,
+    `runtime_bun_binary_path=${shellEscape(runtimeBunBinaryPath)}`,
+    'if [ -z "$suite_source_dir" ] || [ "$suite_source_dir" = "/" ]; then',
+    '  echo "[conformance] refusing unsafe suite source path: $suite_source_dir"',
+    "  exit 1",
+    "fi",
+    'if [ ! -f "$suite_source_dir/bin/console_runner.js" ] || [ ! -f "$suite_source_dir/package.json" ]; then',
+    '  echo "[conformance] candidate suite is missing expected files in $suite_source_dir"',
+    "  exit 1",
+    "fi",
+    'rm -rf "$runtime_prefix_dir"',
+    'mkdir -p "$runtime_suite_dir"',
+    'mkdir -p "$artifact_dir"',
+    'cp -LR "$suite_source_dir"/. "$runtime_suite_dir"',
+    'rm -rf "$runtime_suite_logs_dir"',
+    'ln -s "$artifact_dir" "$runtime_suite_logs_dir"',
+    'cd "$runtime_suite_dir"',
+    'if [ ! -x "$runtime_bun_binary_path" ]; then',
+    '  echo "[conformance] missing Bun binary at $runtime_bun_binary_path"',
+    "  exit 1",
+    "fi",
+    'if [ ! -f "$runtime_suite_node_modules_dir/pretty-error/package.json" ]; then',
+    '  echo "[conformance] hydrating ADL suite runtime dependencies"',
+    '  npm install --prefix "$runtime_suite_dir" --omit=dev --no-save --no-package-lock --ignore-scripts --no-audit --no-fund',
+    "fi",
+    'export NODE_PATH="$runtime_suite_node_modules_dir${NODE_PATH:+:$NODE_PATH}"',
+    "export LRS_LEGACY_CONSOLE_RUNNER_EXEC_PATH=node",
+    "set +e",
+    `"$runtime_bun_binary_path" "$runtime_console_runner_path"${shellQuotedUpstreamArgs.length > 0 ? ` ${shellQuotedUpstreamArgs}` : ""}`,
+    "status=$?",
+    'latest_log=$(ls -1t "$artifact_dir"/*.log 2>/dev/null | head -n 1 || true)',
+    'if [ -n "$latest_log" ]; then',
+    '  echo "[conformance] latest run log available at $latest_log"',
+    "fi",
+    'exit "$status"',
+  ].join("\n");
+}
+
+function buildConsoleRunnerArgs(config: ExportUpstreamConfig): {
+  captureUnit: ReturnType<typeof getMigrationLedgerUnitByUnitKey>;
+  consoleRunnerArgs: string[];
+  unitSelection: UpstreamUnitSelection | null;
+} {
   const unitSelection = config.unitKeys ? resolveUpstreamUnitSelection(config.unitKeys, config.version) : null;
   const requestedCaptureUnitKey = config.unitKeys?.length === 1 ? (config.unitKeys[0] ?? undefined) : undefined;
   const captureUnit = requestedCaptureUnitKey ? getMigrationLedgerUnitByUnitKey(requestedCaptureUnitKey) : undefined;
 
-  const upstreamArgs = [
+  const consoleRunnerArgs = [
     "--endpoint",
     config.baseUrl,
     "--authUser",
@@ -799,33 +919,41 @@ function runConsoleRunnerInContainer(config: ExportUpstreamConfig, suiteLocation
   ];
 
   if (!config.directory && !unitSelection) {
-    upstreamArgs.push("--xapiVersion", config.version);
+    consoleRunnerArgs.push("--xapiVersion", config.version);
   }
 
   if (unitSelection) {
-    upstreamArgs.push("--directory", unitSelection.directory);
-    upstreamArgs.push("--file", unitSelection.filePaths.join(","));
+    consoleRunnerArgs.push("--directory", unitSelection.directory);
+    consoleRunnerArgs.push("--file", unitSelection.filePaths.join(","));
     if (unitSelection.optionalDirectories.length > 0) {
-      upstreamArgs.push("--optional", unitSelection.optionalDirectories.join(","));
+      consoleRunnerArgs.push("--optional", unitSelection.optionalDirectories.join(","));
     }
   }
 
   if (config.grep && !unitSelection) {
-    upstreamArgs.push("--grep", config.grep);
+    consoleRunnerArgs.push("--grep", config.grep);
   }
 
   if (config.directory && !unitSelection) {
-    upstreamArgs.push("--directory", config.directory);
+    consoleRunnerArgs.push("--directory", config.directory);
   }
 
   if (config.optional && !unitSelection) {
-    upstreamArgs.push("--optional", config.optional);
+    consoleRunnerArgs.push("--optional", config.optional);
   }
 
-  mkdirSync(config.logDir, { recursive: true });
+  return {
+    captureUnit,
+    consoleRunnerArgs,
+    unitSelection,
+  };
+}
 
-  const logDirInContainer = posix.resolve(repoMountTarget, toPosixRelativePath(relative(repoRoot, config.logDir)));
-  const suiteBootstrapCommand = buildSuiteBootstrapCommand(upstreamArgs, logDirInContainer, suiteMountTarget);
+function createBasePodmanArgs(
+  config: ExportUpstreamConfig,
+  suiteLocation: SuiteLocation,
+  captureUnit: ReturnType<typeof getMigrationLedgerUnitByUnitKey>,
+): string[] {
   const mountSuffix = process.platform === "linux" ? ":Z" : "";
   const podmanArgs = ["run", "--rm", "--network", "host"];
 
@@ -835,7 +963,6 @@ function runConsoleRunnerInContainer(config: ExportUpstreamConfig, suiteLocation
 
   podmanArgs.push("--volume", `${suiteLocation.suiteDir}:${suiteMountTarget}${mountSuffix}`);
   podmanArgs.push("--volume", `${repoRoot}:${repoMountTarget}${mountSuffix}`);
-
   podmanArgs.push("--workdir", suiteMountTarget, "--env", "HOME=/tmp");
 
   if (captureUnit) {
@@ -857,10 +984,31 @@ function runConsoleRunnerInContainer(config: ExportUpstreamConfig, suiteLocation
     );
   }
 
+  if (config.suiteDir && config.candidateRuntimeMode) {
+    podmanArgs.push("--env", `LRS_CANDIDATE_RUNTIME_MODE=${config.candidateRuntimeMode}`);
+  }
+
   if (process.platform !== "linux" && typeof process.getuid === "function" && typeof process.getgid === "function") {
     podmanArgs.push("--user", `${process.getuid()}:${process.getgid()}`);
   }
 
+  return podmanArgs;
+}
+
+function runLegacyNodeConsoleRunnerInContainer(config: ExportUpstreamConfig, suiteLocation: SuiteLocation): number {
+  ensurePodmanAvailable();
+
+  const { captureUnit, consoleRunnerArgs } = buildConsoleRunnerArgs(config);
+
+  mkdirSync(config.logDir, { recursive: true });
+
+  const logDirInContainer = posix.resolve(repoMountTarget, toPosixRelativePath(relative(repoRoot, config.logDir)));
+  const suiteBootstrapCommand = buildLegacyNodeSuiteBootstrapCommand(
+    consoleRunnerArgs,
+    logDirInContainer,
+    suiteMountTarget,
+  );
+  const podmanArgs = createBasePodmanArgs(config, suiteLocation, captureUnit);
   podmanArgs.push(config.nodeImage, "sh", "-lc", suiteBootstrapCommand);
 
   const result = spawnSync("podman", podmanArgs, {
@@ -873,6 +1021,49 @@ function runConsoleRunnerInContainer(config: ExportUpstreamConfig, suiteLocation
   }
 
   return result.status ?? 1;
+}
+
+function runCandidateBunConsoleRunnerInContainer(config: ExportUpstreamConfig, suiteLocation: SuiteLocation): number {
+  ensurePodmanAvailable();
+
+  const { captureUnit, consoleRunnerArgs } = buildConsoleRunnerArgs(config);
+  const hostBunBinaryPath = process.execPath;
+
+  if (!existsSync(hostBunBinaryPath)) {
+    throw new Error(`Unable to find the host Bun binary for the candidate bun-ts lane: ${hostBunBinaryPath}`);
+  }
+
+  mkdirSync(config.logDir, { recursive: true });
+
+  const logDirInContainer = posix.resolve(repoMountTarget, toPosixRelativePath(relative(repoRoot, config.logDir)));
+  const suiteBootstrapCommand = buildCandidateBunSuiteBootstrapCommand(
+    consoleRunnerArgs,
+    logDirInContainer,
+    suiteMountTarget,
+  );
+  const podmanArgs = createBasePodmanArgs(config, suiteLocation, captureUnit);
+  const mountSuffix = process.platform === "linux" ? ":Z" : "";
+  podmanArgs.push("--volume", `${hostBunBinaryPath}:/usr/local/bin/bun${mountSuffix}`);
+  podmanArgs.push(config.nodeImage, "sh", "-lc", suiteBootstrapCommand);
+
+  const result = spawnSync("podman", podmanArgs, {
+    stdio: "inherit",
+    env: process.env,
+  });
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  return result.status ?? 1;
+}
+
+function runConsoleRunnerInContainer(config: ExportUpstreamConfig, suiteLocation: SuiteLocation): number {
+  if (config.suiteDir && config.candidateRuntimeMode === "bun-ts") {
+    return runCandidateBunConsoleRunnerInContainer(config, suiteLocation);
+  }
+
+  return runLegacyNodeConsoleRunnerInContainer(config, suiteLocation);
 }
 
 async function listLogFiles(logDir: string): Promise<string[]> {
@@ -980,6 +1171,7 @@ async function main(): Promise<number> {
   const outputPayload = {
     ...parsed,
     mode: config.suiteDir ? "candidate" : "upstream-oracle",
+    candidateRuntimeMode: config.candidateRuntimeMode ?? null,
     selectedFiles: unitSelection?.filePaths ?? null,
     selectedUnitKeys: config.unitKeys ?? null,
     sourceSuiteDir: config.suiteDir ?? null,
@@ -994,6 +1186,7 @@ async function main(): Promise<number> {
     JSON.stringify(
       {
         mode: config.suiteDir ? "candidate" : "upstream-oracle",
+        candidateRuntimeMode: config.candidateRuntimeMode ?? null,
         outputPath: absoluteOutputPath,
         selectedFiles: unitSelection?.filePaths ?? null,
         selectedUnitKeys: config.unitKeys ?? null,

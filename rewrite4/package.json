@@ -2,25 +2,25 @@
   "name": "adl-lrs-conformance-tests",
   "version": "2.0.0-1",
   "description": "lrs-conformance-tests",
+  "homepage": "https://github.com/adlnet/lrs-conformance-test-suite",
+  "bugs": {
+    "url": "https://github.com/adlnet/lrs-conformance-test-suite/issues"
+  },
+  "license": "MIT",
+  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/adlnet/lrs-conformance-test-suite.git"
+  },
+  "bin": {
+    "lrs-test": "./bin/console_runner.js"
+  },
   "main": "./bin/console_runner.js",
   "scripts": {
     "test": "node node_modules/mocha/bin/mocha test/v1_0_2/*.js --reporter nyan",
     "start": "node ./bin/console_runner.js",
     "update-batteries": "node ./bin/update-batteries.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/adlnet/lrs-conformance-test-suite.git"
-  },
-  "author": "",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/adlnet/lrs-conformance-test-suite/issues"
-  },
-  "bin": {
-    "lrs-test": "./bin/console_runner.js"
-  },
-  "homepage": "https://github.com/adlnet/lrs-conformance-test-suite",
   "dependencies": {
     "axios": "^1.4.0",
     "axios-oauth-1.0a": "^0.3.6",
@@ -57,5 +57,6 @@
     "supertest-as-promised": "^1.0.0",
     "uuid": "^9.0.0",
     "validator": "^5.7.0"
-  }
+  },
+  "lrsConformanceRuntimeMode": "legacy-node"
 }
