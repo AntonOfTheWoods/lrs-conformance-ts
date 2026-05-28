@@ -106,10 +106,33 @@ function createBatteries(): Record<string, BatteryInfo> {
   return output;
 }
 
+function serializeBatteriesModule(batteryOutput: Record<string, BatteryInfo>): string {
+  return [
+    "export type BatteryTreeNode = {",
+    "  children: BatteryTreeNode[];",
+    "  text: string;",
+    "};",
+    "",
+    "export type BatteryInfo = {",
+    "  conformanceTestCount: number | null;",
+    "  tests: BatteryTreeNode;",
+    "};",
+    "",
+    `const batteries = ${JSON.stringify(batteryOutput, null, 2)} as Record<string, BatteryInfo>;`,
+    "",
+    "export default batteries;",
+    "",
+    'if (typeof module !== "undefined") {',
+    "  module.exports = batteries;",
+    "}",
+    "",
+  ].join("\n");
+}
+
 async function main(): Promise<void> {
   const batteryOutput = createBatteries();
-  const batteryPath = path.join(__dirname, "../batteries.js");
-  const fileContents = `module.exports = ${JSON.stringify(batteryOutput, null, 2)}`;
+  const batteryPath = path.join(__dirname, "../batteries.ts");
+  const fileContents = serializeBatteriesModule(batteryOutput);
 
   fs.writeFileSync(batteryPath, fileContents);
 }

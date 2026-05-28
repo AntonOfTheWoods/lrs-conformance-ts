@@ -1,4 +1,14 @@
-module.exports = {
+export type BatteryTreeNode = {
+  children: BatteryTreeNode[];
+  text: string;
+};
+
+export type BatteryInfo = {
+  conformanceTestCount: number | null;
+  tests: BatteryTreeNode;
+};
+
+const batteries = {
   "1.0.3": {
     "conformanceTestCount": 1365,
     "tests": {
@@ -13828,4 +13838,10 @@ module.exports = {
       ]
     }
   }
+} as Record<string, BatteryInfo>;
+
+export default batteries;
+
+if (typeof module !== "undefined") {
+  module.exports = batteries;
 }

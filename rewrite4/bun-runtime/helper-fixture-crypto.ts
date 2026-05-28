@@ -1,15 +1,81 @@
-// @ts-nocheck
 "use strict";
 
-function createMapping(mapper, input) {
-  var object = {};
+type AnyRecord = Record<string, any>;
+type JsonMapping = Record<string, Record<string, unknown>>;
 
-  var nested = mapper;
+type HelperState = {
+  CONFIG_FOLDER: string;
+  CONFIG_FOLDER_RELATIVE: string;
+  DIRECTORY: string;
+  TEMPLATE_FOLDER: string;
+  TEMPLATE_FOLDER_RELATIVE: string;
+};
+
+type TestConfiguration = {
+  config: unknown[];
+  name: string;
+};
+
+type HelperExports = {
+  clone(object: unknown): unknown;
+  convertTemplate(list: Array<Record<string, unknown>>): Array<Record<string, unknown>>;
+  createTestObject(list: Array<Record<string, unknown>>): AnyRecord;
+  generateUUID(): string;
+  getJsonMapping(): JsonMapping;
+};
+
+type FixtureCryptoContext = {
+  FormUrlencode: {
+    encode(value: Record<string, unknown>): string;
+  };
+  crypto: typeof import("crypto");
+  extend(deep: boolean, target: AnyRecord, source: AnyRecord): AnyRecord;
+  fs: typeof import("fs");
+  getHelperExports(): HelperExports;
+  getState(): HelperState;
+  helperRequire: NodeJS.Require;
+  jws: {
+    sign(options: Record<string, unknown>): string;
+  };
+  lodashIsEqual(left: unknown, right: unknown): boolean;
+  uuid: {
+    v4(): string;
+  };
+};
+
+type AttachmentInfo = {
+  contentType?: string;
+  usageType?: string;
+};
+
+type SignStatementOptions = {
+  algorithm?: string;
+  attachmentInfo?: AttachmentInfo;
+  boundary?: string;
+  breakJson?: boolean;
+  privateKey?: string;
+};
+
+type SignableStatement = AnyRecord & {
+  attachments?: Array<{
+    contentType: string;
+    description: Record<string, string>;
+    display: Record<string, string>;
+    length: number;
+    sha2: string;
+    usageType: string;
+  }>;
+};
+
+function createMapping(mapper: JsonMapping, input: string) {
+  var object: unknown = {};
+
+  var nested: unknown = mapper;
   var cleanString = input.substring(2);
   cleanString = cleanString.substring(0, cleanString.length - 2);
   var mapping = cleanString.split(".");
   mapping.forEach(function (item) {
-    nested = nested[item];
+    nested = (nested as Record<string, unknown>)[item];
     if (nested) {
       object = nested;
     } else {
@@ -19,7 +85,7 @@ function createMapping(mapper, input) {
   return object;
 }
 
-function validateConfiguration(configurations, location) {
+function validateConfiguration(configurations: TestConfiguration[], location: string) {
   configurations.forEach(function (configuration) {
     if (!configuration.name) {
       throw new Error('Invalid configuration "missing name": ' + location);
@@ -29,20 +95,23 @@ function validateConfiguration(configurations, location) {
   });
 }
 
-function createHelperFixtureCryptoSupport(context) {
+function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
   const helper = function () {
     return context.getHelperExports();
   };
 
   return {
-    convertTemplate: function convertTemplate(list) {
+    convertTemplate: function convertTemplate(list: Array<Record<string, unknown>>) {
       var mapper = helper().getJsonMapping();
-      var templates = [];
+      var templates: Array<Record<string, unknown>> = [];
       list.forEach(function (item) {
         var key = Object.keys(item)[0];
+        if (!key) {
+          return;
+        }
         var value = item[key];
 
-        var object = {};
+        var object: Record<string, unknown> = {};
         if (typeof value === "string" && value.indexOf("{{") === 0 && value.indexOf("}}") === value.length - 2) {
           object[key] = createMapping(mapper, value);
           templates.push(object);
@@ -53,13 +122,13 @@ function createHelperFixtureCryptoSupport(context) {
       return templates;
     },
 
-    createFromTemplate: function createFromTemplate(templates) {
+    createFromTemplate: function createFromTemplate(templates: Array<Record<string, unknown>>) {
       var converted = helper().convertTemplate(templates);
       return helper().createTestObject(converted);
     },
 
-    createTestObject: function createTestObject(array) {
-      var from = {};
+    createTestObject: function createTestObject(array: Array<Record<string, unknown>>) {
+      var from: Record<string, unknown> = {};
 
       array.reverse();
       array.forEach(function (to, index) {
@@ -68,24 +137,28 @@ function createHelperFixtureCryptoSupport(context) {
           return;
         }
 
-        var toKey = to[Object.keys(to)[0]];
+        var firstKey = Object.keys(to)[0];
+        if (!firstKey) {
+          return;
+        }
+        var toKey = to[firstKey] as AnyRecord;
         context.extend(true, toKey, from);
         from = to;
       });
       return from;
     },
 
-    deepSearchObject: function deepSearchObject(object, primitive) {
-      var tested = [];
+    deepSearchObject: function deepSearchObject(object: Record<string, unknown>, primitive: unknown) {
+      var tested: unknown[] = [];
 
-      var _internal = function (candidate, expected) {
+      var _internal = function (candidate: Record<string, unknown>, expected: unknown): boolean {
         tested.push(candidate);
         var found = false;
         for (var i in candidate) {
           if (candidate[i] == expected) return true;
           else {
-            if (typeof candidate[i] == "object" && tested.indexOf(candidate[i])) {
-              found = found || _internal(candidate[i], expected);
+            if (typeof candidate[i] == "object" && candidate[i] !== null && tested.indexOf(candidate[i])) {
+              found = found || _internal(candidate[i] as Record<string, unknown>, expected);
             }
           }
         }
@@ -100,13 +173,13 @@ function createHelperFixtureCryptoSupport(context) {
 
     getJsonMapping: function getJsonMapping() {
       var state = context.getState();
-      var mapping = {};
-      var folders = context.fs.readdirSync(state.TEMPLATE_FOLDER);
+      var mapping: JsonMapping = {};
+      var folders = context.fs.readdirSync(state.TEMPLATE_FOLDER) as string[];
       folders.forEach(function (folder) {
-        var fileMapping = {};
+        var fileMapping: Record<string, unknown> = {};
         mapping[folder] = fileMapping;
 
-        var files = context.fs.readdirSync(state.TEMPLATE_FOLDER + "/" + folder);
+        var files = context.fs.readdirSync(state.TEMPLATE_FOLDER + "/" + folder) as string[];
         files.forEach(function (file) {
           if (file.indexOf(".json") <= 0) {
             return;
@@ -121,7 +194,7 @@ function createHelperFixtureCryptoSupport(context) {
       return mapping;
     },
 
-    getSHA1Sum: function getSHA1Sum(content) {
+    getSHA1Sum: function getSHA1Sum(content: unknown) {
       var normalizedContent = typeof content === "string" ? content : JSON.stringify(content);
 
       var shasum = context.crypto.createHash("sha1");
@@ -131,15 +204,17 @@ function createHelperFixtureCryptoSupport(context) {
 
     getTestConfiguration: function getTestConfiguration() {
       var state = context.getState();
-      var list = [];
+      var list: TestConfiguration[] = [];
 
-      var files = context.fs.readdirSync(state.CONFIG_FOLDER);
+      var files = context.fs.readdirSync(state.CONFIG_FOLDER) as string[];
       files.forEach(function (file) {
         if (file.indexOf(".js") <= 0) {
           return;
         }
 
-        var configFile = context.helperRequire(state.CONFIG_FOLDER_RELATIVE + "/" + file);
+        var configFile = context.helperRequire(state.CONFIG_FOLDER_RELATIVE + "/" + file) as {
+          config(): TestConfiguration[];
+        };
         var config = configFile.config();
         validateConfiguration(config, "/" + file);
         list = list.concat(config);
@@ -147,9 +222,9 @@ function createHelperFixtureCryptoSupport(context) {
       return list;
     },
 
-    getSingleTestConfiguration: function getSingleTestConfiguration(fileName) {
+    getSingleTestConfiguration: function getSingleTestConfiguration(fileName: string) {
       var state = context.getState();
-      var files = context.fs.readdirSync(state.CONFIG_FOLDER);
+      var files = context.fs.readdirSync(state.CONFIG_FOLDER) as string[];
       var fileExists = false;
       files.forEach(function (file) {
         if (file === fileName) fileExists = true;
@@ -159,16 +234,18 @@ function createHelperFixtureCryptoSupport(context) {
         throw new Error('Invalid configuration "missing name": ' + fileName);
       }
 
-      var configFile = context.helperRequire(state.CONFIG_FOLDER_RELATIVE + "/" + fileName);
+      var configFile = context.helperRequire(state.CONFIG_FOLDER_RELATIVE + "/" + fileName) as {
+        config(): TestConfiguration[];
+      };
       return configFile.config();
     },
 
-    isEqual: function isEqual(original, other) {
+    isEqual: function isEqual(original: unknown, other: unknown) {
       return context.lodashIsEqual(original, other);
     },
 
-    buildFormBody: function buildFormBody(content, id) {
-      var body = {
+    buildFormBody: function buildFormBody(content: unknown, id?: string) {
+      var body: Record<string, unknown> = {
         "X-Experience-API-Version": process.env.XAPI_VERSION,
         content: JSON.stringify(content),
       };
@@ -232,7 +309,7 @@ function createHelperFixtureCryptoSupport(context) {
     },
 
     buildDocument: function buildDocument() {
-      var document = {
+      var document: Record<string, unknown> = {
         name: helper().generateUUID(),
         location: {
           name: helper().generateUUID(),
@@ -247,12 +324,12 @@ function createHelperFixtureCryptoSupport(context) {
       return helper().clone(context.helperRequire("./" + state.DIRECTORY + "/templates/statements/default.json"));
     },
 
-    clone: function clone(obj) {
+    clone: function clone(obj: unknown) {
       return JSON.parse(JSON.stringify(obj));
     },
 
-    parse: function parse(input, done) {
-      var parsed;
+    parse: function parse(input: string, done: (error?: unknown) => void) {
+      var parsed: unknown;
       try {
         parsed = JSON.parse(input);
       } catch (error) {
@@ -261,7 +338,7 @@ function createHelperFixtureCryptoSupport(context) {
       return parsed;
     },
 
-    signStatement: function signStatement(statement, options) {
+    signStatement: function signStatement(statement: SignableStatement, options?: SignStatementOptions) {
       options = options || {};
       options.privateKey =
         options.privateKey ||
@@ -321,6 +398,10 @@ function createHelperFixtureCryptoSupport(context) {
           sha2: context.crypto.createHash("SHA256").update(signatureBuffer).digest("hex"),
         },
       ];
+      var attachment = statement.attachments[0];
+      if (!attachment) {
+        throw new Error("Signed statement attachment generation failed.");
+      }
 
       var buffers = [];
       buffers.push(Buffer.from(["", "--" + options.boundary, "Content-Type:application/json", "", ""].join("\r\n")));
@@ -330,9 +411,9 @@ function createHelperFixtureCryptoSupport(context) {
           [
             "",
             "--" + options.boundary,
-            "Content-Type:" + statement.attachments[0].contentType,
+            "Content-Type:" + attachment.contentType,
             "Content-Transfer-Encoding:binary",
-            "X-Experience-API-Hash:" + statement.attachments[0].sha2,
+            "X-Experience-API-Hash:" + attachment.sha2,
             "",
             "",
           ].join("\r\n"),
@@ -349,7 +430,7 @@ function createHelperFixtureCryptoSupport(context) {
       );
     },
 
-    verifyStatement: function verifyStatement(_statement) {
+    verifyStatement: function verifyStatement(_statement: unknown) {
       var publicKey = [
         "-----BEGIN PUBLIC KEY-----",
         "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvZtrkWAFrUYi8zekTKhe",

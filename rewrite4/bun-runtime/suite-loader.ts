@@ -61,6 +61,39 @@ export function normalizeSelectedFiles(selectedFiles: string[] | undefined): Set
   return new Set(selectedFiles.map((filePath) => toPosixPath(filePath)));
 }
 
+function getAlternateSuiteFilePath(relativeFilePath: string): string | null {
+  if (relativeFilePath.endsWith(".js")) {
+    return `${relativeFilePath.slice(0, -3)}.ts`;
+  }
+
+  if (relativeFilePath.endsWith(".ts")) {
+    return `${relativeFilePath.slice(0, -3)}.js`;
+  }
+
+  return null;
+}
+
+function getSuiteSelectionComparisonPath(relativeFilePath: string): string {
+  return relativeFilePath.endsWith(".ts") ? `${relativeFilePath.slice(0, -3)}.js` : relativeFilePath;
+}
+
+export function isSuiteDefinitionFile(fileName: string): boolean {
+  return fileName.endsWith(".js") || fileName.endsWith(".ts");
+}
+
+export function matchesSelectedSuiteFile(selectedFiles: Set<string> | null, relativeFilePath: string): boolean {
+  if (!selectedFiles) {
+    return true;
+  }
+
+  if (selectedFiles.has(relativeFilePath)) {
+    return true;
+  }
+
+  const alternateFilePath = getAlternateSuiteFilePath(relativeFilePath);
+  return alternateFilePath ? selectedFiles.has(alternateFilePath) : false;
+}
+
 function applyRunnerEnvironment(normalizedOptions: NormalizedRunnerOptions): Array<string | undefined> {
   const previousDirectory = process.env.DIRECTORY;
   const previousEndpoint = process.env.LRS_ENDPOINT;
@@ -219,11 +252,13 @@ export function needsTimeMarginBootstrap(selectedFiles: Set<string> | null): boo
   let hasSetupFile = false;
 
   for (const filePath of selectedFiles) {
-    if (timeMarginDependentFiles.has(filePath)) {
+    const comparisonFilePath = getSuiteSelectionComparisonPath(filePath);
+
+    if (timeMarginDependentFiles.has(comparisonFilePath)) {
       hasDependentFile = true;
     }
 
-    if (timeMarginSetupFiles.has(filePath)) {
+    if (timeMarginSetupFiles.has(comparisonFilePath)) {
       hasSetupFile = true;
     }
   }
@@ -277,12 +312,12 @@ export function registerSuiteFiles(options: SuiteLoaderOptions): string[] {
     for (const directory of directoriesToLoad) {
       const testDirectory = resolve(runtimeRoot, "test", directory);
       const directoryEntries = readdirSync(testDirectory)
-        .filter((entry) => entry.endsWith(".js"))
+        .filter((entry) => isSuiteDefinitionFile(entry))
         .sort((left, right) => left.localeCompare(right));
 
       for (const entry of directoryEntries) {
         const relativeFilePath = toPosixPath(join("test", directory, entry));
-        if (selectedFiles && !selectedFiles.has(relativeFilePath)) {
+        if (!matchesSelectedSuiteFile(selectedFiles, relativeFilePath)) {
           continue;
         }
 

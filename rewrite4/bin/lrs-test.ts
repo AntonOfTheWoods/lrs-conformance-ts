@@ -13,6 +13,8 @@ import {
   getDirectoriesToLoad,
   installAssertionPlugins,
   installRunnerEnvironment,
+  isSuiteDefinitionFile,
+  matchesSelectedSuiteFile,
   needsTimeMarginBootstrap,
   normalizeSelectedFiles,
   toPosixPath,
@@ -303,7 +305,7 @@ function runTests(_options: RawOptions): void {
       fs.readdirSync(testDirectory)
         .filter(function (file) {
           var relativeFilePath = toPosixPath(path.join("test", dir, file));
-          return file.substr(-3) === ".js" && (!loadPlan.selectedFiles || loadPlan.selectedFiles.has(relativeFilePath));
+          return isSuiteDefinitionFile(file) && matchesSelectedSuiteFile(loadPlan.selectedFiles, relativeFilePath);
         })
         .forEach(function (file) {
           mocha.addFile(path.join(testDirectory, file));
