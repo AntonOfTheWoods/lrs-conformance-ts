@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { createCaptureExecutionMetadata } from "../../src/describe-runtime/execution-owner.ts";
@@ -94,6 +94,12 @@ function createRawArtifact(
     targetBaseUrl: "http://localhost:8080/xapi",
     version: "1.0.3",
   };
+}
+
+async function createAgentsTempDir(prefix: string): Promise<string> {
+  const agentsDir = join(process.cwd(), "tmp/agents");
+  await mkdir(agentsDir, { recursive: true });
+  return mkdtemp(join(agentsDir, prefix));
 }
 
 function createNormalizedArtifact(
@@ -863,7 +869,7 @@ test("suppressSignedStatementAttachmentDbDifferences ignores hash-only signed st
 });
 
 test("writeTraceArtifacts emits per-unit manifests and filtered slices", async () => {
-  const tempDir = await mkdtemp(join(process.cwd(), "tmp/agents/traffic-trace-"));
+  const tempDir = await createAgentsTempDir("traffic-trace-");
 
   try {
     const rawArtifact = createRawArtifact();
@@ -941,7 +947,7 @@ test("buildTraceDbStateReplayPlan groups trace entries by terminal raw sequence"
 });
 
 test("compareTraceDbStateManifests reports the first divergent boundary", async () => {
-  const tempDir = await mkdtemp(join(process.cwd(), "tmp/agents/db-state-compare-"));
+  const tempDir = await createAgentsTempDir("db-state-compare-");
 
   try {
     const matchingFingerprint = {
@@ -1089,7 +1095,7 @@ test("compareTraceDbStateManifests reports the first divergent boundary", async 
 });
 
 test("compareTraceDbStateManifests ignores raw-sequence shifts when node-aligned snapshots still match", async () => {
-  const tempDir = await mkdtemp(join(process.cwd(), "tmp/agents/db-state-align-"));
+  const tempDir = await createAgentsTempDir("db-state-align-");
 
   try {
     const matchingFingerprint = {
@@ -1211,7 +1217,7 @@ test("compareTraceDbStateManifests ignores raw-sequence shifts when node-aligned
 });
 
 test("compareTraceDbStateManifests treats mirrored replay issues as non-divergent", async () => {
-  const tempDir = await mkdtemp(join(process.cwd(), "tmp/agents/db-state-replay-"));
+  const tempDir = await createAgentsTempDir("db-state-replay-");
 
   try {
     const matchingFingerprint = {
@@ -1344,7 +1350,7 @@ test("compareTraceDbStateManifests treats mirrored replay issues as non-divergen
 });
 
 test("readEffectiveRunnerExitCode prefers the recorded upstream suite exit code", async () => {
-  const tempDir = await mkdtemp(join(process.cwd(), "tmp/agents/traffic-exit-"));
+  const tempDir = await createAgentsTempDir("traffic-exit-");
 
   try {
     await writeFile(join(tempDir, "upstream-run.json"), `${JSON.stringify({ suiteExitCode: 2 })}\n`, "utf8");

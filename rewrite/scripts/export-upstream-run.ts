@@ -40,6 +40,29 @@ type SupportedVersion = "2.0.0" | "1.0.3";
 export type ProvidedSuiteRuntimeMode = "bun-ts";
 export type ProvidedSuiteRunnerMode = "compat-forward" | "native";
 
+const flagsWithValues = new Set([
+  "--base-url",
+  "--bun-image",
+  "--provided-suite-runner-mode",
+  "--username",
+  "--password",
+  "--version",
+  "--out",
+  "--log-dir",
+  "--node-image",
+  "--upstream-repo-url",
+  "--upstream-ref",
+  "--clone-depth",
+  "--clone-base-dir",
+  "--suite-dir",
+  "--grep",
+  "--directory",
+  "--optional",
+  "--unitKey",
+]);
+
+const booleanFlags = new Set(["--keep-clone", "--allow-unsafe-output-path"]);
+
 interface ExportUpstreamConfig {
   baseUrl: string;
   bunImage: string;
@@ -120,6 +143,31 @@ function parseCsvFlag(args: string[], flag: string): string[] | undefined {
   return parsed.length > 0 ? parsed : undefined;
 }
 
+function validateArgs(args: string[]): void {
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+    if (!arg || !arg.startsWith("--")) {
+      continue;
+    }
+
+    if (booleanFlags.has(arg)) {
+      continue;
+    }
+
+    if (flagsWithValues.has(arg)) {
+      const value = args[index + 1];
+      if (!value || value.startsWith("--")) {
+        throw new Error(`Missing value for ${arg}.`);
+      }
+
+      index += 1;
+      continue;
+    }
+
+    throw new Error(`Unknown flag: ${arg}`);
+  }
+}
+
 function getVersionDirectory(version: SupportedVersion): "v1_0_3" | "v2_0" {
   return version === "1.0.3" ? "v1_0_3" : "v2_0";
 }
@@ -185,6 +233,8 @@ function usage(): string {
 }
 
 function parseConfig(args: string[]): ExportUpstreamConfig {
+  validateArgs(args);
+
   const baseUrl = getFlagValue(args, "--base-url") ?? "http://localhost:8080/xapi";
   const bunImage = getFlagValue(args, "--bun-image") ?? process.env.BUN_IMAGE ?? defaultBunImage;
   const providedSuiteRunnerModeArg = getFlagValue(args, "--provided-suite-runner-mode");
@@ -229,14 +279,6 @@ function parseConfig(args: string[]): ExportUpstreamConfig {
 
   if (providedSuiteRunnerModeArg && !suiteDirArg) {
     throw new Error("--provided-suite-runner-mode can only be used with --suite-dir.");
-  }
-
-  if (args.includes("--candidate-runtime-mode")) {
-    throw new Error("--candidate-runtime-mode has been removed; provided suites always run in bun-ts mode.");
-  }
-
-  if (args.includes("--candidate-bun-runner-mode")) {
-    throw new Error("--candidate-bun-runner-mode has been renamed to --provided-suite-runner-mode.");
   }
 
   const version: SupportedVersion = versionFlag;
@@ -971,17 +1013,25 @@ function buildCandidateBunSuiteBootstrapCommand(
     'rm -rf "$runtime_prefix_dir"',
     'mkdir -p "$runtime_suite_dir"',
     'mkdir -p "$artifact_dir"',
-    'cp -LR "$suite_source_dir"/. "$runtime_suite_dir"',
+    'for entry in "$suite_source_dir"/* "$suite_source_dir"/.[!.]* "$suite_source_dir"/..?*; do',
+    '  [ -e "$entry" ] || continue',
+    '  entry_name=$(basename "$entry")',
+    '  if [ "$entry_name" = "node_modules" ] || [ "$entry_name" = "logs" ]; then',
+    "    continue",
+    "  fi",
+    '  cp -LR "$entry" "$runtime_suite_dir"/',
+    "done",
     'rm -rf "$runtime_suite_logs_dir"',
     'ln -s "$artifact_dir" "$runtime_suite_logs_dir"',
     'cd "$runtime_suite_dir"',
+    'rm -f "$runtime_suite_dir/package-lock.json" "$runtime_suite_dir/bun.lock" "$runtime_suite_dir/bun.lockb"',
     'if [ ! -x "$runtime_bun_binary_path" ]; then',
     '  echo "[conformance] missing Bun binary at $runtime_bun_binary_path"',
     "  exit 1",
     "fi",
     'if [ ! -f "$runtime_suite_node_modules_dir/pretty-error/package.json" ]; then',
     '  echo "[conformance] hydrating ADL suite runtime dependencies"',
-    '  npm install --prefix "$runtime_suite_dir" --omit=dev --no-save --no-package-lock --ignore-scripts --no-audit --no-fund',
+    '  "$runtime_bun_binary_path" install --production --no-save',
     "fi",
     'export NODE_PATH="$runtime_suite_node_modules_dir${NODE_PATH:+:$NODE_PATH}"',
     "set +e",

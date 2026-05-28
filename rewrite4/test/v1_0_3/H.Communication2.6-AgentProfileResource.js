@@ -581,6 +581,6 @@
   require("url"),
   require("joi"),
   require("./../helper"),
-  require("./../multipartParser"),
-  require("./../redirect.js"),
+  require("./../multipartParser.ts"),
+  require("./../redirect.ts"),
 );

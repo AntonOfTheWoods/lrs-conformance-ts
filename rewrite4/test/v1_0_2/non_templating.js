@@ -3807,4 +3807,4 @@ console.log('nonT test3 blah blah blah blah:', attachment, typeof(attachment), '
         return parsed;
     }
 
-}(module, require('fs'), require('extend'), require('moment'), require('super-request'), require('supertest-as-promised'), require('chai'), require('joi'), require('./../helper'), require('./../multipartParser')));
+}(module, require('fs'), require('extend'), require('moment'), require('super-request'), require('supertest-as-promised'), require('chai'), require('joi'), require('./../helper'), require('./../multipartParser.ts')));

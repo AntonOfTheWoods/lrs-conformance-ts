@@ -17,6 +17,7 @@
   },
   "main": "./bin/console_runner.ts",
   "scripts": {
+    "postinstall": "bun ./scripts/patch-super-request.ts",
     "test": "bun ./node_modules/mocha/bin/mocha test/v1_0_2/*.js --reporter nyan",
     "start": "bun ./bin/console_runner.ts",
     "update-batteries": "bun ./bin/update-batteries.ts"
@@ -43,9 +44,9 @@
     "oauth": "^0.9.14",
     "request": "^2.37.0",
     "should": "^4.0.4",
-    "super-request": "file:./local/super-request",
+    "super-request": "0.0.8",
     "superagent-oauth": "^0.2.3",
-    "supertest": "file:./local/supertest",
+    "supertest": "1.2.0",
     "supertest-as-promised": "^1.0.0",
     "uuid": "^9.0.0",
     "validator": "^5.7.0"

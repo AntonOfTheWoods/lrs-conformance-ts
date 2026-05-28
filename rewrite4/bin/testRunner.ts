@@ -5,8 +5,8 @@ import type { ChildProcess } from "child_process";
 const childProcess = require("child_process") as typeof import("child_process");
 const libpath = require("path") as typeof import("path");
 const { EventEmitter } = require("events") as typeof import("events");
-const rollup = require("./rollupRules.js") as Record<string, (suite: Suite) => SuiteStatus>;
-const version = require("../version.js") as { versionNumber?: string };
+const rollup = require("./rollupRules.ts") as Record<string, (suite: Suite) => SuiteStatus>;
+const version = require("../version.ts") as { versionNumber?: string };
 const specRefs = require("../test/references.json") as Record<string, SpecReference>;
 const { v4: uuidv4 } = require("uuid") as { v4: () => string };
 

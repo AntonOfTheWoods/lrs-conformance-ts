@@ -150,7 +150,7 @@ function resolveRunnerMode(value: string | undefined): BunConsoleRunnerMode {
 
 function readLegacyVersionNumber(runtimeRoot: string): string {
   const requireFromRuntimeRoot = createRequire(resolve(runtimeRoot, "package.json"));
-  const versionModule = requireFromRuntimeRoot(resolve(runtimeRoot, "version.js")) as {
+  const versionModule = requireFromRuntimeRoot(resolve(runtimeRoot, "version.ts")) as {
     versionNumber?: unknown;
   };
 

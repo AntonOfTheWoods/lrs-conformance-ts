@@ -27,7 +27,7 @@ const Mocha = require("mocha") as new (options: Record<string, unknown>) => {
   loadFiles(): void;
   suite: MochaSuiteShape;
 };
-const specs = require("../specConfig") as { availableVersions: string[] };
+const specs = require("../specConfig.ts") as { availableVersions: string[] };
 
 function clearRewriteModuleCache(rootDirectory: string): void {
   for (const cacheKey of Object.keys(require.cache)) {
