@@ -174,6 +174,64 @@ function createStatementPollExchange(
   };
 }
 
+function createInvalidStatementParamExecutionMetadata(caseName: string) {
+  return createCaptureExecutionMetadata({
+    directory: "v1_0_3",
+    execution: {
+      casePath: ["Statement Resource Requirements (Communication 2.1)", caseName],
+      hookTitle: null,
+      phase: "case",
+      suitePath: ["Statement Resource Requirements (Communication 2.1)"],
+    },
+    sourceFilePath: "rewrite4/test/v1_0_3/H.Communication2.1-StatementResource.js",
+    sourceSymbol: "Statement Resource Requirements (Communication 2.1)",
+    unitKey: "test/v1_0_3/H.Communication2.1-StatementResource",
+    version: "1.0.3",
+  });
+}
+
+function createInvalidStatementParamExchange(
+  execution: ReturnType<typeof createInvalidStatementParamExecutionMetadata>,
+  attempts: number,
+) {
+  return {
+    attempts,
+    execution,
+    method: "GET",
+    path: "/xapi/statements",
+    query: [
+      ["activity", "http://www.example.com/meetings/occurances/12345"],
+      ["statementId", "statement-1"],
+    ],
+    request: {
+      body: { kind: "empty" as const },
+      headers: {
+        "x-experience-api-version": "1.0.3",
+      },
+    },
+    response: {
+      body: {
+        body: {
+          error: {
+            message: "Invalid Params for path: /xapi/statements",
+            params: {
+              activity: "http://www.example.com/meetings/occurances/12345",
+              statementId: "statement-1",
+            },
+          },
+        },
+        kind: "json" as const,
+      },
+      headers: {
+        "content-type": "application/json",
+        "x-experience-api-consistent-through": "2026-05-27T12:00:00.000Z",
+      },
+      status: 400,
+    },
+    sourceSequences: Array.from({ length: attempts }, (_, index) => index),
+  };
+}
+
 function createSignedStatementExecutionMetadata(caseName: string) {
   return createCaptureExecutionMetadata({
     directory: "v1_0_3",
@@ -458,6 +516,39 @@ test("suppressTimingDrivenStatementPollMismatches ignores wait-loop retry drift 
   expect(effective.leftCount).toBe(16);
   expect(effective.rightCount).toBe(16);
   expect(effective.matchedCount).toBe(16);
+  expect(effective.signatureMismatches).toHaveLength(0);
+  expect(effective.ignoredSignatureMismatches).toHaveLength(1);
+});
+
+test("suppressTimingDrivenStatementPollMismatches ignores multi-owner invalid statementId retry drift", () => {
+  const xapi151 = createInvalidStatementParamExecutionMetadata(
+    `An LRS's Statement Resource rejects with error code 400 a GET request with both "statementId" and anything other than "attachments" or "format" as parameters (Communication 2.1.3.s2.b2, XAPI-00151) > should fail when using "statementId" with "activity"`,
+  );
+  const xapi150 = createInvalidStatementParamExecutionMetadata(
+    `An LRS's Statement Resource rejects with error code 400 a GET request with both "voidedStatementId" and anything other than "attachments" or "format" as parameters (Communication 2.1.3.s2.b2, XAPI-00150) > should fail when using "voidedStatementId" with "activity"`,
+  );
+
+  const candidate: NormalizedTrafficArtifact = {
+    ...createNormalizedArtifact(xapi151),
+    compareMode: "bag",
+    exchanges: [createInvalidStatementParamExchange(xapi151, 8), createInvalidStatementParamExchange(xapi150, 5)],
+  };
+  const upstream: NormalizedTrafficArtifact = {
+    ...createNormalizedArtifact(xapi151),
+    compareMode: "bag",
+    exchanges: [createInvalidStatementParamExchange(xapi151, 7), createInvalidStatementParamExchange(xapi150, 3)],
+    runner: "upstream",
+  };
+
+  const comparison = compareNormalizedTrafficRuns(candidate, upstream, "bag");
+  expect(comparison.leftCount).toBe(13);
+  expect(comparison.rightCount).toBe(10);
+  expect(comparison.signatureMismatches).toHaveLength(1);
+
+  const effective = suppressTimingDrivenStatementPollMismatches(candidate, upstream, comparison);
+  expect(effective.leftCount).toBe(10);
+  expect(effective.rightCount).toBe(10);
+  expect(effective.matchedCount).toBe(10);
   expect(effective.signatureMismatches).toHaveLength(0);
   expect(effective.ignoredSignatureMismatches).toHaveLength(1);
 });

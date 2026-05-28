@@ -387,7 +387,7 @@ function parseMultipartParts(
 function normalizeFormBody(buffer: Buffer, state: PlaceholderState): NormalizedBody {
   const params = new URLSearchParams(buffer.toString("utf8"));
   const entries = [...params.entries()].map(
-    ([name, value]) => [name, normalizeScalarText(value, state)] as [string, string],
+    ([name, value]) => [normalizeStringValue(name, state), normalizeScalarText(value, state)] as [string, string],
   );
   entries.sort(([leftName, leftValue], [rightName, rightValue]) =>
     leftName === rightName ? leftValue.localeCompare(rightValue) : leftName.localeCompare(rightName),
@@ -449,6 +449,8 @@ function normalizeBody(buffer: Buffer, contentType: string | undefined, state: P
         body: canonicalizeJsonValue(parsed, state),
       };
     }
+
+    return normalizeTextBody(buffer, state);
   }
 
   if (canonicalContentType === "application/x-www-form-urlencoded") {

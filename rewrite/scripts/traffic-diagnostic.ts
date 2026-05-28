@@ -1227,6 +1227,39 @@ function groupSignatureAttemptsByOwnerLabel(
   return counts;
 }
 
+function isRetryDrivenStatementPollOwnerMismatch(
+  candidateEntry: SignatureOwnerAttempts | undefined,
+  upstreamEntry: SignatureOwnerAttempts | undefined,
+): boolean {
+  if (!candidateEntry || !upstreamEntry) {
+    return false;
+  }
+
+  if (candidateEntry.exchanges.length !== 1 || upstreamEntry.exchanges.length !== 1) {
+    return false;
+  }
+
+  return candidateEntry.exchanges[0].attempts > 1 || upstreamEntry.exchanges[0].attempts > 1;
+}
+
+function isInvalidStatementParamsMismatch(exchange: TrafficComparisonCountMismatch["sample"]): boolean {
+  if (exchange.response.status !== 400 || exchange.response.body.kind !== "json") {
+    return false;
+  }
+
+  const body = exchange.response.body.body;
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return false;
+  }
+
+  const error = (body as { error?: unknown }).error;
+  if (!error || typeof error !== "object" || Array.isArray(error)) {
+    return false;
+  }
+
+  return (error as { message?: unknown }).message === "Invalid Params for path: /xapi/statements";
+}
+
 function shouldIgnoreTimingDrivenStatementPollMismatch(
   candidate: NormalizedTrafficArtifact,
   upstream: NormalizedTrafficArtifact,
@@ -1239,6 +1272,7 @@ function shouldIgnoreTimingDrivenStatementPollMismatch(
   const candidateOwners = groupSignatureAttemptsByOwnerLabel(candidate, mismatch.key);
   const upstreamOwners = groupSignatureAttemptsByOwnerLabel(upstream, mismatch.key);
   const ownerLabels = [...new Set([...candidateOwners.keys(), ...upstreamOwners.keys()])];
+  const allowMultipleDifferingOwners = isInvalidStatementParamsMismatch(mismatch.sample);
   let differingOwnerCount = 0;
 
   for (const ownerLabel of ownerLabels) {
@@ -1252,24 +1286,16 @@ function shouldIgnoreTimingDrivenStatementPollMismatch(
     }
 
     differingOwnerCount += 1;
-    if (differingOwnerCount > 1) {
+    if (!allowMultipleDifferingOwners && differingOwnerCount > 1) {
       return false;
     }
 
-    if (!candidateEntry || !upstreamEntry) {
-      return false;
-    }
-
-    if (candidateEntry.exchanges.length !== 1 || upstreamEntry.exchanges.length !== 1) {
-      return false;
-    }
-
-    if (candidateEntry.exchanges[0].attempts <= 1 && upstreamEntry.exchanges[0].attempts <= 1) {
+    if (!isRetryDrivenStatementPollOwnerMismatch(candidateEntry, upstreamEntry)) {
       return false;
     }
   }
 
-  return differingOwnerCount === 1;
+  return differingOwnerCount >= 1;
 }
 
 export function suppressTimingDrivenStatementPollMismatches(

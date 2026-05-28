@@ -43,6 +43,7 @@ const repoRoot = resolve(import.meta.dir, "../..");
 const allowedArtifactsRoot = resolve(repoRoot, "tmp/agents");
 
 const volatileSeedTables = new Set(["admin_account", "credential_to_scope", "lrs_credential"]);
+const documentContentTables = new Set(["activity_profile_document", "agent_profile_document", "state_document"]);
 
 function usage(): string {
   return [
@@ -133,6 +134,36 @@ function sqlLiteral(value: string): string {
   return `'${value.replaceAll("'", "''")}'`;
 }
 
+export function buildFingerprintRowJsonExpression(tableName: string, rowAlias = "t"): string {
+  if (!documentContentTables.has(tableName)) {
+    return `to_jsonb(${rowAlias})`;
+  }
+
+  return [
+    "case",
+    `  when ${rowAlias}.contents is null then to_jsonb(${rowAlias})`,
+    "  else jsonb_set(",
+    `    to_jsonb(${rowAlias}),`,
+    "    '{contents}',",
+    "    to_jsonb(",
+    "      regexp_replace(",
+    "        regexp_replace(",
+    `          encode(${rowAlias}.contents, 'escape'),`,
+    "          '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}',",
+    "          '<uuid>',",
+    "          'gi'",
+    "        ),",
+    "        '\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:\\d{2})',",
+    "        '<isoTimestamp>',",
+    "        'g'",
+    "      )",
+    "    ),",
+    "    true",
+    "  )",
+    "end",
+  ].join("\n");
+}
+
 async function runPsql(config: Config, sql: string): Promise<string> {
   const subprocess = Bun.spawn({
     cmd: [
@@ -192,12 +223,13 @@ async function listTables(config: Config): Promise<string[]> {
 }
 
 async function loadTableFingerprint(config: Config, tableName: string): Promise<FingerprintTable> {
+  const rowJsonExpression = buildFingerprintRowJsonExpression(tableName);
   const sql = [
     "with row_material as (",
     "  select md5(",
     "    regexp_replace(",
     "      regexp_replace(",
-    "        to_jsonb(t)::text,",
+    `        (${rowJsonExpression})::text,`,
     "        '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}',",
     "        '<uuid>',",
     "        'gi'",

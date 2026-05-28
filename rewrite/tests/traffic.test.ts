@@ -334,6 +334,59 @@ describe("traffic harness", () => {
     expect(createExchangeSignature(left.exchanges[0]!)).toBe(createExchangeSignature(right.exchanges[0]!));
   });
 
+  test("normalizes UUIDs in malformed application/json request bodies", () => {
+    const left = normalizeTrafficArtifact(
+      createArtifact(
+        createRawExchange({
+          request: {
+            bodyBase64: Buffer.from(
+              '{"activityId":"http://www.example.com/activityId/hashset","agent":{"objectType":"Agent","account":{"homePage":"http://www.example.com/agentId/1","name":"Rick James"}},"stateId":"33333333-3333-4333-8333-333333333333"}{',
+            ).toString("base64"),
+            headers: [
+              ["content-type", "application/json"],
+              ["x-experience-api-version", "1.0.3"],
+            ],
+            method: "POST",
+            targetUrl:
+              "http://localhost:8080/xapi/activities/state?activityId=http://www.example.com/activityId/hashset&agent=%7B%22objectType%22%3A%22Agent%22%2C%22account%22%3A%7B%22homePage%22%3A%22http%3A%2F%2Fwww.example.com%2FagentId%2F1%22%2C%22name%22%3A%22Rick%20James%22%7D%7D&stateId=11111111-1111-4111-8111-111111111111",
+          },
+          response: {
+            bodyBase64: "",
+            headers: [],
+            status: 400,
+          },
+        }),
+      ),
+    );
+    const right = normalizeTrafficArtifact(
+      createArtifact(
+        createRawExchange({
+          request: {
+            bodyBase64: Buffer.from(
+              '{"activityId":"http://www.example.com/activityId/hashset","agent":{"objectType":"Agent","account":{"homePage":"http://www.example.com/agentId/1","name":"Rick James"}},"stateId":"44444444-4444-4444-8444-444444444444"}{',
+            ).toString("base64"),
+            headers: [
+              ["content-type", "application/json"],
+              ["x-experience-api-version", "1.0.3"],
+            ],
+            method: "POST",
+            targetUrl:
+              "http://localhost:8080/xapi/activities/state?activityId=http://www.example.com/activityId/hashset&agent=%7B%22objectType%22%3A%22Agent%22%2C%22account%22%3A%7B%22homePage%22%3A%22http%3A%2F%2Fwww.example.com%2FagentId%2F1%22%2C%22name%22%3A%22Rick%20James%22%7D%7D&stateId=22222222-2222-4222-8222-222222222222",
+          },
+          response: {
+            bodyBase64: "",
+            headers: [],
+            status: 400,
+          },
+        }),
+      ),
+    );
+
+    expect(left.exchanges[0]?.request.body.kind).toBe("text");
+    expect(left.exchanges[0]?.request.body).toEqual(right.exchanges[0]?.request.body);
+    expect(createExchangeSignature(left.exchanges[0]!)).toBe(createExchangeSignature(right.exchanges[0]!));
+  });
+
   test("ignores charset parameters in content-type headers", () => {
     const bodyBase64 = Buffer.from("limit=1").toString("base64");
     const responseBodyBase64 = Buffer.from(
@@ -384,6 +437,64 @@ describe("traffic harness", () => {
       ),
     );
 
+    expect(createExchangeSignature(left.exchanges[0]!)).toBe(createExchangeSignature(right.exchanges[0]!));
+  });
+
+  test("normalizes UUIDs embedded in malformed form field names", () => {
+    const left = normalizeTrafficArtifact(
+      createArtifact(
+        createRawExchange({
+          request: {
+            bodyBase64: Buffer.from(
+              JSON.stringify({
+                statementId: "11111111-1111-4111-8111-111111111111",
+                content: '{"actor":{"objectType":"Agent","name":"xAPI mbox","mbox":"mailto:xapi@adlnet.gov"}}',
+                "X-Experience-API-Version": "1.0.3",
+              }),
+            ).toString("base64"),
+            headers: [
+              ["content-type", "application/x-www-form-urlencoded"],
+              ["x-experience-api-version", "1.0.3"],
+            ],
+            method: "POST",
+            targetUrl: "http://localhost:8080/xapi/statements?method=PUT",
+          },
+          response: {
+            bodyBase64: "",
+            headers: [],
+            status: 400,
+          },
+        }),
+      ),
+    );
+    const right = normalizeTrafficArtifact(
+      createArtifact(
+        createRawExchange({
+          request: {
+            bodyBase64: Buffer.from(
+              JSON.stringify({
+                statementId: "22222222-2222-4222-8222-222222222222",
+                content: '{"actor":{"objectType":"Agent","name":"xAPI mbox","mbox":"mailto:xapi@adlnet.gov"}}',
+                "X-Experience-API-Version": "1.0.3",
+              }),
+            ).toString("base64"),
+            headers: [
+              ["content-type", "application/x-www-form-urlencoded; charset=utf-8"],
+              ["x-experience-api-version", "1.0.3"],
+            ],
+            method: "POST",
+            targetUrl: "http://localhost:8080/xapi/statements?method=PUT",
+          },
+          response: {
+            bodyBase64: "",
+            headers: [],
+            status: 400,
+          },
+        }),
+      ),
+    );
+
+    expect(left.exchanges[0]?.request.body).toEqual(right.exchanges[0]?.request.body);
     expect(createExchangeSignature(left.exchanges[0]!)).toBe(createExchangeSignature(right.exchanges[0]!));
   });
 
