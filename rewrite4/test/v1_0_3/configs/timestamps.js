@@ -108,4 +108,4 @@
             }
         ];
     };
-}(module, require('./../../helper.js')));
+}(module, require('./../../helper.ts')));

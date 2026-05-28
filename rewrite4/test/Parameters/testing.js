@@ -351,4 +351,4 @@
         return parsed;
     }
 
-}(process, require('supertest-as-promised'), require('should'), require('chai'), require('isemail'), require('./../helper')));
+}(process, require('supertest-as-promised'), require('should'), require('chai'), require('isemail'), require('./../helper.ts')));

@@ -55,4 +55,4 @@
         });
     });
 
-}(module, process, require('super-request'), require('should'), require('./../helper')));
+}(module, process, require('super-request'), require('should'), require('./../helper.ts')));

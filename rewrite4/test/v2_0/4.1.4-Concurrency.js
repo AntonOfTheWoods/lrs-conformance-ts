@@ -6,8 +6,8 @@
 
 var request = require('supertest-as-promised');
 const expect = require('chai').expect;
-const helper = require('../helper');
-const xapiRequests = require("./util/requests");
+const helper = require('../helper.ts');
+const xapiRequests = require("./util/requests.ts");
 
 request = request(helper.getEndpoint());
 

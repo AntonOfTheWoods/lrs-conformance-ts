@@ -241,7 +241,7 @@ function installSelectedFileBootstrapHooks(options: {
     return;
   }
 
-  const helperModulePath = resolve(options.runtimeRoot, "test", "helper.js");
+  const helperModulePath = resolve(options.runtimeRoot, "test", "helper.ts");
 
   options.runtime.before("Accounting for time differential between test suite and lrs", (done) => {
     const helperModule = options.requireFromRuntimeRoot(helperModulePath) as {

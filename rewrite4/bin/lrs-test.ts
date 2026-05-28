@@ -294,7 +294,7 @@ function runTests(_options: RawOptions): void {
       mocha.suite.beforeAll(
         "Accounting for time differential between test suite and lrs",
         function (done: (error?: unknown, ...ignored: unknown[]) => void) {
-          require(path.join(__dirname, "..", "test", "helper.js")).setTimeMargin(done);
+          require(path.join(__dirname, "..", "test", "helper.ts")).setTimeMargin(done);
         },
       );
     }

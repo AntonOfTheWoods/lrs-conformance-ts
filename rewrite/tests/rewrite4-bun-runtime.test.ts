@@ -662,7 +662,7 @@ test("rewrite4 suite loader registers time margin bootstrap for selected time-se
     await mkdir(join(runtimeRoot, "test", "v1_0_3"), { recursive: true });
     await writeFile(join(runtimeRoot, "node_modules", "chai", "index.js"), "module.exports = { use() {} };\n", "utf8");
     await writeFile(join(runtimeRoot, "node_modules", "chai-things", "index.js"), "module.exports = {};\n", "utf8");
-    await writeFile(join(runtimeRoot, "test", "helper.js"), "module.exports = { setTimeMargin() {} };\n", "utf8");
+    await writeFile(join(runtimeRoot, "test", "helper.ts"), "module.exports = { setTimeMargin() {} };\n", "utf8");
     await writeFile(
       join(runtimeRoot, "test", "v1_0_3", "H.Communication2.1-StatementResource.js"),
       'global.__suiteLoadTrace.push("v1_0_3/H.Communication2.1-StatementResource.js");\n',

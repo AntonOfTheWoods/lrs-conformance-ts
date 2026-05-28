@@ -225,5 +225,5 @@
   require("should"),
   require("chai"),
   require("isemail"),
-  require("./../helper"),
+  require("./../helper.ts"),
 );

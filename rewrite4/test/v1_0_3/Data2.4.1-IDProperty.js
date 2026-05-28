@@ -78,4 +78,4 @@ describe('Id Property Requirements (Data 2.4.1)', () => {
 
 });
 
-}(module, require('fs'), require('extend'), require('moment'), require('super-request'), require('supertest-as-promised'), require('chai'), require('url'), require('joi'), require('./../helper'), require('./../multipartParser.ts'), require('./../redirect.ts'), require('./../templatingSelection.ts')));
+}(module, require('fs'), require('extend'), require('moment'), require('super-request'), require('supertest-as-promised'), require('chai'), require('url'), require('joi'), require('./../helper.ts'), require('./../multipartParser.ts'), require('./../redirect.ts'), require('./../templatingSelection.ts')));

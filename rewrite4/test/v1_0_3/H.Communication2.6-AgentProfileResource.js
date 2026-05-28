@@ -580,7 +580,7 @@
   require("chai"),
   require("url"),
   require("joi"),
-  require("./../helper"),
+  require("./../helper.ts"),
   require("./../multipartParser.ts"),
   require("./../redirect.ts"),
 );
