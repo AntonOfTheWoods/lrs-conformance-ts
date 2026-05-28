@@ -1,3 +1,5 @@
+import type { RuntimeNodeResult, RuntimeRunResult } from "./runtime.ts";
+
 export interface RuntimeRunRecordFlags {
   endpoint?: string;
   basicAuth?: boolean;
@@ -41,6 +43,57 @@ export interface RuntimeRunRecord {
 }
 
 export type SerializableRunRecord = Omit<RuntimeRunRecord, "log"> & { log?: RuntimeLogRecord };
+
+function toLogRecord(node: RuntimeNodeResult): RuntimeLogRecord {
+  return {
+    title: node.title,
+    name: node.name,
+    requirement: node.requirement,
+    log: node.log.join(""),
+    status: node.status,
+    error: node.error,
+    tests: node.children.map(toLogRecord),
+  };
+}
+
+function createUuid(): string {
+  return globalThis.crypto.randomUUID();
+}
+
+export function createRunRecord(
+  runResult: RuntimeRunResult,
+  metadata: {
+    flags?: RuntimeRunRecordFlags;
+    lrsSettingsUUID?: string | null;
+    name?: string | null;
+    options?: Record<string, unknown>;
+    owner?: string | null;
+    rollupRule?: string;
+    summaryVersion?: string;
+    uuid?: string;
+  } = {},
+): RuntimeRunRecord {
+  return {
+    name: metadata.name ?? null,
+    owner: metadata.owner ?? null,
+    flags: metadata.flags ?? {},
+    options: metadata.options ?? {},
+    lrsSettingsUUID: metadata.lrsSettingsUUID ?? null,
+    rollupRule: metadata.rollupRule ?? "mustPassAll",
+    uuid: metadata.uuid ?? createUuid(),
+    startTime: runResult.startTime,
+    endTime: runResult.endTime,
+    duration: runResult.duration,
+    state: runResult.state,
+    summary: {
+      total: runResult.summary.total,
+      passed: runResult.summary.passed,
+      failed: runResult.summary.failed,
+      version: metadata.summaryVersion ?? runResult.summary.version,
+    },
+    log: toLogRecord(runResult.root),
+  };
+}
 
 export function filterFailedLogRecord(log: RuntimeLogRecord | undefined): RuntimeLogRecord | undefined {
   if (!log || log.status !== "failed") {

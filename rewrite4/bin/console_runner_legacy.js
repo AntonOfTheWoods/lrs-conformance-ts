@@ -1,13 +1,9 @@
 var program = require("commander");
-var TestRunner = require("./testRunner.js").testRunner;
-var jsonSchema = require("jsonschema");
-var validate = jsonSchema.validate;
-var colors = require("colors");
+var TestRunner = (process.versions && process.versions.bun ? require("./testRunner.ts") : require("./testRunner.js"))
+  .testRunner;
 var libpath = require("path");
 var fs = require("fs");
 const specConfig = require("../specConfig");
-
-require("pretty-error").start();
 
 function clean_dir(val, dir) {
   v = val.split(",").forEach(function (d) {
@@ -108,12 +104,12 @@ var testRunner = null;
 
 // Catches Ctrl+C event.
 process.on("SIGINT", function () {
-  console.log(colors.white("Aborting tests."));
+  console.log("Aborting tests.");
   testRunner.cancel();
 });
 
 process.on("exit", function () {
-  console.log(colors.white("Closed"));
+  console.log("Closed");
 });
 
 function start(options) {

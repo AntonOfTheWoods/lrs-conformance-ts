@@ -4,7 +4,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import {
+  parseCandidateBunRunnerMode,
   parseCandidateRuntimeMode,
+  patchUpstreamLrsTestSource,
   readCandidateRuntimeModeFromSuiteDir,
   resolveUpstreamUnitSelection,
 } from "../scripts/export-upstream-run.ts";
@@ -43,6 +45,18 @@ test("parseCandidateRuntimeMode rejects unsupported runtime modes", () => {
   );
 });
 
+test("parseCandidateBunRunnerMode accepts supported bun runner modes", () => {
+  expect(parseCandidateBunRunnerMode("legacy-forward")).toBe("legacy-forward");
+  expect(parseCandidateBunRunnerMode("native")).toBe("native");
+  expect(parseCandidateBunRunnerMode(undefined)).toBeUndefined();
+});
+
+test("parseCandidateBunRunnerMode rejects unsupported bun runner modes", () => {
+  expect(() => parseCandidateBunRunnerMode("unknown-mode")).toThrow(
+    "Unsupported --candidate-bun-runner-mode value: unknown-mode",
+  );
+});
+
 test("readCandidateRuntimeModeFromSuiteDir defaults to legacy-node when package metadata is absent", async () => {
   const suiteDir = await mkdtemp(join(tmpdir(), "export-upstream-run-suite-"));
 
@@ -73,4 +87,32 @@ test("readCandidateRuntimeModeFromSuiteDir reads explicit runtime mode metadata"
   } finally {
     await rm(suiteDir, { force: true, recursive: true });
   }
+});
+
+test("patchUpstreamLrsTestSource injects chai-things bootstrap and file filtering support", () => {
+  const source = [
+    "        var optionsValidator = Joi.object({",
+    "            optional: Joi.array().items(Joi.string().required()),",
+    "        }).unknown(false);",
+    "        var options = {",
+    "            optional: _options.optional,",
+    "        };",
+    "        options.directory.forEach(function(dir) {",
+    "            fs.readdirSync(testDirectory).filter(function(file) {",
+    "                return file.substr(-3) === '.js';",
+    "            }).forEach(function(file) {",
+    "            });",
+    "        });",
+  ].join("\n");
+
+  const patched = patchUpstreamLrsTestSource(source);
+
+  expect(patched).toContain("file: Joi.array().items(Joi.string().required())");
+  expect(patched).toContain("file: _options.file");
+  expect(patched).toContain("require('chai').use(require('chai-things'));");
+  expect(patched).toContain("var selectedFiles = Array.isArray(options.file) && options.file.length > 0");
+  expect(patched).toContain("var timeMarginDependentFiles = [");
+  expect(patched).toContain("mocha.suite.beforeAll('Accounting for time differential between test suite and lrs'");
+  expect(patched).toContain("relativeFilePath = path.join('test', dir, file)");
+  expect(patchUpstreamLrsTestSource(patched)).toBe(patched);
 });

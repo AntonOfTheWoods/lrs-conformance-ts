@@ -1239,7 +1239,13 @@ function isRetryDrivenStatementPollOwnerMismatch(
     return false;
   }
 
-  return candidateEntry.exchanges[0].attempts > 1 || upstreamEntry.exchanges[0].attempts > 1;
+  const candidateExchange = candidateEntry.exchanges[0];
+  const upstreamExchange = upstreamEntry.exchanges[0];
+  if (!candidateExchange || !upstreamExchange) {
+    return false;
+  }
+
+  return candidateExchange.attempts > 1 || upstreamExchange.attempts > 1;
 }
 
 function isInvalidStatementParamsMismatch(exchange: TrafficComparisonCountMismatch["sample"]): boolean {

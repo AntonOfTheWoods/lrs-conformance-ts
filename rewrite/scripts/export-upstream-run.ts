@@ -16,6 +16,22 @@ const repoMountTarget = "/workspace";
 const suiteMountTarget = "/adl-suite-src";
 const allowedArtifactsRoot = resolve(repoRoot, "tmp/agents");
 
+const timeMarginSetupFilePaths = [
+  "test/v1_0_3/Data2.2-FormattingRequirements.js",
+  "test/v2_0/Data2.2-FormattingRequirements.js",
+];
+
+const timeMarginDependentFilePaths = [
+  "test/v1_0_3/H.Communication2.1-StatementResource.js",
+  "test/v1_0_3/H.Communication2.3-StateResource.js",
+  "test/v1_0_3/H.Communication2.6-AgentProfileResource.js",
+  "test/v1_0_3/H.Communication2.7-ActivityProfileResource.js",
+  "test/v2_0/4.1.6.1-Statement-Resource.js",
+  "test/v2_0/4.1.6.2-State-Resource.js",
+  "test/v2_0/4.1.6.5-Agent-Profile-Resource.js",
+  "test/v2_0/4.1.6.6-Activity-Profile-Resource.js",
+];
+
 type SuiteLocation = {
   suiteDir: string;
 };
@@ -23,10 +39,12 @@ type SuiteLocation = {
 type SupportedVersion = "2.0.0" | "1.0.3";
 
 export type CandidateRuntimeMode = "legacy-node" | "bun-ts";
+export type CandidateBunRunnerMode = "legacy-forward" | "native";
 
 interface ExportUpstreamConfig {
   baseUrl: string;
   bunImage: string;
+  candidateBunRunnerMode: CandidateBunRunnerMode;
   candidateRuntimeMode?: CandidateRuntimeMode;
   username: string;
   password: string;
@@ -57,6 +75,10 @@ function isCandidateRuntimeMode(value: string): value is CandidateRuntimeMode {
   return value === "legacy-node" || value === "bun-ts";
 }
 
+function isCandidateBunRunnerMode(value: string): value is CandidateBunRunnerMode {
+  return value === "legacy-forward" || value === "native";
+}
+
 export function parseCandidateRuntimeMode(value: string | undefined): CandidateRuntimeMode | undefined {
   if (!value) {
     return undefined;
@@ -64,6 +86,18 @@ export function parseCandidateRuntimeMode(value: string | undefined): CandidateR
 
   if (!isCandidateRuntimeMode(value)) {
     throw new Error(`Unsupported --candidate-runtime-mode value: ${value}`);
+  }
+
+  return value;
+}
+
+export function parseCandidateBunRunnerMode(value: string | undefined): CandidateBunRunnerMode | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  if (!isCandidateBunRunnerMode(value)) {
+    throw new Error(`Unsupported --candidate-bun-runner-mode value: ${value}`);
   }
 
   return value;
@@ -81,8 +115,9 @@ export function readCandidateRuntimeModeFromSuiteDir(suiteDir: string): Candidat
     return "legacy-node";
   }
 
-  if (!isCandidateRuntimeMode(runtimeMode)) {
-    throw new Error(`Unsupported ${candidateRuntimeModeField} value in ${packageJsonPath}: ${String(runtimeMode)}`);
+  if (typeof runtimeMode !== "string" || !isCandidateRuntimeMode(runtimeMode)) {
+    const runtimeModeLabel = runtimeMode === null ? "null" : JSON.stringify(runtimeMode);
+    throw new Error(`Unsupported ${candidateRuntimeModeField} value in ${packageJsonPath}: ${runtimeModeLabel}`);
   }
 
   return runtimeMode;
@@ -150,7 +185,7 @@ export function resolveUpstreamUnitSelection(unitKeys: string[], version: Suppor
 function usage(): string {
   return [
     "Usage:",
-    "  bun run rewrite:export:upstream:lrsql -- [--suite-dir <path>] [--candidate-runtime-mode legacy-node|bun-ts] [--base-url <url>] [--username <user>] [--password <pass>] [--version 2.0.0|1.0.3] [--out <path>] [--grep <pattern>] [--directory <csv>] [--optional <csv>] [--unitKey <csv>] [--log-dir <path>] [--node-image <ref>] [--bun-image <ref>] [--upstream-repo-url <url>] [--upstream-ref <ref>] [--clone-depth <n>] [--clone-base-dir <path>] [--keep-clone]",
+    "  bun run rewrite:export:upstream:lrsql -- [--suite-dir <path>] [--candidate-runtime-mode legacy-node|bun-ts] [--candidate-bun-runner-mode legacy-forward|native] [--base-url <url>] [--username <user>] [--password <pass>] [--version 2.0.0|1.0.3] [--out <path>] [--grep <pattern>] [--directory <csv>] [--optional <csv>] [--unitKey <csv>] [--log-dir <path>] [--node-image <ref>] [--bun-image <ref>] [--upstream-repo-url <url>] [--upstream-ref <ref>] [--clone-depth <n>] [--clone-base-dir <path>] [--keep-clone]",
     "",
     "Defaults:",
     "  --base-url http://localhost:8080/xapi",
@@ -167,6 +202,7 @@ function usage(): string {
     `  --bun-image ${defaultBunImage}`,
     "  --suite-dir rewrite4",
     "  --candidate-runtime-mode defaults to lrsConformanceRuntimeMode in package.json or legacy-node",
+    "  --candidate-bun-runner-mode defaults to native when candidate runtime is bun-ts",
     "",
     "Notes:",
     "  Without --suite-dir, the upstream suite source is fetched from GitHub by shallow clone.",
@@ -178,6 +214,7 @@ function usage(): string {
 function parseConfig(args: string[]): ExportUpstreamConfig {
   const baseUrl = getFlagValue(args, "--base-url") ?? "http://localhost:8080/xapi";
   const bunImage = getFlagValue(args, "--bun-image") ?? process.env.BUN_IMAGE ?? defaultBunImage;
+  const candidateBunRunnerModeArg = getFlagValue(args, "--candidate-bun-runner-mode");
   const candidateRuntimeModeArg = getFlagValue(args, "--candidate-runtime-mode");
   const username = getFlagValue(args, "--username") ?? "janedoe";
   const password = getFlagValue(args, "--password") ?? "supersecret";
@@ -222,15 +259,27 @@ function parseConfig(args: string[]): ExportUpstreamConfig {
     throw new Error("--candidate-runtime-mode can only be used with --suite-dir.");
   }
 
+  if (candidateBunRunnerModeArg && !suiteDirArg) {
+    throw new Error("--candidate-bun-runner-mode can only be used with --suite-dir.");
+  }
+
   const version: SupportedVersion = versionFlag;
   const suiteDir = suiteDirArg ? (isAbsolute(suiteDirArg) ? suiteDirArg : resolve(repoRoot, suiteDirArg)) : undefined;
   const candidateRuntimeMode = suiteDir
     ? (parseCandidateRuntimeMode(candidateRuntimeModeArg) ?? readCandidateRuntimeModeFromSuiteDir(suiteDir))
     : undefined;
+  const candidateBunRunnerMode =
+    parseCandidateBunRunnerMode(candidateBunRunnerModeArg) ??
+    (candidateRuntimeMode === "bun-ts" ? "native" : "legacy-forward");
+
+  if (candidateBunRunnerModeArg && candidateRuntimeMode !== "bun-ts") {
+    throw new Error("--candidate-bun-runner-mode requires --candidate-runtime-mode bun-ts.");
+  }
 
   return {
     baseUrl,
     bunImage,
+    candidateBunRunnerMode,
     candidateRuntimeMode,
     username,
     password,
@@ -390,7 +439,10 @@ function ensureOwnerCaptureSupport(suiteDir: string): void {
   const helperPath = resolve(suiteDir, "test/helper.js");
   let helperSource = readFileSync(helperPath, "utf8");
 
-  if (!helperSource.includes("var CAPTURE_OWNER_HEADER = 'x-lrs-conformance-owner';")) {
+  if (
+    !helperSource.includes("var CAPTURE_OWNER_HEADER = 'x-lrs-conformance-owner';") &&
+    !helperSource.includes('var CAPTURE_OWNER_HEADER = "x-lrs-conformance-owner";')
+  ) {
     const anchor = "    var URL_STATEMENTS = '/statements';\n";
     const replacement = `${anchor}\n    var CAPTURE_OWNER_HEADER = 'x-lrs-conformance-owner';\n`;
     const patched = helperSource.replace(anchor, replacement);
@@ -490,7 +542,7 @@ function ensureOwnerCaptureSupport(suiteDir: string): void {
     helperSource = patched;
   }
 
-  if (!helperSource.includes("headers[CAPTURE_OWNER_HEADER]")) {
+  if (!helperSource.includes("headers[CAPTURE_OWNER_HEADER]") && !helperSource.includes("pre.headers(headers);")) {
     const anchor = [
       "            if (process.env.BASIC_AUTH_ENABLED === 'true') {",
       "                pre.set('Authorization', headers['Authorization']);",
@@ -604,15 +656,42 @@ function ensureRunnerSelectionFlagSupport(suiteDir: string): void {
   writeFileSync(consoleRunnerPath, source, "utf8");
 }
 
-function ensureUpstreamFileSelectionSupport(suiteDir: string): void {
-  const lrsTestPath = resolve(suiteDir, "bin/lrs-test.js");
-  let source = readFileSync(lrsTestPath, "utf8");
+export function patchUpstreamLrsTestSource(source: string): string {
+  let patchedSource = source;
 
   const optionalValidatorLine = "            optional: Joi.array().items(Joi.string().required()),\n";
   const fileValidatorLine = "            file: Joi.array().items(Joi.string().required()),\n";
   const optionalOptionsLine = "            optional: _options.optional,\n";
   const fileOptionsLine = "            file: _options.file,\n";
   const directoryLoopAnchor = "        options.directory.forEach(function(dir) {\n";
+  const chaiThingsBootstrapLine = "        require('chai').use(require('chai-things'));\n";
+  const chaiThingsBootstrapVariants = [
+    "require('chai').use(require('chai-things'))",
+    'require("chai").use(require("chai-things"))',
+  ];
+  const selectedFilesVariants = [
+    "var selectedFiles = Array.isArray(options.file)",
+    "Array.isArray(options.file) && options.file.length > 0",
+  ];
+  const relativeFilePathVariants = [
+    "relativeFilePath = path.join('test', dir, file)",
+    'relativeFilePath = path.join("test", dir, file)',
+  ];
+  const timeMarginBootstrapBlock = [
+    `        var timeMarginSetupFiles = ${JSON.stringify(timeMarginSetupFilePaths)};`,
+    `        var timeMarginDependentFiles = ${JSON.stringify(timeMarginDependentFilePaths)};`,
+    "        var needsTimeMarginBootstrap = !!selectedFiles && selectedFiles.some(function(filePath) {",
+    "            return timeMarginDependentFiles.indexOf(filePath) !== -1;",
+    "        }) && !selectedFiles.some(function(filePath) {",
+    "            return timeMarginSetupFiles.indexOf(filePath) !== -1;",
+    "        });",
+    "        if (needsTimeMarginBootstrap) {",
+    "            mocha.suite.beforeAll('Accounting for time differential between test suite and lrs', function(done) {",
+    "                require(path.join(__dirname, '..', 'test', 'helper.js')).setTimeMargin(done);",
+    "            });",
+    "        }",
+    "",
+  ].join("\n");
   const selectedFilesBlock = [
     "        var selectedFiles = Array.isArray(options.file) && options.file.length > 0",
     "            ? options.file.map(function(filePath) {",
@@ -627,39 +706,63 @@ function ensureUpstreamFileSelectionSupport(suiteDir: string): void {
     "                return file.substr(-3) === '.js' && (!selectedFiles || selectedFiles.indexOf(relativeFilePath) !== -1);",
   ].join("\n");
 
-  if (!source.includes("file: Joi.array().items(Joi.string().required())")) {
-    const patched = source.replace(optionalValidatorLine, `${optionalValidatorLine}${fileValidatorLine}`);
-    if (patched === source) {
-      throw new Error(`Unable to patch file validation support into ${lrsTestPath}.`);
+  if (!patchedSource.includes("file: Joi.array().items(Joi.string().required())")) {
+    const patched = patchedSource.replace(optionalValidatorLine, `${optionalValidatorLine}${fileValidatorLine}`);
+    if (patched === patchedSource) {
+      throw new Error("Unable to patch file validation support into upstream lrs-test source.");
     }
-    source = patched;
+    patchedSource = patched;
   }
 
-  if (!source.includes("file: _options.file")) {
-    const patched = source.replace(optionalOptionsLine, `${optionalOptionsLine}${fileOptionsLine}`);
-    if (patched === source) {
-      throw new Error(`Unable to patch file option support into ${lrsTestPath}.`);
+  if (!patchedSource.includes("file: _options.file")) {
+    const patched = patchedSource.replace(optionalOptionsLine, `${optionalOptionsLine}${fileOptionsLine}`);
+    if (patched === patchedSource) {
+      throw new Error("Unable to patch file option support into upstream lrs-test source.");
     }
-    source = patched;
+    patchedSource = patched;
   }
 
-  if (!source.includes("var selectedFiles = Array.isArray(options.file)")) {
-    const patched = source.replace(directoryLoopAnchor, `${selectedFilesBlock}${directoryLoopAnchor}`);
-    if (patched === source) {
-      throw new Error(`Unable to patch selected file filtering into ${lrsTestPath}.`);
+  if (!chaiThingsBootstrapVariants.some((variant) => patchedSource.includes(variant))) {
+    const patched = patchedSource.replace(directoryLoopAnchor, `${chaiThingsBootstrapLine}${directoryLoopAnchor}`);
+    if (patched === patchedSource) {
+      throw new Error("Unable to patch chai-things bootstrap into upstream lrs-test source.");
     }
-    source = patched;
+    patchedSource = patched;
   }
 
-  if (!source.includes("relativeFilePath = path.join('test', dir, file)")) {
-    const patched = source.replace(fileFilterLine, fileFilterReplacement);
-    if (patched === source) {
-      throw new Error(`Unable to patch file filter support into ${lrsTestPath}.`);
+  if (!patchedSource.includes("var timeMarginDependentFiles = [")) {
+    const patched = patchedSource.replace(directoryLoopAnchor, `${timeMarginBootstrapBlock}${directoryLoopAnchor}`);
+    if (patched === patchedSource) {
+      throw new Error("Unable to patch time margin bootstrap into upstream lrs-test source.");
     }
-    source = patched;
+    patchedSource = patched;
   }
 
-  writeFileSync(lrsTestPath, source, "utf8");
+  if (!selectedFilesVariants.some((variant) => patchedSource.includes(variant))) {
+    const patched = patchedSource.replace(directoryLoopAnchor, `${selectedFilesBlock}${directoryLoopAnchor}`);
+    if (patched === patchedSource) {
+      throw new Error("Unable to patch selected file filtering into upstream lrs-test source.");
+    }
+    patchedSource = patched;
+  }
+
+  if (!relativeFilePathVariants.some((variant) => patchedSource.includes(variant))) {
+    const patched = patchedSource.replace(fileFilterLine, fileFilterReplacement);
+    if (patched === patchedSource) {
+      throw new Error("Unable to patch file filter support into upstream lrs-test source.");
+    }
+    patchedSource = patched;
+  }
+
+  return patchedSource;
+}
+
+function ensureUpstreamFileSelectionSupport(suiteDir: string): void {
+  const lrsTestPath = resolve(suiteDir, "bin/lrs-test.js");
+  const source = readFileSync(lrsTestPath, "utf8");
+  const patchedSource = patchUpstreamLrsTestSource(source);
+
+  writeFileSync(lrsTestPath, patchedSource, "utf8");
 }
 
 function ensureSuiteReady(suiteDir: string, missingMessage: string): string {
@@ -988,6 +1091,10 @@ function createBasePodmanArgs(
     podmanArgs.push("--env", `LRS_CANDIDATE_RUNTIME_MODE=${config.candidateRuntimeMode}`);
   }
 
+  if (config.suiteDir && config.candidateRuntimeMode === "bun-ts") {
+    podmanArgs.push("--env", `LRS_BUN_CONSOLE_RUNNER_MODE=${config.candidateBunRunnerMode}`);
+  }
+
   if (process.platform !== "linux" && typeof process.getuid === "function" && typeof process.getgid === "function") {
     podmanArgs.push("--user", `${process.getuid()}:${process.getgid()}`);
   }
@@ -1171,6 +1278,7 @@ async function main(): Promise<number> {
   const outputPayload = {
     ...parsed,
     mode: config.suiteDir ? "candidate" : "upstream-oracle",
+    candidateBunRunnerMode: config.candidateRuntimeMode === "bun-ts" ? config.candidateBunRunnerMode : null,
     candidateRuntimeMode: config.candidateRuntimeMode ?? null,
     selectedFiles: unitSelection?.filePaths ?? null,
     selectedUnitKeys: config.unitKeys ?? null,
@@ -1186,6 +1294,7 @@ async function main(): Promise<number> {
     JSON.stringify(
       {
         mode: config.suiteDir ? "candidate" : "upstream-oracle",
+        candidateBunRunnerMode: config.candidateRuntimeMode === "bun-ts" ? config.candidateBunRunnerMode : null,
         candidateRuntimeMode: config.candidateRuntimeMode ?? null,
         outputPath: absoluteOutputPath,
         selectedFiles: unitSelection?.filePaths ?? null,

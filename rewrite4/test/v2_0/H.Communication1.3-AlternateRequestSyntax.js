@@ -3,17 +3,15 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements.
  */
 
-const superRequest = require('super-request');
-const oldHelpers = require('../helper');
+let superRequest = require("super-request");
+const oldHelpers = require("../helper");
 const requests = require("./util/requests");
-const { expect } = require('chai');
+const { expect } = require("chai");
 
-if(global.OAUTH)
-    superRequest = oldHelpers.OAuthRequest(superRequest);
+if (global.OAUTH) superRequest = oldHelpers.OAuthRequest(superRequest);
 
-describe('Alternate Request Syntax Requirements', function () {
-
-    it('The LRS Spec does not mandate any properties regarding Alternate Request Syntax in xAPI 2.0', async function () {
-        expect(true).to.eql(true);
-    });
+describe("Alternate Request Syntax Requirements", function () {
+  it("The LRS Spec does not mandate any properties regarding Alternate Request Syntax in xAPI 2.0", async function () {
+    expect(true).to.eql(true);
+  });
 });

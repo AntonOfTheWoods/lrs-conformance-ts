@@ -3,7 +3,12 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { createCaptureExecutionMetadata } from "../../src/describe-runtime/execution-owner.ts";
-import { compareNormalizedTrafficRuns, type NormalizedTrafficArtifact, type RawTrafficArtifact } from "../traffic.ts";
+import {
+  compareNormalizedTrafficRuns,
+  type NormalizedExchange,
+  type NormalizedTrafficArtifact,
+  type RawTrafficArtifact,
+} from "../traffic.ts";
 
 import {
   buildCandidateArgs,
@@ -144,7 +149,7 @@ function createStatementPollExecutionMetadata(caseName: string) {
 function createStatementPollExchange(
   execution: ReturnType<typeof createStatementPollExecutionMetadata>,
   attempts: number,
-) {
+): NormalizedExchange {
   return {
     attempts,
     execution,
@@ -193,7 +198,7 @@ function createInvalidStatementParamExecutionMetadata(caseName: string) {
 function createInvalidStatementParamExchange(
   execution: ReturnType<typeof createInvalidStatementParamExecutionMetadata>,
   attempts: number,
-) {
+): NormalizedExchange {
   return {
     attempts,
     execution,

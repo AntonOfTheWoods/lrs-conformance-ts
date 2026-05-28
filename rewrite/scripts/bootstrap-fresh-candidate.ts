@@ -110,8 +110,8 @@ async function main(): Promise<void> {
 
   const packageJsonPath = resolve(config.targetDir, "package.json");
   const packageJson = JSON.parse(await Bun.file(packageJsonPath).text()) as Record<string, unknown>;
-  if (packageJson[candidateRuntimeModeField] !== "legacy-node") {
-    packageJson[candidateRuntimeModeField] = "legacy-node";
+  if (packageJson[candidateRuntimeModeField] !== "bun-ts") {
+    packageJson[candidateRuntimeModeField] = "bun-ts";
     await writeFile(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
   }
 
