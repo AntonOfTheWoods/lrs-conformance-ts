@@ -1,35 +1,17 @@
+// @ts-nocheck
 "use strict";
 
-type HelperState = {
-  DIRECTORY: string;
-  LRS_ENDPOINT: string;
-  TIME_MARGIN: number | undefined;
-  URL_ABOUT: string;
-  URL_ACTIVITIES: string;
-  URL_ACTIVITIES_PROFILE: string;
-  URL_ACTIVITIES_STATE: string;
-  URL_AGENTS: string;
-  URL_AGENTS_PROFILE: string;
-  URL_STATEMENTS: string;
-  CAPTURE_OWNER_HEADER: string;
-};
-
-type HelperContext = {
-  extend: (...args: any[]) => any;
-  getHelperExports: () => Record<string, any>;
-  getState: () => HelperState;
-  setTimeMargin: (value: number) => void;
-};
-
-function cloneHeader(context: HelperContext, header: Record<string, unknown> | undefined) {
+function cloneHeader(context, header) {
   return context.extend(true, {}, header || {});
 }
 
-function createHelperTransportSupport(context: HelperContext) {
-  const helper = () => context.getHelperExports();
+function createHelperTransportSupport(context) {
+  const helper = function () {
+    return context.getHelperExports();
+  };
 
   return {
-    addAllHeaders: function addAllHeaders(header: Record<string, unknown>, badAuth?: boolean) {
+    addAllHeaders: function addAllHeaders(header, badAuth) {
       badAuth = badAuth || false;
       var newHeader = cloneHeader(context, header);
       newHeader = helper().addHeaderXapiVersion(newHeader);
@@ -42,13 +24,13 @@ function createHelperTransportSupport(context: HelperContext) {
       return newHeader;
     },
 
-    addHeaderXapiVersion: function addHeaderXapiVersion(header: Record<string, unknown>) {
+    addHeaderXapiVersion: function addHeaderXapiVersion(header) {
       var newHeader = cloneHeader(context, header);
       newHeader["X-Experience-API-Version"] = helper().getXapiVersion();
       return newHeader;
     },
 
-    addBasicAuthenicationHeader: function addBasicAuthenicationHeader(header: Record<string, unknown>) {
+    addBasicAuthenicationHeader: function addBasicAuthenicationHeader(header) {
       var newHeader = cloneHeader(context, header);
       if (process.env.BASIC_AUTH_ENABLED === "true") {
         var userPass = Buffer.from(process.env.BASIC_AUTH_USER + ":" + process.env.BASIC_AUTH_PASSWORD).toString(
@@ -61,12 +43,12 @@ function createHelperTransportSupport(context: HelperContext) {
 
     buildCaptureOwnerMetadata: function buildCaptureOwnerMetadata() {
       var state = context.getState();
-      var executionState = (global as any).__lrsConformanceCaptureExecutionState;
+      var executionState = global.__lrsConformanceCaptureExecutionState;
       if (!executionState || !Array.isArray(executionState.suitePath)) {
         return null;
       }
 
-      var suitePath = executionState.suitePath.filter(function (segment: unknown) {
+      var suitePath = executionState.suitePath.filter(function (segment) {
         return typeof segment === "string" && segment.length > 0;
       });
       var testTitle =
@@ -101,7 +83,7 @@ function createHelperTransportSupport(context: HelperContext) {
       );
     },
 
-    addCaptureOwnerHeader: function addCaptureOwnerHeader(header: Record<string, unknown>) {
+    addCaptureOwnerHeader: function addCaptureOwnerHeader(header) {
       var newHeader = cloneHeader(context, header);
       var metadata = helper().buildCaptureOwnerMetadata();
       if (metadata) {
@@ -110,9 +92,9 @@ function createHelperTransportSupport(context: HelperContext) {
       return newHeader;
     },
 
-    genDelay: function genDelay(time: number, query?: string, id?: string) {
-      var comb = require("comb") as any;
-      var request = require("super-request") as any;
+    genDelay: function genDelay(time, query, id) {
+      var comb = require("comb");
+      var request = require("super-request");
 
       var delay = function () {
         var p = new comb.Promise();
@@ -120,10 +102,10 @@ function createHelperTransportSupport(context: HelperContext) {
         if (query) {
           endP += query;
         }
-        var delta: number | undefined;
-        var finish: number | undefined;
+        var delta;
+        var finish;
 
-        function stmtFound(arr: Array<{ id?: string }>, expectedId: string) {
+        function stmtFound(arr, expectedId) {
           var found = false;
           arr.forEach(function (statement) {
             if (statement.id === expectedId) {
@@ -134,14 +116,14 @@ function createHelperTransportSupport(context: HelperContext) {
         }
 
         function doRequest() {
-          if ((global as any).OAUTH) {
+          if (global.OAUTH) {
             request = helper().OAuthRequest(request);
           }
           request(helper().getEndpointAndAuth())
             .get(endP)
             .headers(helper().addAllHeaders({}))
-            .end(function (err: unknown, res: any) {
-              var result: any;
+            .end(function (err, res) {
+              var result;
               if (err) {
                 throw err;
               }
@@ -229,17 +211,10 @@ function createHelperTransportSupport(context: HelperContext) {
       return context.getState().TIME_MARGIN;
     },
 
-    sendRequest: function sendRequest(
-      type: string,
-      url: string,
-      params: Record<string, unknown> | undefined,
-      body: unknown,
-      expectedStatus: number,
-      extraHeaders?: Record<string, unknown>,
-    ) {
-      var request = require("super-request") as any;
+    sendRequest: function sendRequest(type, url, params, body, expectedStatus, extraHeaders) {
+      var request = require("super-request");
       var methodName = type === "delete" ? "del" : type;
-      if ((global as any).OAUTH) {
+      if (global.OAUTH) {
         request = helper().OAuthRequest(request);
       }
 
@@ -261,7 +236,7 @@ function createHelperTransportSupport(context: HelperContext) {
       pre.headers(headers);
 
       return new Promise(function (resolve, reject) {
-        pre.expect(expectedStatus).end(function (error: unknown, response: any) {
+        pre.expect(expectedStatus).end(function (error, response) {
           if (error) {
             reject(error);
             return;
@@ -283,11 +258,11 @@ function createHelperTransportSupport(context: HelperContext) {
       });
     },
 
-    extendRequestWithOauth: function extendRequestWithOauth(pre: any) {
-      pre.sign = function (oa: any, token: string, secret: string) {
-        var additionalData: Record<string, string> = {};
+    extendRequestWithOauth: function extendRequestWithOauth(pre) {
+      pre.sign = function (oa, token, secret) {
+        var additionalData = {};
         additionalData = JSON.parse(JSON.stringify(additionalData));
-        additionalData["oauth_verifier"] = (global as any).OAUTH.verifier;
+        additionalData["oauth_verifier"] = global.OAUTH.verifier;
         var params = oa._prepareParameters(token, secret, pre.method, pre.url, additionalData);
 
         var signature = oa._buildAuthorizationHeaders(params);
@@ -295,22 +270,22 @@ function createHelperTransportSupport(context: HelperContext) {
       };
     },
 
-    setTimeMargin: function setTimeMargin(done: (err?: unknown, value?: number) => void) {
-      var request = require("super-request") as any;
+    setTimeMargin: function setTimeMargin(done) {
+      var request = require("super-request");
       var temp = [{ statement: "{{statements.default}}" }];
       var stmt;
       var id = helper().generateUUID();
       var query = helper().getUrlEncoding({
         statementId: id,
       });
-      var lrsTime: Date;
-      var suiteTime: Date;
+      var lrsTime;
+      var suiteTime;
 
       stmt = helper().createTestObject(helper().convertTemplate(temp)).statement;
       stmt.id = id;
       suiteTime = new Date();
 
-      if ((global as any).OAUTH) {
+      if (global.OAUTH) {
         request = helper().OAuthRequest(request);
       }
 
@@ -319,7 +294,7 @@ function createHelperTransportSupport(context: HelperContext) {
         .headers(helper().addAllHeaders({}))
         .json(stmt)
         .expect(200)
-        .end(function (err: unknown, res: any) {
+        .end(function (err, res) {
           if (err) {
             done(err);
           } else {
@@ -327,7 +302,7 @@ function createHelperTransportSupport(context: HelperContext) {
               request(helper().getEndpointAndAuth())
                 .get(helper().getEndpointStatements() + "?" + query)
                 .headers(helper().addAllHeaders({}))
-                .end(function (redoErr: unknown, redoRes: any) {
+                .end(function (redoErr, redoRes) {
                   if (redoErr) {
                     done(redoErr);
                   } else if (redoRes.statusCode === 200) {
@@ -346,7 +321,7 @@ function createHelperTransportSupport(context: HelperContext) {
         });
     },
 
-    getUrlEncoding: function getUrlEncoding(object: Record<string, unknown>) {
+    getUrlEncoding: function getUrlEncoding(object) {
       var encoding = "";
       Object.keys(object).forEach(function (key, index) {
         if (index !== 0) {
@@ -362,13 +337,13 @@ function createHelperTransportSupport(context: HelperContext) {
       return process.env.XAPI_VERSION;
     },
 
-    OAuthRequest: function OAuthRequest(request: any) {
+    OAuthRequest: function OAuthRequest(request) {
       var originalRequest = request;
 
-      function authRequest(e: any) {
+      function authRequest(e) {
         var r = originalRequest(e);
 
-        function wrapPromise(p: any) {
+        function wrapPromise(p) {
           if (p.__wrapped === true) return;
           p.__wrapped = true;
           for (var i in p) {
@@ -390,10 +365,10 @@ function createHelperTransportSupport(context: HelperContext) {
           }
         }
 
-        function wrapMethods(testRequest: any) {
+        function wrapMethods(testRequest) {
           if (testRequest.__wrapped === true) return;
           testRequest.__wrapped = true;
-          if (testRequest._options) testRequest._options.oauth = (global as any).OAUTH;
+          if (testRequest._options) testRequest._options.oauth = global.OAUTH;
           for (var i in testRequest) {
             (function (methodName) {
               if (typeof testRequest[methodName] !== "function") return;
@@ -401,7 +376,7 @@ function createHelperTransportSupport(context: HelperContext) {
               testRequest[methodName] = function () {
                 var nextTest = testRequest["_preAuth_" + methodName].apply(testRequest, arguments);
                 if (nextTest && nextTest._options && !nextTest._options.oauth) {
-                  nextTest._options.oauth = (global as any).OAUTH;
+                  nextTest._options.oauth = global.OAUTH;
                   wrapMethods(nextTest);
                   return nextTest;
                 }

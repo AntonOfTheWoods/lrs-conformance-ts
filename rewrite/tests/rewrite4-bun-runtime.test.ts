@@ -126,7 +126,7 @@ test("rewrite4 bun runtime preserves caller selection mode when forwarding to le
   ]);
 });
 
-test("rewrite4 bun runtime delegates to the legacy console runner with a legacy-node override", async () => {
+test("rewrite4 bun runtime delegates to the direct legacy console runner entry", async () => {
   let invocation:
     | {
         cwd: string;
@@ -165,7 +165,7 @@ test("rewrite4 bun runtime delegates to the legacy console runner with a legacy-
   expect(execution.exitCode).toBe(7);
   expect(invocation).toBeDefined();
   expect(invocation?.cwd).toBe("/tmp/rewrite4-suite");
-  expect(invocation?.env.LRS_CANDIDATE_RUNTIME_MODE).toBe("legacy-node");
+  expect(invocation?.env.LRS_CANDIDATE_RUNTIME_MODE).toBeUndefined();
   expect(invocation?.execPath).toBe("/usr/bin/bun");
   expect(invocation?.forwardedArgv).toEqual([
     "--directory",

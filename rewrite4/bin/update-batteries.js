@@ -1,113 +1,97 @@
 const fs = require("fs");
 const path = require("path");
-const expresss = require("express");
-const TestRunner = (process.versions && process.versions.bun ? require("./testRunner.ts") : require("./testRunner"))
-  .testRunner;
+const Mocha = require("mocha");
 const specs = require("../specConfig");
 
-function createMockApp() {
-  let mockApp = expresss();
+function clearRewriteModuleCache(rootDirectory) {
+  Object.keys(require.cache).forEach(function (cacheKey) {
+    if (!cacheKey.startsWith(rootDirectory)) {
+      return;
+    }
+    if (cacheKey.indexOf(path.sep + "node_modules" + path.sep) !== -1) {
+      return;
+    }
 
-  mockApp.all("/xapi/*", (req, res, next) => {
-    res.set("Content-Type", "text/plain");
-    res.set("x-experience-api-consistent-through", new Date(Date.now() + 100).toISOString());
-    res.set("x-experience-api-version", "1.0.3");
-    res.send({
-      verb: {
-        id: "http://adlnet.gov/expapi/verbs/attended",
-        display: {
-          "en-GB": "attended",
-          "en-US": "attended",
-        },
-      },
-      version: "1.0.0",
-      timestamp: new Date(Date.now() + 100).toISOString(),
-      object: {
-        id: "http://www.example.com/meetings/occurances/34534",
-        objectType: "Activity",
-      },
-      actor: {
-        mbox: "mailto:xapi@adlnet.gov",
-        name: "xAPI mbox",
-        objectType: "Agent",
-      },
-      stored: new Date(Date.now() + 100).toISOString(),
-      authority: {
-        mbox: "mailto:lou.wolford.ctr@adlnet.gov",
-        name: "lou",
-        objectType: "Agent",
-      },
-      id: "0be2bf9f-cb7f-4d06-9987-22a9ac406edd",
-    });
+    delete require.cache[cacheKey];
   });
-
-  return mockApp;
 }
 
-/**
- * Create a battery summary for a given spec version.
- * @param {string} version
- */
-async function createBattery(version) {
-  const runnerFlags = {};
-  runnerFlags.endpoint = "http://localhost:3001/xapi";
-  runnerFlags.basicAuth = true;
-  runnerFlags.authUser = "No:";
-  runnerFlags.authPass = "User";
-  runnerFlags.xapiVersion = version;
-  // runnerFlags.bail = true;
-
-  const runner = new TestRunner("batteryInfo", "Admin", runnerFlags, null, {});
-
-  return new Promise((resolve, reject) => {
-    runner.on("message", function (msg) {
-      if (msg.action === "end") {
-        function cleanLog(log) {
-          return {
-            text: log.name,
-            children: log.tests.map(cleanLog),
-          };
-        }
-
-        let record = runner.getCleanRecord();
-        let info = {
-          conformanceTestCount: record.summary.total,
-          tests: cleanLog(record.log),
+function cleanLog(log) {
+  return {
+    text: log.title || "",
+    children: log.suites.map(cleanLog).concat(
+      log.tests.map(function (test) {
+        return {
+          text: test.title,
+          children: [],
         };
-
-        console.log(`[${version}] found ${record.summary.total} tests.`);
-
-        return resolve(info);
-      }
-    });
-
-    runner.start();
-  });
+      }),
+    ),
+  };
 }
 
-/**
- * Create a battery summary for a given spec version.
- * @param {string} version
- */
-async function createBatteries() {
-  let app = createMockApp();
-  let server = app.listen(3001);
+function countTests(suite) {
+  return (
+    suite.tests.length +
+    suite.suites.reduce(function (sum, childSuite) {
+      return sum + countTests(childSuite);
+    }, 0)
+  );
+}
 
-  let output = {};
-  for (let version of specs.availableVersions) {
-    let info = await createBattery(version);
-    output[version] = info;
-  }
+function createBattery(version) {
+  const rewriteRoot = path.join(__dirname, "..");
+  const directory = version === "1.0.3" ? "v1_0_3" : "v2_0";
 
-  server.close();
+  process.env.DIRECTORY = directory;
+  process.env.LRS_ENDPOINT = "http://localhost:3001/xapi";
+  process.env.BASIC_AUTH_ENABLED = "true";
+  process.env.BASIC_AUTH_USER = "No:";
+  process.env.BASIC_AUTH_PASSWORD = "User";
+  process.env.XAPI_VERSION = version;
+
+  clearRewriteModuleCache(rewriteRoot);
+  require("chai").use(require("chai-things"));
+
+  const mocha = new Mocha({
+    timeout: "15000",
+    ui: "bdd",
+  });
+  const testDirectory = path.join(rewriteRoot, "test", directory);
+
+  fs.readdirSync(testDirectory)
+    .filter(function (file) {
+      return file.endsWith(".js");
+    })
+    .forEach(function (file) {
+      mocha.addFile(path.join(testDirectory, file));
+    });
+
+  mocha.loadFiles();
+
+  const info = {
+    conformanceTestCount: countTests(mocha.suite),
+    tests: cleanLog(mocha.suite),
+  };
+
+  console.log(`[${version}] found ${info.conformanceTestCount} tests.`);
+
+  return info;
+}
+
+function createBatteries() {
+  const output = {};
+  specs.availableVersions.forEach(function (version) {
+    output[version] = createBattery(version);
+  });
+
   return output;
 }
 
-async function main() {
-  let batteryOutput = await createBatteries();
-  let batteryPath = path.join(__dirname, "../batteries.js");
-
-  let fileContents = `module.exports = ${JSON.stringify(batteryOutput, null, 2)}`;
+function main() {
+  const batteryOutput = createBatteries();
+  const batteryPath = path.join(__dirname, "../batteries.js");
+  const fileContents = `module.exports = ${JSON.stringify(batteryOutput, null, 2)}`;
 
   fs.writeFileSync(batteryPath, fileContents);
 }

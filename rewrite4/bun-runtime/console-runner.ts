@@ -300,10 +300,7 @@ export async function runConsoleRunnerArgv(
         })
       : await (() => {
           const runLegacyConsoleRunner = dependencies.runLegacyConsoleRunner ?? defaultRunLegacyConsoleRunner;
-          const executionEnvironment = sanitizeEnv({
-            ...process.env,
-            LRS_CANDIDATE_RUNTIME_MODE: "legacy-node",
-          });
+          const executionEnvironment = sanitizeEnv(process.env);
           const execPath = dependencies.execPath ?? process.env.LRS_LEGACY_CONSOLE_RUNNER_EXEC_PATH ?? process.execPath;
           const legacyConsoleRunnerPath = resolveLegacyConsoleRunnerPath(runtimeRoot, execPath);
           return runLegacyConsoleRunner({

@@ -1,6 +1,5 @@
 var program = require("commander");
-var TestRunner = (process.versions && process.versions.bun ? require("./testRunner.ts") : require("./testRunner.js"))
-  .testRunner;
+var TestRunner = require("./testRunner.js").testRunner;
 var libpath = require("path");
 var fs = require("fs");
 const specConfig = require("../specConfig");

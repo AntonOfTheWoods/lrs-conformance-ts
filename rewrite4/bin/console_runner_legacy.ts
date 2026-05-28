@@ -74,9 +74,8 @@ type OAuthResponse = {
 };
 
 const program = require("commander") as any;
-const TestRunner = (process.versions && process.versions.bun ? require("./testRunner.ts") : require("./testRunner.js"))
-  .testRunner as TestRunnerConstructor;
-const oAuthModule = (process.versions && process.versions.bun ? require("./OAuth.ts") : require("./OAuth.js")) as {
+const TestRunner = require("./testRunner.ts").testRunner as TestRunnerConstructor;
+const oAuthModule = require("./OAuth.ts") as {
   auth(config: OAuthConfig, callback: (error: unknown, oAuth: OAuthResponse) => void): void;
 };
 const libpath = require("path") as typeof import("path");

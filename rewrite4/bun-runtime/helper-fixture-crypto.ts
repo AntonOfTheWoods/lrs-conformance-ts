@@ -1,30 +1,10 @@
+// @ts-nocheck
 "use strict";
 
-type HelperState = {
-  CONFIG_FOLDER: string;
-  CONFIG_FOLDER_RELATIVE: string;
-  DIRECTORY: string;
-  TEMPLATE_FOLDER: string;
-  TEMPLATE_FOLDER_RELATIVE: string;
-};
-
-type HelperContext = {
-  fs: typeof import("fs");
-  extend: (...args: any[]) => any;
-  uuid: { v4: () => string };
-  lodashIsEqual: (left: unknown, right: unknown) => boolean;
-  FormUrlencode: { encode: (body: Record<string, unknown>) => string };
-  jws: { sign: (input: Record<string, unknown>) => string };
-  crypto: typeof import("crypto");
-  helperRequire: (specifier: string) => any;
-  getHelperExports: () => Record<string, any>;
-  getState: () => HelperState;
-};
-
-function createMapping(mapper: Record<string, any>, input: string) {
+function createMapping(mapper, input) {
   var object = {};
 
-  var nested: any = mapper;
+  var nested = mapper;
   var cleanString = input.substring(2);
   cleanString = cleanString.substring(0, cleanString.length - 2);
   var mapping = cleanString.split(".");
@@ -39,7 +19,7 @@ function createMapping(mapper: Record<string, any>, input: string) {
   return object;
 }
 
-function validateConfiguration(configurations: Array<{ name?: string; config?: unknown }>, location: string) {
+function validateConfiguration(configurations, location) {
   configurations.forEach(function (configuration) {
     if (!configuration.name) {
       throw new Error('Invalid configuration "missing name": ' + location);
@@ -49,18 +29,20 @@ function validateConfiguration(configurations: Array<{ name?: string; config?: u
   });
 }
 
-function createHelperFixtureCryptoSupport(context: HelperContext) {
-  const helper = () => context.getHelperExports();
+function createHelperFixtureCryptoSupport(context) {
+  const helper = function () {
+    return context.getHelperExports();
+  };
 
   return {
-    convertTemplate: function convertTemplate(list: Array<Record<string, unknown>>) {
+    convertTemplate: function convertTemplate(list) {
       var mapper = helper().getJsonMapping();
-      var templates: Array<Record<string, unknown>> = [];
+      var templates = [];
       list.forEach(function (item) {
-        var key = Object.keys(item)[0] as string;
+        var key = Object.keys(item)[0];
         var value = item[key];
 
-        var object: Record<string, unknown> = {};
+        var object = {};
         if (typeof value === "string" && value.indexOf("{{") === 0 && value.indexOf("}}") === value.length - 2) {
           object[key] = createMapping(mapper, value);
           templates.push(object);
@@ -71,12 +53,12 @@ function createHelperFixtureCryptoSupport(context: HelperContext) {
       return templates;
     },
 
-    createFromTemplate: function createFromTemplate(templates: Array<Record<string, unknown>>) {
+    createFromTemplate: function createFromTemplate(templates) {
       var converted = helper().convertTemplate(templates);
       return helper().createTestObject(converted);
     },
 
-    createTestObject: function createTestObject(array: Array<Record<string, unknown>>) {
+    createTestObject: function createTestObject(array) {
       var from = {};
 
       array.reverse();
@@ -86,17 +68,17 @@ function createHelperFixtureCryptoSupport(context: HelperContext) {
           return;
         }
 
-        var toKey = to[Object.keys(to)[0] as keyof typeof to];
+        var toKey = to[Object.keys(to)[0]];
         context.extend(true, toKey, from);
         from = to;
       });
       return from;
     },
 
-    deepSearchObject: function deepSearchObject(object: Record<string, any>, primitive: unknown) {
-      var tested: unknown[] = [];
+    deepSearchObject: function deepSearchObject(object, primitive) {
+      var tested = [];
 
-      var _internal = function (candidate: Record<string, any>, expected: unknown): boolean {
+      var _internal = function (candidate, expected) {
         tested.push(candidate);
         var found = false;
         for (var i in candidate) {
@@ -118,10 +100,10 @@ function createHelperFixtureCryptoSupport(context: HelperContext) {
 
     getJsonMapping: function getJsonMapping() {
       var state = context.getState();
-      var mapping: Record<string, Record<string, unknown>> = {};
+      var mapping = {};
       var folders = context.fs.readdirSync(state.TEMPLATE_FOLDER);
       folders.forEach(function (folder) {
-        var fileMapping: Record<string, unknown> = {};
+        var fileMapping = {};
         mapping[folder] = fileMapping;
 
         var files = context.fs.readdirSync(state.TEMPLATE_FOLDER + "/" + folder);
@@ -139,7 +121,7 @@ function createHelperFixtureCryptoSupport(context: HelperContext) {
       return mapping;
     },
 
-    getSHA1Sum: function getSHA1Sum(content: unknown) {
+    getSHA1Sum: function getSHA1Sum(content) {
       var normalizedContent = typeof content === "string" ? content : JSON.stringify(content);
 
       var shasum = context.crypto.createHash("sha1");
@@ -149,7 +131,7 @@ function createHelperFixtureCryptoSupport(context: HelperContext) {
 
     getTestConfiguration: function getTestConfiguration() {
       var state = context.getState();
-      var list: Array<Record<string, unknown>> = [];
+      var list = [];
 
       var files = context.fs.readdirSync(state.CONFIG_FOLDER);
       files.forEach(function (file) {
@@ -165,7 +147,7 @@ function createHelperFixtureCryptoSupport(context: HelperContext) {
       return list;
     },
 
-    getSingleTestConfiguration: function getSingleTestConfiguration(fileName: string) {
+    getSingleTestConfiguration: function getSingleTestConfiguration(fileName) {
       var state = context.getState();
       var files = context.fs.readdirSync(state.CONFIG_FOLDER);
       var fileExists = false;
@@ -181,12 +163,12 @@ function createHelperFixtureCryptoSupport(context: HelperContext) {
       return configFile.config();
     },
 
-    isEqual: function isEqual(original: unknown, other: unknown) {
+    isEqual: function isEqual(original, other) {
       return context.lodashIsEqual(original, other);
     },
 
-    buildFormBody: function buildFormBody(content: unknown, id?: string) {
-      var body: Record<string, unknown> = {
+    buildFormBody: function buildFormBody(content, id) {
+      var body = {
         "X-Experience-API-Version": process.env.XAPI_VERSION,
         content: JSON.stringify(content),
       };
@@ -250,7 +232,7 @@ function createHelperFixtureCryptoSupport(context: HelperContext) {
     },
 
     buildDocument: function buildDocument() {
-      var document: Record<string, unknown> = {
+      var document = {
         name: helper().generateUUID(),
         location: {
           name: helper().generateUUID(),
@@ -265,11 +247,11 @@ function createHelperFixtureCryptoSupport(context: HelperContext) {
       return helper().clone(context.helperRequire("./" + state.DIRECTORY + "/templates/statements/default.json"));
     },
 
-    clone: function clone(obj: unknown) {
+    clone: function clone(obj) {
       return JSON.parse(JSON.stringify(obj));
     },
 
-    parse: function parse(input: string, done: (error: unknown) => void) {
+    parse: function parse(input, done) {
       var parsed;
       try {
         parsed = JSON.parse(input);
@@ -279,7 +261,7 @@ function createHelperFixtureCryptoSupport(context: HelperContext) {
       return parsed;
     },
 
-    signStatement: function signStatement(statement: Record<string, any>, options?: Record<string, any>) {
+    signStatement: function signStatement(statement, options) {
       options = options || {};
       options.privateKey =
         options.privateKey ||
@@ -340,7 +322,7 @@ function createHelperFixtureCryptoSupport(context: HelperContext) {
         },
       ];
 
-      var buffers: Buffer[] = [];
+      var buffers = [];
       buffers.push(Buffer.from(["", "--" + options.boundary, "Content-Type:application/json", "", ""].join("\r\n")));
       buffers.push(Buffer.from(JSON.stringify(statement), "utf8"));
       buffers.push(
@@ -357,15 +339,17 @@ function createHelperFixtureCryptoSupport(context: HelperContext) {
         ),
       );
       buffers.push(signatureBuffer);
-      buffers.push(Buffer.from(`\r\n--${options.boundary}--`));
+      buffers.push(Buffer.from("\r\n--" + options.boundary + "--"));
 
       return Buffer.concat(
         buffers,
-        buffers.reduce((size: number, buffer: Buffer) => size + buffer.byteLength, 0),
+        buffers.reduce(function (size, buffer) {
+          return size + buffer.byteLength;
+        }, 0),
       );
     },
 
-    verifyStatement: function verifyStatement(_statement: unknown) {
+    verifyStatement: function verifyStatement(_statement) {
       var publicKey = [
         "-----BEGIN PUBLIC KEY-----",
         "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvZtrkWAFrUYi8zekTKhe",

@@ -166,7 +166,7 @@ export class TestRunner extends EventEmitter {
   }
 
   static resolveLrsTestEntryPath(dirname: string): string {
-    return libpath.join(dirname, process.versions && process.versions.bun ? "lrs-test.ts" : "lrs-test.js");
+    return libpath.join(dirname, "lrs-test.ts");
   }
 
   start(): void {
