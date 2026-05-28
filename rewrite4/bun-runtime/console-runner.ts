@@ -1,5 +1,5 @@
 import { createRequire } from "node:module";
-import { resolve } from "node:path";
+import { basename, resolve } from "node:path";
 
 import { parseConsoleRunnerArgv, type ConsoleRunnerOptions } from "./cli-args.ts";
 import { normalizeRunnerOptions, type NormalizedRunnerOptions } from "./options.ts";
@@ -134,8 +134,16 @@ function resolveRuntimeRoot(cwd: string | undefined): string {
   return cwd ?? resolve(import.meta.dir, "..");
 }
 
-function resolveLegacyConsoleRunnerPath(runtimeRoot: string): string {
-  return resolve(runtimeRoot, "bin", "console_runner_legacy.js");
+function canExecTypeScriptEntry(execPath: string): boolean {
+  const executableName = basename(execPath).toLowerCase();
+
+  return executableName === "bun" || executableName.startsWith("bun.");
+}
+
+function resolveLegacyConsoleRunnerPath(runtimeRoot: string, execPath: string): string {
+  const legacyEntry = canExecTypeScriptEntry(execPath) ? "console_runner_legacy.ts" : "console_runner_legacy.js";
+
+  return resolve(runtimeRoot, "bin", legacyEntry);
 }
 
 function resolveRunnerMode(value: string | undefined): BunConsoleRunnerMode {
@@ -291,13 +299,13 @@ export async function runConsoleRunnerArgv(
           now: dependencies.now,
         })
       : await (() => {
-          const legacyConsoleRunnerPath = resolveLegacyConsoleRunnerPath(runtimeRoot);
           const runLegacyConsoleRunner = dependencies.runLegacyConsoleRunner ?? defaultRunLegacyConsoleRunner;
           const executionEnvironment = sanitizeEnv({
             ...process.env,
             LRS_CANDIDATE_RUNTIME_MODE: "legacy-node",
           });
           const execPath = dependencies.execPath ?? process.env.LRS_LEGACY_CONSOLE_RUNNER_EXEC_PATH ?? process.execPath;
+          const legacyConsoleRunnerPath = resolveLegacyConsoleRunnerPath(runtimeRoot, execPath);
           return runLegacyConsoleRunner({
             cwd: runtimeRoot,
             env: executionEnvironment,

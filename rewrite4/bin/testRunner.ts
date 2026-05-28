@@ -83,7 +83,7 @@ type SpecReference = {
   "1.0.2_ref_text"?: string;
 };
 
-class Suite {
+export class Suite {
   title: string;
   log = "";
   name: string;
@@ -118,7 +118,7 @@ class Suite {
   }
 }
 
-class TestRunner extends EventEmitter {
+export class TestRunner extends EventEmitter {
   proc: ChildProcess | null = null;
   name: string | null;
   owner: string | null;
@@ -165,13 +165,17 @@ class TestRunner extends EventEmitter {
     this.uuid = uuidv4();
   }
 
+  static resolveLrsTestEntryPath(dirname: string): string {
+    return libpath.join(dirname, process.versions && process.versions.bun ? "lrs-test.ts" : "lrs-test.js");
+  }
+
   start(): void {
     if (this.state !== "notStarted") {
       return;
     }
 
     this.state = "started";
-    this.proc = childProcess.fork(libpath.join(__dirname, "lrs-test.js"), ["--debug"], {
+    this.proc = childProcess.fork(TestRunner.resolveLrsTestEntryPath(__dirname), ["--debug"], {
       execArgv: [],
       cwd: libpath.join(__dirname, "/../"),
     });
@@ -390,8 +394,17 @@ class TestRunner extends EventEmitter {
   }
 }
 
-module.exports = {
-  testRunner: TestRunner,
-  TestRunner,
-  Suite,
-};
+export function resolveLrsTestEntryPath(dirname: string): string {
+  return TestRunner.resolveLrsTestEntryPath(dirname);
+}
+
+export const testRunner = TestRunner;
+
+if (typeof module !== "undefined") {
+  module.exports = {
+    resolveLrsTestEntryPath,
+    testRunner: TestRunner,
+    TestRunner,
+    Suite,
+  };
+}

@@ -13,6 +13,8 @@ import { normalizeRunnerOptions } from "../../rewrite4/bun-runtime/options.ts";
 import { createOutputRunRecord, type RuntimeRunRecord } from "../../rewrite4/bun-runtime/run-record.ts";
 import { registerSuiteFiles } from "../../rewrite4/bun-runtime/suite-loader.ts";
 import { createDescribeRuntime, type DescribeRuntime } from "../../rewrite4/bun-runtime/runtime.ts";
+import { resolveAuthorizationLaunchCommand } from "../../rewrite4/bin/OAuth.ts";
+import { resolveLrsTestEntryPath } from "../../rewrite4/bin/testRunner.ts";
 
 type GlobalTestShape = typeof globalThis & {
   __suiteLoadTrace?: string[];
@@ -178,7 +180,7 @@ test("rewrite4 bun runtime delegates to the legacy console runner with a legacy-
     "--file",
     "test/v1_0_3/Data2.2-FormattingRequirements.js",
   ]);
-  expect(invocation?.legacyConsoleRunnerPath).toBe("/tmp/rewrite4-suite/bin/console_runner_legacy.js");
+  expect(invocation?.legacyConsoleRunnerPath).toBe("/tmp/rewrite4-suite/bin/console_runner_legacy.ts");
   expect(execution.runnerMode).toBe("legacy-forward");
 });
 
@@ -256,6 +258,25 @@ test("rewrite4 bun runtime prefers the legacy exec-path override from the enviro
   }
 
   expect(invocation?.execPath).toBe("node");
+  expect(invocation?.legacyConsoleRunnerPath).toBe("/tmp/rewrite4-suite/bin/console_runner_legacy.js");
+});
+
+test("rewrite4 bun test runner prefers the TypeScript lrs-test entry under Bun", () => {
+  expect(resolveLrsTestEntryPath("/tmp/rewrite4-suite/bin")).toBe("/tmp/rewrite4-suite/bin/lrs-test.ts");
+});
+
+test("rewrite4 bun OAuth helper resolves Linux browser launch commands", () => {
+  expect(resolveAuthorizationLaunchCommand("linux", "https://example.com/callback")).toEqual({
+    args: ["https://example.com/callback"],
+    command: "xdg-open",
+  });
+});
+
+test("rewrite4 bun OAuth helper resolves Windows browser launch commands", () => {
+  expect(resolveAuthorizationLaunchCommand("win32", "https://example.com/callback")).toEqual({
+    args: ["/c", "start", "", "https://example.com/callback"],
+    command: "cmd",
+  });
 });
 
 test("rewrite4 bun runtime dispatches native mode without forwarding to the legacy runner", async () => {

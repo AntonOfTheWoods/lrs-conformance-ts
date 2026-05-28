@@ -19,7 +19,7 @@
   "scripts": {
     "test": "node node_modules/mocha/bin/mocha test/v1_0_2/*.js --reporter nyan",
     "start": "node ./bin/console_runner.js",
-    "update-batteries": "node ./bin/update-batteries.js"
+    "update-batteries": "bun ./bin/update-batteries.ts"
   },
   "dependencies": {
     "axios": "^1.4.0",
