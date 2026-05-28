@@ -27,7 +27,8 @@ function resolveCandidateRuntimeMode() {
 (async function main() {
   const runtimeMode = resolveCandidateRuntimeMode();
   if (runtimeMode !== "bun-ts") {
-    require("./console_runner_legacy.js");
+    console.error(`Unsupported runtime mode for rewrite4: ${runtimeMode}. This candidate now requires bun-ts.`);
+    process.exit(1);
     return;
   }
 

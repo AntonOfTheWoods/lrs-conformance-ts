@@ -256,22 +256,9 @@ test("rewrite4 bun runtime defaults to native mode", async () => {
   expect(legacyInvocationCount).toBe(0);
 });
 
-test("rewrite4 bun runtime prefers the legacy exec-path override from the environment", async () => {
-  const originalExecPathOverride = process.env.LRS_LEGACY_CONSOLE_RUNNER_EXEC_PATH;
-  let invocation:
-    | {
-        cwd: string;
-        env: Record<string, string>;
-        execPath: string;
-        forwardedArgv: string[];
-        legacyConsoleRunnerPath: string;
-      }
-    | undefined;
-
-  process.env.LRS_LEGACY_CONSOLE_RUNNER_EXEC_PATH = "node";
-
-  try {
-    await runConsoleRunnerArgv(
+test("rewrite4 bun runtime rejects non-Bun exec paths for legacy-forward mode", async () => {
+  expect(
+    runConsoleRunnerArgv(
       [
         "--endpoint",
         "http://localhost:8080/xapi",
@@ -282,23 +269,11 @@ test("rewrite4 bun runtime prefers the legacy exec-path override from the enviro
       ],
       {
         cwd: "/tmp/rewrite4-suite",
+        execPath: "node",
         runnerMode: "legacy-forward",
-        runLegacyConsoleRunner: async (nextInvocation) => {
-          invocation = nextInvocation;
-          return 0;
-        },
       },
-    );
-  } finally {
-    if (typeof originalExecPathOverride === "undefined") {
-      delete process.env.LRS_LEGACY_CONSOLE_RUNNER_EXEC_PATH;
-    } else {
-      process.env.LRS_LEGACY_CONSOLE_RUNNER_EXEC_PATH = originalExecPathOverride;
-    }
-  }
-
-  expect(invocation?.execPath).toBe("node");
-  expect(invocation?.legacyConsoleRunnerPath).toBe("/tmp/rewrite4-suite/bin/console_runner_legacy.js");
+    ),
+  ).rejects.toThrow("rewrite4 legacy-forward requires Bun as the exec path, received: node");
 });
 
 test("rewrite4 bun test runner prefers the TypeScript lrs-test entry under Bun", () => {

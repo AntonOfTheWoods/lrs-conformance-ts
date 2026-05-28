@@ -866,9 +866,11 @@ function prepareProvidedSuite(config: ExportUpstreamConfig): SuiteLocation {
   }
 
   ensureSuiteReady(suiteDir, `The local suite source at ${suiteDir} is incomplete.`);
-  ensureRunnerSelectionFlagSupport(suiteDir);
-  ensureUpstreamFileSelectionSupport(suiteDir);
-  ensureOwnerCaptureSupport(suiteDir);
+  if (config.candidateRuntimeMode !== "bun-ts") {
+    ensureRunnerSelectionFlagSupport(suiteDir);
+    ensureUpstreamFileSelectionSupport(suiteDir);
+    ensureOwnerCaptureSupport(suiteDir);
+  }
 
   return {
     suiteDir,
@@ -990,7 +992,6 @@ function buildCandidateBunSuiteBootstrapCommand(
     '  npm install --prefix "$runtime_suite_dir" --omit=dev --no-save --no-package-lock --ignore-scripts --no-audit --no-fund',
     "fi",
     'export NODE_PATH="$runtime_suite_node_modules_dir${NODE_PATH:+:$NODE_PATH}"',
-    "export LRS_LEGACY_CONSOLE_RUNNER_EXEC_PATH=node",
     "set +e",
     `"$runtime_bun_binary_path" "$runtime_console_runner_path"${shellQuotedUpstreamArgs.length > 0 ? ` ${shellQuotedUpstreamArgs}` : ""}`,
     "status=$?",

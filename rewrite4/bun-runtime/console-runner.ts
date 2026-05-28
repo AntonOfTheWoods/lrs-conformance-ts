@@ -140,10 +140,8 @@ function canExecTypeScriptEntry(execPath: string): boolean {
   return executableName === "bun" || executableName.startsWith("bun.");
 }
 
-function resolveLegacyConsoleRunnerPath(runtimeRoot: string, execPath: string): string {
-  const legacyEntry = canExecTypeScriptEntry(execPath) ? "console_runner_legacy.ts" : "console_runner_legacy.js";
-
-  return resolve(runtimeRoot, "bin", legacyEntry);
+function resolveLegacyConsoleRunnerPath(runtimeRoot: string): string {
+  return resolve(runtimeRoot, "bin", "console_runner_legacy.ts");
 }
 
 function resolveRunnerMode(value: string | undefined): BunConsoleRunnerMode {
@@ -301,8 +299,12 @@ export async function runConsoleRunnerArgv(
       : await (() => {
           const runLegacyConsoleRunner = dependencies.runLegacyConsoleRunner ?? defaultRunLegacyConsoleRunner;
           const executionEnvironment = sanitizeEnv(process.env);
-          const execPath = dependencies.execPath ?? process.env.LRS_LEGACY_CONSOLE_RUNNER_EXEC_PATH ?? process.execPath;
-          const legacyConsoleRunnerPath = resolveLegacyConsoleRunnerPath(runtimeRoot, execPath);
+          const execPath = dependencies.execPath ?? process.execPath;
+          if (!canExecTypeScriptEntry(execPath)) {
+            throw new Error(`rewrite4 legacy-forward requires Bun as the exec path, received: ${execPath}`);
+          }
+
+          const legacyConsoleRunnerPath = resolveLegacyConsoleRunnerPath(runtimeRoot);
           return runLegacyConsoleRunner({
             cwd: runtimeRoot,
             env: executionEnvironment,
