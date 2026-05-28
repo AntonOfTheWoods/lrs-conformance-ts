@@ -14,6 +14,7 @@ import { createOutputRunRecord, type RuntimeRunRecord } from "../../rewrite4/bun
 import { registerSuiteFiles } from "../../rewrite4/bun-runtime/suite-loader.ts";
 import { createDescribeRuntime, type DescribeRuntime } from "../../rewrite4/bun-runtime/runtime.ts";
 import { resolveAuthorizationLaunchCommand } from "../../rewrite4/bin/OAuth.ts";
+import { buildLrsTestLoadPlan, normalizeLrsTestOptions } from "../../rewrite4/bin/lrs-test.ts";
 import { resolveLrsTestEntryPath } from "../../rewrite4/bin/testRunner.ts";
 
 type GlobalTestShape = typeof globalThis & {
@@ -89,6 +90,45 @@ test("rewrite4 bun runtime normalizes directory and file selections", () => {
     verifier: undefined,
     xapiVersion: "1.0.3",
   });
+});
+
+test("rewrite4 bun lrs-test normalizes legacy child-runner options through shared runtime options", () => {
+  expect(
+    normalizeLrsTestOptions({
+      basicAuth: "true",
+      directory: ["v1_0_3"],
+      endpoint: "http://localhost:8080/xapi",
+      file: ["test/v1_0_3/Data2.2-FormattingRequirements.js"],
+      oAuth1: "false",
+      optional: ["Multiplicity"],
+    }),
+  ).toEqual(
+    normalizeRunnerOptions({
+      basicAuth: true,
+      directory: ["v1_0_3"],
+      endpoint: "http://localhost:8080/xapi",
+      file: ["test/v1_0_3/Data2.2-FormattingRequirements.js"],
+      oAuth1: false,
+      optional: ["Multiplicity"],
+    }),
+  );
+});
+
+test("rewrite4 bun lrs-test reuses suite-loader load-plan semantics", () => {
+  const loadPlan = buildLrsTestLoadPlan(
+    normalizeLrsTestOptions({
+      directory: ["v1_0_3"],
+      endpoint: "http://localhost:8080/xapi",
+      file: ["test\\v1_0_3\\H.Communication2.1-StatementResource.js"],
+      optional: ["Parameters"],
+    }),
+  );
+
+  expect(loadPlan.directoriesToLoad).toEqual(["Parameters", "v1_0_3"]);
+  expect(loadPlan.needsTimeMarginBootstrap).toBe(true);
+  expect(loadPlan.selectedFiles ? [...loadPlan.selectedFiles] : null).toEqual([
+    "test/v1_0_3/H.Communication2.1-StatementResource.js",
+  ]);
 });
 
 test("rewrite4 bun runtime preserves caller selection mode when forwarding to legacy runner", () => {

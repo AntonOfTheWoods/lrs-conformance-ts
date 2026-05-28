@@ -49,11 +49,11 @@ const timeMarginDependentFiles = new Set<string>([
   "test/v2_0/4.1.6.6-Activity-Profile-Resource.js",
 ]);
 
-function toPosixPath(pathValue: string): string {
+export function toPosixPath(pathValue: string): string {
   return pathValue.replaceAll("\\", "/");
 }
 
-function normalizeSelectedFiles(selectedFiles: string[] | undefined): Set<string> | null {
+export function normalizeSelectedFiles(selectedFiles: string[] | undefined): Set<string> | null {
   if (!selectedFiles || selectedFiles.length === 0) {
     return null;
   }
@@ -172,7 +172,7 @@ function installSuiteGlobals(runtime: DescribeRuntime): () => void {
   };
 }
 
-function getDirectoriesToLoad(normalizedOptions: NormalizedRunnerOptions): string[] {
+export function getDirectoriesToLoad(normalizedOptions: NormalizedRunnerOptions): string[] {
   const directories = [...normalizedOptions.directory];
   if (normalizedOptions.optional && normalizedOptions.optional.length > 0) {
     for (const optionalDirectory of [...normalizedOptions.optional].reverse()) {
@@ -193,7 +193,7 @@ function isMissingAssertionModule(error: unknown): boolean {
   return /Cannot find (module|package) 'chai(?:-things)?'/.test(message);
 }
 
-function installAssertionPlugins(requireFromRuntimeRoot: NodeJS.Require): void {
+export function installAssertionPlugins(requireFromRuntimeRoot: NodeJS.Require): void {
   try {
     const chai = requireFromRuntimeRoot("chai") as { use?: (plugin: unknown) => void };
     const chaiThings = requireFromRuntimeRoot("chai-things");
@@ -210,7 +210,7 @@ function installAssertionPlugins(requireFromRuntimeRoot: NodeJS.Require): void {
   }
 }
 
-function needsTimeMarginBootstrap(selectedFiles: Set<string> | null): boolean {
+export function needsTimeMarginBootstrap(selectedFiles: Set<string> | null): boolean {
   if (!selectedFiles || selectedFiles.size === 0) {
     return false;
   }

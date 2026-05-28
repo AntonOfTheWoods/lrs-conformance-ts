@@ -2,6 +2,22 @@
 
 "use strict";
 
+import {
+  normalizeRunnerOptions,
+  RunnerOptionsError,
+  type NormalizedRunnerOptions,
+  type RunnerInputOptions,
+} from "../bun-runtime/options.ts";
+import { defaultXapiVersion } from "../bun-runtime/spec-config.ts";
+import {
+  getDirectoriesToLoad,
+  installAssertionPlugins,
+  installRunnerEnvironment,
+  needsTimeMarginBootstrap,
+  normalizeSelectedFiles,
+  toPosixPath,
+} from "../bun-runtime/suite-loader.ts";
+
 type CaptureExecutionState = {
   suitePath: string[];
   testTitle: string | null;
@@ -10,12 +26,6 @@ type CaptureExecutionState = {
 type ChildProcessShape = NodeJS.Process & {
   postMessage?: (action: string, payload?: unknown) => void;
   send?: (message: { action: string; payload?: unknown }) => void;
-};
-
-type SpecConfig = {
-  defaultVersion: string;
-  getSpecFromFolder(folder: string): string | undefined;
-  specToFolder: Record<string, string | undefined>;
 };
 
 type RawOptions = {
@@ -40,28 +50,59 @@ type RawOptions = {
   [key: string]: unknown;
 };
 
-type ResolvedOptions = {
-  xapiVersion: string;
-  directory: string[];
-  endpoint: string;
-  basicAuth: boolean | string | undefined;
-  authUser: string | undefined;
-  authPass: string | undefined;
-  reporter: string | undefined;
-  grep: string | undefined;
-  optional: string[] | undefined;
-  file: string[] | undefined;
-  bail: boolean | undefined;
-  consumer_key: string | undefined;
-  consumer_secret: string | undefined;
-  token: string | undefined;
-  token_secret: string | undefined;
-  verifier: string | undefined;
-  oAuth1: boolean | string | undefined;
-  errors: boolean | undefined;
-};
+function coerceBooleanOption(value: boolean | string | undefined): boolean | undefined {
+  if (value === true || value === "true") {
+    return true;
+  }
 
-const specConfig = require("../specConfig") as SpecConfig;
+  if (value === false || value === "false") {
+    return false;
+  }
+
+  return undefined;
+}
+
+function hasExplicitSuiteSelection(options: RawOptions): boolean {
+  return typeof options.xapiVersion === "string" || (Array.isArray(options.directory) && options.directory.length > 0);
+}
+
+export function normalizeLrsTestOptions(options: RawOptions): NormalizedRunnerOptions {
+  const runnerInputOptions: RunnerInputOptions = {
+    xapiVersion: options.xapiVersion,
+    directory: options.directory,
+    endpoint: typeof options.endpoint === "string" ? options.endpoint : undefined,
+    grep: options.grep,
+    optional: options.optional,
+    file: options.file,
+    basicAuth: coerceBooleanOption(options.basicAuth),
+    authUser: options.authUser,
+    authPass: options.authPass,
+    oAuth1: coerceBooleanOption(options.oAuth1),
+    consumer_key: options.consumer_key,
+    consumer_secret: options.consumer_secret,
+    token: options.token,
+    token_secret: options.token_secret,
+    verifier: options.verifier,
+    bail: options.bail,
+    errors: options.errors,
+  };
+
+  return normalizeRunnerOptions(runnerInputOptions);
+}
+
+export function buildLrsTestLoadPlan(normalizedOptions: NormalizedRunnerOptions): {
+  directoriesToLoad: string[];
+  needsTimeMarginBootstrap: boolean;
+  selectedFiles: Set<string> | null;
+} {
+  const selectedFiles = normalizeSelectedFiles(normalizedOptions.file);
+
+  return {
+    directoriesToLoad: getDirectoriesToLoad(normalizedOptions),
+    needsTimeMarginBootstrap: needsTimeMarginBootstrap(selectedFiles),
+    selectedFiles,
+  };
+}
 
 function getOrCreateCaptureExecutionState(): CaptureExecutionState {
   const globalState = globalThis as typeof globalThis & {
@@ -184,83 +225,44 @@ function runTests(_options: RawOptions): void {
     childProcessHandle.postMessage?.("log", "Options not valid " + validOptions.error);
     process.exit();
   }
+  const shouldWarnAboutDefaultVersion = !hasExplicitSuiteSelection(_options);
 
-  let endpointSpecified = _options.endpoint != undefined;
-  let versionSpecified = _options.xapiVersion != undefined;
-
-  let directorySpecified = Array.isArray(_options.directory) && _options.directory.length > 0;
-  let defaultDirectory = specConfig.specToFolder[specConfig.defaultVersion];
-
-  if (!endpointSpecified) {
-    console.error(`You must specify an endpoint (-e or --endpoint) for your LRS.`);
-    console.error(`LRS endpoints typically have the form: https://lrs.net/xapi.`);
+  let normalizedOptions: NormalizedRunnerOptions;
+  try {
+    normalizedOptions = normalizeLrsTestOptions(_options);
+  } catch (error) {
+    const message = error instanceof RunnerOptionsError ? error.message : String(error);
+    console.error(message);
+    if (message === "You must specify an endpoint (-e or --endpoint) for your LRS.") {
+      console.error("LRS endpoints typically have the form: https://lrs.net/xapi.");
+    }
     process.exit(1);
+    return;
   }
 
-  if (versionSpecified && directorySpecified) {
-    console.error(`Cannot specify both an xAPI Version and a Directory.`);
-    process.exit(1);
+  if (shouldWarnAboutDefaultVersion) {
+    console.warn(`No xAPI version or manual path specified -- defaulting to ${defaultXapiVersion}.`);
   }
 
-  if (versionSpecified) {
-    let versionFolder = _options.xapiVersion ? specConfig.specToFolder[_options.xapiVersion] : undefined;
-    if (versionFolder != undefined) _options.directory = [versionFolder];
-    else {
-      console.error(
-        `Unknown version of the xAPI spec: ${_options.xapiVersion}.  Unable to find appropriate test suite.`,
-      );
-      process.exit(1);
-    }
-  } else if (directorySpecified) {
-    let matchingSpec = undefined as string | undefined;
-    for (let dir of _options.directory ?? []) {
-      let spec = specConfig.getSpecFromFolder(dir);
-      if (spec != matchingSpec) {
-        if (matchingSpec == undefined) matchingSpec = spec;
-        else {
-          console.error(
-            `Multiple directories specified which refer to different versions of the xAPI spec: ${spec} vs. ${matchingSpec}`,
-          );
-          process.exit(1);
-        }
-      }
-    }
-
-    if (matchingSpec == undefined) {
-      console.error(
-        `Unable to determine which version of xAPI to test against with diectories: ${(_options.directory ?? []).join(", ")}`,
-      );
-      process.exit(1);
-    }
-
-    _options.xapiVersion = matchingSpec;
-  }
-
-  if (!versionSpecified && !directorySpecified) {
-    _options.xapiVersion = specConfig.defaultVersion;
-    _options.directory = defaultDirectory ? [defaultDirectory] : [];
-    console.warn(`No xAPI version or manual path specified -- defaulting to ${specConfig.defaultVersion}.`);
-  }
-
-  var options: ResolvedOptions = {
-    xapiVersion: _options.xapiVersion ?? specConfig.defaultVersion,
-    directory: _options.directory ?? [],
-    endpoint: _options.endpoint ?? "",
-    basicAuth: _options.basicAuth,
-    authUser: _options.authUser,
-    authPass: _options.authPass,
+  var options = {
+    xapiVersion: normalizedOptions.xapiVersion,
+    directory: normalizedOptions.directory,
+    endpoint: normalizedOptions.endpoint,
+    basicAuth: normalizedOptions.basicAuth,
+    authUser: normalizedOptions.authUser,
+    authPass: normalizedOptions.authPass,
     reporter: _options.reporter,
-    grep: _options.grep,
-    optional: _options.optional,
-    file: _options.file,
-    bail: _options.bail,
-    consumer_key: _options.consumer_key,
-    consumer_secret: _options.consumer_secret,
-    token: _options.token,
-    token_secret: _options.token_secret,
-    verifier: _options.verifier,
-    oAuth1: _options.oAuth1,
-    errors: _options.errors,
+    grep: normalizedOptions.grep,
+    optional: normalizedOptions.optional,
+    file: normalizedOptions.file,
+    bail: normalizedOptions.bail,
+    consumer_key: normalizedOptions.consumer_key,
+    consumer_secret: normalizedOptions.consumer_secret,
+    token: normalizedOptions.token,
+    token_secret: normalizedOptions.token_secret,
+    verifier: normalizedOptions.verifier,
+    oAuth1: normalizedOptions.oAuth1,
+    errors: normalizedOptions.errors,
   };
 
   var grep;
@@ -284,84 +286,39 @@ function runTests(_options: RawOptions): void {
         `);
 
   console.log("Grep is " + grep);
-  process.env.DIRECTORY = options.directory[0] ?? "";
-
-  if (options.optional) {
-    options.optional.reverse().forEach(function (dir) {
-      options.directory.unshift(dir);
-    });
-  }
-
-  process.env.LRS_ENDPOINT = options.endpoint;
-  process.env.BASIC_AUTH_ENABLED = String(options.basicAuth);
-  process.env.BASIC_AUTH_USER = options.authUser;
-  process.env.BASIC_AUTH_PASSWORD = options.authPass;
-  process.env.OAUTH1_ENABLED = String(options.oAuth1);
-  process.env.XAPI_VERSION = options.xapiVersion;
-
-  if (options.oAuth1) {
-    (globalThis as typeof globalThis & { OAUTH?: Record<string, string | undefined> }).OAUTH = {
-      consumer_key: _options.consumer_key,
-      consumer_secret: _options.consumer_secret,
-      token: _options.token,
-      token_secret: _options.token_secret,
-      verifier: _options.verifier,
-    };
-  }
-
-  var selectedFiles =
-    Array.isArray(options.file) && options.file.length > 0
-      ? options.file.map(function (filePath) {
-          return path.normalize(filePath).replace(/\\/g, "/");
+  const restoreRunnerEnvironment = installRunnerEnvironment(normalizedOptions);
+  const loadPlan = buildLrsTestLoadPlan(normalizedOptions);
+  try {
+    installAssertionPlugins(require as NodeJS.Require);
+    if (loadPlan.needsTimeMarginBootstrap) {
+      mocha.suite.beforeAll(
+        "Accounting for time differential between test suite and lrs",
+        function (done: (error?: unknown, ...ignored: unknown[]) => void) {
+          require(path.join(__dirname, "..", "test", "helper.js")).setTimeMargin(done);
+        },
+      );
+    }
+    loadPlan.directoriesToLoad.forEach(function (dir) {
+      var testDirectory = __dirname + "/../test/" + dir;
+      fs.readdirSync(testDirectory)
+        .filter(function (file) {
+          var relativeFilePath = toPosixPath(path.join("test", dir, file));
+          return file.substr(-3) === ".js" && (!loadPlan.selectedFiles || loadPlan.selectedFiles.has(relativeFilePath));
         })
-      : null;
-  require("chai").use(require("chai-things"));
-  var timeMarginSetupFiles = [
-    "test/v1_0_3/Data2.2-FormattingRequirements.js",
-    "test/v2_0/Data2.2-FormattingRequirements.js",
-  ];
-  var timeMarginDependentFiles = [
-    "test/v1_0_3/H.Communication2.1-StatementResource.js",
-    "test/v1_0_3/H.Communication2.3-StateResource.js",
-    "test/v1_0_3/H.Communication2.6-AgentProfileResource.js",
-    "test/v1_0_3/H.Communication2.7-ActivityProfileResource.js",
-    "test/v2_0/4.1.6.1-Statement-Resource.js",
-    "test/v2_0/4.1.6.2-State-Resource.js",
-    "test/v2_0/4.1.6.5-Agent-Profile-Resource.js",
-    "test/v2_0/4.1.6.6-Activity-Profile-Resource.js",
-  ];
-  var needsTimeMarginBootstrap =
-    !!selectedFiles &&
-    selectedFiles.some(function (filePath) {
-      return timeMarginDependentFiles.indexOf(filePath) !== -1;
-    }) &&
-    !selectedFiles.some(function (filePath) {
-      return timeMarginSetupFiles.indexOf(filePath) !== -1;
+        .forEach(function (file) {
+          mocha.addFile(path.join(testDirectory, file));
+        });
     });
-  if (needsTimeMarginBootstrap) {
-    mocha.suite.beforeAll(
-      "Accounting for time differential between test suite and lrs",
-      function (done: (error?: unknown, ...ignored: unknown[]) => void) {
-        require(path.join(__dirname, "..", "test", "helper.js")).setTimeMargin(done);
-      },
-    );
-  }
-  options.directory.forEach(function (dir) {
-    var testDirectory = __dirname + "/../test/" + dir;
-    fs.readdirSync(testDirectory)
-      .filter(function (file) {
-        var relativeFilePath = path.join("test", dir, file).replace(/\\/g, "/");
-        return file.substr(-3) === ".js" && (!selectedFiles || selectedFiles.indexOf(relativeFilePath) !== -1);
-      })
-      .forEach(function (file) {
-        mocha.addFile(path.join(testDirectory, file));
-      });
-  });
 
-  mocha.run(function () {
-    childProcessHandle.postMessage?.("log", "Test Suite Complete");
-    process.exit();
-  });
+    mocha.run(function () {
+      childProcessHandle.postMessage?.("log", "Test Suite Complete");
+      restoreRunnerEnvironment();
+      process.exit();
+    });
+  } catch (error) {
+    restoreRunnerEnvironment();
+    throw error;
+  }
 }
 
 function hookupIPC(): void {
