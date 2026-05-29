@@ -19,6 +19,7 @@ import {
   normalizeSelectedFiles,
   toPosixPath,
 } from "../bun-runtime/suite-loader.ts";
+import { pathToFileURL } from "node:url";
 
 type CaptureExecutionState = {
   suitePath: string[];
@@ -122,6 +123,17 @@ export function shouldUseCommonJsCompatibleTsLoader(sourceText: string): boolean
   return /module\.exports/.test(sourceText) && !/^\s*(import|export)\s/m.test(sourceText);
 }
 
+export function normalizeLegacyRequireResult<T>(value: T): T {
+  if (value && typeof value === "object" && "default" in (value as Record<string, unknown>)) {
+    const defaultValue = (value as Record<string, unknown>).default;
+    if (typeof defaultValue !== "undefined") {
+      return defaultValue as T;
+    }
+  }
+
+  return value;
+}
+
 function normalizeCommonJsCompatibleModuleSource(sourceText: string): string {
   return sourceText.replace(/^\s*export default .*;\s*$/gm, "");
 }
@@ -169,10 +181,10 @@ function loadLegacySuiteFile(absoluteFilePath: string, sourceText: string): void
     if (resolvedPath.endsWith(".ts")) {
       const requiredSource = require("fs").readFileSync(resolvedPath, "utf8") as string;
       if (shouldUseCommonJsCompatibleTsLoader(requiredSource)) {
-        return loadCommonJsCompatibleTsModule(resolvedPath);
+        return normalizeLegacyRequireResult(loadCommonJsCompatibleTsModule(resolvedPath));
       }
 
-      return suiteRequire(specifier);
+      return normalizeLegacyRequireResult(suiteRequire(specifier));
     }
 
     return suiteRequire(specifier);
@@ -205,6 +217,10 @@ function loadLegacySuiteFile(absoluteFilePath: string, sourceText: string): void
     const message = error instanceof Error ? (error.stack ?? error.message) : String(error);
     throw new Error(`Failed to load legacy suite file ${absoluteFilePath}: ${message}`);
   }
+}
+
+async function loadNativeSuiteFile(absoluteFilePath: string): Promise<void> {
+  await import(`${pathToFileURL(absoluteFilePath).href}?v=${Date.now()}`);
 }
 
 function getOrCreateCaptureExecutionState(): CaptureExecutionState {
@@ -270,7 +286,7 @@ function processMessageReporter(processHandle: ChildProcessShape) {
   };
 }
 
-function runTests(_options: RawOptions): void {
+async function runTests(_options: RawOptions): Promise<void> {
   const Joi = require("joi") as any;
   const fs = require("fs") as typeof import("fs");
   const path = require("path") as typeof import("path");
@@ -411,28 +427,28 @@ function runTests(_options: RawOptions): void {
         },
       );
     }
-    loadPlan.directoriesToLoad.forEach(function (dir) {
-      var testDirectory = __dirname + "/../test/" + dir;
-      fs.readdirSync(testDirectory)
-        .filter(function (file) {
-          var relativeFilePath = toPosixPath(path.join("test", dir, file));
-          return isSuiteDefinitionFile(file) && matchesSelectedSuiteFile(loadPlan.selectedFiles, relativeFilePath);
-        })
-        .forEach(function (file) {
-          const absoluteFilePath = path.join(testDirectory, file);
-          const sourceText = fs.readFileSync(absoluteFilePath, "utf8");
-          console.log(`[suite-load] ${absoluteFilePath} legacy=${shouldLoadLegacySuiteFile(sourceText)}`);
+    for (const dir of loadPlan.directoriesToLoad) {
+      const testDirectory = __dirname + "/../test/" + dir;
+      const files = fs.readdirSync(testDirectory).filter(function (file) {
+        const relativeFilePath = toPosixPath(path.join("test", dir, file));
+        return isSuiteDefinitionFile(file) && matchesSelectedSuiteFile(loadPlan.selectedFiles, relativeFilePath);
+      });
 
-          mocha.suite.emit("pre-require", globalThis, absoluteFilePath, mocha);
-          if (shouldLoadLegacySuiteFile(sourceText)) {
-            loadLegacySuiteFile(absoluteFilePath, sourceText);
-          } else {
-            mocha.addFile(absoluteFilePath);
-          }
+      for (const file of files) {
+        const absoluteFilePath = path.join(testDirectory, file);
+        const sourceText = fs.readFileSync(absoluteFilePath, "utf8");
+        console.log(`[suite-load] ${absoluteFilePath} legacy=${shouldLoadLegacySuiteFile(sourceText)}`);
 
-          mocha.suite.emit("post-require", globalThis, absoluteFilePath, mocha);
-        });
-    });
+        mocha.suite.emit("pre-require", globalThis, absoluteFilePath, mocha);
+        if (shouldLoadLegacySuiteFile(sourceText)) {
+          loadLegacySuiteFile(absoluteFilePath, sourceText);
+        } else {
+          await loadNativeSuiteFile(absoluteFilePath);
+        }
+
+        mocha.suite.emit("post-require", globalThis, absoluteFilePath, mocha);
+      }
+    }
 
     mocha.run(function () {
       childProcessHandle.postMessage?.("log", "Test Suite Complete");
@@ -458,7 +474,10 @@ function hookupIPC(): void {
       childProcessHandle.postMessage?.("log", "pong");
     } else if (message.action == "runTests") {
       childProcessHandle.postMessage?.("log", "runTests starting");
-      runTests(message.payload ?? {});
+      void runTests(message.payload ?? {}).catch((error) => {
+        console.error(error);
+        process.exit(1);
+      });
     }
   });
   childProcessHandle.postMessage?.("ready");

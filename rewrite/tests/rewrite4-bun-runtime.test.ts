@@ -17,6 +17,7 @@ import { resolveAuthorizationLaunchCommand } from "../../rewrite4/bin/OAuth.ts";
 import { listSuiteDefinitionFiles } from "../../rewrite4/bin/update-batteries.ts";
 import {
   buildLrsTestLoadPlan,
+  normalizeLegacyRequireResult,
   normalizeLrsTestOptions,
   shouldUseCommonJsCompatibleTsLoader,
 } from "../../rewrite4/bin/lrs-test.ts";
@@ -143,6 +144,15 @@ test("rewrite4 bun lrs-test does not force mixed ESM/CommonJS TS helpers through
 
   expect(shouldUseCommonJsCompatibleTsLoader(mixedModuleSource)).toBe(false);
   expect(shouldUseCommonJsCompatibleTsLoader(pureCommonJsSource)).toBe(true);
+});
+
+test("rewrite4 bun lrs-test legacy require bridge unwraps default exports", () => {
+  const helperLike = { buildDocument: () => ({}) };
+  const namespaceLike = { default: helperLike };
+  const unwrapped = normalizeLegacyRequireResult<typeof helperLike>(namespaceLike as unknown as typeof helperLike);
+
+  expect(unwrapped).toBe(helperLike);
+  expect(normalizeLegacyRequireResult(helperLike)).toBe(helperLike);
 });
 
 test("rewrite4 bun runtime preserves caller selection mode when forwarding to legacy runner", () => {
@@ -627,7 +637,7 @@ test("rewrite4 suite loader prioritizes optional directories and selected files"
 
     globalState.__suiteLoadTrace = [];
 
-    const loadedFiles = registerSuiteFiles({
+    const loadedFiles = await registerSuiteFiles({
       normalizedOptions: normalizeRunnerOptions({
         directory: ["v1_0_3"],
         endpoint: "http://localhost:8080/xapi",
@@ -687,7 +697,7 @@ test("rewrite4 suite loader installs chai-things before loading selected files",
     globalState.__chaiBootstrapTrace = [];
     globalState.__suiteLoadTrace = [];
 
-    const loadedFiles = registerSuiteFiles({
+    const loadedFiles = await registerSuiteFiles({
       normalizedOptions: normalizeRunnerOptions({
         directory: ["v1_0_3"],
         endpoint: "http://localhost:8080/xapi",
@@ -727,7 +737,7 @@ test("rewrite4 suite loader accepts TypeScript suite files for legacy .js select
 
     globalState.__suiteLoadTrace = [];
 
-    const loadedFiles = registerSuiteFiles({
+    const loadedFiles = await registerSuiteFiles({
       normalizedOptions: normalizeRunnerOptions({
         directory: ["v1_0_3"],
         endpoint: "http://localhost:8080/xapi",
@@ -780,7 +790,7 @@ test("rewrite4 suite loader registers time margin bootstrap for selected time-se
 
     globalState.__suiteLoadTrace = [];
 
-    const loadedFiles = registerSuiteFiles({
+    const loadedFiles = await registerSuiteFiles({
       normalizedOptions: normalizeRunnerOptions({
         directory: ["v1_0_3"],
         endpoint: "http://localhost:8080/xapi",

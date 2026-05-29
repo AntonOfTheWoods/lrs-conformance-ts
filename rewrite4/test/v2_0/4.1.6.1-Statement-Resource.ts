@@ -9,11 +9,14 @@ import fs from "node:fs";
 import { expect } from "chai";
 import extend from "extend";
 import moment from "moment";
+import helperImport from "../helper.ts";
 import multipartParser from "../multipartParser.ts";
 import requestBase from "super-request";
-const helper = require("../helper.ts");
-const xapiRequests = require("./util/requests.ts");
-let request = requestBase;
+import xapiRequestsImport from "./util/requests.ts";
+
+const helper: any = helperImport;
+const xapiRequests: any = xapiRequestsImport;
+let request: any = requestBase;
 
 if (global.OAUTH) request = helper.OAuthRequest(request);
 

@@ -222,7 +222,7 @@ async function defaultRunNativeConsoleRunner(options: {
   let summaryInterval: ReturnType<typeof setInterval> | undefined;
 
   try {
-    registerSuiteFiles({
+    await registerSuiteFiles({
       normalizedOptions: options.normalizedOptions,
       runtime,
       runtimeRoot: options.runtimeRoot,

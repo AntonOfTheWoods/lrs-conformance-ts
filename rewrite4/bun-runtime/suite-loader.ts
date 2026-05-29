@@ -1,6 +1,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 
 import type { DescribeRuntime } from "./runtime.ts";
 import type { NormalizedRunnerOptions } from "./options.ts";
@@ -315,6 +316,17 @@ function shouldUseCommonJsCompatibleTsLoader(sourceText: string): boolean {
   return /module\.exports/.test(sourceText) && !/^\s*(import|export)\s/m.test(sourceText);
 }
 
+function normalizeLegacyRequireResult<T>(value: T): T {
+  if (value && typeof value === "object" && "default" in (value as Record<string, unknown>)) {
+    const defaultValue = (value as Record<string, unknown>).default;
+    if (typeof defaultValue !== "undefined") {
+      return defaultValue as T;
+    }
+  }
+
+  return value;
+}
+
 function normalizeCommonJsCompatibleModuleSource(sourceText: string): string {
   return sourceText.replace(/^\s*export default .*;\s*$/gm, "");
 }
@@ -354,10 +366,10 @@ function loadLegacySuiteFile(absoluteFilePath: string, sourceText: string): void
     if (resolvedPath.endsWith(".ts")) {
       const requiredSource = readFileSync(resolvedPath, "utf8");
       if (shouldUseCommonJsCompatibleTsLoader(requiredSource)) {
-        return loadCommonJsCompatibleTsModule(resolvedPath);
+        return normalizeLegacyRequireResult(loadCommonJsCompatibleTsModule(resolvedPath));
       }
 
-      return suiteRequire(specifier);
+      return normalizeLegacyRequireResult(suiteRequire(specifier));
     }
 
     return suiteRequire(specifier);
@@ -381,7 +393,11 @@ function loadLegacySuiteFile(absoluteFilePath: string, sourceText: string): void
   executeLegacySuite(suiteModule, suiteModule.exports, legacyRequire, absoluteFilePath, dirname(absoluteFilePath));
 }
 
-export function registerSuiteFiles(options: SuiteLoaderOptions): string[] {
+async function loadNativeSuiteFile(absoluteFilePath: string): Promise<void> {
+  await import(`${pathToFileURL(absoluteFilePath).href}?v=${Date.now()}`);
+}
+
+export async function registerSuiteFiles(options: SuiteLoaderOptions): Promise<string[]> {
   const runtimeRoot = options.runtimeRoot;
   const normalizedOptions = options.normalizedOptions;
   const directoriesToLoad = getDirectoriesToLoad(normalizedOptions);
@@ -417,7 +433,7 @@ export function registerSuiteFiles(options: SuiteLoaderOptions): string[] {
         if (shouldLoadLegacySuiteFile(sourceText)) {
           loadLegacySuiteFile(absoluteFilePath, sourceText);
         } else {
-          requireFromRuntimeRoot(absoluteFilePath);
+          await loadNativeSuiteFile(absoluteFilePath);
         }
         loadedFiles.push(relativeFilePath);
       }
