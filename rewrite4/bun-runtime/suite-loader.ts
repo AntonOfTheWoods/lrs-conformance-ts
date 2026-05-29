@@ -35,7 +35,9 @@ type SuiteGlobalShape = typeof globalThis & {
 
 const timeMarginSetupFiles = new Set<string>([
   "test/v1_0_3/Data2.2-FormattingRequirements.js",
+  "test/v1_0_3/Data2.2-FormattingRequirements.ts",
   "test/v2_0/Data2.2-FormattingRequirements.js",
+  "test/v2_0/Data2.2-FormattingRequirements.ts",
 ]);
 
 const timeMarginDependentFiles = new Set<string>([

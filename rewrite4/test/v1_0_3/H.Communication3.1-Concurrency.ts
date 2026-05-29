@@ -20,7 +20,15 @@ import __esmDep6 from "oauth";
   var request = request(helper.getEndpoint());
   var oauth;
   if (global.OAUTH) {
-    oauth = new oauthLib.OAuth("", "", global.OAUTH.consumer_key, global.OAUTH.consumer_secret, "1.0", null, "HMAC-SHA1");
+    oauth = new oauthLib.OAuth(
+      "",
+      "",
+      global.OAUTH.consumer_key,
+      global.OAUTH.consumer_secret,
+      "1.0",
+      null,
+      "HMAC-SHA1",
+    );
   }
 
   describe("Concurrency Requirements (Communication 3.1)", () => {
@@ -226,12 +234,4 @@ import __esmDep6 from "oauth";
       });
     });
   });
-})(
-  process,
-  __esmDep1,
-  __esmDep2,
-  __esmDep3,
-  __esmDep4,
-  __esmDep5,
-  __esmDep6,
-);
+})(process, __esmDep1, __esmDep2, __esmDep3, __esmDep4, __esmDep5, __esmDep6);
