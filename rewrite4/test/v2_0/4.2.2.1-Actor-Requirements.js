@@ -3,14 +3,27 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-(function (module, fs, extend, moment, request, requestPromise, chai, liburl, Joi, helper, multipartParser, redirect, templatingSelection) {
-    // "use strict";
+(function (
+  module,
+  fs,
+  extend,
+  moment,
+  request,
+  requestPromise,
+  chai,
+  liburl,
+  Joi,
+  helper,
+  multipartParser,
+  redirect,
+  templatingSelection,
+) {
+  // "use strict";
 
-    var expect = chai.expect;
-    if(global.OAUTH)
-        request = helper.OAuthRequest(request);
+  var expect = chai.expect;
+  if (global.OAUTH) request = helper.OAuthRequest(request);
 
-/**  Matchup with Conformance Requirements Document
+  /**  Matchup with Conformance Requirements Document
  * XAPI-00031 - in actors.js
 
  * 2.4.2.1 Actor is Agent - may have more in agents.js
@@ -34,8 +47,7 @@
  * XAPI-00043 - in accountobjects.js
  */
 
-describe('Actor Property Requirements (Data 2.4.2)', () => {
-
+  describe("Actor Property Requirements (Data 2.4.2)", () => {
     //Data 2.4.2
     templatingSelection.createTemplate("actors.js");
     //Data 2.4.2.1
@@ -45,8 +57,20 @@ describe('Actor Property Requirements (Data 2.4.2)', () => {
     //Data 2.4.2.3
     templatingSelection.createTemplate("ifis.js");
     //Data 2.4.2.4
-    templatingSelection.createTemplate("accountobjects.js");
-
-});
-
-}(module, require('fs'), require('extend'), require('moment'), require('super-request'), require('supertest-as-promised'), require('chai'), require('url'), require('joi'), require('./../helper.ts'), require('./../multipartParser.ts'), require('./../redirect.ts'), require('./../templatingSelection.ts')));
+    templatingSelection.createTemplate("accountobjects.ts");
+  });
+})(
+  module,
+  require("fs"),
+  require("extend"),
+  require("moment"),
+  require("super-request"),
+  require("supertest-as-promised"),
+  require("chai"),
+  require("url"),
+  require("joi"),
+  require("./../helper.ts"),
+  require("./../multipartParser.ts"),
+  require("./../redirect.ts"),
+  require("./../templatingSelection.ts"),
+);

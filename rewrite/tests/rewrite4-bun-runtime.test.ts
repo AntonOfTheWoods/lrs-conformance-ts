@@ -14,6 +14,7 @@ import { createOutputRunRecord, type RuntimeRunRecord } from "../../rewrite4/bun
 import { registerSuiteFiles } from "../../rewrite4/bun-runtime/suite-loader.ts";
 import { createDescribeRuntime, type DescribeRuntime } from "../../rewrite4/bun-runtime/runtime.ts";
 import { resolveAuthorizationLaunchCommand } from "../../rewrite4/bin/OAuth.ts";
+import { listSuiteDefinitionFiles } from "../../rewrite4/bin/update-batteries.ts";
 import { buildLrsTestLoadPlan, normalizeLrsTestOptions } from "../../rewrite4/bin/lrs-test.ts";
 import { resolveLrsTestEntryPath } from "../../rewrite4/bin/testRunner.ts";
 
@@ -394,6 +395,49 @@ test("rewrite4 describe runtime supports top-level before hooks and timeout call
   expect(result.summary.failed).toBe(0);
 });
 
+test("rewrite4 describe runtime executes sibling cases before nested suites to match legacy mocha ordering", async () => {
+  const events: string[] = [];
+  const runtime = createDescribeRuntime({ rootTitle: "", version: "1.0.3" });
+
+  runtime.describe("Mixed Suite", function () {
+    runtime.describe("Nested A", function () {
+      runtime.before("setup A", function (done) {
+        events.push("before-a");
+        done();
+      });
+
+      runtime.it("case a", function () {
+        events.push("case-a");
+      });
+    });
+
+    runtime.it("case one", function () {
+      events.push("case-one");
+    });
+
+    runtime.describe("Nested B", function () {
+      runtime.before("setup B", function (done) {
+        events.push("before-b");
+        done();
+      });
+
+      runtime.it("case b", function () {
+        events.push("case-b");
+      });
+    });
+
+    runtime.it("case two", function () {
+      events.push("case-two");
+    });
+  });
+
+  const result = await runtime.run();
+
+  expect(result.summary.total).toBe(4);
+  expect(result.summary.passed).toBe(4);
+  expect(events).toEqual(["case-one", "case-two", "before-a", "case-a", "before-b", "case-b"]);
+});
+
 test("rewrite4 describe runtime captures hook and case output on the active node", async () => {
   const runtime = createDescribeRuntime({ rootTitle: "", version: "1.0.3" });
 
@@ -684,6 +728,20 @@ test("rewrite4 suite loader accepts TypeScript suite files for legacy .js select
     expect(loadedFiles).toEqual(["test/v1_0_3/selected.ts"]);
   } finally {
     delete globalState.__suiteLoadTrace;
+    await rm(runtimeRoot, { force: true, recursive: true });
+  }
+});
+
+test("rewrite4 batteries generator discovers both JavaScript and TypeScript suite files", async () => {
+  const runtimeRoot = await mkdtemp(join(tmpdir(), "rewrite4-batteries-"));
+
+  try {
+    await writeFile(join(runtimeRoot, "selected.ts"), "export {};\n", "utf8");
+    await writeFile(join(runtimeRoot, "selected.js"), "module.exports = {};\n", "utf8");
+    await writeFile(join(runtimeRoot, "ignored.json"), "{}\n", "utf8");
+
+    expect(listSuiteDefinitionFiles(runtimeRoot)).toEqual(["selected.js", "selected.ts"]);
+  } finally {
     await rm(runtimeRoot, { force: true, recursive: true });
   }
 });

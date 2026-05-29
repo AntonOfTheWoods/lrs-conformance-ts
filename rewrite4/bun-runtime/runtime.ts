@@ -174,6 +174,22 @@ function hasMatchingDescendant(definition: SuiteDefinition, path: string[], patt
   return countMatchingCases(definition, path, pattern) > 0;
 }
 
+function getExecutionChildren(children: DefinitionNode[]): DefinitionNode[] {
+  const cases: DefinitionNode[] = [];
+  const suites: DefinitionNode[] = [];
+
+  for (const child of children) {
+    if (child.kind === "case") {
+      cases.push(child);
+      continue;
+    }
+
+    suites.push(child);
+  }
+
+  return [...cases, ...suites];
+}
+
 function rollupSuiteStatus(children: RuntimeNodeResult[]): RuntimeStatus {
   let sawCancelled = false;
 
@@ -461,7 +477,7 @@ function buildCancelledSuite(
   const result = createSuiteResult(definition.title);
   result.status = "cancelled";
 
-  for (const child of definition.children) {
+  for (const child of getExecutionChildren(definition.children)) {
     if (child.kind === "suite") {
       const childResult = buildCancelledSuite(child, suitePath, state);
       if (childResult) {
@@ -531,7 +547,7 @@ async function executeSuite(
       result.status = "failed";
       result.error = toErrorMessage(error);
 
-      for (const child of definition.children) {
+      for (const child of getExecutionChildren(definition.children)) {
         if (child.kind === "suite") {
           const childResult = buildCancelledSuite(child, suitePath, state);
           if (childResult) {
@@ -556,7 +572,7 @@ async function executeSuite(
     }
   }
 
-  for (const child of definition.children) {
+  for (const child of getExecutionChildren(definition.children)) {
     if (child.kind === "suite") {
       const childResult = state.cancelRemaining
         ? buildCancelledSuite(child, suitePath, state)

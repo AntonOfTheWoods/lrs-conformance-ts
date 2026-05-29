@@ -859,7 +859,119 @@ function decodeReplayBody(bodyBase64: string): Uint8Array | undefined {
   return new Uint8Array(buffer);
 }
 
-function mapReplayTargetUrl(originalUrl: string, targetBaseUrl: string): string {
+type ReplayJsonValue = boolean | number | string | null | ReplayJsonValue[] | { [key: string]: ReplayJsonValue };
+
+function getReplayHeaderValue(entries: Array<[string, string]>, name: string): string | undefined {
+  const normalizedName = name.toLowerCase();
+  return entries.find(([entryName]) => entryName.toLowerCase() === normalizedName)?.[1];
+}
+
+function getReplayMediaType(contentType: string | undefined): string | null {
+  if (!contentType) {
+    return null;
+  }
+
+  const [mediaType] = contentType.split(";", 1);
+  return mediaType?.trim().toLowerCase() ?? null;
+}
+
+function decodeReplayBodyText(bodyBase64: string): string | null {
+  if (!bodyBase64) {
+    return null;
+  }
+
+  return Buffer.from(bodyBase64, "base64").toString("utf8");
+}
+
+function extractStatementIdsFromReplayResponse(bodyText: string | null): string[] {
+  if (!bodyText) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(bodyText) as unknown;
+    if (Array.isArray(parsed) && parsed.every((value) => typeof value === "string")) {
+      return parsed;
+    }
+  } catch {
+    return [];
+  }
+
+  return [];
+}
+
+function rewriteStatementRefIdsInReplayJson(
+  value: ReplayJsonValue,
+  statementIdMap: ReadonlyMap<string, string>,
+): ReplayJsonValue {
+  if (Array.isArray(value)) {
+    let changed = false;
+    const rewrittenItems = value.map((item) => {
+      const rewrittenItem = rewriteStatementRefIdsInReplayJson(item, statementIdMap);
+      changed ||= rewrittenItem !== item;
+      return rewrittenItem;
+    });
+
+    return changed ? rewrittenItems : value;
+  }
+
+  if (!value || typeof value !== "object") {
+    return value;
+  }
+
+  const record = value as { [key: string]: ReplayJsonValue };
+  const isStatementRef = record.objectType === "StatementRef";
+  let changed = false;
+  const rewrittenRecord: { [key: string]: ReplayJsonValue } = {};
+
+  for (const [key, entry] of Object.entries(record)) {
+    let rewrittenEntry = rewriteStatementRefIdsInReplayJson(entry, statementIdMap);
+
+    if (isStatementRef && key === "id" && typeof entry === "string") {
+      const mappedId = statementIdMap.get(entry);
+      if (mappedId) {
+        rewrittenEntry = mappedId;
+      }
+    }
+
+    changed ||= rewrittenEntry !== entry;
+    rewrittenRecord[key] = rewrittenEntry;
+  }
+
+  return changed ? rewrittenRecord : value;
+}
+
+function shouldTrackReplayStatementIds(exchange: Pick<RawTrafficExchange, "request" | "response">): boolean {
+  const method = exchange.request.method.toUpperCase();
+  if (method !== "POST" && method !== "PUT") {
+    return false;
+  }
+
+  const path = new URL(exchange.request.targetUrl).pathname;
+  return path.endsWith("/xapi/statements") && exchange.response.status === 200;
+}
+
+function rewriteReplayQueryParam(
+  url: URL,
+  parameter: "statementId" | "voidedStatementId",
+  statementIdMap: ReadonlyMap<string, string>,
+): void {
+  const originalValue = url.searchParams.get(parameter);
+  if (!originalValue) {
+    return;
+  }
+
+  const mappedValue = statementIdMap.get(originalValue);
+  if (mappedValue) {
+    url.searchParams.set(parameter, mappedValue);
+  }
+}
+
+export function mapReplayTargetUrl(
+  originalUrl: string,
+  targetBaseUrl: string,
+  statementIdMap: ReadonlyMap<string, string> = new Map(),
+): string {
   const original = new URL(originalUrl);
   const targetBase = new URL(targetBaseUrl);
   const targetPrefix = targetBase.pathname.replace(/\/$/, "");
@@ -870,7 +982,75 @@ function mapReplayTargetUrl(originalUrl: string, targetBaseUrl: string): string 
   const mapped = new URL(targetBase.origin);
   mapped.pathname = finalPath;
   mapped.search = original.search;
+
+  rewriteReplayQueryParam(mapped, "statementId", statementIdMap);
+  rewriteReplayQueryParam(mapped, "voidedStatementId", statementIdMap);
+
   return mapped.toString();
+}
+
+export function rewriteReplayRequestBody(
+  exchange: Pick<RawTrafficExchange, "request">,
+  statementIdMap: ReadonlyMap<string, string>,
+): Uint8Array | undefined {
+  const originalBody = decodeReplayBody(exchange.request.bodyBase64);
+  if (!originalBody) {
+    return undefined;
+  }
+
+  const method = exchange.request.method.toUpperCase();
+  if (method !== "POST" && method !== "PUT") {
+    return originalBody;
+  }
+
+  const path = new URL(exchange.request.targetUrl).pathname;
+  if (!path.endsWith("/xapi/statements")) {
+    return originalBody;
+  }
+
+  const mediaType = getReplayMediaType(getReplayHeaderValue(exchange.request.headers, "content-type"));
+  if (mediaType !== "application/json" && mediaType !== "application/octet-stream+json") {
+    return originalBody;
+  }
+
+  const originalBodyText = Buffer.from(originalBody).toString("utf8");
+  try {
+    const parsed = JSON.parse(originalBodyText) as ReplayJsonValue;
+    const rewritten = rewriteStatementRefIdsInReplayJson(parsed, statementIdMap);
+    if (rewritten === parsed) {
+      return originalBody;
+    }
+
+    return new TextEncoder().encode(JSON.stringify(rewritten));
+  } catch {
+    return originalBody;
+  }
+}
+
+export function recordReplayStatementIdMappings(
+  exchange: Pick<RawTrafficExchange, "request" | "response">,
+  replayResponseBody: string,
+  statementIdMap: Map<string, string>,
+): void {
+  if (!shouldTrackReplayStatementIds(exchange)) {
+    return;
+  }
+
+  const originalIds = extractStatementIdsFromReplayResponse(decodeReplayBodyText(exchange.response.bodyBase64));
+  const replayIds = extractStatementIdsFromReplayResponse(replayResponseBody);
+  if (originalIds.length === 0 || originalIds.length !== replayIds.length) {
+    return;
+  }
+
+  for (let index = 0; index < originalIds.length; index += 1) {
+    const originalId = originalIds[index];
+    const replayId = replayIds[index];
+    if (!originalId || !replayId) {
+      continue;
+    }
+
+    statementIdMap.set(originalId, replayId);
+  }
 }
 
 function normalizeReplayHeaders(entries: Array<[string, string]>): Headers {
@@ -922,6 +1102,7 @@ export async function writeTraceDbStateArtifacts(options: {
   const manifestEntries: TraceNodeDbStateManifestEntry[] = [];
   const replayIssues: TraceDbReplayIssue[] = [];
   const exchanges = [...options.rawArtifact.exchanges].sort((left, right) => left.sequence - right.sequence);
+  const replayStatementIdMap = new Map<string, string>();
   let completedRawSequenceEnd: number | null = null;
 
   const manifest: TraceNodeDbStateManifest = {
@@ -943,11 +1124,16 @@ export async function writeTraceDbStateArtifacts(options: {
   await ensureLrsql(options.rawArtifact.version);
 
   for (const exchange of exchanges) {
-    const targetUrl = mapReplayTargetUrl(exchange.request.targetUrl, options.rawArtifact.targetBaseUrl);
+    const targetUrl = mapReplayTargetUrl(
+      exchange.request.targetUrl,
+      options.rawArtifact.targetBaseUrl,
+      replayStatementIdMap,
+    );
+    const replayRequestBody = rewriteReplayRequestBody(exchange, replayStatementIdMap);
     let response: Response;
     try {
       response = await fetch(targetUrl, {
-        body: decodeReplayBody(exchange.request.bodyBase64),
+        body: replayRequestBody,
         headers: normalizeReplayHeaders(exchange.request.headers),
         method: exchange.request.method.toUpperCase(),
         redirect: "manual",
@@ -967,6 +1153,8 @@ export async function writeTraceDbStateArtifacts(options: {
 
     completedRawSequenceEnd = exchange.sequence;
     manifest.completedRawSequenceEnd = completedRawSequenceEnd;
+    const replayResponseBody = shouldTrackReplayStatementIds(exchange) ? await response.text() : "";
+    recordReplayStatementIdMappings(exchange, replayResponseBody, replayStatementIdMap);
     let shouldWriteManifest = false;
 
     if (response.status !== exchange.response.status) {
@@ -1569,7 +1757,12 @@ export function suppressSequenceOnlyDbStateDifferences(
 }
 
 function isSignedStatementBoundary(nodeKeys: string[]): boolean {
-  return nodeKeys.length > 0 && nodeKeys.every((nodeKey) => nodeKey.includes("E.Data2.6-SignedStatements"));
+  return (
+    nodeKeys.length > 0 &&
+    nodeKeys.every(
+      (nodeKey) => nodeKey.includes("E.Data2.6-SignedStatements") || nodeKey.includes("Signed Statements (Data 2.6)"),
+    )
+  );
 }
 
 function shouldSuppressSignedStatementBoundaryDifference(boundary: TraceDbStateBoundaryComparison): boolean {

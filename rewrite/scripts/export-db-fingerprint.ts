@@ -39,6 +39,15 @@ type Config = {
   user: string;
 };
 
+type PsqlCommandResult = {
+  exitCode: number;
+  stderr: string;
+  stdout: string;
+};
+
+const tableListCache = new Map<string, string[]>();
+const combinedFingerprintSqlCache = new Map<string, string>();
+
 const repoRoot = resolve(import.meta.dir, "../..");
 const allowedArtifactsRoot = resolve(repoRoot, "tmp/agents");
 
@@ -134,6 +143,61 @@ function sqlLiteral(value: string): string {
   return `'${value.replaceAll("'", "''")}'`;
 }
 
+function sqlIdentifier(value: string): string {
+  return `"${value.replaceAll('"', '""')}"`;
+}
+
+function createTableListCacheKey(config: Config): string {
+  return JSON.stringify({
+    excludedTables: [...config.excludedTables].sort(),
+    schema: config.schema,
+    tableFilterFlags: config.tableFilterRegex?.flags ?? null,
+    tableFilterSource: config.tableFilterRegex?.source ?? null,
+  });
+}
+
+function createCombinedFingerprintSqlCacheKey(schema: string, tableNames: string[]): string {
+  return JSON.stringify({
+    schema,
+    tableNames,
+  });
+}
+
+export function isRetryablePsqlExecFailure(result: PsqlCommandResult): boolean {
+  if (result.exitCode !== 255) {
+    return false;
+  }
+
+  return /can only create exec sessions on running containers|container state improper/i.test(result.stderr);
+}
+
+export async function resolvePsqlCommandOutput(
+  runCommand: () => Promise<PsqlCommandResult>,
+  options?: {
+    maxAttempts?: number;
+    retryDelayMs?: number;
+  },
+): Promise<string> {
+  const maxAttempts = options?.maxAttempts ?? 5;
+  const retryDelayMs = options?.retryDelayMs ?? 250;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const result = await runCommand();
+    if (result.exitCode === 0) {
+      return result.stdout.trim();
+    }
+
+    const error = new Error(`psql command failed with status ${result.exitCode}: ${result.stderr.trim()}`);
+    if (!isRetryablePsqlExecFailure(result) || attempt === maxAttempts) {
+      throw error;
+    }
+
+    await Bun.sleep(retryDelayMs * attempt);
+  }
+
+  throw new Error("psql command failed without producing a result.");
+}
+
 export function buildFingerprintRowJsonExpression(tableName: string, rowAlias = "t"): string {
   if (!documentContentTables.has(tableName)) {
     return `to_jsonb(${rowAlias})`;
@@ -164,45 +228,102 @@ export function buildFingerprintRowJsonExpression(tableName: string, rowAlias = 
   ].join("\n");
 }
 
-async function runPsql(config: Config, sql: string): Promise<string> {
-  const subprocess = Bun.spawn({
-    cmd: [
-      "podman",
-      "compose",
-      "-f",
-      config.composeFile,
-      "exec",
-      "-T",
-      config.service,
-      "psql",
-      "-U",
-      config.user,
-      "-d",
-      config.database,
-      "-v",
-      "ON_ERROR_STOP=1",
-      "-t",
-      "-A",
-      "-c",
-      sql,
-    ],
-    cwd: repoRoot,
-    env: process.env,
-    stderr: "pipe",
-    stdout: "pipe",
-  });
-
-  const stdout = await new Response(subprocess.stdout).text();
-  const stderr = await new Response(subprocess.stderr).text();
-  const exitCode = await subprocess.exited;
-  if (exitCode !== 0) {
-    throw new Error(`psql command failed with status ${exitCode}: ${stderr.trim()}`);
+export function buildCombinedFingerprintSql(schema: string, tableNames: string[]): string {
+  if (tableNames.length === 0) {
+    return "select '{}'::json;";
   }
 
-  return stdout.trim();
+  const tableSelects = tableNames.map((tableName) => {
+    const rowJsonExpression = buildFingerprintRowJsonExpression(tableName);
+    const qualifiedTable = `${sqlIdentifier(schema)}.${sqlIdentifier(tableName)}`;
+
+    return [
+      "select",
+      `  ${sqlLiteral(tableName)} as table_name,`,
+      "  json_build_object(",
+      "    'rowCount', count(*),",
+      "    'rowHash', coalesce(md5(string_agg(row_md5, '' order by row_md5)), md5('')),",
+      "    'columnNames', (",
+      "      select coalesce(array_agg(column_name order by ordinal_position), array[]::text[])",
+      "      from information_schema.columns",
+      `      where table_schema = ${sqlLiteral(schema)} and table_name = ${sqlLiteral(tableName)}`,
+      "    )",
+      "  ) as fingerprint",
+      "from (",
+      "  select md5(",
+      "    regexp_replace(",
+      "      regexp_replace(",
+      `        (${rowJsonExpression})::text,`,
+      "        '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}',",
+      "        '<uuid>',",
+      "        'gi'",
+      "      ),",
+      "      '\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:\\d{2})',",
+      "      '<isoTimestamp>',",
+      "      'g'",
+      "    )",
+      "  ) as row_md5",
+      `  from ${qualifiedTable} t`,
+      ") row_material",
+    ].join("\n");
+  });
+
+  return [
+    "select coalesce(json_object_agg(table_name, fingerprint), '{}'::json)",
+    "from (",
+    tableSelects.join("\nunion all\n"),
+    ") table_fingerprints;",
+  ].join("\n");
+}
+
+async function runPsql(config: Config, sql: string): Promise<string> {
+  return resolvePsqlCommandOutput(async () => {
+    const subprocess = Bun.spawn({
+      cmd: [
+        "podman",
+        "compose",
+        "-f",
+        config.composeFile,
+        "exec",
+        "-T",
+        config.service,
+        "psql",
+        "-U",
+        config.user,
+        "-d",
+        config.database,
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-t",
+        "-A",
+        "-c",
+        sql,
+      ],
+      cwd: repoRoot,
+      env: process.env,
+      stderr: "pipe",
+      stdout: "pipe",
+    });
+
+    const stdout = await new Response(subprocess.stdout).text();
+    const stderr = await new Response(subprocess.stderr).text();
+    const exitCode = await subprocess.exited;
+
+    return {
+      exitCode,
+      stderr,
+      stdout,
+    } satisfies PsqlCommandResult;
+  });
 }
 
 async function listTables(config: Config): Promise<string[]> {
+  const cacheKey = createTableListCacheKey(config);
+  const cachedTables = tableListCache.get(cacheKey);
+  if (cachedTables) {
+    return cachedTables;
+  }
+
   const sql = `select tablename from pg_tables where schemaname = ${sqlLiteral(config.schema)} order by tablename;`;
   const output = await runPsql(config, sql);
   if (!output) {
@@ -215,55 +336,45 @@ async function listTables(config: Config): Promise<string[]> {
     .filter((line) => line.length > 0)
     .filter((tableName) => !config.excludedTables.has(tableName));
 
-  if (!config.tableFilterRegex) {
-    return tables;
-  }
+  const filteredTables = config.tableFilterRegex
+    ? tables.filter((tableName) => config.tableFilterRegex?.test(tableName))
+    : tables;
 
-  return tables.filter((tableName) => config.tableFilterRegex?.test(tableName));
+  tableListCache.set(cacheKey, filteredTables);
+  return filteredTables;
 }
 
-async function loadTableFingerprint(config: Config, tableName: string): Promise<FingerprintTable> {
-  const rowJsonExpression = buildFingerprintRowJsonExpression(tableName);
-  const sql = [
-    "with row_material as (",
-    "  select md5(",
-    "    regexp_replace(",
-    "      regexp_replace(",
-    `        (${rowJsonExpression})::text,`,
-    "        '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}',",
-    "        '<uuid>',",
-    "        'gi'",
-    "      ),",
-    "      '\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:\\d{2})',",
-    "      '<isoTimestamp>',",
-    "      'g'",
-    "    )",
-    "  ) as row_md5",
-    `  from ${JSON.stringify(config.schema)}.${JSON.stringify(tableName)} t`,
-    "),",
-    "column_material as (",
-    "  select array_agg(column_name order by ordinal_position) as column_names",
-    "  from information_schema.columns",
-    `  where table_schema = ${sqlLiteral(config.schema)} and table_name = ${sqlLiteral(tableName)}`,
-    ")",
-    "select json_build_object(",
-    "  'rowCount', (select count(*) from row_material),",
-    "  'rowHash', coalesce((select md5(string_agg(row_md5, '' order by row_md5)) from row_material), md5('')),",
-    "  'columnNames', coalesce((select column_names from column_material), array[]::text[])",
-    ");",
-  ].join("\n");
+async function loadTableFingerprints(config: Config, tableNames: string[]): Promise<Record<string, FingerprintTable>> {
+  if (tableNames.length === 0) {
+    return {};
+  }
+
+  const cacheKey = createCombinedFingerprintSqlCacheKey(config.schema, tableNames);
+  const sql = combinedFingerprintSqlCache.get(cacheKey) ?? buildCombinedFingerprintSql(config.schema, tableNames);
+  combinedFingerprintSqlCache.set(cacheKey, sql);
 
   const output = await runPsql(config, sql);
   if (!output) {
-    throw new Error(`Missing fingerprint output for table ${tableName}.`);
+    throw new Error("Missing fingerprint output.");
   }
 
-  const parsed = JSON.parse(output) as FingerprintTable;
-  return {
-    columnNames: parsed.columnNames,
-    rowCount: parsed.rowCount,
-    rowHash: parsed.rowHash,
-  };
+  const parsed = JSON.parse(output) as Record<string, FingerprintTable>;
+  const fingerprints: Record<string, FingerprintTable> = {};
+
+  for (const tableName of tableNames) {
+    const fingerprint = parsed[tableName];
+    if (!fingerprint) {
+      throw new Error(`Missing fingerprint output for table ${tableName}.`);
+    }
+
+    fingerprints[tableName] = {
+      columnNames: fingerprint.columnNames,
+      rowCount: fingerprint.rowCount,
+      rowHash: fingerprint.rowHash,
+    };
+  }
+
+  return fingerprints;
 }
 
 async function writeJson(pathValue: string, value: unknown): Promise<void> {
@@ -284,11 +395,7 @@ export async function exportDbFingerprint(options: ExportDbFingerprintOptions): 
   };
 
   const tables = await listTables(config);
-
-  const tableFingerprints: Record<string, FingerprintTable> = {};
-  for (const tableName of tables) {
-    tableFingerprints[tableName] = await loadTableFingerprint(config, tableName);
-  }
+  const tableFingerprints = await loadTableFingerprints(config, tables);
 
   const artifact: FingerprintArtifact = {
     composeFile: config.composeFile,

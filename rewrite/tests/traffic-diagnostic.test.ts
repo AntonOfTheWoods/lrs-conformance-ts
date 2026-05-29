@@ -16,8 +16,11 @@ import {
   buildUpstreamArgs,
   compareTraceDbStateManifests,
   createTraceNodeIndex,
+  mapReplayTargetUrl,
   readEffectiveRunnerExitCode,
+  recordReplayStatementIdMappings,
   resolveRunnerScope,
+  rewriteReplayRequestBody,
   stabilizeSignedStatementAttachments,
   suppressSignedStatementAttachmentDbDifferences,
   suppressSequenceOnlyDbStateDifferences,
@@ -692,6 +695,8 @@ test("suppressSequenceOnlyDbStateDifferences ignores aligned-boundary sequence d
 });
 
 test("suppressSignedStatementAttachmentDbDifferences ignores hash-only signed statement storage drift", () => {
+  const currentSignedStatementNodeKey =
+    'case:v1_0_3:Signed Statements (Data 2.6):Signed Statements (Data 2.6) > The JWS signature MUST use an algorithm of "RS256", "RS384", or "RS512". (Data 2.6.s4.b4, XAPI-00117) > Accepts signed statement with "RS256"';
   const report: TraceDbStateComparisonReport = {
     candidateCapturedExchangeCount: 7,
     candidateCompletedRawSequenceEnd: 6,
@@ -704,11 +709,9 @@ test("suppressSignedStatementAttachmentDbDifferences ignores hash-only signed st
         candidate: {
           entryKinds: ["case"],
           fingerprintPath: "/tmp/candidate-sequence-3.json",
-          nodeKeys: [
-            'case:test/v1_0_3/E.Data2.6-SignedStatements:Signed Statements (Data 2.6) > The JWS signature MUST use an algorithm of "RS256", "RS384", or "RS512". (Data 2.6.s4.b4, XAPI-00117) > Accepts signed statement with "RS256"',
-          ],
+          nodeKeys: [currentSignedStatementNodeKey],
           rawSequenceEnd: 3,
-          unitKeys: ["test/v1_0_3/E.Data2.6-SignedStatements"],
+          unitKeys: ["v1_0_3:Signed Statements (Data 2.6)"],
         },
         different: true,
         fingerprintComparison: {
@@ -770,11 +773,9 @@ test("suppressSignedStatementAttachmentDbDifferences ignores hash-only signed st
         upstream: {
           entryKinds: ["case"],
           fingerprintPath: "/tmp/upstream-sequence-3.json",
-          nodeKeys: [
-            'case:test/v1_0_3/E.Data2.6-SignedStatements:Signed Statements (Data 2.6) > The JWS signature MUST use an algorithm of "RS256", "RS384", or "RS512". (Data 2.6.s4.b4, XAPI-00117) > Accepts signed statement with "RS256"',
-          ],
+          nodeKeys: [currentSignedStatementNodeKey],
           rawSequenceEnd: 3,
-          unitKeys: ["test/v1_0_3/E.Data2.6-SignedStatements"],
+          unitKeys: ["v1_0_3:Signed Statements (Data 2.6)"],
         },
       },
     ],
@@ -782,11 +783,9 @@ test("suppressSignedStatementAttachmentDbDifferences ignores hash-only signed st
       candidate: {
         entryKinds: ["case"],
         fingerprintPath: "/tmp/candidate-sequence-3.json",
-        nodeKeys: [
-          'case:test/v1_0_3/E.Data2.6-SignedStatements:Signed Statements (Data 2.6) > The JWS signature MUST use an algorithm of "RS256", "RS384", or "RS512". (Data 2.6.s4.b4, XAPI-00117) > Accepts signed statement with "RS256"',
-        ],
+        nodeKeys: [currentSignedStatementNodeKey],
         rawSequenceEnd: 3,
-        unitKeys: ["test/v1_0_3/E.Data2.6-SignedStatements"],
+        unitKeys: ["v1_0_3:Signed Statements (Data 2.6)"],
       },
       different: true,
       fingerprintComparison: {
@@ -848,11 +847,9 @@ test("suppressSignedStatementAttachmentDbDifferences ignores hash-only signed st
       upstream: {
         entryKinds: ["case"],
         fingerprintPath: "/tmp/upstream-sequence-3.json",
-        nodeKeys: [
-          'case:test/v1_0_3/E.Data2.6-SignedStatements:Signed Statements (Data 2.6) > The JWS signature MUST use an algorithm of "RS256", "RS384", or "RS512". (Data 2.6.s4.b4, XAPI-00117) > Accepts signed statement with "RS256"',
-        ],
+        nodeKeys: [currentSignedStatementNodeKey],
         rawSequenceEnd: 3,
-        unitKeys: ["test/v1_0_3/E.Data2.6-SignedStatements"],
+        unitKeys: ["v1_0_3:Signed Statements (Data 2.6)"],
       },
     },
     firstReplayIssue: null,
@@ -944,6 +941,76 @@ test("buildTraceDbStateReplayPlan groups trace entries by terminal raw sequence"
       unitKeys: ["test/v1_0_3/Data2.2-FormattingRequirements"],
     },
   ]);
+});
+
+test("recordReplayStatementIdMappings remaps replayed statement identifiers in dependent GET urls", () => {
+  const statementIdMap = new Map<string, string>();
+
+  recordReplayStatementIdMappings(
+    {
+      request: {
+        bodyBase64: Buffer.from(JSON.stringify({ actor: { objectType: "Agent" } })).toString("base64"),
+        headers: [["content-type", "application/json"]],
+        method: "POST",
+        targetUrl: "http://localhost:8080/xapi/statements",
+      },
+      response: {
+        bodyBase64: Buffer.from('["original-statement-id"]').toString("base64"),
+        headers: [],
+        status: 200,
+      },
+    },
+    '["replayed-statement-id"]',
+    statementIdMap,
+  );
+
+  expect(
+    mapReplayTargetUrl(
+      "http://localhost:8080/xapi/statements?statementId=original-statement-id&attachments=true",
+      "http://localhost:8080/xapi",
+      statementIdMap,
+    ),
+  ).toBe("http://localhost:8080/xapi/statements?statementId=replayed-statement-id&attachments=true");
+  expect(
+    mapReplayTargetUrl(
+      "http://localhost:8080/xapi/statements?voidedStatementId=original-statement-id",
+      "http://localhost:8080/xapi",
+      statementIdMap,
+    ),
+  ).toBe("http://localhost:8080/xapi/statements?voidedStatementId=replayed-statement-id");
+});
+
+test("rewriteReplayRequestBody remaps StatementRef ids in JSON statement posts", () => {
+  const rewrittenBody = rewriteReplayRequestBody(
+    {
+      request: {
+        bodyBase64: Buffer.from(
+          JSON.stringify({
+            actor: { objectType: "Agent", mbox: "mailto:xapi@adlnet.gov" },
+            object: {
+              id: "original-statement-id",
+              objectType: "StatementRef",
+            },
+            verb: { id: "http://adlnet.gov/expapi/verbs/voided" },
+          }),
+        ).toString("base64"),
+        headers: [["content-type", "application/json"]],
+        method: "POST",
+        targetUrl: "http://localhost:8080/xapi/statements",
+      },
+    },
+    new Map([["original-statement-id", "replayed-statement-id"]]),
+  );
+
+  expect(rewrittenBody).toBeDefined();
+  expect(JSON.parse(Buffer.from(rewrittenBody ?? []).toString("utf8"))).toEqual({
+    actor: { objectType: "Agent", mbox: "mailto:xapi@adlnet.gov" },
+    object: {
+      id: "replayed-statement-id",
+      objectType: "StatementRef",
+    },
+    verb: { id: "http://adlnet.gov/expapi/verbs/voided" },
+  });
 });
 
 test("compareTraceDbStateManifests reports the first divergent boundary", async () => {

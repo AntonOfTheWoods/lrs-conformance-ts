@@ -59,6 +59,17 @@ function countTests(suite: MochaSuiteShape): number {
   return suite.tests.length + suite.suites.reduce((sum, childSuite) => sum + countTests(childSuite), 0);
 }
 
+export function isSuiteDefinitionFile(fileName: string): boolean {
+  return fileName.endsWith(".js") || fileName.endsWith(".ts");
+}
+
+export function listSuiteDefinitionFiles(testDirectory: string): string[] {
+  return fs
+    .readdirSync(testDirectory)
+    .filter((file) => isSuiteDefinitionFile(file))
+    .sort((left, right) => left.localeCompare(right));
+}
+
 function createBattery(version: string): BatteryInfo {
   const rewriteRoot = path.join(__dirname, "..");
   const directory = version === "1.0.3" ? "v1_0_3" : "v2_0";
@@ -79,11 +90,9 @@ function createBattery(version: string): BatteryInfo {
   });
   const testDirectory = path.join(rewriteRoot, "test", directory);
 
-  fs.readdirSync(testDirectory)
-    .filter((file) => file.endsWith(".js"))
-    .forEach((file) => {
-      mocha.addFile(path.join(testDirectory, file));
-    });
+  listSuiteDefinitionFiles(testDirectory).forEach((file) => {
+    mocha.addFile(path.join(testDirectory, file));
+  });
 
   mocha.loadFiles();
 
@@ -137,4 +146,6 @@ async function main(): Promise<void> {
   fs.writeFileSync(batteryPath, fileContents);
 }
 
-void main();
+if (import.meta.main) {
+  void main();
+}
