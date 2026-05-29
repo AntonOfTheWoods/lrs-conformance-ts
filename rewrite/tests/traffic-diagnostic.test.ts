@@ -18,6 +18,7 @@ import {
   createTraceNodeIndex,
   mapReplayTargetUrl,
   readEffectiveRunnerExitCode,
+  resolveReusableOracleVersionDir,
   recordReplayStatementIdMappings,
   resolveRunnerScope,
   rewriteReplayRequestBody,
@@ -371,8 +372,10 @@ test("buildCandidateArgs targets the active rewrite4 candidate tree", () => {
       directory: "Parameters,v1_0_3",
       grep: undefined,
       keepClone: false,
+      oracleDir: "/tmp/oracles",
       outDir: "/tmp/unused",
       password: "supersecret",
+      refreshUpstream: false,
       targetBaseUrl: "http://localhost:8080/xapi",
       username: "janedoe",
       version: "1.0.3",
@@ -397,8 +400,10 @@ test("buildCandidateArgs uses stable unitKey selection for single-unit migration
       compareMode: "ordered",
       dbStateMode: "all",
       keepClone: false,
+      oracleDir: "/tmp/oracles",
       outDir: "/tmp/unused",
       password: "supersecret",
+      refreshUpstream: false,
       targetBaseUrl: "http://localhost:8080/xapi",
       unitKeys: ["test/v1_0_3/Data2.2-FormattingRequirements"],
       username: "janedoe",
@@ -427,8 +432,10 @@ test("buildUpstreamArgs passes only supported optional suites separately from th
       directory: "Parameters,v1_0_3",
       grep: undefined,
       keepClone: false,
+      oracleDir: "/tmp/oracles",
       outDir: "/tmp/unused",
       password: "supersecret",
+      refreshUpstream: false,
       targetBaseUrl: "http://localhost:8080/xapi",
       username: "janedoe",
       version: "1.0.3",
@@ -450,8 +457,10 @@ test("buildUpstreamArgs forwards unitKey selection to the upstream export wrappe
       compareMode: "ordered",
       dbStateMode: "all",
       keepClone: false,
+      oracleDir: "/tmp/oracles",
       outDir: "/tmp/unused",
       password: "supersecret",
+      refreshUpstream: false,
       targetBaseUrl: "http://localhost:8080/xapi",
       unitKeys: ["test/v1_0_3/Data2.2-FormattingRequirements"],
       username: "janedoe",
@@ -466,6 +475,54 @@ test("buildUpstreamArgs forwards unitKey selection to the upstream export wrappe
   expect(args).toContain("test/v1_0_3/Data2.2-FormattingRequirements");
   expect(args).not.toContain("--directory");
   expect(args).not.toContain("--grep");
+});
+
+test("resolveReusableOracleVersionDir selects a reusable oracle run for the version", async () => {
+  const oracleRoot = await createAgentsTempDir("oracle-scan-");
+  try {
+    const olderVersionDir = join(oracleRoot, "older", "1.0.3");
+    const newerVersionDir = join(oracleRoot, "newer", "1.0.3");
+    await mkdir(olderVersionDir, { recursive: true });
+    await writeFile(join(olderVersionDir, "upstream-raw.json"), "{}\n", "utf8");
+    await writeFile(join(olderVersionDir, "upstream-run.json"), "{}\n", "utf8");
+    await mkdir(newerVersionDir, { recursive: true });
+    await writeFile(join(newerVersionDir, "upstream-raw.json"), "{}\n", "utf8");
+    await writeFile(join(newerVersionDir, "upstream-run.json"), "{}\n", "utf8");
+
+    const selected = await resolveReusableOracleVersionDir({
+      currentVersionDir: join(oracleRoot, "current", "1.0.3"),
+      oracleDir: oracleRoot,
+      requireDbStateManifest: false,
+      requireUpstreamRunArtifact: true,
+      version: "1.0.3",
+    });
+
+    expect(selected).toBe(newerVersionDir);
+  } finally {
+    await rm(oracleRoot, { force: true, recursive: true });
+  }
+});
+
+test("resolveReusableOracleVersionDir ignores the active output directory", async () => {
+  const oracleRoot = await createAgentsTempDir("oracle-scan-current-");
+  try {
+    const currentVersionDir = join(oracleRoot, "current", "1.0.3");
+    await mkdir(currentVersionDir, { recursive: true });
+    await writeFile(join(currentVersionDir, "upstream-raw.json"), "{}\n", "utf8");
+    await writeFile(join(currentVersionDir, "upstream-run.json"), "{}\n", "utf8");
+
+    const selected = await resolveReusableOracleVersionDir({
+      currentVersionDir,
+      oracleDir: oracleRoot,
+      requireDbStateManifest: false,
+      requireUpstreamRunArtifact: true,
+      version: "1.0.3",
+    });
+
+    expect(selected).toBeNull();
+  } finally {
+    await rm(oracleRoot, { force: true, recursive: true });
+  }
 });
 
 test("createTraceNodeIndex falls back to the requested unitKey when upstream metadata is unavailable", () => {

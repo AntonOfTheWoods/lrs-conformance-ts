@@ -3,16 +3,28 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-(function (module, fs, extend, moment, request, requestPromise, chai, liburl, Joi, helper, multipartParser, redirect, templatingSelection) {
-    // "use strict";
+(function (
+  module,
+  fs,
+  extend,
+  moment,
+  request,
+  requestPromise,
+  chai,
+  liburl,
+  Joi,
+  helper,
+  multipartParser,
+  redirect,
+  templatingSelection,
+) {
+  // "use strict";
 
-    var expect = chai.expect;
-    if(global.OAUTH)
-        request = helper.OAuthRequest(request);
+  var expect = chai.expect;
+  if (global.OAUTH) request = helper.OAuthRequest(request);
 
-describe('Attachments Property Requirements (Data 2.4.11)', function() {
-
-/**  Matchup with Conformance Requirements Document
+  describe("Attachments Property Requirements (Data 2.4.11)", function () {
+    /**  Matchup with Conformance Requirements Document
  * XAPI-00102 - in attachments.js
  * XAPI-00103 - in attachments.js
  * XAPI-00104 - in attachments.js
@@ -23,8 +35,20 @@ describe('Attachments Property Requirements (Data 2.4.11)', function() {
  * Note XAPI-00025 - in attachments.js
  */
 
-    templatingSelection.createTemplate('attachments.js');
-
-});
-
-}(module, require('fs'), require('extend'), require('moment'), require('super-request'), require('supertest-as-promised'), require('chai'), require('url'), require('joi'), require('./../helper.ts'), require('./../multipartParser.ts'), require('./../redirect.ts'), require('./../templatingSelection.ts')));
+    templatingSelection.createTemplate("attachments.ts");
+  });
+})(
+  module,
+  require("fs"),
+  require("extend"),
+  require("moment"),
+  require("super-request"),
+  require("supertest-as-promised"),
+  require("chai"),
+  require("url"),
+  require("joi"),
+  require("./../helper.ts"),
+  require("./../multipartParser.ts"),
+  require("./../redirect.ts"),
+  require("./../templatingSelection.ts"),
+);

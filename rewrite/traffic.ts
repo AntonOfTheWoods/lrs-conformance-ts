@@ -740,6 +740,9 @@ export async function startTrafficRecorder(options: TrafficRecorderOptions): Pro
   const captureBasePath = options.captureBasePath ?? defaultCaptureBasePath;
   const normalizedCaptureBasePath = captureBasePath.startsWith("/") ? captureBasePath : `/${captureBasePath}`;
   const targetBaseUrl = options.targetBaseUrl.replace(/\/+$/, "");
+  const parsedTargetBaseUrl = new URL(targetBaseUrl);
+  const targetOrigin = parsedTargetBaseUrl.origin;
+  const targetBasePath = parsedTargetBaseUrl.pathname.replace(/\/+$/, "") || "/";
   const exchanges: RawTrafficExchange[] = [];
 
   const server = Bun.serve({
@@ -749,13 +752,17 @@ export async function startTrafficRecorder(options: TrafficRecorderOptions): Pro
     async fetch(request) {
       const startedAt = new Date();
       const incomingUrl = new URL(request.url);
-      if (!incomingUrl.pathname.startsWith(normalizedCaptureBasePath)) {
+      let targetUrl: string;
+      if (incomingUrl.pathname.startsWith(normalizedCaptureBasePath)) {
+        const suffixPath = incomingUrl.pathname.slice(normalizedCaptureBasePath.length);
+        const requestPath = suffixPath.length > 0 ? suffixPath : "";
+        targetUrl = `${targetBaseUrl}${requestPath}${incomingUrl.search}`;
+      } else if (incomingUrl.pathname === targetBasePath || incomingUrl.pathname.startsWith(`${targetBasePath}/`)) {
+        targetUrl = `${targetOrigin}${incomingUrl.pathname}${incomingUrl.search}`;
+      } else {
         return new Response("Not Found", { status: 404 });
       }
 
-      const suffixPath = incomingUrl.pathname.slice(normalizedCaptureBasePath.length);
-      const requestPath = suffixPath.length > 0 ? suffixPath : "";
-      const targetUrl = `${targetBaseUrl}${requestPath}${incomingUrl.search}`;
       const requestHeaders = [...request.headers.entries()];
       const requestBody = await request.arrayBuffer();
       const execution = decodeCaptureExecutionMetadata(request.headers.get(captureOwnerHeaderName));

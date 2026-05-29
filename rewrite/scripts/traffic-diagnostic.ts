@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
 import { dirname, isAbsolute, relative, resolve } from "node:path";
 
 import { captureOwnerHeaderName, type CaptureExecutionMetadata } from "../../src/describe-runtime/execution-owner.ts";
@@ -25,6 +25,7 @@ import {
 const repoRoot = resolve(import.meta.dir, "../..");
 const allowedArtifactRoots = [resolve(repoRoot, "tmp/validation"), resolve(repoRoot, "tmp/agents")];
 const defaultCandidateSuiteDir = resolve(repoRoot, "rewrite4");
+const defaultOracleTrafficRoot = resolve(repoRoot, "tmp/validation/oracles/traffic");
 const hopByHopReplayHeaders = new Set([
   "connection",
   "host",
@@ -108,8 +109,10 @@ interface DiagnosticConfig {
   directory?: string;
   grep?: string;
   keepClone: boolean;
+  oracleDir: string;
   outDir: string;
   password: string;
+  refreshUpstream: boolean;
   targetBaseUrl: string;
   unitKeys?: string[];
   username: string;
@@ -258,7 +261,7 @@ export interface TraceDbStateComparisonReport {
 function usage(): string {
   return [
     "Usage:",
-    "  bun ./rewrite/scripts/traffic-diagnostic.ts [--version 1.0.3|2.0.0|all] [--compare-mode bag|ordered] [--db-state-mode none|unit|all] [--candidate-dir <path>] [--grep <pattern>] [--directory <csv>] [--unitKey <ledger-id>] [--target-base-url <url>] [--username <user>] [--password <pass>] [--out-dir <path>] [--keep-clone]",
+    "  bun ./rewrite/scripts/traffic-diagnostic.ts [--version 1.0.3|2.0.0|all] [--compare-mode bag|ordered] [--db-state-mode none|unit|all] [--candidate-dir <path>] [--grep <pattern>] [--directory <csv>] [--unitKey <ledger-id>] [--target-base-url <url>] [--username <user>] [--password <pass>] [--out-dir <path>] [--oracle-dir <path>] [--refresh-upstream] [--keep-clone]",
     "",
     "Defaults:",
     "  --version all",
@@ -269,6 +272,8 @@ function usage(): string {
     "  --username janedoe",
     "  --password supersecret",
     "  --out-dir tmp/validation/oracles/traffic/<timestamp>",
+    "  --oracle-dir tmp/validation/oracles/traffic",
+    "  --refresh-upstream reruns upstream even when reusable oracle artifacts exist",
     "  --unitKey is single-unit only and is mutually exclusive with --grep and --directory.",
   ].join("\n");
 }
@@ -347,8 +352,10 @@ function parseConfig(args: string[]): DiagnosticConfig {
   const password = getFlagValue(args, "--password") ?? "supersecret";
   const outDirArg =
     getFlagValue(args, "--out-dir") ?? resolve(repoRoot, "tmp/validation/oracles/traffic", `${Date.now()}`);
+  const oracleDirArg = getFlagValue(args, "--oracle-dir") ?? defaultOracleTrafficRoot;
   const grep = getFlagValue(args, "--grep");
   const directory = getFlagValue(args, "--directory");
+  const refreshUpstream = args.includes("--refresh-upstream");
   const keepClone = args.includes("--keep-clone");
 
   if (version !== "all" && version !== "1.0.3" && version !== "2.0.0") {
@@ -382,13 +389,96 @@ function parseConfig(args: string[]): DiagnosticConfig {
     directory,
     grep,
     keepClone,
+    oracleDir: resolveSafeArtifactPath(oracleDirArg),
     outDir: resolveSafeArtifactPath(outDirArg),
     password,
+    refreshUpstream,
     targetBaseUrl,
     unitKeys: unitKeys ? validateDiagnosticUnitSelection(unitKeys, version) : undefined,
     username,
     version,
   };
+}
+
+async function pathExists(pathValue: string): Promise<boolean> {
+  try {
+    await stat(pathValue);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function resolveReusableOracleVersionDir(options: {
+  currentVersionDir: string;
+  oracleDir: string;
+  requireDbStateManifest: boolean;
+  requireUpstreamRunArtifact: boolean;
+  version: SupportedVersion;
+}): Promise<string | null> {
+  const currentDir = resolve(options.currentVersionDir);
+  const oracleRoot = resolve(options.oracleDir);
+  const directCandidate = resolve(oracleRoot, options.version);
+  const candidateVersionDirs: string[] = [];
+
+  const directHasRaw = await pathExists(resolve(directCandidate, "upstream-raw.json"));
+  const directHasDbState =
+    !options.requireDbStateManifest || (await pathExists(resolve(directCandidate, "upstream-db-state-manifest.json")));
+  const directHasRun =
+    !options.requireUpstreamRunArtifact || (await pathExists(resolve(directCandidate, "upstream-run.json")));
+  if (directCandidate !== currentDir && directHasRaw && directHasDbState && directHasRun) {
+    candidateVersionDirs.push(directCandidate);
+  }
+
+  let entries: string[];
+  try {
+    entries = await readdir(oracleRoot);
+  } catch {
+    return candidateVersionDirs[0] ?? null;
+  }
+
+  for (const entryName of entries) {
+    const runRoot = resolve(oracleRoot, entryName);
+    let runRootStats: Awaited<ReturnType<typeof stat>>;
+    try {
+      runRootStats = await stat(runRoot);
+    } catch {
+      continue;
+    }
+
+    if (!runRootStats.isDirectory()) {
+      continue;
+    }
+
+    const versionDir = resolve(runRoot, options.version);
+    if (versionDir === currentDir) {
+      continue;
+    }
+
+    const hasRaw = await pathExists(resolve(versionDir, "upstream-raw.json"));
+    const hasDbState =
+      !options.requireDbStateManifest || (await pathExists(resolve(versionDir, "upstream-db-state-manifest.json")));
+    const hasRun = !options.requireUpstreamRunArtifact || (await pathExists(resolve(versionDir, "upstream-run.json")));
+    if (hasRaw && hasDbState && hasRun) {
+      candidateVersionDirs.push(versionDir);
+    }
+  }
+
+  const ranked: Array<{ mtimeMs: number; versionDir: string }> = [];
+  for (const versionDir of candidateVersionDirs) {
+    try {
+      const stats = await stat(resolve(versionDir, "upstream-raw.json"));
+      ranked.push({
+        mtimeMs: stats.mtimeMs,
+        versionDir,
+      });
+    } catch {
+      // Ignore candidates that disappear while scanning.
+    }
+  }
+
+  ranked.sort((left, right) => right.mtimeMs - left.mtimeMs);
+  return ranked[0]?.versionDir ?? null;
 }
 
 function createVersionEnvironment(version: SupportedVersion): Record<string, string> {
@@ -455,6 +545,41 @@ async function writeJson(pathValue: string, value: unknown): Promise<void> {
 async function writeText(pathValue: string, value: string): Promise<void> {
   await mkdir(dirname(pathValue), { recursive: true });
   await writeFile(pathValue, value, "utf8");
+}
+
+function collectFailedLeafTitles(node: unknown, path: string[] = [], failures: string[] = []): string[] {
+  if (!node || typeof node !== "object") {
+    return failures;
+  }
+
+  const titledNode = node as { name?: unknown; title?: unknown; status?: unknown; tests?: unknown };
+  const title =
+    typeof titledNode.title === "string"
+      ? titledNode.title.trim()
+      : typeof titledNode.name === "string"
+        ? titledNode.name.trim()
+        : "";
+  const nextPath = title.length > 0 ? [...path, title] : path;
+  const tests = Array.isArray(titledNode.tests) ? titledNode.tests : [];
+
+  if (titledNode.status === "failed" && tests.length === 0) {
+    failures.push(nextPath.join(" > "));
+  }
+
+  for (const child of tests) {
+    collectFailedLeafTitles(child, nextPath, failures);
+  }
+
+  return failures;
+}
+
+async function readFailedLeavesFromRunArtifact(pathValue: string): Promise<string[]> {
+  try {
+    const parsed = await readJson<{ log?: unknown }>(pathValue);
+    return collectFailedLeafTitles(parsed.log);
+  } catch {
+    return [];
+  }
 }
 
 export async function readEffectiveRunnerExitCode(
@@ -2061,33 +2186,106 @@ async function runVersion(config: DiagnosticConfig, version: SupportedVersion): 
     } satisfies TraceRunManifest);
   }
 
-  const upstreamRaw = await captureRunner("upstream", config, version, versionDir);
-  const upstreamNormalized = normalizeTrafficArtifact(upstreamRaw);
+  const candidateRunPath = resolve(versionDir, "candidate-run.json");
+
   const upstreamRawPath = resolve(versionDir, "upstream-raw.json");
   const upstreamNormalizedPath = resolve(versionDir, "upstream-normalized.json");
-  await writeJson(upstreamRawPath, upstreamRaw);
-  await writeJson(upstreamNormalizedPath, upstreamNormalized);
-  const upstreamTraceArtifacts = await writeTraceArtifacts(
-    versionDir,
-    upstreamRaw,
-    upstreamNormalized,
-    config.unitKeys,
-  );
-  const upstreamDbStateArtifacts = await writeTraceDbStateArtifacts({
-    mode: config.dbStateMode,
-    nodeIndex: upstreamTraceArtifacts.nodeIndex,
-    nodeIndexPath: upstreamTraceArtifacts.nodeIndexPath,
-    rawArtifact: upstreamRaw,
-    rawArtifactPath: upstreamRawPath,
-    selectedUnitKeys: config.unitKeys,
-    versionDir,
-  });
-  if (upstreamDbStateArtifacts) {
-    await writeJson(upstreamTraceArtifacts.traceManifestPath, {
-      ...upstreamTraceArtifacts.traceManifest,
-      dbStateManifestPath: upstreamDbStateArtifacts.manifestPath,
-    } satisfies TraceRunManifest);
+  const oracleVersionDir = config.refreshUpstream
+    ? null
+    : await resolveReusableOracleVersionDir({
+        currentVersionDir: versionDir,
+        oracleDir: config.oracleDir,
+        requireDbStateManifest: config.dbStateMode !== "none",
+        requireUpstreamRunArtifact: true,
+        version,
+      });
+
+  let upstreamRaw: RawTrafficArtifact;
+  let upstreamNormalized: NormalizedTrafficArtifact;
+  let upstreamDbStateArtifacts: { manifestPath: string } | null = null;
+  let upstreamSource: "refreshed" | "oracle" = "refreshed";
+
+  if (oracleVersionDir) {
+    console.log(`[traffic-diagnostic] Reusing upstream oracle for ${version}: ${oracleVersionDir}`);
+    const oracleRawPath = resolve(oracleVersionDir, "upstream-raw.json");
+    const oracleNormalizedPath = resolve(oracleVersionDir, "upstream-normalized.json");
+    upstreamRaw = await readJson<RawTrafficArtifact>(oracleRawPath);
+    upstreamNormalized = (await pathExists(oracleNormalizedPath))
+      ? await readJson<NormalizedTrafficArtifact>(oracleNormalizedPath)
+      : normalizeTrafficArtifact(upstreamRaw);
+
+    await writeJson(upstreamRawPath, upstreamRaw);
+    await writeJson(upstreamNormalizedPath, upstreamNormalized);
+
+    const oracleRunPath = resolve(oracleVersionDir, "upstream-run.json");
+    if (await pathExists(oracleRunPath)) {
+      const upstreamRun = await readJson<unknown>(oracleRunPath);
+      await writeJson(resolve(versionDir, "upstream-run.json"), upstreamRun);
+    }
+
+    const oracleDbStateManifestPath = resolve(oracleVersionDir, "upstream-db-state-manifest.json");
+    if (config.dbStateMode !== "none" && (await pathExists(oracleDbStateManifestPath))) {
+      upstreamDbStateArtifacts = {
+        manifestPath: oracleDbStateManifestPath,
+      };
+    }
+
+    upstreamSource = "oracle";
+  } else {
+    const reason = config.refreshUpstream ? "--refresh-upstream passed" : "no reusable oracle found";
+    console.log(`[traffic-diagnostic] Refreshing upstream for ${version}: ${reason}`);
+    upstreamRaw = await captureRunner("upstream", config, version, versionDir);
+    upstreamNormalized = normalizeTrafficArtifact(upstreamRaw);
+    await writeJson(upstreamRawPath, upstreamRaw);
+    await writeJson(upstreamNormalizedPath, upstreamNormalized);
+    const upstreamTraceArtifacts = await writeTraceArtifacts(
+      versionDir,
+      upstreamRaw,
+      upstreamNormalized,
+      config.unitKeys,
+    );
+    upstreamDbStateArtifacts = await writeTraceDbStateArtifacts({
+      mode: config.dbStateMode,
+      nodeIndex: upstreamTraceArtifacts.nodeIndex,
+      nodeIndexPath: upstreamTraceArtifacts.nodeIndexPath,
+      rawArtifact: upstreamRaw,
+      rawArtifactPath: upstreamRawPath,
+      selectedUnitKeys: config.unitKeys,
+      versionDir,
+    });
+    if (upstreamDbStateArtifacts) {
+      await writeJson(upstreamTraceArtifacts.traceManifestPath, {
+        ...upstreamTraceArtifacts.traceManifest,
+        dbStateManifestPath: upstreamDbStateArtifacts.manifestPath,
+      } satisfies TraceRunManifest);
+    }
   }
+
+  const upstreamRunPath = resolve(versionDir, "upstream-run.json");
+  const candidateFailedLeaves = await readFailedLeavesFromRunArtifact(candidateRunPath);
+  const upstreamRunArtifactAvailable = await pathExists(upstreamRunPath);
+  const upstreamFailedLeaves = upstreamRunArtifactAvailable
+    ? await readFailedLeavesFromRunArtifact(upstreamRunPath)
+    : [];
+  const candidateOnlySuiteFailures = upstreamRunArtifactAvailable
+    ? candidateFailedLeaves.filter((entry) => !upstreamFailedLeaves.includes(entry))
+    : [];
+  const upstreamOnlySuiteFailures = upstreamRunArtifactAvailable
+    ? upstreamFailedLeaves.filter((entry) => !candidateFailedLeaves.includes(entry))
+    : [];
+  const sharedSuiteFailures = upstreamRunArtifactAvailable
+    ? candidateFailedLeaves.filter((entry) => upstreamFailedLeaves.includes(entry))
+    : [];
+
+  await writeJson(resolve(versionDir, "suite-failure-parity.json"), {
+    candidateFailedLeaves,
+    candidateOnlySuiteFailures,
+    sharedSuiteFailures,
+    upstreamFailedLeaves,
+    upstreamRunArtifactAvailable,
+    upstreamOnlySuiteFailures,
+    version,
+  });
 
   const dbStateComparisonReport =
     candidateDbStateArtifacts && upstreamDbStateArtifacts
@@ -2136,6 +2334,11 @@ async function runVersion(config: DiagnosticConfig, version: SupportedVersion): 
         candidateCount: comparison.leftCount,
         upstreamCount: comparison.rightCount,
         matchedCount: comparison.matchedCount,
+        upstreamSource,
+        candidateOnlySuiteFailureCount: upstreamRunArtifactAvailable ? candidateOnlySuiteFailures.length : null,
+        sharedSuiteFailureCount: upstreamRunArtifactAvailable ? sharedSuiteFailures.length : null,
+        upstreamOnlySuiteFailureCount: upstreamRunArtifactAvailable ? upstreamOnlySuiteFailures.length : null,
+        upstreamRunArtifactAvailable,
         dbStateDifferent: dbStateComparisonReport?.different ?? null,
         firstDbStateDivergenceSequence: dbStateComparisonReport?.firstDivergentBoundary?.rawSequenceEnd ?? null,
         mismatches:

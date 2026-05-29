@@ -208,7 +208,7 @@ function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
 
       var files = context.fs.readdirSync(state.CONFIG_FOLDER) as string[];
       files.forEach(function (file) {
-        if (file.indexOf(".js") <= 0) {
+        if (file.indexOf(".ts") <= 0) {
           return;
         }
 

@@ -721,4 +721,95 @@ describe("traffic harness", () => {
       await targetServer.stop(true);
     }
   });
+
+  test("forwards absolute target-base-path requests on recorder host", async () => {
+    const targetServer = Bun.serve({
+      hostname: "127.0.0.1",
+      port: 0,
+      fetch(request) {
+        return new Response(
+          JSON.stringify({
+            path: new URL(request.url).pathname,
+            search: new URL(request.url).search,
+          }),
+          {
+            headers: {
+              "content-type": "application/json",
+            },
+            status: 200,
+          },
+        );
+      },
+    });
+
+    const recorder = await startTrafficRecorder({
+      targetBaseUrl: `http://127.0.0.1:${targetServer.port}/xapi`,
+    });
+
+    try {
+      const recorderOrigin = new URL(recorder.captureBaseUrl).origin;
+      const response = await fetch(`${recorderOrigin}/xapi/statements?limit=1`, {
+        method: "GET",
+        headers: {
+          "X-Experience-API-Version": "2.0.0",
+        },
+      });
+
+      expect(response.status).toBe(200);
+      expect((await response.json()) as { path: string; search: string }).toEqual({
+        path: "/xapi/statements",
+        search: "?limit=1",
+      });
+
+      const artifact = recorder.takeArtifact({
+        compareMode: "bag",
+        exitCode: 0,
+        runner: "rewrite",
+        version: "2.0.0",
+      });
+
+      expect(artifact.exchanges).toHaveLength(1);
+      expect(artifact.exchanges[0]?.request.targetUrl).toBe(
+        `http://127.0.0.1:${targetServer.port}/xapi/statements?limit=1`,
+      );
+      expect(artifact.exchanges[0]?.response.status).toBe(200);
+    } finally {
+      await recorder.stop();
+      await targetServer.stop(true);
+    }
+  });
+
+  test("returns 404 for unrelated recorder paths", async () => {
+    const targetServer = Bun.serve({
+      hostname: "127.0.0.1",
+      port: 0,
+      fetch() {
+        return new Response("ok", { status: 200 });
+      },
+    });
+
+    const recorder = await startTrafficRecorder({
+      targetBaseUrl: `http://127.0.0.1:${targetServer.port}/xapi`,
+    });
+
+    try {
+      const recorderOrigin = new URL(recorder.captureBaseUrl).origin;
+      const response = await fetch(`${recorderOrigin}/healthz`, {
+        method: "GET",
+      });
+
+      expect(response.status).toBe(404);
+
+      const artifact = recorder.takeArtifact({
+        compareMode: "bag",
+        exitCode: 0,
+        runner: "rewrite",
+        version: "2.0.0",
+      });
+      expect(artifact.exchanges).toHaveLength(0);
+    } finally {
+      await recorder.stop();
+      await targetServer.stop(true);
+    }
+  });
 });

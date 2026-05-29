@@ -49,13 +49,13 @@
 
   describe("Actor Property Requirements (Data 2.4.2)", () => {
     //Data 2.4.2
-    templatingSelection.createTemplate("actors.js");
+    templatingSelection.createTemplate("actors.ts");
     //Data 2.4.2.1
-    templatingSelection.createTemplate("agents.js");
+    templatingSelection.createTemplate("agents.ts");
     //Data 2.4.2.2
-    templatingSelection.createTemplate("groups.js");
+    templatingSelection.createTemplate("groups.ts");
     //Data 2.4.2.3
-    templatingSelection.createTemplate("ifis.js");
+    templatingSelection.createTemplate("ifis.ts");
     //Data 2.4.2.4
     templatingSelection.createTemplate("accountobjects.ts");
   });

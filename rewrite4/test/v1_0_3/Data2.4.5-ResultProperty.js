@@ -3,16 +3,28 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-(function (module, fs, extend, moment, request, requestPromise, chai, liburl, Joi, helper, multipartParser, redirect, templatingSelection) {
-    // "use strict";
+(function (
+  module,
+  fs,
+  extend,
+  moment,
+  request,
+  requestPromise,
+  chai,
+  liburl,
+  Joi,
+  helper,
+  multipartParser,
+  redirect,
+  templatingSelection,
+) {
+  // "use strict";
 
-    var expect = chai.expect;
-    if(global.OAUTH)
-        request = helper.OAuthRequest(request);
+  var expect = chai.expect;
+  if (global.OAUTH) request = helper.OAuthRequest(request);
 
-describe('Result Property Requirements (Data 2.4.5)', () => {
-
-/**  Matchup with Conformance Requirements Document
+  describe("Result Property Requirements (Data 2.4.5)", () => {
+    /**  Matchup with Conformance Requirements Document
  * Data 2.4.5 Result
  * XAPI-00074 - in results.js
  * XAPI-00075 - in results.js
@@ -27,9 +39,21 @@ describe('Result Property Requirements (Data 2.4.5)', () => {
  * XAPI-00082 - in scores.js
  * XAPI-00083 - in scores.js
  */
-    templatingSelection.createTemplate('results.js');
-    templatingSelection.createTemplate('scores.js');
-
-});
-
-}(module, require('fs'), require('extend'), require('moment'), require('super-request'), require('supertest-as-promised'), require('chai'), require('url'), require('joi'), require('./../helper.ts'), require('./../multipartParser.ts'), require('./../redirect.ts'), require('./../templatingSelection.ts')));
+    templatingSelection.createTemplate("results.ts");
+    templatingSelection.createTemplate("scores.ts");
+  });
+})(
+  module,
+  require("fs"),
+  require("extend"),
+  require("moment"),
+  require("super-request"),
+  require("supertest-as-promised"),
+  require("chai"),
+  require("url"),
+  require("joi"),
+  require("./../helper.ts"),
+  require("./../multipartParser.ts"),
+  require("./../redirect.ts"),
+  require("./../templatingSelection.ts"),
+);
