@@ -1,9 +1,9 @@
 "use strict";
 
-const childProcess = require("child_process") as typeof import("child_process");
-const { EventEmitter } = require("events") as typeof import("events");
-const express = require("express") as () => ExpressApp;
-const { OAuth } = require("oauth") as { OAuth: OAuthConstructor };
+import childProcess from "child_process";
+import { EventEmitter } from "events";
+import express from "express";
+import { OAuth } from "oauth";
 
 type OAuthConfig = {
   auth_token_path: string;
@@ -229,12 +229,3 @@ export function auth(config: OAuthConfig, callback: OAuthCallback): void {
 }
 
 export const doOAuth1 = auth;
-
-if (typeof module !== "undefined") {
-  module.exports = {
-    auth,
-    doOAuth1: auth,
-    openAuthorizationUrl,
-    resolveAuthorizationLaunchCommand,
-  };
-}

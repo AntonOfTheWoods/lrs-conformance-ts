@@ -3,15 +3,17 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-let request = require("super-request");
-const extend = require("extend");
-const fs = require("fs");
-const expect = require("chai").expect;
+import crypto from "node:crypto";
+import fs from "node:fs";
+
+import { expect } from "chai";
+import extend from "extend";
+import moment from "moment";
+import multipartParser from "../multipartParser.ts";
+import requestBase from "super-request";
 const helper = require("../helper.ts");
 const xapiRequests = require("./util/requests.ts");
-const multipartParser = require("../multipartParser.ts");
-const crypto = require("crypto");
-const moment = require("moment");
+let request = requestBase;
 
 if (global.OAUTH) request = helper.OAuthRequest(request);
 

@@ -2,6 +2,14 @@
 
 "use strict";
 
+import fs from "node:fs";
+import path from "node:path";
+
+import commander from "commander";
+
+import { auth as doOAuth1Auth } from "./OAuth.ts";
+import { testRunner as TestRunner } from "./testRunner.ts";
+
 type RunnerMessage = {
   action?: string;
   payload?: unknown;
@@ -73,13 +81,7 @@ type OAuthResponse = {
   verifier: string;
 };
 
-const program = require("commander") as any;
-const TestRunner = require("./testRunner.ts").testRunner as TestRunnerConstructor;
-const oAuthModule = require("./OAuth.ts") as {
-  auth(config: OAuthConfig, callback: (error: unknown, oAuth: OAuthResponse) => void): void;
-};
-const libpath = require("path") as typeof import("path");
-const fs = require("fs") as typeof import("fs");
+const program = commander as any;
 
 function cleanDir(value: string, directory: string[]): string[] {
   value.split(",").forEach(function (segment) {
@@ -216,7 +218,7 @@ function start(runnerOptions: Record<string, unknown>): void {
           )
         : JSON.stringify(cleanLog, null, "    ");
 
-      const outDir = libpath.join(__dirname, "../logs");
+      const outDir = path.join(__dirname, "../logs");
 
       fs.mkdir(outDir, { mode: 0o775 }, function () {
         if (!testRunner) {
@@ -224,7 +226,7 @@ function start(runnerOptions: Record<string, unknown>): void {
           return;
         }
 
-        const outPath = libpath.join(outDir, testRunner.uuid + ".log");
+        const outPath = path.join(outDir, testRunner.uuid + ".log");
         fs.writeFile(outPath, output, (error) => {
           if (error) {
             console.log(error);
@@ -255,8 +257,8 @@ if (!program.oAuth1) {
     endpoint: typeof options.endpoint === "string" ? options.endpoint : undefined,
   };
 
-  oAuthModule.auth(config, function (error: unknown, oAuth: OAuthResponse) {
-    if (error) {
+  doOAuth1Auth(config, function (error: unknown, oAuth?: OAuthResponse) {
+    if (error || !oAuth) {
       console.log(error);
       return;
     }

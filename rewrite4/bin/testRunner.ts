@@ -1,14 +1,16 @@
 "use strict";
 
 import type { ChildProcess } from "child_process";
+import { EventEmitter } from "events";
+import path from "path";
 
-const childProcess = require("child_process") as typeof import("child_process");
-const libpath = require("path") as typeof import("path");
-const { EventEmitter } = require("events") as typeof import("events");
-const rollup = require("./rollupRules.ts") as Record<string, (suite: Suite) => SuiteStatus>;
-const version = require("../version.ts") as { versionNumber?: string };
-const specRefs = require("../test/references.json") as Record<string, SpecReference>;
-const { v4: uuidv4 } = require("uuid") as { v4: () => string };
+import { v4 as uuidv4 } from "uuid";
+
+import specRefs from "../test/references.json";
+import { versionNumber } from "../version.ts";
+import rollup from "./rollupRules.ts";
+
+import childProcess from "child_process";
 
 type SuiteStatus = "" | "cancelled" | "passed" | "failed";
 type RunnerState = "notStarted" | "started" | "finished" | "cancelled" | "error";
@@ -159,12 +161,12 @@ export class TestRunner extends EventEmitter {
     this.options = options || {};
     this.lrsSettingsUUID = lrsSettingsUUID || null;
     this.rollupRule = rollupRule && rollup[rollupRule] ? rollupRule : "mustPassAll";
-    this.xapiVersion = typeof flags.xapiVersion === "string" ? flags.xapiVersion : version.versionNumber;
+    this.xapiVersion = typeof flags.xapiVersion === "string" ? flags.xapiVersion : versionNumber;
     this.uuid = uuidv4();
   }
 
   static resolveLrsTestEntryPath(dirname: string): string {
-    return libpath.join(dirname, "lrs-test.ts");
+    return path.join(dirname, "lrs-test.ts");
   }
 
   start(): void {
@@ -175,7 +177,7 @@ export class TestRunner extends EventEmitter {
     this.state = "started";
     this.proc = childProcess.fork(TestRunner.resolveLrsTestEntryPath(__dirname), ["--debug"], {
       execArgv: [],
-      cwd: libpath.join(__dirname, "/../"),
+      cwd: path.join(__dirname, "/../"),
     });
 
     this._registerStatusUpdates();
@@ -397,12 +399,3 @@ export function resolveLrsTestEntryPath(dirname: string): string {
 }
 
 export const testRunner = TestRunner;
-
-if (typeof module !== "undefined") {
-  module.exports = {
-    resolveLrsTestEntryPath,
-    testRunner: TestRunner,
-    TestRunner,
-    Suite,
-  };
-}

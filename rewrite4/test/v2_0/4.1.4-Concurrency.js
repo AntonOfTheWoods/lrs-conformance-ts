@@ -4,12 +4,15 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-var request = require("supertest-as-promised");
-const expect = require("chai").expect;
+import { expect } from "chai";
+import requestPromise from "supertest-as-promised";
+
 const helperModule = require("../helper.ts");
 const helper = helperModule.default ?? helperModule;
 const xapiRequestsModule = require("./util/requests.ts");
 const xapiRequests = xapiRequestsModule.default ?? xapiRequestsModule;
+
+var request = requestPromise;
 
 request = request(helper.getEndpoint());
 

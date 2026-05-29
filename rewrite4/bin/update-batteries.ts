@@ -2,6 +2,21 @@
 
 "use strict";
 
+import fs from "node:fs";
+import { createRequire } from "node:module";
+import path from "node:path";
+
+import specs from "../specConfig.ts";
+
+const cjsRequire = createRequire(import.meta.url);
+const chai = cjsRequire("chai") as typeof import("chai");
+const chaiThings = cjsRequire("chai-things") as (chaiValue: typeof import("chai"), utils: unknown) => void;
+const Mocha = cjsRequire("mocha") as new (options: Record<string, unknown>) => {
+  addFile(file: string): void;
+  loadFiles(): void;
+  suite: MochaSuiteShape;
+};
+
 type BatteryTreeNode = {
   children: BatteryTreeNode[];
   text: string;
@@ -19,28 +34,6 @@ type MochaSuiteShape = {
   }>;
   title?: string;
 };
-
-const fs = require("fs") as typeof import("fs");
-const path = require("path") as typeof import("path");
-const Mocha = require("mocha") as new (options: Record<string, unknown>) => {
-  addFile(file: string): void;
-  loadFiles(): void;
-  suite: MochaSuiteShape;
-};
-const specs = require("../specConfig.ts") as { availableVersions: string[] };
-
-function clearRewriteModuleCache(rootDirectory: string): void {
-  for (const cacheKey of Object.keys(require.cache)) {
-    if (!cacheKey.startsWith(rootDirectory)) {
-      continue;
-    }
-    if (cacheKey.includes(`${path.sep}node_modules${path.sep}`)) {
-      continue;
-    }
-
-    delete require.cache[cacheKey];
-  }
-}
 
 function cleanLog(log: MochaSuiteShape): BatteryTreeNode {
   return {
@@ -81,8 +74,7 @@ function createBattery(version: string): BatteryInfo {
   process.env.BASIC_AUTH_PASSWORD = "User";
   process.env.XAPI_VERSION = version;
 
-  clearRewriteModuleCache(rewriteRoot);
-  require("chai").use(require("chai-things"));
+  chai.use(chaiThings);
 
   const mocha = new Mocha({
     timeout: "15000",

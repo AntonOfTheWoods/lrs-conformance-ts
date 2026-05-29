@@ -1,17 +1,13 @@
-const axiosBase = require("axios") as typeof import("axios");
-const axios = axiosBase.default;
-const addOAuthInterceptor = require("axios-oauth-1.0a").default as typeof import("axios-oauth-1.0a").default;
-const oldHelpersModule = require("../../helper.ts") as {
-  default?: {
-    generateUUID(): string;
-    getUrlEncoding(params: Record<string, unknown>): string;
-    signStatement(statement: Record<string, unknown>, options: { boundary: string }): Buffer;
-  };
+import axios from "axios";
+import addOAuthInterceptor from "axios-oauth-1.0a";
+
+import helperExports from "../../helper.ts";
+
+const oldHelpers = helperExports as {
   generateUUID(): string;
   getUrlEncoding(params: Record<string, unknown>): string;
   signStatement(statement: Record<string, unknown>, options: { boundary: string }): Buffer;
 };
-const oldHelpers = oldHelpersModule.default ?? oldHelpersModule;
 
 type AxiosResponse = import("axios").AxiosResponse;
 type HeaderOverrides = Record<string, string> | undefined;

@@ -3,10 +3,12 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-let request = require("super-request");
-const expect = require("chai").expect;
+import { expect } from "chai";
+import requestBase from "super-request";
 const helper = require("../helper.ts");
 const xapiRequests = require("./util/requests.ts");
+
+let request = requestBase;
 
 if (global.OAUTH) request = helper.OAuthRequest(request);
 

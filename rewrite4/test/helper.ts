@@ -1,11 +1,18 @@
-const path = require("path") as typeof import("path");
-const fs = require("fs") as typeof import("fs");
-const extend = require("extend") as typeof import("extend");
-const uuid = require("uuid") as typeof import("uuid");
-const lodashIsEqual = require("lodash.isequal") as (left: unknown, right: unknown) => boolean;
-const FormUrlencode = require("form-urlencoded") as typeof import("form-urlencoded");
-const jws = require("jws") as typeof import("jws");
-const crypto = require("crypto") as typeof import("crypto");
+import { createRequire } from "node:module";
+import crypto from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
+
+import extend from "extend";
+import FormUrlencode from "form-urlencoded";
+import jws from "jws";
+import lodashIsEqual from "lodash.isequal";
+import * as uuid from "uuid";
+
+import * as fixtureCryptoSupportModule from "../bun-runtime/helper-fixture-crypto.ts";
+import * as transportSupportModule from "../bun-runtime/helper-transport.ts";
+
+const helperRequire = createRequire(import.meta.url);
 
 type HelperExports = Record<string, unknown>;
 
@@ -106,7 +113,7 @@ const helperContext = {
     return helperExports;
   },
   getState,
-  helperRequire: require,
+  helperRequire,
   jws,
   lodashIsEqual,
   setTimeMargin(value: number | undefined): void {
@@ -115,12 +122,11 @@ const helperContext = {
   uuid,
 };
 
-const transportSupport = require("../bun-runtime/helper-transport.ts").createHelperTransportSupport(
-  helperContext,
-) as HelperExports;
-const fixtureSupport = require("../bun-runtime/helper-fixture-crypto.ts").createHelperFixtureCryptoSupport(
-  helperContext,
-) as HelperExports;
+const transportSupport = (transportSupportModule as { createHelperTransportSupport: (context: unknown) => HelperExports })
+  .createHelperTransportSupport(helperContext);
+const fixtureSupport = (fixtureCryptoSupportModule as {
+  createHelperFixtureCryptoSupport: (context: unknown) => HelperExports;
+}).createHelperFixtureCryptoSupport(helperContext);
 
 helperExports = {
   ...transportSupport,

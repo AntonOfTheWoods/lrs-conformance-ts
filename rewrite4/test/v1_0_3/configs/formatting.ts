@@ -1,7 +1,8 @@
-const helperModule = require("./../../helper.ts") as { default?: { generateUUID(): string } } & {
+import helper from "./../../helper.ts";
+
+const typedHelper = helper as {
   generateUUID(): string;
 };
-const helper = helperModule.default ?? helperModule;
 
 /**
  * Description : This is a test suite that tests an LRS endpoint based on the testing requirements document
@@ -421,7 +422,7 @@ export const config = function () {
       config: [
         {
           name: 'should fail when not using "id"',
-          templates: [{ statement: "{{statements.default}}" }, { iD: helper.generateUUID() }],
+          templates: [{ statement: "{{statements.default}}" }, { iD: typedHelper.generateUUID() }],
           expect: [400],
         },
         {
