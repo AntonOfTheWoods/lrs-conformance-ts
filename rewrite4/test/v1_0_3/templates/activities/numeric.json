@@ -11,9 +11,7 @@
     "type": "http://adlnet.gov/expapi/activities/cmi.interaction",
     "moreInfo": "http://virtualmeeting.example.com/345256",
     "interactionType": "numeric",
-    "correctResponsesPattern": [
-      "4[:]"
-    ],
+    "correctResponsesPattern": ["4[:]"],
     "extensions": {
       "http://example.com/profiles/meetings/extension/location": "X:\\meetings\\minutes\\examplemeeting.one",
       "http://example.com/profiles/meetings/extension/reporter": {

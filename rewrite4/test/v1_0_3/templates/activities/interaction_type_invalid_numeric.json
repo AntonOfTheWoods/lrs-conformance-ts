@@ -11,9 +11,7 @@
     "type": "http://adlnet.gov/expapi/activities/cmi.interaction",
     "moreInfo": "http://virtualmeeting.example.com/345256",
     "interactionType": 12345,
-    "correctResponsesPattern": [
-      "likert_3"
-    ],
+    "correctResponsesPattern": ["likert_3"],
     "scale": [
       {
         "id": "likert_0",

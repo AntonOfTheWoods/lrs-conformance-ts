@@ -15,7 +15,20 @@ import __esmDep9 from "./../helper.ts";
 import __esmDep10 from "./../multipartParser.ts";
 import __esmDep11 from "./../redirect.ts";
 
-(function (module: any, fs: any, extend: any, moment: any, request: any, requestPromise: any, chai: any, liburl: any, Joi: any, helper: any, multipartParser: any, redirect: any) {
+(function (
+  module: any,
+  fs: any,
+  extend: any,
+  moment: any,
+  request: any,
+  requestPromise: any,
+  chai: any,
+  liburl: any,
+  Joi: any,
+  helper: any,
+  multipartParser: any,
+  redirect: any,
+) {
   describe("Authentication Requirements (Communication 4.0)", function () {
     /**  XAPI-00334, Communication 2.1.3 GET Statements
      * An LRS rejects a Statement of bad authorization (either authentication needed or failed credentials) with error code 401 Unauthorized
@@ -141,7 +154,9 @@ import __esmDep11 from "./../redirect.ts";
       }
     });
   });
-})(undefined,__esmDep1,
+})(
+  undefined,
+  __esmDep1,
   __esmDep2,
   __esmDep3,
   __esmDep4,

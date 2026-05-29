@@ -3,7 +3,20 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-(function (module: any, fs: any, extend: any, moment: any, request: any, requestPromise: any, chai: any, liburl: any, Joi: any, helper: any, multipartParser: any, redirect: any) {
+(function (
+  module: any,
+  fs: any,
+  extend: any,
+  moment: any,
+  request: any,
+  requestPromise: any,
+  chai: any,
+  liburl: any,
+  Joi: any,
+  helper: any,
+  multipartParser: any,
+  redirect: any,
+) {
   // "use strict";
 
   var expect = chai.expect;

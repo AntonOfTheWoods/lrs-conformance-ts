@@ -15,7 +15,20 @@ import __esmDep9 from "./../helper.ts";
 import __esmDep10 from "./../multipartParser.ts";
 import __esmDep11 from "./../redirect.ts";
 
-(function (module: any, fs: any, extend: any, moment: any, request: any, requestPromise: any, chai: any, liburl: any, Joi: any, helper: any, multipartParser: any, redirect: any) {
+(function (
+  module: any,
+  fs: any,
+  extend: any,
+  moment: any,
+  request: any,
+  requestPromise: any,
+  chai: any,
+  liburl: any,
+  Joi: any,
+  helper: any,
+  multipartParser: any,
+  redirect: any,
+) {
   // "use strict";
   if (global.OAUTH) request = helper.OAuthRequest(request);
 
@@ -150,7 +163,9 @@ import __esmDep11 from "./../redirect.ts";
       });
     });
   });
-})(undefined,__esmDep1,
+})(
+  undefined,
+  __esmDep1,
   __esmDep2,
   __esmDep3,
   __esmDep4,

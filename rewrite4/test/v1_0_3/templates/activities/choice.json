@@ -11,9 +11,7 @@
     "type": "http://adlnet.gov/expapi/activities/cmi.interaction",
     "moreInfo": "http://virtualmeeting.example.com/345256",
     "interactionType": "choice",
-    "correctResponsesPattern": [
-      "golf[,]tetris"
-    ],
+    "correctResponsesPattern": ["golf[,]tetris"],
     "choices": [
       {
         "id": "golf",

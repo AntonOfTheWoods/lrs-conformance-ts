@@ -5,9 +5,9 @@
     "mbox": "mailto:xapi@adlnet.gov"
   },
   "verb": {
-    "id":"http://adlnet.gov/expapi/verbs/voided",
-    "display":{
-      "en-US":"voided"
+    "id": "http://adlnet.gov/expapi/verbs/voided",
+    "display": {
+      "en-US": "voided"
     }
   },
   "object": {

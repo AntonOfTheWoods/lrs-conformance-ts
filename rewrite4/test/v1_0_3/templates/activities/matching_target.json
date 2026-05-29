@@ -11,9 +11,7 @@
     "type": "http://adlnet.gov/expapi/activities/cmi.interaction",
     "moreInfo": "http://virtualmeeting.example.com/345256",
     "interactionType": "matching",
-    "correctResponsesPattern": [
-      "ben[.]3[,]chris[.]2[,]troy[.]4[,]freddie[.]1"
-    ],
+    "correctResponsesPattern": ["ben[.]3[,]chris[.]2[,]troy[.]4[,]freddie[.]1"],
     "target": [
       {
         "id": "1",

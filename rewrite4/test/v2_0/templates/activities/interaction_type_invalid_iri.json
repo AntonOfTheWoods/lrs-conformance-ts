@@ -11,9 +11,7 @@
     "type": "http://adlnet.gov/expapi/activities/cmi.interaction",
     "moreInfo": "http://virtualmeeting.example.com/345256",
     "interactionType": "ab=c://should.fail.com",
-    "correctResponsesPattern": [
-      "Bob's your uncle"
-    ],
+    "correctResponsesPattern": ["Bob's your uncle"],
     "extensions": {
       "http://example.com/profiles/meetings/extension/location": "X:\\meetings\\minutes\\examplemeeting.one",
       "http://example.com/profiles/meetings/extension/reporter": {
