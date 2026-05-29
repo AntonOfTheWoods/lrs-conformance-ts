@@ -54,7 +54,9 @@ import __esmDep12 from "./../templatingSelection.ts";
     templatingSelection.createTemplate("results.ts");
     templatingSelection.createTemplate("scores.ts");
   });
-})(undefined,__esmDep1,
+})(
+  undefined,
+  __esmDep1,
   __esmDep2,
   __esmDep3,
   __esmDep4,

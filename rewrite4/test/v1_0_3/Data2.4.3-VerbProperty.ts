@@ -43,7 +43,9 @@ import __esmDep12 from "./../templatingSelection.ts";
   describe("Verb Property Requirements (Data 2.4.3)", () => {
     templatingSelection.createTemplate("verbs.ts");
   });
-})(undefined,__esmDep1,
+})(
+  undefined,
+  __esmDep1,
   __esmDep2,
   __esmDep3,
   __esmDep4,

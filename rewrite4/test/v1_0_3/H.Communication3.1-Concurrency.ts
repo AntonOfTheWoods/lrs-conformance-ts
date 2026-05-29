@@ -18,15 +18,7 @@ import __esmDep6 from "oauth";
 
   var request = request(helper.getEndpoint());
   if (global.OAUTH) {
-    new oauthLib.OAuth(
-      "",
-      "",
-      global.OAUTH.consumer_key,
-      global.OAUTH.consumer_secret,
-      "1.0",
-      null,
-      "HMAC-SHA1",
-    );
+    new oauthLib.OAuth("", "", global.OAUTH.consumer_key, global.OAUTH.consumer_secret, "1.0", null, "HMAC-SHA1");
   }
 
   describe("Concurrency Requirements (Communication 3.1)", () => {
