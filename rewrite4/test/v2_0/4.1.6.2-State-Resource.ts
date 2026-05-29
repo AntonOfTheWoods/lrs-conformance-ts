@@ -190,7 +190,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
   /**  XAPI-00215, Communication 2.3 State Resource
    * An LRS's State API rejects a PUT request without "agent" as a parameter with error code 400 Bad Request
    */
-  //+* In 1.0.3, the IRI requires a scheme, but does not in 1.0.2, thus we only test type String in this version**
+  //+* This suite validates IRI handling for this version's requirements.**
   it('An LRS\'s State Resource rejects a PUT request without "agent" as a parameter with error code 400 Bad Request (multiplicity, Communication 2.3.s3.table1.row2, XAPI-00215)', function () {
     var parameters = helper.buildState(),
       document = helper.buildDocument();

@@ -126,7 +126,7 @@ export function normalizeRunnerOptions(input: RunnerInputOptions): NormalizedRun
       );
     }
 
-    xapiVersion = resolvedDirectory === "v1_0_2" ? "1.0.2" : resolvedDirectory === "v1_0_3" ? "1.0.3" : "2.0.0";
+    xapiVersion = resolvedDirectory === "v1_0_3" ? "1.0.3" : "2.0.0";
     resolvedDirectories = [resolvedDirectory];
   } else if (directorySpecified) {
     resolvedDirectories = [...directory!];

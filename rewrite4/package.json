@@ -18,7 +18,7 @@
   "main": "./bin/console_runner.ts",
   "scripts": {
     "postinstall": "bun ./scripts/patch-super-request.ts",
-    "test": "bun ./node_modules/mocha/bin/mocha test/v1_0_2/*.js --reporter nyan",
+    "test": "bun ./node_modules/mocha/bin/mocha test/v1_0_3/*.ts test/v2_0/*.ts --reporter nyan",
     "start": "bun ./bin/console_runner.ts",
     "update-batteries": "bun ./bin/update-batteries.ts"
   },

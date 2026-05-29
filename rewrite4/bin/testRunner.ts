@@ -80,7 +80,6 @@ type CleanRunRecord = {
 type SpecReference = {
   "1.0.3_link"?: string;
   "1.0.3_ref"?: string;
-  "1.0.2_ref_text"?: string;
 };
 
 export class Suite {
@@ -100,8 +99,7 @@ export class Suite {
     if (match) {
       this.name = title.slice(0, match.index).trim();
       const reference = specRefs[this.name];
-      this.requirement =
-        reference?.["1.0.3_link"] ?? reference?.["1.0.3_ref"] ?? reference?.["1.0.2_ref_text"] ?? match[1] ?? "";
+      this.requirement = reference?.["1.0.3_link"] ?? reference?.["1.0.3_ref"] ?? match[1] ?? "";
     } else {
       this.name = title;
       this.requirement = "";
