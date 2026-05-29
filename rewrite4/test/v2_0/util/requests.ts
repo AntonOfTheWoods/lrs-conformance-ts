@@ -1,11 +1,17 @@
 const axiosBase = require("axios") as typeof import("axios");
 const axios = axiosBase.default;
 const addOAuthInterceptor = require("axios-oauth-1.0a").default as typeof import("axios-oauth-1.0a").default;
-const oldHelpers = require("../../helper.ts") as {
+const oldHelpersModule = require("../../helper.ts") as {
+  default?: {
+    generateUUID(): string;
+    getUrlEncoding(params: Record<string, unknown>): string;
+    signStatement(statement: Record<string, unknown>, options: { boundary: string }): Buffer;
+  };
   generateUUID(): string;
   getUrlEncoding(params: Record<string, unknown>): string;
   signStatement(statement: Record<string, unknown>, options: { boundary: string }): Buffer;
 };
+const oldHelpers = oldHelpersModule.default ?? oldHelpersModule;
 
 type AxiosResponse = import("axios").AxiosResponse;
 type HeaderOverrides = Record<string, string> | undefined;
@@ -279,4 +285,7 @@ const requests = {
 };
 
 export default requests;
-module.exports = requests;
+
+if (typeof module !== "undefined") {
+  module.exports = requests;
+}

@@ -33,7 +33,8 @@ type RequestChain = {
 type DescribeFn = (name: string, callback: () => void) => void;
 type ItFn = (name: string, callback: (done: (error?: unknown) => void) => void) => void;
 
-const helper = require("./helper.ts") as TemplateHelper;
+const helperModule = require("./helper.ts") as { default?: TemplateHelper } & TemplateHelper;
+const helper = helperModule.default ?? helperModule;
 const requestModule = require("super-request") as (target: unknown) => RequestChain;
 require("should");
 

@@ -106,6 +106,103 @@ export function buildLrsTestLoadPlan(normalizedOptions: NormalizedRunnerOptions)
   };
 }
 
+const legacySuiteCommonJsPattern = /(?:^\s*\(function\s*\(module\b|^\s*\}\(module,\s*require\(|module\.exports)/m;
+
+const legacyTsTranspiler = new Bun.Transpiler({ loader: "ts" });
+const legacyJsTranspiler = new Bun.Transpiler({ loader: "js" });
+
+function shouldLoadLegacySuiteFile(sourceText: string): boolean {
+  if (/^\s*(import|export)\s/m.test(sourceText)) {
+    return false;
+  }
+  return /\bmodule\b/.test(sourceText) || /\brequire\s*\(/.test(sourceText);
+}
+
+function normalizeCommonJsCompatibleModuleSource(sourceText: string): string {
+  return sourceText.replace(/^\s*export default .*;\s*$/gm, "");
+}
+
+function loadCommonJsCompatibleTsModule(absoluteFilePath: string): unknown {
+  const sourceText = normalizeCommonJsCompatibleModuleSource(
+    require("fs").readFileSync(absoluteFilePath, "utf8") as string,
+  );
+  const transpiledSource = legacyTsTranspiler.transformSync(sourceText);
+  const moduleRecord = { exports: {} as unknown };
+  const moduleRequire = require("module").createRequire(absoluteFilePath) as NodeJS.Require;
+
+  const executeModule = new Function(
+    "module",
+    "exports",
+    "require",
+    "__filename",
+    "__dirname",
+    `${transpiledSource}\n//# sourceURL=${absoluteFilePath}`,
+  ) as (
+    module: { exports: unknown },
+    exports: unknown,
+    require: NodeJS.Require,
+    filename: string,
+    dirnameValue: string,
+  ) => void;
+
+  executeModule(
+    moduleRecord,
+    moduleRecord.exports,
+    moduleRequire,
+    absoluteFilePath,
+    require("path").dirname(absoluteFilePath),
+  );
+  return moduleRecord.exports;
+}
+
+function loadLegacySuiteFile(absoluteFilePath: string, sourceText: string): void {
+  const transpiler = absoluteFilePath.endsWith(".ts") ? legacyTsTranspiler : legacyJsTranspiler;
+  const transpiledSource = transpiler.transformSync(sourceText);
+  const suiteModule = { exports: {} as unknown };
+  const suiteRequire = require("module").createRequire(absoluteFilePath) as NodeJS.Require;
+  const legacyRequire = ((specifier: string) => {
+    const resolvedPath = suiteRequire.resolve(specifier);
+    if (resolvedPath.endsWith(".ts")) {
+      const requiredSource = require("fs").readFileSync(resolvedPath, "utf8") as string;
+      if (/module\.exports/.test(requiredSource)) {
+        return loadCommonJsCompatibleTsModule(resolvedPath);
+      }
+
+      return suiteRequire(specifier);
+    }
+
+    return suiteRequire(specifier);
+  }) as NodeJS.Require;
+
+  const executeLegacySuite = new Function(
+    "module",
+    "exports",
+    "require",
+    "__filename",
+    "__dirname",
+    `${transpiledSource}\n//# sourceURL=${absoluteFilePath}`,
+  ) as (
+    module: { exports: unknown },
+    exports: unknown,
+    require: NodeJS.Require,
+    filename: string,
+    dirnameValue: string,
+  ) => void;
+
+  try {
+    executeLegacySuite(
+      suiteModule,
+      suiteModule.exports,
+      legacyRequire,
+      absoluteFilePath,
+      require("path").dirname(absoluteFilePath),
+    );
+  } catch (error) {
+    const message = error instanceof Error ? (error.stack ?? error.message) : String(error);
+    throw new Error(`Failed to load legacy suite file ${absoluteFilePath}: ${message}`);
+  }
+}
+
 function getOrCreateCaptureExecutionState(): CaptureExecutionState {
   const globalState = globalThis as typeof globalThis & {
     __lrsConformanceCaptureExecutionState?: CaptureExecutionState;
@@ -296,7 +393,17 @@ function runTests(_options: RawOptions): void {
       mocha.suite.beforeAll(
         "Accounting for time differential between test suite and lrs",
         function (done: (error?: unknown, ...ignored: unknown[]) => void) {
-          require(path.join(__dirname, "..", "test", "helper.ts")).setTimeMargin(done);
+          const helperModule = require(path.join(__dirname, "..", "test", "helper.ts")) as {
+            default?: { setTimeMargin?: (callback?: (error?: unknown) => void) => unknown };
+            setTimeMargin?: (callback?: (error?: unknown) => void) => unknown;
+          };
+          const helperExports = typeof helperModule.setTimeMargin === "function" ? helperModule : helperModule.default;
+
+          if (helperExports && typeof helperExports.setTimeMargin === "function") {
+            helperExports.setTimeMargin(done);
+          } else {
+            done();
+          }
         },
       );
     }
@@ -308,7 +415,18 @@ function runTests(_options: RawOptions): void {
           return isSuiteDefinitionFile(file) && matchesSelectedSuiteFile(loadPlan.selectedFiles, relativeFilePath);
         })
         .forEach(function (file) {
-          mocha.addFile(path.join(testDirectory, file));
+          const absoluteFilePath = path.join(testDirectory, file);
+          const sourceText = fs.readFileSync(absoluteFilePath, "utf8");
+          console.log(`[suite-load] ${absoluteFilePath} legacy=${shouldLoadLegacySuiteFile(sourceText)}`);
+
+          mocha.suite.emit("pre-require", globalThis, absoluteFilePath, mocha);
+          if (shouldLoadLegacySuiteFile(sourceText)) {
+            loadLegacySuiteFile(absoluteFilePath, sourceText);
+          } else {
+            mocha.addFile(absoluteFilePath);
+          }
+
+          mocha.suite.emit("post-require", globalThis, absoluteFilePath, mocha);
         });
     });
 

@@ -1,6 +1,6 @@
-import { readdirSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 
 import type { DescribeRuntime } from "./runtime.ts";
 import type { NormalizedRunnerOptions } from "./options.ts";
@@ -48,6 +48,11 @@ const timeMarginDependentFiles = new Set<string>([
   "test/v2_0/4.1.6.5-Agent-Profile-Resource.js",
   "test/v2_0/4.1.6.6-Activity-Profile-Resource.js",
 ]);
+
+const legacySuiteCommonJsPattern = /(?:^\s*\(function\s*\(module\b|^\s*\}\(module,\s*require\(|module\.exports)/m;
+
+const legacyTsTranspiler = new Bun.Transpiler({ loader: "ts" });
+const legacyJsTranspiler = new Bun.Transpiler({ loader: "js" });
 
 export function toPosixPath(pathValue: string): string {
   return pathValue.replaceAll("\\", "/");
@@ -280,16 +285,94 @@ function installSelectedFileBootstrapHooks(options: {
 
   options.runtime.before("Accounting for time differential between test suite and lrs", (done) => {
     const helperModule = options.requireFromRuntimeRoot(helperModulePath) as {
+      default?: {
+        setTimeMargin?: (done?: (error?: unknown) => void) => unknown;
+      };
       setTimeMargin?: (done?: (error?: unknown) => void) => unknown;
     };
 
-    if (typeof helperModule.setTimeMargin !== "function") {
+    const helperExports = typeof helperModule.setTimeMargin === "function" ? helperModule : helperModule.default;
+
+    if (!helperExports || typeof helperExports.setTimeMargin !== "function") {
       done();
       return;
     }
 
-    helperModule.setTimeMargin?.(done);
+    helperExports.setTimeMargin?.(done);
   });
+}
+
+function shouldLoadLegacySuiteFile(sourceText: string): boolean {
+  if (/^\s*(import|export)\s/m.test(sourceText)) {
+    return false;
+  }
+  return /\bmodule\b/.test(sourceText) || /\brequire\s*\(/.test(sourceText);
+}
+
+function normalizeCommonJsCompatibleModuleSource(sourceText: string): string {
+  return sourceText.replace(/^\s*export default .*;\s*$/gm, "");
+}
+
+function loadCommonJsCompatibleTsModule(absoluteFilePath: string): unknown {
+  const sourceText = normalizeCommonJsCompatibleModuleSource(readFileSync(absoluteFilePath, "utf8"));
+  const transpiledSource = legacyTsTranspiler.transformSync(sourceText);
+  const moduleRecord = { exports: {} as unknown };
+  const moduleRequire = createRequire(absoluteFilePath);
+
+  const executeModule = new Function(
+    "module",
+    "exports",
+    "require",
+    "__filename",
+    "__dirname",
+    `${transpiledSource}\n//# sourceURL=${absoluteFilePath}`,
+  ) as (
+    module: { exports: unknown },
+    exports: unknown,
+    require: NodeJS.Require,
+    filename: string,
+    dirnameValue: string,
+  ) => void;
+
+  executeModule(moduleRecord, moduleRecord.exports, moduleRequire, absoluteFilePath, dirname(absoluteFilePath));
+  return moduleRecord.exports;
+}
+
+function loadLegacySuiteFile(absoluteFilePath: string, sourceText: string): void {
+  const transpiler = absoluteFilePath.endsWith(".ts") ? legacyTsTranspiler : legacyJsTranspiler;
+  const transpiledSource = transpiler.transformSync(sourceText);
+  const suiteModule = { exports: {} as unknown };
+  const suiteRequire = createRequire(absoluteFilePath);
+  const legacyRequire = ((specifier: string) => {
+    const resolvedPath = suiteRequire.resolve(specifier);
+    if (resolvedPath.endsWith(".ts")) {
+      const requiredSource = readFileSync(resolvedPath, "utf8");
+      if (/module\.exports/.test(requiredSource)) {
+        return loadCommonJsCompatibleTsModule(resolvedPath);
+      }
+
+      return suiteRequire(specifier);
+    }
+
+    return suiteRequire(specifier);
+  }) as NodeJS.Require;
+
+  const executeLegacySuite = new Function(
+    "module",
+    "exports",
+    "require",
+    "__filename",
+    "__dirname",
+    `${transpiledSource}\n//# sourceURL=${absoluteFilePath}`,
+  ) as (
+    module: { exports: unknown },
+    exports: unknown,
+    require: NodeJS.Require,
+    filename: string,
+    dirnameValue: string,
+  ) => void;
+
+  executeLegacySuite(suiteModule, suiteModule.exports, legacyRequire, absoluteFilePath, dirname(absoluteFilePath));
 }
 
 export function registerSuiteFiles(options: SuiteLoaderOptions): string[] {
@@ -322,8 +405,14 @@ export function registerSuiteFiles(options: SuiteLoaderOptions): string[] {
         }
 
         const absoluteFilePath = resolve(testDirectory, entry);
+        const sourceText = readFileSync(absoluteFilePath, "utf8");
+
         delete requireFromRuntimeRoot.cache?.[absoluteFilePath];
-        requireFromRuntimeRoot(absoluteFilePath);
+        if (shouldLoadLegacySuiteFile(sourceText)) {
+          loadLegacySuiteFile(absoluteFilePath, sourceText);
+        } else {
+          requireFromRuntimeRoot(absoluteFilePath);
+        }
         loadedFiles.push(relativeFilePath);
       }
     }

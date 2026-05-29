@@ -6,6 +6,7 @@
 (function (process, request, should, chai, isEmail, helper) {
   "use strict";
 
+  helper = helper.default ?? helper;
   var expect = chai.expect;
 
   var request = request(helper.getEndpoint());

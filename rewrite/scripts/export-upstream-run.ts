@@ -223,7 +223,7 @@ function usage(): string {
     `  --node-image ${defaultNodeImage}`,
     `  --bun-image ${defaultBunImage}`,
     "  --suite-dir rewrite4",
-    "  --provided-suite-runner-mode defaults to native for provided suites",
+    "  --provided-suite-runner-mode defaults to compat-forward for provided suites until the rewrite4 suite is fully native-safe",
     "",
     "Notes:",
     "  Without --suite-dir, the upstream suite source is fetched from GitHub by shallow clone.",
@@ -285,7 +285,7 @@ function parseConfig(args: string[]): ExportUpstreamConfig {
 
   const version: SupportedVersion = versionFlag;
   const suiteDir = suiteDirArg ? (isAbsolute(suiteDirArg) ? suiteDirArg : resolve(repoRoot, suiteDirArg)) : undefined;
-  const providedSuiteRunnerMode = parseProvidedSuiteRunnerMode(providedSuiteRunnerModeArg) ?? "native";
+  const providedSuiteRunnerMode = parseProvidedSuiteRunnerMode(providedSuiteRunnerModeArg) ?? "compat-forward";
 
   return {
     baseUrl,
@@ -1306,9 +1306,11 @@ async function main(): Promise<number> {
   const latestLogName = await selectLatestLogFile(config.logDir, existingFiles);
 
   if (!latestLogName) {
-    throw new Error(
-      `Upstream run finished but no log artifact was found in ${config.logDir}. Ensure upstream dependencies are installed.`,
-    );
+    const runLabel = config.suiteDir ? "Candidate" : "Upstream";
+    const runnerHint = config.suiteDir
+      ? ` Provided-suite runner mode was ${config.providedSuiteRunnerMode}. Pass --provided-suite-runner-mode native only for suites that are fully native-safe under Bun.`
+      : " Ensure upstream dependencies are installed.";
+    throw new Error(`${runLabel} run finished but no log artifact was found in ${config.logDir}.${runnerHint}`);
   }
 
   const latestLogPath = resolve(config.logDir, latestLogName);

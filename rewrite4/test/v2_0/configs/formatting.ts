@@ -1,4 +1,7 @@
-const helper = require("./../../helper.ts") as { generateUUID(): string };
+const helperModule = require("./../../helper.ts") as { default?: { generateUUID(): string } } & {
+  generateUUID(): string;
+};
+const helper = helperModule.default ?? helperModule;
 
 /**
  * Description : This is a test suite that tests an LRS endpoint based on the testing requirements document

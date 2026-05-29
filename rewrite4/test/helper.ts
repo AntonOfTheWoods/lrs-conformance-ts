@@ -128,4 +128,6 @@ helperExports = {
 };
 
 export default helperExports;
-module.exports = helperExports;
+if (typeof module !== "undefined") {
+  module.exports = helperExports;
+}
