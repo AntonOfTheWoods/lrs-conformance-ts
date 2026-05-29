@@ -409,6 +409,29 @@ async function pathExists(pathValue: string): Promise<boolean> {
   }
 }
 
+async function findMissingDbStateFingerprintPath(manifestPath: string): Promise<string | null> {
+  const manifestExists = await pathExists(manifestPath);
+  if (!manifestExists) {
+    return manifestPath;
+  }
+
+  let manifest: TraceNodeDbStateManifest;
+  try {
+    manifest = await readJson<TraceNodeDbStateManifest>(manifestPath);
+  } catch {
+    return manifestPath;
+  }
+
+  const fingerprintPaths = new Set(manifest.entries.map((entry) => entry.fingerprintPath));
+  for (const fingerprintPath of fingerprintPaths) {
+    if (!(await pathExists(fingerprintPath))) {
+      return fingerprintPath;
+    }
+  }
+
+  return null;
+}
+
 export async function resolveReusableOracleVersionDir(options: {
   currentVersionDir: string;
   oracleDir: string;
@@ -422,8 +445,9 @@ export async function resolveReusableOracleVersionDir(options: {
   const candidateVersionDirs: string[] = [];
 
   const directHasRaw = await pathExists(resolve(directCandidate, "upstream-raw.json"));
+  const directDbStateManifestPath = resolve(directCandidate, "upstream-db-state-manifest.json");
   const directHasDbState =
-    !options.requireDbStateManifest || (await pathExists(resolve(directCandidate, "upstream-db-state-manifest.json")));
+    !options.requireDbStateManifest || (await findMissingDbStateFingerprintPath(directDbStateManifestPath)) === null;
   const directHasRun =
     !options.requireUpstreamRunArtifact || (await pathExists(resolve(directCandidate, "upstream-run.json")));
   if (directCandidate !== currentDir && directHasRaw && directHasDbState && directHasRun) {
@@ -456,8 +480,9 @@ export async function resolveReusableOracleVersionDir(options: {
     }
 
     const hasRaw = await pathExists(resolve(versionDir, "upstream-raw.json"));
+    const dbStateManifestPath = resolve(versionDir, "upstream-db-state-manifest.json");
     const hasDbState =
-      !options.requireDbStateManifest || (await pathExists(resolve(versionDir, "upstream-db-state-manifest.json")));
+      !options.requireDbStateManifest || (await findMissingDbStateFingerprintPath(dbStateManifestPath)) === null;
     const hasRun = !options.requireUpstreamRunArtifact || (await pathExists(resolve(versionDir, "upstream-run.json")));
     if (hasRaw && hasDbState && hasRun) {
       candidateVersionDirs.push(versionDir);
@@ -2185,12 +2210,17 @@ async function runVersion(config: DiagnosticConfig, version: SupportedVersion): 
       dbStateManifestPath: candidateDbStateArtifacts.manifestPath,
     } satisfies TraceRunManifest);
   }
+  if (config.dbStateMode !== "none" && !candidateDbStateArtifacts) {
+    throw new Error(
+      `[traffic-diagnostic] --db-state-mode=${config.dbStateMode} requested, but candidate DB-state artifacts were not generated.`,
+    );
+  }
 
   const candidateRunPath = resolve(versionDir, "candidate-run.json");
 
   const upstreamRawPath = resolve(versionDir, "upstream-raw.json");
   const upstreamNormalizedPath = resolve(versionDir, "upstream-normalized.json");
-  const oracleVersionDir = config.refreshUpstream
+  let oracleVersionDir = config.refreshUpstream
     ? null
     : await resolveReusableOracleVersionDir({
         currentVersionDir: versionDir,
@@ -2200,8 +2230,8 @@ async function runVersion(config: DiagnosticConfig, version: SupportedVersion): 
         version,
       });
 
-  let upstreamRaw: RawTrafficArtifact;
-  let upstreamNormalized: NormalizedTrafficArtifact;
+  let upstreamRaw: RawTrafficArtifact | null = null;
+  let upstreamNormalized: NormalizedTrafficArtifact | null = null;
   let upstreamDbStateArtifacts: { manifestPath: string } | null = null;
   let upstreamSource: "refreshed" | "oracle" = "refreshed";
 
@@ -2224,14 +2254,28 @@ async function runVersion(config: DiagnosticConfig, version: SupportedVersion): 
     }
 
     const oracleDbStateManifestPath = resolve(oracleVersionDir, "upstream-db-state-manifest.json");
-    if (config.dbStateMode !== "none" && (await pathExists(oracleDbStateManifestPath))) {
-      upstreamDbStateArtifacts = {
-        manifestPath: oracleDbStateManifestPath,
-      };
+    if (config.dbStateMode !== "none") {
+      const missingDbStatePath = await findMissingDbStateFingerprintPath(oracleDbStateManifestPath);
+      if (missingDbStatePath !== null) {
+        console.warn(
+          `[traffic-diagnostic] Reusable oracle DB-state artifacts are incomplete for ${version} (missing ${missingDbStatePath}); refreshing upstream instead.`,
+        );
+        oracleVersionDir = null;
+      }
+
+      if (oracleVersionDir) {
+        upstreamDbStateArtifacts = {
+          manifestPath: oracleDbStateManifestPath,
+        };
+      }
     }
 
-    upstreamSource = "oracle";
-  } else {
+    if (oracleVersionDir) {
+      upstreamSource = "oracle";
+    }
+  }
+
+  if (!oracleVersionDir) {
     const reason = config.refreshUpstream ? "--refresh-upstream passed" : "no reusable oracle found";
     console.log(`[traffic-diagnostic] Refreshing upstream for ${version}: ${reason}`);
     upstreamRaw = await captureRunner("upstream", config, version, versionDir);
@@ -2259,6 +2303,15 @@ async function runVersion(config: DiagnosticConfig, version: SupportedVersion): 
         dbStateManifestPath: upstreamDbStateArtifacts.manifestPath,
       } satisfies TraceRunManifest);
     }
+    if (config.dbStateMode !== "none" && !upstreamDbStateArtifacts) {
+      throw new Error(
+        `[traffic-diagnostic] --db-state-mode=${config.dbStateMode} requested, but refreshed upstream DB-state artifacts were not generated.`,
+      );
+    }
+  }
+
+  if (!upstreamRaw || !upstreamNormalized) {
+    throw new Error("[traffic-diagnostic] Internal error: upstream artifacts were not initialized.");
   }
 
   const upstreamRunPath = resolve(versionDir, "upstream-run.json");
