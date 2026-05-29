@@ -1,9 +1,17 @@
+// @ts-nocheck
 /**
  * Description : This is a test suite that tests an LRS endpoint based on the testing requirements document
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-(function (process, request, should, chai, isEmail, helper) {
+import __esmDep1 from "supertest-as-promised";
+import __esmDep2 from "should";
+import __esmDep3 from "chai";
+import __esmDep4 from "isemail";
+import __esmDep5 from "./../helper.ts";
+import __esmDep6 from "oauth";
+
+(function (process, request, should, chai, isEmail, helper, oauthLib) {
   "use strict";
 
   helper = helper.default ?? helper;
@@ -12,9 +20,7 @@
   var request = request(helper.getEndpoint());
   var oauth;
   if (global.OAUTH) {
-    var OAuth = require("oauth");
-
-    oauth = new OAuth.OAuth("", "", global.OAUTH.consumer_key, global.OAUTH.consumer_secret, "1.0", null, "HMAC-SHA1");
+    oauth = new oauthLib.OAuth("", "", global.OAUTH.consumer_key, global.OAUTH.consumer_secret, "1.0", null, "HMAC-SHA1");
   }
 
   describe("Concurrency Requirements (Communication 3.1)", () => {
@@ -222,9 +228,10 @@
   });
 })(
   process,
-  require("supertest-as-promised"),
-  require("should"),
-  require("chai"),
-  require("isemail"),
-  require("./../helper.ts"),
+  __esmDep1,
+  __esmDep2,
+  __esmDep3,
+  __esmDep4,
+  __esmDep5,
+  __esmDep6,
 );

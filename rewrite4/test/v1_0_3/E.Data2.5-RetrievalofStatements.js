@@ -16,11 +16,12 @@ import __esmDep9 from "./../helper.ts";
 import __esmDep10 from "./../multipartParser.ts";
 import __esmDep11 from "./../redirect.ts";
 import __esmDep12 from "validator";
+import __esmDep13 from "chai-things";
 
 (function (module, fs, extend, moment, request, requestPromise, chai, liburl, Joi, helper, multipartParser, redirect, validator) {
     // "use strict";
 
-    chai.use(require('chai-things'));
+    chai.use(__esmDep13);
     var expect = chai.expect;
     if(global.OAUTH)
         request = helper.OAuthRequest(request);
