@@ -70,7 +70,7 @@ describe("(4.2.7) Additional Requirements for Data Types", function () {
         },
       };
 
-      let _ = await xapiRequests.sendStatement(statement);
+      await xapiRequests.sendStatement(statement);
       let getRes = await xapiRequests.getStatementExact(statement.id);
 
       let statementFromLRS = getRes.data;

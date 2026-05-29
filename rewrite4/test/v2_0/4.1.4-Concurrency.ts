@@ -216,7 +216,6 @@ function runConcurrencyTestsForDocumentResource(resourceName, resourcePath, reso
      */
 
     describe("If a PUT request is received without either header for a resource that already exists", function () {
-      var etag;
       var originalDocument = helper.buildDocument();
       var updatedDocument = helper.buildDocument();
 
@@ -231,8 +230,6 @@ function runConcurrencyTestsForDocumentResource(resourceName, resourcePath, reso
         expect(getResponse.status).to.equal(200);
         expect(getResponse.headers.etag).to.not.be.undefined;
         expect(getResponse.data).to.eql(originalDocument);
-
-        etag = getResponse.headers.etag;
       });
 
       it("Return 409 conflict", async () => {

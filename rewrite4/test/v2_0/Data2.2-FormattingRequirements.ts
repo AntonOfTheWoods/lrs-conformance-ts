@@ -178,8 +178,6 @@ import __esmDep12 from "./../templatingSelection.ts";
       templatingSelection.createTemplate("verify.ts");
 
       it("An LRS rejects a not well-created JSON Object", function (done) {
-        var verbTemplate = "http://adlnet.gov/expapi/test/unicode/target/";
-        var verb = verbTemplate + helper.generateUUID();
         var malformedTemplates = [{ statement: "{{statements.default}}" }];
         var malformed = helper.createFromTemplate(malformedTemplates);
         malformed = malformed.statement;

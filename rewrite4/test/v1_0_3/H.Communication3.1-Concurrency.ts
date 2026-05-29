@@ -17,9 +17,8 @@ import __esmDep6 from "oauth";
   var expect = chai.expect;
 
   var request = request(helper.getEndpoint());
-  var oauth;
   if (global.OAUTH) {
-    oauth = new oauthLib.OAuth(
+    new oauthLib.OAuth(
       "",
       "",
       global.OAUTH.consumer_key,
@@ -153,7 +152,6 @@ import __esmDep6 from "oauth";
       });
 
       describe("If Header precondition in PUT Requests for RFC2616 fail", function () {
-        var etag;
         var parameters = helper.buildAgentProfile(),
           document = helper.buildDocument();
 
@@ -164,7 +162,7 @@ import __esmDep6 from "oauth";
               return helper
                 .sendRequest("get", helper.getEndpointAgentsProfile(), parameters, null, 200)
                 .then(function (res) {
-                  etag = res.headers.etag;
+                  void res.headers.etag;
                 });
             });
         });
@@ -188,7 +186,6 @@ import __esmDep6 from "oauth";
       });
 
       describe("If put request is received without either header for a resource that already exists", function () {
-        var etag;
         var parameters = helper.buildActivityProfile();
         var document = helper.buildDocument();
         var document2 = helper.buildDocument();
@@ -200,7 +197,7 @@ import __esmDep6 from "oauth";
               return helper
                 .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, null, 200)
                 .then(function (res) {
-                  etag = res.headers.etag;
+                  void res.headers.etag;
                 });
             });
         });
@@ -225,7 +222,6 @@ import __esmDep6 from "oauth";
               return helper
                 .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, null, 200)
                 .then(function (res) {
-                  var result = res.body;
                   expect(res.body).to.eql(document);
                 });
             });

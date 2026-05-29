@@ -33,7 +33,6 @@ import __esmDep12 from "./../templatingSelection.ts";
 ) {
   // "use strict";
 
-  var expect = chai.expect;
   if (global.OAUTH) request = helper.OAuthRequest(request);
 
   describe("Object Property Requirements (Data 2.4.4)", () => {
@@ -49,6 +48,7 @@ import __esmDep12 from "./../templatingSelection.ts";
       steps: any,
       seq: any,
       tf: any;
+    void id;
 
     //Data 2.4.4 object
     /**  Matchup with Conformance Requirements Document

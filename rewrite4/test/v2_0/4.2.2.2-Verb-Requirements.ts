@@ -33,7 +33,6 @@ import __esmDep12 from "./../templatingSelection.ts";
 ) {
   // "use strict";
 
-  var expect = chai.expect;
   if (global.OAUTH) request = helper.OAuthRequest(request);
 
   /**  Matchup with Conformance Requirements Document

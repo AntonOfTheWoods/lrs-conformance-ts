@@ -27,7 +27,6 @@ import __esmDep9 from "./../multipartParser.ts";
 ) {
   "use strict";
 
-  var expect = chai.expect;
   request = helper.OAuthRequest(request);
   describe("Signed Statements (Data 2.6)", () => {
     /**  Matchup with Conformance Requirements Document
