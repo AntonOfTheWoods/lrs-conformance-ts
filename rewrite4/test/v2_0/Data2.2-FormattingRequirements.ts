@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Description : This is a test suite that tests an LRS endpoint based on the testing requirements document
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
@@ -18,19 +17,19 @@ import __esmDep11 from "./../redirect.ts";
 import __esmDep12 from "./../templatingSelection.ts";
 
 (function (
-  module,
-  fs,
-  extend,
-  moment,
-  request,
-  requestPromise,
-  chai,
-  liburl,
-  Joi,
-  helper,
-  multipartParser,
-  redirect,
-  templatingSelection,
+  module: any,
+  fs: any,
+  extend: any,
+  moment: any,
+  request: any,
+  requestPromise: any,
+  chai: any,
+  liburl: any,
+  Joi: any,
+  helper: any,
+  multipartParser: any,
+  redirect: any,
+  templatingSelection: any,
 ) {
   // "use strict";
 
@@ -119,55 +118,58 @@ import __esmDep12 from "./../templatingSelection.ts";
     /**  XAPI-00012
      * The LRS rejects with error code 400 Bad Request parameter values which do not validate to the same standards required for values of the same types in Statements.
      */
-    describe("The LRS rejects with error code 400 Bad Request parameter values which do not validate to the same standards required for values of the same types in Statements (Data 2.2.s4.b4, XAPI-00012)", function (done) {
-      it("should reject when statementId value is invalid", function () {
-        var query = helper.getUrlEncoding({ statementId: "wrong" });
-        request(helper.getEndpointAndAuth())
-          .get(helper.getEndpointStatements() + "?" + query)
-          .headers(helper.addAllHeaders({}))
-          .expect(400, done);
-      });
+    describe(
+      "The LRS rejects with error code 400 Bad Request parameter values which do not validate to the same standards required for values of the same types in Statements (Data 2.2.s4.b4, XAPI-00012)",
+      function (done: any) {
+        it("should reject when statementId value is invalid", function () {
+          var query = helper.getUrlEncoding({ statementId: "wrong" });
+          request(helper.getEndpointAndAuth())
+            .get(helper.getEndpointStatements() + "?" + query)
+            .headers(helper.addAllHeaders({}))
+            .expect(400, done);
+        });
 
-      it("should reject when statementId value is invalid", function () {
-        var query = helper.getUrlEncoding({ voidedStatementId: "wrong" });
-        request(helper.getEndpointAndAuth())
-          .get(helper.getEndpointStatements() + "?" + query)
-          .headers(helper.addAllHeaders({}))
-          .expect(400, done);
-      });
+        it("should reject when statementId value is invalid", function () {
+          var query = helper.getUrlEncoding({ voidedStatementId: "wrong" });
+          request(helper.getEndpointAndAuth())
+            .get(helper.getEndpointStatements() + "?" + query)
+            .headers(helper.addAllHeaders({}))
+            .expect(400, done);
+        });
 
-      it("should reject when statementId value is invalid", function () {
-        var query = helper.getUrlEncoding({ agent: "wrong" });
-        request(helper.getEndpointAndAuth())
-          .get(helper.getEndpointStatements() + "?" + query)
-          .headers(helper.addAllHeaders({}))
-          .expect(400, done);
-      });
+        it("should reject when statementId value is invalid", function () {
+          var query = helper.getUrlEncoding({ agent: "wrong" });
+          request(helper.getEndpointAndAuth())
+            .get(helper.getEndpointStatements() + "?" + query)
+            .headers(helper.addAllHeaders({}))
+            .expect(400, done);
+        });
 
-      it("should reject when statementId value is invalid", function () {
-        var query = helper.getUrlEncoding({ verb: "not.a.valid.iri.com/verb" });
-        request(helper.getEndpointAndAuth())
-          .get(helper.getEndpointStatements() + "?" + query)
-          .headers(helper.addAllHeaders({}))
-          .expect(400, done);
-      });
+        it("should reject when statementId value is invalid", function () {
+          var query = helper.getUrlEncoding({ verb: "not.a.valid.iri.com/verb" });
+          request(helper.getEndpointAndAuth())
+            .get(helper.getEndpointStatements() + "?" + query)
+            .headers(helper.addAllHeaders({}))
+            .expect(400, done);
+        });
 
-      it("should reject when statementId value is invalid", function () {
-        var query = helper.getUrlEncoding({ activity: "not.a.valid.iri.com/activity" });
-        request(helper.getEndpointAndAuth())
-          .get(helper.getEndpointStatements() + "?" + query)
-          .headers(helper.addAllHeaders({}))
-          .expect(400, done);
-      });
+        it("should reject when statementId value is invalid", function () {
+          var query = helper.getUrlEncoding({ activity: "not.a.valid.iri.com/activity" });
+          request(helper.getEndpointAndAuth())
+            .get(helper.getEndpointStatements() + "?" + query)
+            .headers(helper.addAllHeaders({}))
+            .expect(400, done);
+        });
 
-      it("should reject when statementId value is invalid", function () {
-        var query = helper.getUrlEncoding({ registration: "wrong" });
-        request(helper.getEndpointAndAuth())
-          .get(helper.getEndpointStatements() + "?" + query)
-          .headers(helper.addAllHeaders({}))
-          .expect(400, done);
-      });
-    });
+        it("should reject when statementId value is invalid", function () {
+          var query = helper.getUrlEncoding({ registration: "wrong" });
+          request(helper.getEndpointAndAuth())
+            .get(helper.getEndpointStatements() + "?" + query)
+            .headers(helper.addAllHeaders({}))
+            .expect(400, done);
+        });
+      } as any,
+    );
 
     /**  XAPI-00014, Data 2.2 Formatting Requirements
      * All Objects are well-created JSON Objects (Nature of Binding)
@@ -195,259 +197,264 @@ import __esmDep12 from "./../templatingSelection.ts";
     /**  XAPI-00011, Data 2.2 Formatting Requirements
      * An LRS rejects with error code 400 Bad Request a Statement containing IRL or IRI values without a scheme.
      */
-    describe("An LRS rejects with error code 400 Bad Request a Statement containing IRL or IRI values without a scheme. (Data 2.2.s4.b1.b8, XAPI-00011)", function (done) {
-      // verb id
-      it("should fail with bad verb id scheme", function () {
-        var templates = [
-          {
-            statement: "{{statements.default}}",
-          },
-        ];
-        var data = helper.createFromTemplate(templates).statement;
-        data.id = helper.generateUUID();
-        data.verb.id = data.verb.id.replace("http://", ""); // remove the scheme portion of the IRI
-        var headers = helper.addAllHeaders({});
+    describe(
+      "An LRS rejects with error code 400 Bad Request a Statement containing IRL or IRI values without a scheme. (Data 2.2.s4.b1.b8, XAPI-00011)",
+      function (done: any) {
+        // verb id
+        it("should fail with bad verb id scheme", function () {
+          var templates = [
+            {
+              statement: "{{statements.default}}",
+            },
+          ];
+          var data = helper.createFromTemplate(templates).statement;
+          data.id = helper.generateUUID();
+          data.verb.id = data.verb.id.replace("http://", ""); // remove the scheme portion of the IRI
+          var headers = helper.addAllHeaders({});
 
-        request(helper.getEndpointAndAuth())
-          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-          .headers(headers)
-          .json(data)
-          .expect(400, done);
-      });
+          request(helper.getEndpointAndAuth())
+            .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+            .headers(headers)
+            .json(data)
+            .expect(400, done);
+        });
 
-      // openid
-      it("should fail with bad verb openid scheme", function () {
-        var templates = [
-          {
-            statement: "{{statements.actor}}",
-          },
-        ];
-        var data = helper.createFromTemplate(templates).statement;
-        data.id = helper.generateUUID();
-        data.actor.openid = "open.id.com/testUser";
-        var headers = helper.addAllHeaders({});
+        // openid
+        it("should fail with bad verb openid scheme", function () {
+          var templates = [
+            {
+              statement: "{{statements.actor}}",
+            },
+          ];
+          var data = helper.createFromTemplate(templates).statement;
+          data.id = helper.generateUUID();
+          data.actor.openid = "open.id.com/testUser";
+          var headers = helper.addAllHeaders({});
 
-        request(helper.getEndpointAndAuth())
-          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-          .headers(headers)
-          .json(data)
-          .expect(400, done);
-      });
+          request(helper.getEndpointAndAuth())
+            .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+            .headers(headers)
+            .json(data)
+            .expect(400, done);
+        });
 
-      // account homePage
-      it("should fail with bad account homePage", function () {
-        var templates = [
-          {
-            statement: "{{statements.actor}}",
-          },
-        ];
-        var data = helper.createFromTemplate(templates).statement;
-        data.id = helper.generateUUID();
-        data.actor.account = { homePage: "homePage.com/testUser", name: "123456" };
-        var headers = helper.addAllHeaders({});
+        // account homePage
+        it("should fail with bad account homePage", function () {
+          var templates = [
+            {
+              statement: "{{statements.actor}}",
+            },
+          ];
+          var data = helper.createFromTemplate(templates).statement;
+          data.id = helper.generateUUID();
+          data.actor.account = { homePage: "homePage.com/testUser", name: "123456" };
+          var headers = helper.addAllHeaders({});
 
-        request(helper.getEndpointAndAuth())
-          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-          .headers(headers)
-          .json(data)
-          .expect(400, done);
-      });
+          request(helper.getEndpointAndAuth())
+            .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+            .headers(headers)
+            .json(data)
+            .expect(400, done);
+        });
 
-      // object id
-      it("should fail with bad object id", function () {
-        var templates = [
-          {
-            statement: "{{statements.default}}",
-          },
-        ];
-        var data = helper.createFromTemplate(templates).statement;
-        data.id = helper.generateUUID();
-        data.object.id = data.object.id.replace("http://", ""); // remove the scheme portion of the IRI
-        var headers = helper.addAllHeaders({});
+        // object id
+        it("should fail with bad object id", function () {
+          var templates = [
+            {
+              statement: "{{statements.default}}",
+            },
+          ];
+          var data = helper.createFromTemplate(templates).statement;
+          data.id = helper.generateUUID();
+          data.object.id = data.object.id.replace("http://", ""); // remove the scheme portion of the IRI
+          var headers = helper.addAllHeaders({});
 
-        request(helper.getEndpointAndAuth())
-          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-          .headers(headers)
-          .json(data)
-          .expect(400, done);
-      });
+          request(helper.getEndpointAndAuth())
+            .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+            .headers(headers)
+            .json(data)
+            .expect(400, done);
+        });
 
-      // object type
-      it("should fail with bad object type", function () {
-        var templates = [
-          {
-            statement: "{{statements.default}}",
-          },
-          {
-            object: "{{activities.default}}",
-          },
-        ];
-        var data = helper.createFromTemplate(templates).statement;
-        data.id = helper.generateUUID();
-        data.object.definition.type = data.object.definition.type.replace("http://", ""); // remove the scheme portion of the IRI
-        var headers = helper.addAllHeaders({});
+        // object type
+        it("should fail with bad object type", function () {
+          var templates = [
+            {
+              statement: "{{statements.default}}",
+            },
+            {
+              object: "{{activities.default}}",
+            },
+          ];
+          var data = helper.createFromTemplate(templates).statement;
+          data.id = helper.generateUUID();
+          data.object.definition.type = data.object.definition.type.replace("http://", ""); // remove the scheme portion of the IRI
+          var headers = helper.addAllHeaders({});
 
-        request(helper.getEndpointAndAuth())
-          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-          .headers(headers)
-          .json(data)
-          .expect(400, done);
-      });
+          request(helper.getEndpointAndAuth())
+            .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+            .headers(headers)
+            .json(data)
+            .expect(400, done);
+        });
 
-      // object moreInfo
-      it("should fail with bad object moreInfo", function () {
-        var templates = [
-          {
-            statement: "{{statements.default}}",
-          },
-          {
-            object: "{{activities.default}}",
-          },
-        ];
-        var data = helper.createFromTemplate(templates).statement;
-        data.id = helper.generateUUID();
-        data.object.definition.moreInfo = data.object.definition.moreInfo.replace("http://", ""); // remove the scheme portion of the IRI
-        var headers = helper.addAllHeaders({});
+        // object moreInfo
+        it("should fail with bad object moreInfo", function () {
+          var templates = [
+            {
+              statement: "{{statements.default}}",
+            },
+            {
+              object: "{{activities.default}}",
+            },
+          ];
+          var data = helper.createFromTemplate(templates).statement;
+          data.id = helper.generateUUID();
+          data.object.definition.moreInfo = data.object.definition.moreInfo.replace("http://", ""); // remove the scheme portion of the IRI
+          var headers = helper.addAllHeaders({});
 
-        request(helper.getEndpointAndAuth())
-          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-          .headers(headers)
-          .json(data)
-          .expect(400, done);
-      });
+          request(helper.getEndpointAndAuth())
+            .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+            .headers(headers)
+            .json(data)
+            .expect(400, done);
+        });
 
-      // attachment usageType
-      it("should fail with attachment bad usageType", function () {
-        var templates = [
-          {
-            statement: "{{statements.attachment}}",
-          },
-          {
-            attachments: [
-              {
-                usageType: "http://example.com/attachment-usage/test",
-                display: { "en-US": "A test attachment" },
-                description: { "en-US": "A test attachment (description)" },
-                contentType: "text/plain; charset=ascii",
-                length: 27,
-                sha2: "495395e777cd98da653df9615d09c0fd6bb2f8d4788394cd53c56a3bfdcd848a",
-                fileUrl: "http://over.there.com/file.txt",
-              },
-            ],
-          },
-        ];
-        var data = helper.createFromTemplate(templates).statement;
-        data.id = helper.generateUUID();
-        data.attachments[0].usageType = data.attachments[0].usageType.replace("http://", ""); // remove the scheme portion of the IRI
-        var headers = helper.addAllHeaders({});
+        // attachment usageType
+        it("should fail with attachment bad usageType", function () {
+          var templates = [
+            {
+              statement: "{{statements.attachment}}",
+            },
+            {
+              attachments: [
+                {
+                  usageType: "http://example.com/attachment-usage/test",
+                  display: { "en-US": "A test attachment" },
+                  description: { "en-US": "A test attachment (description)" },
+                  contentType: "text/plain; charset=ascii",
+                  length: 27,
+                  sha2: "495395e777cd98da653df9615d09c0fd6bb2f8d4788394cd53c56a3bfdcd848a",
+                  fileUrl: "http://over.there.com/file.txt",
+                },
+              ],
+            },
+          ];
+          var data = helper.createFromTemplate(templates).statement;
+          data.id = helper.generateUUID();
+          data.attachments[0].usageType = data.attachments[0].usageType.replace("http://", ""); // remove the scheme portion of the IRI
+          var headers = helper.addAllHeaders({});
 
-        request(helper.getEndpointAndAuth())
-          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-          .headers(headers)
-          .json(data)
-          .expect(400, done);
-      });
+          request(helper.getEndpointAndAuth())
+            .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+            .headers(headers)
+            .json(data)
+            .expect(400, done);
+        });
 
-      // attachment fileUrl
-      it("should fail with bad attachment fileUrl", function () {
-        var templates = [
-          {
-            statement: "{{statements.attachment}}",
-          },
-          {
-            attachments: [
-              {
-                usageType: "http://example.com/attachment-usage/test",
-                display: { "en-US": "A test attachment" },
-                description: { "en-US": "A test attachment (description)" },
-                contentType: "text/plain; charset=ascii",
-                length: 27,
-                sha2: "495395e777cd98da653df9615d09c0fd6bb2f8d4788394cd53c56a3bfdcd848a",
-                fileUrl: "http://over.there.com/file.txt",
-              },
-            ],
-          },
-        ];
-        var data = helper.createFromTemplate(templates).statement;
-        data.id = helper.generateUUID();
-        data.attachments[0].fileUrl = data.attachments[0].fileUrl.replace("http://", ""); // remove the scheme portion of the IRI
-        var headers = helper.addAllHeaders({});
+        // attachment fileUrl
+        it("should fail with bad attachment fileUrl", function () {
+          var templates = [
+            {
+              statement: "{{statements.attachment}}",
+            },
+            {
+              attachments: [
+                {
+                  usageType: "http://example.com/attachment-usage/test",
+                  display: { "en-US": "A test attachment" },
+                  description: { "en-US": "A test attachment (description)" },
+                  contentType: "text/plain; charset=ascii",
+                  length: 27,
+                  sha2: "495395e777cd98da653df9615d09c0fd6bb2f8d4788394cd53c56a3bfdcd848a",
+                  fileUrl: "http://over.there.com/file.txt",
+                },
+              ],
+            },
+          ];
+          var data = helper.createFromTemplate(templates).statement;
+          data.id = helper.generateUUID();
+          data.attachments[0].fileUrl = data.attachments[0].fileUrl.replace("http://", ""); // remove the scheme portion of the IRI
+          var headers = helper.addAllHeaders({});
 
-        request(helper.getEndpointAndAuth())
-          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-          .headers(headers)
-          .json(data)
-          .expect(400, done);
-      });
+          request(helper.getEndpointAndAuth())
+            .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+            .headers(headers)
+            .json(data)
+            .expect(400, done);
+        });
 
-      // object definition extension
-      it("should fail with bad object definition extension", function () {
-        var templates = [
-          {
-            statement: "{{statements.default}}",
-          },
-          {
-            object: "{{activities.default}}",
-          },
-        ];
-        var data = helper.createFromTemplate(templates).statement;
-        data.id = helper.generateUUID();
-        data.object.definition.extensions = { "not.valid.com/extension": 1234 };
-        var headers = helper.addAllHeaders({});
+        // object definition extension
+        it("should fail with bad object definition extension", function () {
+          var templates = [
+            {
+              statement: "{{statements.default}}",
+            },
+            {
+              object: "{{activities.default}}",
+            },
+          ];
+          var data = helper.createFromTemplate(templates).statement;
+          data.id = helper.generateUUID();
+          data.object.definition.extensions = { "not.valid.com/extension": 1234 };
+          var headers = helper.addAllHeaders({});
 
-        request(helper.getEndpointAndAuth())
-          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-          .headers(headers)
-          .json(data)
-          .expect(400, done);
-      });
+          request(helper.getEndpointAndAuth())
+            .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+            .headers(headers)
+            .json(data)
+            .expect(400, done);
+        });
 
-      // context extension
-      it("should fail with bad context extension", function () {
-        var templates = [
-          {
-            statement: "{{statements.default}}",
-          },
-          {
-            context: "{{contexts.default}}",
-          },
-        ];
-        var data = helper.createFromTemplate(templates).statement;
-        data.id = helper.generateUUID();
-        data.context.extensions["example.com/extension/wrong"] = 1234;
-        var headers = helper.addAllHeaders({});
+        // context extension
+        it("should fail with bad context extension", function () {
+          var templates = [
+            {
+              statement: "{{statements.default}}",
+            },
+            {
+              context: "{{contexts.default}}",
+            },
+          ];
+          var data = helper.createFromTemplate(templates).statement;
+          data.id = helper.generateUUID();
+          data.context.extensions["example.com/extension/wrong"] = 1234;
+          var headers = helper.addAllHeaders({});
 
-        request(helper.getEndpointAndAuth())
-          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-          .headers(headers)
-          .json(data)
-          .expect(400, done);
-      });
+          request(helper.getEndpointAndAuth())
+            .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+            .headers(headers)
+            .json(data)
+            .expect(400, done);
+        });
 
-      // result extension
-      it("should fail with bad result extension", function () {
-        var templates = [
-          {
-            statement: "{{statements.default}}",
-          },
-          {
-            result: "{{results.default}}",
-          },
-        ];
-        var data = helper.createFromTemplate(templates).statement;
-        data.id = helper.generateUUID();
-        data.result.extensions["example.com/extension/wrong"] = 1234;
-        var headers = helper.addAllHeaders({});
+        // result extension
+        it("should fail with bad result extension", function () {
+          var templates = [
+            {
+              statement: "{{statements.default}}",
+            },
+            {
+              result: "{{results.default}}",
+            },
+          ];
+          var data = helper.createFromTemplate(templates).statement;
+          data.id = helper.generateUUID();
+          data.result.extensions["example.com/extension/wrong"] = 1234;
+          var headers = helper.addAllHeaders({});
 
-        request(helper.getEndpointAndAuth())
-          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-          .headers(headers)
-          .json(data)
-          .expect(400, done);
-      });
-    });
+          request(helper.getEndpointAndAuth())
+            .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+            .headers(headers)
+            .json(data)
+            .expect(400, done);
+        });
+      } as any,
+    );
   });
-})(undefined,__esmDep1,
+})(
+  undefined,
+  __esmDep1,
   __esmDep2,
   __esmDep3,
   __esmDep4,

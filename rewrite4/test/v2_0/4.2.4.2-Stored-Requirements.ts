@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Description : This is a test suite that tests an LRS endpoint based on the testing requirements document
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
@@ -16,7 +15,20 @@ import __esmDep9 from "./../helper.ts";
 import __esmDep10 from "./../multipartParser.ts";
 import __esmDep11 from "./../redirect.ts";
 
-(function (module, fs, extend, moment, request, requestPromise, chai, liburl, Joi, helper, multipartParser, redirect) {
+(function (
+  module: any,
+  fs: any,
+  extend: any,
+  moment: any,
+  request: any,
+  requestPromise: any,
+  chai: any,
+  liburl: any,
+  Joi: any,
+  helper: any,
+  multipartParser: any,
+  redirect: any,
+) {
   // "use strict";
 
   var expect = chai.expect;
@@ -37,7 +49,7 @@ import __esmDep11 from "./../redirect.ts";
       var storedTime = new Date("July 15, 2011").toISOString();
       var template = [{ statement: "{{statements.default}}" }, { stored: storedTime }];
       var data = helper.createFromTemplate(template).statement;
-      var postId, putId;
+      var postId, putId, param;
 
       it("using POST", function (done) {
         var stmtTime = Date.now();

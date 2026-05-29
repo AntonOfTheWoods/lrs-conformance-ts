@@ -143,7 +143,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
         .headers(helper.addAllHeaders({}))
         .json(data)
         .expect(204)
-        .end(function (err, res) {
+        .end(function (err: any, res) {
           if (err) {
             done(err);
           } else {

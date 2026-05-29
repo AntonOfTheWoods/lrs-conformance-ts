@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use strict";
 /**
  * Description : This is a test suite that tests an LRS endpoint based on the testing requirements document
@@ -6,9 +5,13 @@
  */
 
 import { expect } from "chai";
-import requestPromise from "supertest-as-promised";
-import helper from "../helper.ts";
-import xapiRequests from "./util/requests.ts";
+import requestPromiseImport from "supertest-as-promised";
+import helperImport from "../helper.ts";
+import xapiRequestsImport from "./util/requests.ts";
+
+const requestPromise: any = requestPromiseImport;
+const helper: any = helperImport;
+const xapiRequests: any = xapiRequestsImport;
 
 var request = requestPromise;
 
@@ -25,7 +28,7 @@ function runConcurrencyTestsForDocumentResource(resourceName, resourcePath, reso
 
     it("An LRS responding to a GET request SHALL add an ETag HTTP header to the response.", async () => {
       let documentResponse = await xapiRequests.getDocuments(resourcePath, resourceParams);
-      let etag = documentResponse.headers.etag;
+      const etag = documentResponse.headers.etag;
 
       expect(etag).to.be.a("string");
     });

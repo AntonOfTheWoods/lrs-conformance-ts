@@ -1,8 +1,11 @@
-// @ts-nocheck
-import request from "super-request";
+import requestImport from "super-request";
 import { expect } from "chai";
-import helper from "../helper.ts";
-import xapiRequests from "./util/requests.ts";
+import helperImport from "../helper.ts";
+import xapiRequestsImport from "./util/requests.ts";
+
+let request: any = requestImport;
+const helper: any = helperImport;
+const xapiRequests: any = xapiRequestsImport;
 
 if (global.OAUTH) request = helper.OAuthRequest(request);
 

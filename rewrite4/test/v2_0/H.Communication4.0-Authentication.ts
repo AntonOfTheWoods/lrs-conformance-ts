@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-(function (module, fs, extend, moment, request, requestPromise, chai, liburl, Joi, helper, multipartParser, redirect) {
+(function (module: any, fs: any, extend: any, moment: any, request: any, requestPromise: any, chai: any, liburl: any, Joi: any, helper: any, multipartParser: any, redirect: any) {
   describe("Authentication Requirements (Communication 4.0)", function () {
     /**  XAPI-00334, Communication 2.1.3 GET Statements
      * An LRS rejects a Statement of bad authorization (either authentication needed or failed credentials) with error code 401 Unauthorized

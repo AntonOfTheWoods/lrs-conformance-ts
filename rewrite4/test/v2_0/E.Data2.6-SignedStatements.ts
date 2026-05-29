@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Description : This is a test suite that tests an LRS endpoint based on the testing requirements document
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
@@ -14,10 +13,20 @@ import __esmDep7 from "joi";
 import __esmDep8 from "./../helper.ts";
 import __esmDep9 from "./../multipartParser.ts";
 
-(function (module, fs, extend, moment, request, requestPromise, chai, Joi, helper, multipartParser) {
+(function (
+  module: any,
+  fs: any,
+  extend: any,
+  moment: any,
+  request: any,
+  requestPromise: any,
+  chai: any,
+  Joi: any,
+  helper: any,
+  multipartParser: any,
+) {
   "use strict";
 
-  var expect = chai.expect;
   request = helper.OAuthRequest(request);
   describe("Signed Statements (Data 2.6)", () => {
     /**  Matchup with Conformance Requirements Document
@@ -37,7 +46,7 @@ import __esmDep9 from "./../multipartParser.ts";
       describe("A Signed Statement MUST include a JSON web signature, JWS (Data 2.6.s4.b1, XAPI-00115)", function () {
         it("rejects a signed statement with a malformed signature - bad content type", function (done) {
           data.id = helper.generateUUID();
-          var options = { attachmentInfo: { contentType: "text/plain; charset=ascii" } };
+          var options: any = { attachmentInfo: { contentType: "text/plain; charset=ascii" } };
           var body = helper.signStatement(data, options);
 
           request(helper.getEndpointAndAuth())
@@ -49,7 +58,7 @@ import __esmDep9 from "./../multipartParser.ts";
 
         it("rejects a signed statement with a malformed signature - bad JWS", function (done) {
           data.id = helper.generateUUID();
-          var options = { breakJson: true };
+          var options: any = { breakJson: true };
           var body = helper.signStatement(data, options);
 
           request(helper.getEndpointAndAuth())
@@ -66,7 +75,7 @@ import __esmDep9 from "./../multipartParser.ts";
       describe("The JWS signature MUST have a payload of a valid JSON serialization of the complete Statement before the signature was added. (Data 2.6.s4.b3, XAPI-00116)", function () {
         it("rejects statement with invalid JSON serialization", function (done) {
           data.id = helper.generateUUID();
-          var options = { breakJson: true };
+          var options: any = { breakJson: true };
           var body = helper.signStatement(data, options);
 
           request(helper.getEndpointAndAuth())
@@ -84,7 +93,7 @@ import __esmDep9 from "./../multipartParser.ts";
         it('Accepts signed statement with "RS256"', function (done) {
           // sign statement
           data.id = helper.generateUUID();
-          var options = {};
+          var options: any = {};
           var body = helper.signStatement(data, options);
 
           request(helper.getEndpointAndAuth())
@@ -97,7 +106,7 @@ import __esmDep9 from "./../multipartParser.ts";
         it('Accepts signed statement with "RS384"', function (done) {
           // sign statement
           data.id = helper.generateUUID();
-          var options = { algorithm: "RS384" };
+          var options: any = { algorithm: "RS384" };
           var body = helper.signStatement(data, options);
 
           request(helper.getEndpointAndAuth())
@@ -110,7 +119,7 @@ import __esmDep9 from "./../multipartParser.ts";
         it('Accepts signed statement with "RS512"', function (done) {
           // sign statement
           data.id = helper.generateUUID();
-          var options = { algorithm: "RS512" };
+          var options: any = { algorithm: "RS512" };
           var body = helper.signStatement(data, options);
 
           request(helper.getEndpointAndAuth())
@@ -122,7 +131,7 @@ import __esmDep9 from "./../multipartParser.ts";
 
         it("Rejects signed statement with another algorithm", function (done) {
           data.id = helper.generateUUID();
-          var options = { algorithm: "HS256" };
+          var options: any = { algorithm: "HS256" };
           var body = helper.signStatement(data, options);
 
           request(helper.getEndpointAndAuth())

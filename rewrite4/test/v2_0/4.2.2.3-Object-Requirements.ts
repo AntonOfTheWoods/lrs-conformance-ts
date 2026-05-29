@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Description : This is a test suite that tests an LRS endpoint based on the testing requirements document
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
@@ -18,19 +17,19 @@ import __esmDep11 from "./../redirect.ts";
 import __esmDep12 from "./../templatingSelection.ts";
 
 (function (
-  module,
-  fs,
-  extend,
-  moment,
-  request,
-  requestPromise,
-  chai,
-  liburl,
-  Joi,
-  helper,
-  multipartParser,
-  redirect,
-  templatingSelection,
+  module: any,
+  fs: any,
+  extend: any,
+  moment: any,
+  request: any,
+  requestPromise: any,
+  chai: any,
+  liburl: any,
+  Joi: any,
+  helper: any,
+  multipartParser: any,
+  redirect: any,
+  templatingSelection: any,
 ) {
   // "use strict";
 
@@ -38,6 +37,19 @@ import __esmDep12 from "./../templatingSelection.ts";
   if (global.OAUTH) request = helper.OAuthRequest(request);
 
   describe("Object Property Requirements (Data 2.4.4)", () => {
+    var id: any,
+      correctResponsesPattern: any,
+      choice: any,
+      fillin: any,
+      scale: any,
+      source: any,
+      target: any,
+      numeric: any,
+      other: any,
+      steps: any,
+      seq: any,
+      tf: any;
+
     //Data 2.4.4 object
     /**  Matchup with Conformance Requirements Document
      * XAPI-00046 - in objects.js
@@ -309,7 +321,9 @@ import __esmDep12 from "./../templatingSelection.ts";
     templatingSelection.createTemplate("substatements.ts");
     templatingSelection.createTemplate("statementrefs.ts");
   });
-})(undefined,__esmDep1,
+})(
+  undefined,
+  __esmDep1,
   __esmDep2,
   __esmDep3,
   __esmDep4,

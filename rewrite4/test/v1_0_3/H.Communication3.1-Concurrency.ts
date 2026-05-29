@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Description : This is a test suite that tests an LRS endpoint based on the testing requirements document
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
@@ -11,7 +10,7 @@ import __esmDep4 from "isemail";
 import __esmDep5 from "./../helper.ts";
 import __esmDep6 from "oauth";
 
-(function (process, request, should, chai, isEmail, helper, oauthLib) {
+(function (process: any, request: any, should: any, chai: any, isEmail: any, helper: any, oauthLib: any) {
   "use strict";
 
   helper = helper.default ?? helper;
