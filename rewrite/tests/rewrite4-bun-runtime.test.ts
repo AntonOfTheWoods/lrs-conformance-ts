@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -788,6 +788,53 @@ test("rewrite4 suite loader registers time margin bootstrap for selected time-se
     delete globalState.__suiteLoadTrace;
     await rm(runtimeRoot, { force: true, recursive: true });
   }
+});
+
+test("legacy compat suites keep explicit shared runtime locals instead of relying on ambient shims", async () => {
+  const expectedDeclarations = [
+    {
+      filePath: join(process.cwd(), "rewrite4", "test", "v1_0_3", "H.Communication2.1-StatementResource.ts"),
+      patterns: [/var data:\s*any;/, /var txtAtt1:\s*any,[\s\S]*t2attHash:\s*any;/],
+    },
+    {
+      filePath: join(process.cwd(), "rewrite4", "test", "v1_0_3", "Data2.4.1-IDProperty.ts"),
+      patterns: [/var data:\s*any;/],
+    },
+    {
+      filePath: join(process.cwd(), "rewrite4", "test", "v1_0_3", "Data2.4.4-ObjectProperty.ts"),
+      patterns: [/var id:\s*any,[\s\S]*\btf:\s*any;/],
+    },
+    {
+      filePath: join(process.cwd(), "rewrite4", "test", "v1_0_3", "Data2.4.8-StoredProperty.ts"),
+      patterns: [/var param:\s*any;/],
+    },
+    {
+      filePath: join(process.cwd(), "rewrite4", "test", "v1_0_3", "H.Communication1.5-ContentTypes.ts"),
+      patterns: [/var data:\s*any;/],
+    },
+    {
+      filePath: join(process.cwd(), "rewrite4", "test", "v1_0_3", "H.Communication2.6-AgentProfileResource.ts"),
+      patterns: [/var document:\s*any;/],
+    },
+    {
+      filePath: join(process.cwd(), "rewrite4", "test", "v1_0_3", "H.Communication2.7-ActivityProfileResource.ts"),
+      patterns: [/var document:\s*any;/],
+    },
+  ];
+
+  const missingExpectations: string[] = [];
+
+  for (const expectation of expectedDeclarations) {
+    const sourceText = await readFile(expectation.filePath, "utf8");
+
+    for (const pattern of expectation.patterns) {
+      if (!pattern.test(sourceText)) {
+        missingExpectations.push(`${expectation.filePath} missing ${pattern}`);
+      }
+    }
+  }
+
+  expect(missingExpectations).toEqual([]);
 });
 
 test("rewrite4 bun runtime can emit errors-only run records", () => {

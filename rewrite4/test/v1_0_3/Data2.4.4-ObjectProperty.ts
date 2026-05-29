@@ -36,6 +36,20 @@ import __esmDep12 from "./../templatingSelection.ts";
   if (global.OAUTH) request = helper.OAuthRequest(request);
 
   describe("Object Property Requirements (Data 2.4.4)", () => {
+    var id: any,
+      correctResponsesPattern: any,
+      choice: any,
+      fillin: any,
+      scale: any,
+      source: any,
+      target: any,
+      numeric: any,
+      other: any,
+      steps: any,
+      seq: any,
+      tf: any;
+    void id;
+
     //Data 2.4.4 object
     /**  Matchup with Conformance Requirements Document
      * XAPI-00046 - in objects.js

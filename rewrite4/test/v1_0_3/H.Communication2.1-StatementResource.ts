@@ -44,6 +44,9 @@ import __esmDep12 from "crypto";
   if (global.OAUTH) request = helper.OAuthRequest(request);
 
   describe("Statement Resource Requirements (Communication 2.1)", () => {
+    var data: any;
+    var txtAtt1: any, txtAtt2: any, t1attSize: any, t2attSize: any, t1attHash: any, t2attHash: any;
+
     /**  XAPI-00139, Communication 2.0 Resources
      * An LRS has a Statement API with endpoint "base IRI"+"/statements"
      */
@@ -3233,7 +3236,9 @@ MUST have a "Content-Type" header
       });
     });
   });
-})(undefined,__esmDep1,
+})(
+  undefined,
+  __esmDep1,
   __esmDep2,
   __esmDep3,
   __esmDep4,

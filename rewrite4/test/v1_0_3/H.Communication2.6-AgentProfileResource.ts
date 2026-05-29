@@ -15,13 +15,28 @@ import __esmDep9 from "./../helper.ts";
 import __esmDep10 from "./../multipartParser.ts";
 import __esmDep11 from "./../redirect.ts";
 
-(function (module: any, fs: any, extend: any, moment: any, request: any, requestPromise: any, chai: any, liburl: any, Joi: any, helper: any, multipartParser: any, redirect: any) {
+(function (
+  module: any,
+  fs: any,
+  extend: any,
+  moment: any,
+  request: any,
+  requestPromise: any,
+  chai: any,
+  liburl: any,
+  Joi: any,
+  helper: any,
+  multipartParser: any,
+  redirect: any,
+) {
   // "use strict";
 
   var expect = chai.expect;
   if (global.OAUTH) request = helper.OAuthRequest(request);
 
   describe("Agent Profile Resource Requirements (Communication 2.6)", () => {
+    var document: any;
+
     /**  Matchup with Conformance
      * XAPI-00255 - below
      * XAPI-00256 - below
@@ -582,7 +597,9 @@ import __esmDep11 from "./../redirect.ts";
         .expect(400, done);
     });
   });
-})(undefined,__esmDep1,
+})(
+  undefined,
+  __esmDep1,
   __esmDep2,
   __esmDep3,
   __esmDep4,

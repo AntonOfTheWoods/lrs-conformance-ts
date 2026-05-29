@@ -35,6 +35,7 @@ import __esmDep12 from "crypto";
   if (global.OAUTH) request = helper.OAuthRequest(request);
 
   describe("Content Type Requirements (Communication 1.5)", function () {
+    var data: any;
     var txtAtt1, txtAtt2, txtAtt3, t1attSize, t2attSize, t1attHash, t2attHash, t3attHash;
 
     before("create attachments templates", function () {
@@ -692,7 +693,9 @@ import __esmDep12 from "crypto";
         .expect(400, done);
     });
   });
-})(undefined,__esmDep1,
+})(
+  undefined,
+  __esmDep1,
   __esmDep2,
   __esmDep3,
   __esmDep4,

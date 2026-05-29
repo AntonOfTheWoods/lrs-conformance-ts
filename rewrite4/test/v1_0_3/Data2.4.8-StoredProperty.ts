@@ -15,13 +15,28 @@ import __esmDep9 from "./../helper.ts";
 import __esmDep10 from "./../multipartParser.ts";
 import __esmDep11 from "./../redirect.ts";
 
-(function (module: any, fs: any, extend: any, moment: any, request: any, requestPromise: any, chai: any, liburl: any, Joi: any, helper: any, multipartParser: any, redirect: any) {
+(function (
+  module: any,
+  fs: any,
+  extend: any,
+  moment: any,
+  request: any,
+  requestPromise: any,
+  chai: any,
+  liburl: any,
+  Joi: any,
+  helper: any,
+  multipartParser: any,
+  redirect: any,
+) {
   // "use strict";
 
   var expect = chai.expect;
   if (global.OAUTH) request = helper.OAuthRequest(request);
 
   describe("Stored Property Requirements (Data 2.4.8)", () => {
+    var param: any;
+
     /**  Matchup with Conformance Requirements Document
      * XAPI-00097 - below
      *
