@@ -46,7 +46,7 @@ type Config = {
 };
 
 const repoRoot = resolve(import.meta.dir, "../..");
-const allowedArtifactsRoot = resolve(repoRoot, "tmp/agents");
+const allowedArtifactRoots = [resolve(repoRoot, "tmp/validation"), resolve(repoRoot, "tmp/agents")];
 
 function usage(): string {
   return [
@@ -71,8 +71,11 @@ function isWithinPath(basePath: string, candidatePath: string): boolean {
 
 function resolveSafeArtifactPath(pathValue: string): string {
   const absolutePath = resolve(pathValue);
-  if (!isWithinPath(allowedArtifactsRoot, absolutePath)) {
-    throw new Error(`Output path ${absolutePath} is outside ${allowedArtifactsRoot}.`);
+  const allowed = allowedArtifactRoots.some((rootPath) => isWithinPath(rootPath, absolutePath));
+  if (!allowed) {
+    throw new Error(
+      `Output path ${absolutePath} is outside allowed artifact roots (${allowedArtifactRoots.join(", ")}).`,
+    );
   }
 
   return absolutePath;
@@ -110,7 +113,7 @@ function parseConfig(args: string[]): Config {
     leftArtifactPath: resolve(leftArtifactPath),
     maxPrefix,
     outPath: resolveSafeArtifactPath(
-      getFlagValue(args, "--out") ?? resolve(repoRoot, "tmp/agents/db-bisect", `${Date.now()}.json`),
+      getFlagValue(args, "--out") ?? resolve(repoRoot, "tmp/validation/oracles/db-bisect", `${Date.now()}.json`),
     ),
     rightArtifactPath: resolve(rightArtifactPath),
     targetBaseUrl: getFlagValue(args, "--target-base-url"),

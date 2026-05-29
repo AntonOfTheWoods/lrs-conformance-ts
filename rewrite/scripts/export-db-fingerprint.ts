@@ -49,7 +49,7 @@ const tableListCache = new Map<string, string[]>();
 const combinedFingerprintSqlCache = new Map<string, string>();
 
 const repoRoot = resolve(import.meta.dir, "../..");
-const allowedArtifactsRoot = resolve(repoRoot, "tmp/agents");
+const allowedArtifactRoots = [resolve(repoRoot, "tmp/validation"), resolve(repoRoot, "tmp/agents")];
 
 const volatileSeedTables = new Set(["admin_account", "credential_to_scope", "lrs_credential"]);
 const documentContentTables = new Set(["activity_profile_document", "agent_profile_document", "state_document"]);
@@ -60,7 +60,7 @@ function usage(): string {
     "  bun ./rewrite/scripts/export-db-fingerprint.ts [--out <path>] [--compose-file <path>] [--service db] [--schema public] [--user <db-user>] [--database <db-name>] [--table-filter <regex>] [--exclude-table <name>] [--include-volatile-seed-tables]",
     "",
     "Defaults:",
-    "  --out tmp/agents/db-fingerprint/<timestamp>.json",
+    "  --out tmp/validation/oracles/db-fingerprint/<timestamp>.json",
     "  --compose-file compose/lrsql/podman-compose.yml",
     "  --service db",
     "  --schema public",
@@ -99,8 +99,11 @@ function collectFlagValues(args: string[], flag: string): string[] {
 
 function resolveSafeArtifactPath(pathValue: string): string {
   const absolutePath = resolve(pathValue);
-  if (!isWithinPath(allowedArtifactsRoot, absolutePath)) {
-    throw new Error(`Output path ${absolutePath} is outside ${allowedArtifactsRoot}.`);
+  const allowed = allowedArtifactRoots.some((rootPath) => isWithinPath(rootPath, absolutePath));
+  if (!allowed) {
+    throw new Error(
+      `Output path ${absolutePath} is outside allowed artifact roots (${allowedArtifactRoots.join(", ")}).`,
+    );
   }
 
   return absolutePath;
@@ -112,7 +115,7 @@ function parseConfig(args: string[]): Config {
   }
 
   const outPath = resolveSafeArtifactPath(
-    getFlagValue(args, "--out") ?? resolve(repoRoot, "tmp/agents/db-fingerprint", `${Date.now()}.json`),
+    getFlagValue(args, "--out") ?? resolve(repoRoot, "tmp/validation/oracles/db-fingerprint", `${Date.now()}.json`),
   );
   const composeFile = getFlagValue(args, "--compose-file") ?? "compose/lrsql/podman-compose.yml";
   const service = getFlagValue(args, "--service") ?? "db";

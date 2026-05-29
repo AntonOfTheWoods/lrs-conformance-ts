@@ -26,9 +26,9 @@ function usage(): string {
     "  bun ./rewrite/scripts/analyze-compare-output.ts --in <compare-output.txt> [--json <report.json>] [--md <report.md>]",
     "",
     "Defaults:",
-    "  --in tmp/agents/compare-live-valid-output.txt",
-    "  --json tmp/agents/compare-live-diff-report.json",
-    "  --md tmp/agents/compare-live-diff-report.md",
+    "  --in tmp/validation/oracles/reports/compare-live-valid-output.txt",
+    "  --json tmp/validation/oracles/reports/compare-live-diff-report.json",
+    "  --md tmp/validation/oracles/reports/compare-live-diff-report.md",
   ].join("\n");
 }
 
@@ -192,9 +192,13 @@ async function main(): Promise<number> {
     return 0;
   }
 
-  const inputPath = resolve(getFlagValue(args, "--in") ?? "tmp/agents/compare-live-valid-output.txt");
-  const jsonPath = resolve(getFlagValue(args, "--json") ?? "tmp/agents/compare-live-diff-report.json");
-  const mdPath = resolve(getFlagValue(args, "--md") ?? "tmp/agents/compare-live-diff-report.md");
+  const inputPath = resolve(
+    getFlagValue(args, "--in") ?? "tmp/validation/oracles/reports/compare-live-valid-output.txt",
+  );
+  const jsonPath = resolve(
+    getFlagValue(args, "--json") ?? "tmp/validation/oracles/reports/compare-live-diff-report.json",
+  );
+  const mdPath = resolve(getFlagValue(args, "--md") ?? "tmp/validation/oracles/reports/compare-live-diff-report.md");
 
   const text = await readFile(inputPath, "utf8");
   const lines = text.split(/\r?\n/);

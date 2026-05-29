@@ -13,7 +13,7 @@ const defaultUpstreamRef = "5bc232d349c60faded8240da698f195106091638";
 const defaultCloneDepth = 1;
 const repoMountTarget = "/workspace";
 const suiteMountTarget = "/adl-suite-src";
-const allowedArtifactsRoot = resolve(repoRoot, "tmp/agents");
+const allowedArtifactRoots = [resolve(repoRoot, "tmp/validation"), resolve(repoRoot, "tmp/agents")];
 
 const timeMarginSetupFilePaths = [
   "test/v1_0_3/Data2.2-FormattingRequirements.js",
@@ -214,8 +214,8 @@ function usage(): string {
     "  --username janedoe",
     "  --password supersecret",
     "  --version 2.0.0",
-    "  --out tmp/agents/upstream-run.json",
-    "  --log-dir tmp/agents/lrs-conformance",
+    "  --out tmp/validation/oracles/upstream-baselines/upstream-run-<version>.json",
+    "  --log-dir tmp/validation/oracles/upstream-baselines/lrs-conformance",
     `  --upstream-repo-url ${defaultUpstreamRepoUrl}`,
     `  --upstream-ref ${defaultUpstreamRef}`,
     `  --clone-depth ${defaultCloneDepth}`,
@@ -241,8 +241,10 @@ function parseConfig(args: string[]): ExportUpstreamConfig {
   const username = getFlagValue(args, "--username") ?? "janedoe";
   const password = getFlagValue(args, "--password") ?? "supersecret";
   const versionFlag = getFlagValue(args, "--version") ?? "2.0.0";
-  const outputPath = getFlagValue(args, "--out") ?? "tmp/agents/upstream-run.json";
-  const logDirArg = getFlagValue(args, "--log-dir") ?? "tmp/agents/lrs-conformance";
+  const outputPath =
+    getFlagValue(args, "--out") ?? `tmp/validation/oracles/upstream-baselines/upstream-run-${versionFlag}.json`;
+  const logDirArg =
+    getFlagValue(args, "--log-dir") ?? `tmp/validation/oracles/upstream-baselines/lrs-conformance-${versionFlag}`;
   const nodeImage = getFlagValue(args, "--node-image") ?? defaultNodeImage;
   const upstreamRepoUrl =
     getFlagValue(args, "--upstream-repo-url") ?? process.env.UPSTREAM_REPO_URL ?? defaultUpstreamRepoUrl;
@@ -814,9 +816,10 @@ function resolveSafeArtifactPath(pathValue: string, kind: string, allowUnsafe: b
     return absolutePath;
   }
 
-  if (!isWithinPath(allowedArtifactsRoot, absolutePath)) {
+  const allowed = allowedArtifactRoots.some((rootPath) => isWithinPath(rootPath, absolutePath));
+  if (!allowed) {
     throw new Error(
-      `${kind} path ${absolutePath} is outside ${allowedArtifactsRoot}. Set ALLOW_UNSAFE_OUTPUT_PATH=1 or pass --allow-unsafe-output-path to override.`,
+      `${kind} path ${absolutePath} is outside allowed artifact roots (${allowedArtifactRoots.join(", ")}). Set ALLOW_UNSAFE_OUTPUT_PATH=1 or pass --allow-unsafe-output-path to override.`,
     );
   }
 

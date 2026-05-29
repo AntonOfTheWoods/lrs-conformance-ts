@@ -41,8 +41,8 @@ function usage(): string {
     "  bun ./rewrite/scripts/diagnose-scope.ts [--upstream <path>] [--live <path>]",
     "",
     "Defaults:",
-    "  --upstream tmp/agents/upstream-run.json",
-    "  --live tmp/agents/lrsql-live-run.json",
+    "  --upstream tmp/validation/oracles/upstream-baselines/upstream-run-<version>.json",
+    "  --live tmp/validation/oracles/candidate-baselines/full-lrsql-candidate-<version>.json",
   ].join("\n");
 }
 
@@ -150,8 +150,11 @@ async function main(): Promise<number> {
     return 0;
   }
 
-  const upstreamPath = getFlagValue(args, "--upstream") ?? "tmp/agents/upstream-run.json";
-  const livePath = getFlagValue(args, "--live") ?? "tmp/agents/lrsql-live-run.json";
+  const version = process.env.XAPI_VERSION ?? "2.0.0";
+  const upstreamPath =
+    getFlagValue(args, "--upstream") ?? `tmp/validation/oracles/upstream-baselines/upstream-run-${version}.json`;
+  const livePath =
+    getFlagValue(args, "--live") ?? `tmp/validation/oracles/candidate-baselines/full-lrsql-candidate-${version}.json`;
 
   const upstreamPayload = (await loadJson(upstreamPath)) as RunShape;
   const livePayload = (await loadJson(livePath)) as RunShape;

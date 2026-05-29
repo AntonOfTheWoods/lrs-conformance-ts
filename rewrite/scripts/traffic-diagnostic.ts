@@ -23,7 +23,7 @@ import {
 } from "../traffic.ts";
 
 const repoRoot = resolve(import.meta.dir, "../..");
-const allowedArtifactsRoot = resolve(repoRoot, "tmp/agents");
+const allowedArtifactRoots = [resolve(repoRoot, "tmp/validation"), resolve(repoRoot, "tmp/agents")];
 const defaultCandidateSuiteDir = resolve(repoRoot, "rewrite4");
 const hopByHopReplayHeaders = new Set([
   "connection",
@@ -268,7 +268,7 @@ function usage(): string {
     "  --target-base-url http://localhost:8080/xapi",
     "  --username janedoe",
     "  --password supersecret",
-    "  --out-dir tmp/agents/traffic/<timestamp>",
+    "  --out-dir tmp/validation/oracles/traffic/<timestamp>",
     "  --unitKey is single-unit only and is mutually exclusive with --grep and --directory.",
   ].join("\n");
 }
@@ -326,8 +326,11 @@ function isWithinPath(basePath: string, candidatePath: string): boolean {
 
 function resolveSafeArtifactPath(pathValue: string): string {
   const absolutePath = resolve(pathValue);
-  if (!isWithinPath(allowedArtifactsRoot, absolutePath)) {
-    throw new Error(`Output path ${absolutePath} is outside ${allowedArtifactsRoot}.`);
+  const allowed = allowedArtifactRoots.some((rootPath) => isWithinPath(rootPath, absolutePath));
+  if (!allowed) {
+    throw new Error(
+      `Output path ${absolutePath} is outside allowed artifact roots (${allowedArtifactRoots.join(", ")}).`,
+    );
   }
 
   return absolutePath;
@@ -342,7 +345,8 @@ function parseConfig(args: string[]): DiagnosticConfig {
   const targetBaseUrl = getFlagValue(args, "--target-base-url") ?? "http://localhost:8080/xapi";
   const username = getFlagValue(args, "--username") ?? "janedoe";
   const password = getFlagValue(args, "--password") ?? "supersecret";
-  const outDirArg = getFlagValue(args, "--out-dir") ?? resolve(repoRoot, "tmp/agents/traffic", `${Date.now()}`);
+  const outDirArg =
+    getFlagValue(args, "--out-dir") ?? resolve(repoRoot, "tmp/validation/oracles/traffic", `${Date.now()}`);
   const grep = getFlagValue(args, "--grep");
   const directory = getFlagValue(args, "--directory");
   const keepClone = args.includes("--keep-clone");
