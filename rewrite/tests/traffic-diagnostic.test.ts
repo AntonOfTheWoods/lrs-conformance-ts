@@ -591,6 +591,39 @@ test("suppressTimingDrivenStatementPollMismatches ignores wait-loop retry drift 
   expect(effective.ignoredSignatureMismatches).toHaveLength(1);
 });
 
+test("suppressTimingDrivenStatementPollMismatches ignores multi-owner poll drift when each owner differs by one retry", () => {
+  const xapi113 = createStatementPollExecutionMetadata(
+    `An LRS's Statement API, upon processing a successful GET request, will return a single "statements" property and a single "more" property. (Data 2.5.s2.table1, XAPI-00113) > will return single statements property and may return`,
+  );
+  const xapi114 = createStatementPollExecutionMetadata(
+    `A "statements" property which is too large for a single page will create a container for each additional page (Data 2.5.s2.table1.row1, XAPI-00114)`,
+  );
+
+  const candidate: NormalizedTrafficArtifact = {
+    ...createNormalizedArtifact(xapi113),
+    compareMode: "bag",
+    exchanges: [createStatementPollExchange(xapi113, 2), createStatementPollExchange(xapi114, 2)],
+  };
+  const upstream: NormalizedTrafficArtifact = {
+    ...createNormalizedArtifact(xapi113),
+    compareMode: "bag",
+    exchanges: [createStatementPollExchange(xapi113, 3), createStatementPollExchange(xapi114, 3)],
+    runner: "upstream",
+  };
+
+  const comparison = compareNormalizedTrafficRuns(candidate, upstream, "bag");
+  expect(comparison.signatureMismatches).toHaveLength(1);
+  expect(comparison.leftCount).toBe(4);
+  expect(comparison.rightCount).toBe(6);
+
+  const effective = suppressTimingDrivenStatementPollMismatches(candidate, upstream, comparison);
+  expect(effective.leftCount).toBe(4);
+  expect(effective.rightCount).toBe(4);
+  expect(effective.matchedCount).toBe(4);
+  expect(effective.signatureMismatches).toHaveLength(0);
+  expect(effective.ignoredSignatureMismatches).toHaveLength(1);
+});
+
 test("suppressTimingDrivenStatementPollMismatches ignores multi-owner invalid statementId retry drift", () => {
   const xapi151 = createInvalidStatementParamExecutionMetadata(
     `An LRS's Statement Resource rejects with error code 400 a GET request with both "statementId" and anything other than "attachments" or "format" as parameters (Communication 2.1.3.s2.b2, XAPI-00151) > should fail when using "statementId" with "activity"`,

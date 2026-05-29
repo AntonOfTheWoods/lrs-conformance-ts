@@ -6,6 +6,12 @@ import { getMigrationLedgerUnitByUnitKey } from "../../src/describe-runtime/migr
 
 import { compareFingerprints, type ComparisonResult, type FingerprintArtifact } from "./compare-db-fingerprints.ts";
 import { exportDbFingerprint } from "./export-db-fingerprint.ts";
+import {
+  MutationPsqlSession,
+  ensureMutationCapture,
+  exportDbMutationFingerprint,
+  resetMutationCapture,
+} from "./export-db-mutations.ts";
 
 import {
   createExchangeSignature,
@@ -120,7 +126,7 @@ interface DiagnosticConfig {
 }
 
 type TraceSelectionMode = "captured-execution" | "requested-unit-fallback";
-type TraceDbStateMode = "all" | "none" | "unit";
+type TraceDbStateMode = "all" | "mutations" | "none" | "unit";
 
 type TraceNodeEntryKind = "case" | "hook" | "unit";
 
@@ -261,7 +267,7 @@ export interface TraceDbStateComparisonReport {
 function usage(): string {
   return [
     "Usage:",
-    "  bun ./rewrite/scripts/traffic-diagnostic.ts [--version 1.0.3|2.0.0|all] [--compare-mode bag|ordered] [--db-state-mode none|unit|all] [--candidate-dir <path>] [--grep <pattern>] [--directory <csv>] [--unitKey <ledger-id>] [--target-base-url <url>] [--username <user>] [--password <pass>] [--out-dir <path>] [--oracle-dir <path>] [--refresh-upstream] [--keep-clone]",
+    "  bun ./rewrite/scripts/traffic-diagnostic.ts [--version 1.0.3|2.0.0|all] [--compare-mode bag|ordered] [--db-state-mode none|unit|all|mutations] [--candidate-dir <path>] [--grep <pattern>] [--directory <csv>] [--unitKey <ledger-id>] [--target-base-url <url>] [--username <user>] [--password <pass>] [--out-dir <path>] [--oracle-dir <path>] [--refresh-upstream] [--keep-clone]",
     "",
     "Defaults:",
     "  --version all",
@@ -366,7 +372,7 @@ function parseConfig(args: string[]): DiagnosticConfig {
     throw new Error("Unsupported --compare-mode value.");
   }
 
-  if (dbStateMode !== "none" && dbStateMode !== "unit" && dbStateMode !== "all") {
+  if (dbStateMode !== "none" && dbStateMode !== "unit" && dbStateMode !== "all" && dbStateMode !== "mutations") {
     throw new Error("Unsupported --db-state-mode value.");
   }
 
@@ -1276,82 +1282,121 @@ export async function writeTraceDbStateArtifacts(options: {
   await writeJson(manifestPath, manifest);
 
   await ensureLrsql(options.rawArtifact.version);
+  const mutationSession = options.mode === "mutations" ? new MutationPsqlSession() : null;
+  let lastMutationJournalId = 0;
+  let manifestFlushCount = 0;
 
-  for (const exchange of exchanges) {
-    const targetUrl = mapReplayTargetUrl(
-      exchange.request.targetUrl,
-      options.rawArtifact.targetBaseUrl,
-      replayStatementIdMap,
-    );
-    const replayRequestBody = rewriteReplayRequestBody(exchange, replayStatementIdMap);
-    let response: Response;
-    try {
-      response = await fetch(targetUrl, {
-        body: replayRequestBody,
-        headers: normalizeReplayHeaders(exchange.request.headers),
-        method: exchange.request.method.toUpperCase(),
-        redirect: "manual",
-      });
-    } catch (error) {
-      replayIssues.push({
-        actualStatus: null,
-        error: error instanceof Error ? error.message : String(error),
-        expectedStatus: exchange.response.status,
-        method: exchange.request.method.toUpperCase(),
-        rawSequence: exchange.sequence,
-        targetUrl,
-      });
-      await writeJson(manifestPath, manifest);
-      break;
-    }
-
-    completedRawSequenceEnd = exchange.sequence;
-    manifest.completedRawSequenceEnd = completedRawSequenceEnd;
-    const replayResponseBody = shouldTrackReplayStatementIds(exchange) ? await response.text() : "";
-    recordReplayStatementIdMappings(exchange, replayResponseBody, replayStatementIdMap);
-    let shouldWriteManifest = false;
-
-    if (response.status !== exchange.response.status) {
-      replayIssues.push({
-        actualStatus: response.status,
-        expectedStatus: exchange.response.status,
-        method: exchange.request.method.toUpperCase(),
-        rawSequence: exchange.sequence,
-        targetUrl,
-      });
-      shouldWriteManifest = true;
-    }
-
-    if (!boundarySequences.has(exchange.sequence)) {
-      if (shouldWriteManifest) {
-        await writeJson(manifestPath, manifest);
-      }
-      continue;
-    }
-
-    const fingerprintPath = resolve(dbStateDir, `sequence-${String(exchange.sequence).padStart(6, "0")}.json`);
-    await exportDbFingerprint({ outPath: fingerprintPath });
-
-    for (const entry of entriesBySequence.get(exchange.sequence) ?? []) {
-      if (options.mode === "unit" && entry.entryKind !== "unit") {
-        continue;
-      }
-
-      manifestEntries.push({
-        entryKind: entry.entryKind,
-        fingerprintPath,
-        nodeKey: entry.nodeKey,
-        rawSequenceEnd: exchange.sequence,
-        runner: options.rawArtifact.runner,
-        selectionMode: entry.selectionMode,
-        unitKey: entry.unitKey,
-      });
+  const flushManifest = async (force = false): Promise<void> => {
+    if (!force && manifestFlushCount < 25) {
+      return;
     }
 
     await writeJson(manifestPath, manifest);
-  }
+    manifestFlushCount = 0;
+  };
 
-  await writeJson(manifestPath, manifest);
+  try {
+    if (mutationSession) {
+      await ensureMutationCapture({}, mutationSession);
+      await resetMutationCapture({}, mutationSession);
+    }
+
+    for (const exchange of exchanges) {
+      const targetUrl = mapReplayTargetUrl(
+        exchange.request.targetUrl,
+        options.rawArtifact.targetBaseUrl,
+        replayStatementIdMap,
+      );
+      const replayRequestBody = rewriteReplayRequestBody(exchange, replayStatementIdMap);
+      let response: Response;
+      try {
+        response = await fetch(targetUrl, {
+          body: replayRequestBody,
+          headers: normalizeReplayHeaders(exchange.request.headers),
+          method: exchange.request.method.toUpperCase(),
+          redirect: "manual",
+        });
+      } catch (error) {
+        replayIssues.push({
+          actualStatus: null,
+          error: error instanceof Error ? error.message : String(error),
+          expectedStatus: exchange.response.status,
+          method: exchange.request.method.toUpperCase(),
+          rawSequence: exchange.sequence,
+          targetUrl,
+        });
+        await flushManifest(true);
+        break;
+      }
+
+      completedRawSequenceEnd = exchange.sequence;
+      manifest.completedRawSequenceEnd = completedRawSequenceEnd;
+      const replayResponseBody = shouldTrackReplayStatementIds(exchange) ? await response.text() : "";
+      recordReplayStatementIdMappings(exchange, replayResponseBody, replayStatementIdMap);
+      let shouldForceManifestWrite = false;
+
+      if (response.status !== exchange.response.status) {
+        replayIssues.push({
+          actualStatus: response.status,
+          expectedStatus: exchange.response.status,
+          method: exchange.request.method.toUpperCase(),
+          rawSequence: exchange.sequence,
+          targetUrl,
+        });
+        shouldForceManifestWrite = true;
+      }
+
+      if (!boundarySequences.has(exchange.sequence)) {
+        if (shouldForceManifestWrite) {
+          await flushManifest(true);
+        }
+        continue;
+      }
+
+      const fingerprintPath = resolve(dbStateDir, `sequence-${String(exchange.sequence).padStart(6, "0")}.json`);
+      if (options.mode === "mutations") {
+        const mutationFingerprint = await exportDbMutationFingerprint(
+          {
+            outPath: fingerprintPath,
+            sinceJournalId: lastMutationJournalId,
+          },
+          mutationSession ?? undefined,
+        );
+        lastMutationJournalId = mutationFingerprint.maxJournalId;
+      } else {
+        await exportDbFingerprint({ outPath: fingerprintPath });
+      }
+
+      for (const entry of entriesBySequence.get(exchange.sequence) ?? []) {
+        if (options.mode === "unit" && entry.entryKind !== "unit") {
+          continue;
+        }
+
+        manifestEntries.push({
+          entryKind: entry.entryKind,
+          fingerprintPath,
+          nodeKey: entry.nodeKey,
+          rawSequenceEnd: exchange.sequence,
+          runner: options.rawArtifact.runner,
+          selectionMode: entry.selectionMode,
+          unitKey: entry.unitKey,
+        });
+      }
+
+      manifestFlushCount += 1;
+      if (shouldForceManifestWrite) {
+        await flushManifest(true);
+      } else {
+        await flushManifest(false);
+      }
+    }
+
+    await flushManifest(true);
+  } finally {
+    if (mutationSession) {
+      await mutationSession.close();
+    }
+  }
   return {
     manifest,
     manifestPath,
@@ -1620,7 +1665,7 @@ function shouldIgnoreTimingDrivenStatementPollMismatch(
   const candidateOwners = groupSignatureAttemptsByOwnerLabel(candidate, mismatch.key);
   const upstreamOwners = groupSignatureAttemptsByOwnerLabel(upstream, mismatch.key);
   const ownerLabels = [...new Set([...candidateOwners.keys(), ...upstreamOwners.keys()])];
-  const allowMultipleDifferingOwners = isInvalidStatementParamsMismatch(mismatch.sample);
+  const invalidStatementParamsMismatch = isInvalidStatementParamsMismatch(mismatch.sample);
   let differingOwnerCount = 0;
 
   for (const ownerLabel of ownerLabels) {
@@ -1634,12 +1679,18 @@ function shouldIgnoreTimingDrivenStatementPollMismatch(
     }
 
     differingOwnerCount += 1;
-    if (!allowMultipleDifferingOwners && differingOwnerCount > 1) {
+    if (!isRetryDrivenStatementPollOwnerMismatch(candidateEntry, upstreamEntry)) {
       return false;
     }
 
-    if (!isRetryDrivenStatementPollOwnerMismatch(candidateEntry, upstreamEntry)) {
-      return false;
+    if (!invalidStatementParamsMismatch) {
+      if (Math.abs(candidateCount - upstreamCount) !== 1) {
+        return false;
+      }
+
+      if (candidateCount < 2 || upstreamCount < 2) {
+        return false;
+      }
     }
   }
 
@@ -1910,6 +1961,45 @@ export function suppressSequenceOnlyDbStateDifferences(
   };
 }
 
+/**
+ * Suppress boundary differences where the candidate and upstream `rawSequenceEnd` values
+ * do not match. These represent the same nodeKey occurring at different absolute positions
+ * in each runner's exchange sequence (i.e., different tests ran before it in each run).
+ * Comparing cumulative DB state at those mismatched positions is meaningless — the upstream
+ * will have accumulated state from a completely different set of preceding tests.
+ *
+ * This situation arises in full runs where the two test suites execute their test cases in
+ * a different order. For `--unitKey` scoped runs, exchange sequences within a single unit
+ * tend to be consistent between runners, so this suppressor typically has no effect there.
+ */
+export function suppressUnalignedSequenceBoundaryDifferences(
+  report: TraceDbStateComparisonReport,
+): TraceDbStateComparisonReport {
+  if (report.divergentBoundaries.length === 0) {
+    return report;
+  }
+
+  const alignedDivergent = report.divergentBoundaries.filter(
+    (b) => b.candidate !== null && b.upstream !== null && b.candidate.rawSequenceEnd === b.upstream.rawSequenceEnd,
+  );
+
+  if (alignedDivergent.length === report.divergentBoundaries.length) {
+    return report; // nothing was unaligned — no change
+  }
+
+  const hasReplayIssues =
+    report.firstReplayIssue !== null ||
+    report.candidateReplayIssues.length > 0 ||
+    report.upstreamReplayIssues.length > 0;
+
+  return {
+    ...report,
+    different: alignedDivergent.length > 0 || hasReplayIssues,
+    divergentBoundaries: alignedDivergent,
+    firstDivergentBoundary: alignedDivergent[0] ?? null,
+  };
+}
+
 function isSignedStatementBoundary(nodeKeys: string[]): boolean {
   return (
     nodeKeys.length > 0 &&
@@ -1980,7 +2070,9 @@ export async function writeTraceDbStateComparisonReport(options: {
     candidateManifestPath: options.candidateManifestPath,
     upstreamManifestPath: options.upstreamManifestPath,
   });
-  const report = suppressSignedStatementAttachmentDbDifferences(suppressSequenceOnlyDbStateDifferences(rawReport));
+  const report = suppressSignedStatementAttachmentDbDifferences(
+    suppressUnalignedSequenceBoundaryDifferences(suppressSequenceOnlyDbStateDifferences(rawReport)),
+  );
   await writeJson(options.outPath, report);
   return report;
 }
@@ -2220,15 +2312,16 @@ async function runVersion(config: DiagnosticConfig, version: SupportedVersion): 
 
   const upstreamRawPath = resolve(versionDir, "upstream-raw.json");
   const upstreamNormalizedPath = resolve(versionDir, "upstream-normalized.json");
-  let oracleVersionDir = config.refreshUpstream
-    ? null
-    : await resolveReusableOracleVersionDir({
+  const shouldReuseUpstreamOracle = !config.refreshUpstream && config.dbStateMode === "none";
+  let oracleVersionDir = shouldReuseUpstreamOracle
+    ? await resolveReusableOracleVersionDir({
         currentVersionDir: versionDir,
         oracleDir: config.oracleDir,
-        requireDbStateManifest: config.dbStateMode !== "none",
+        requireDbStateManifest: false,
         requireUpstreamRunArtifact: true,
         version,
-      });
+      })
+    : null;
 
   let upstreamRaw: RawTrafficArtifact | null = null;
   let upstreamNormalized: NormalizedTrafficArtifact | null = null;
@@ -2276,7 +2369,11 @@ async function runVersion(config: DiagnosticConfig, version: SupportedVersion): 
   }
 
   if (!oracleVersionDir) {
-    const reason = config.refreshUpstream ? "--refresh-upstream passed" : "no reusable oracle found";
+    const reason = config.refreshUpstream
+      ? "--refresh-upstream passed"
+      : config.dbStateMode !== "none"
+        ? `--db-state-mode=${config.dbStateMode} requires refreshed upstream DB-state artifacts`
+        : "no reusable oracle found";
     console.log(`[traffic-diagnostic] Refreshing upstream for ${version}: ${reason}`);
     upstreamRaw = await captureRunner("upstream", config, version, versionDir);
     upstreamNormalized = normalizeTrafficArtifact(upstreamRaw);

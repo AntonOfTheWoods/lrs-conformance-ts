@@ -26,11 +26,10 @@
               done(err);
             } else {
               var results = helper.parse(res.body, done);
-              expect(results).to.have.property("statements");
-              expect(results).to.have.property("more");
+              chai.expect(results).to.have.property("statements");
+              chai.expect(results).to.have.property("more");
               done();
             }
-            var expect = chai.expect;
           });
       });
 

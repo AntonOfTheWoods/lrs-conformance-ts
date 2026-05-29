@@ -295,7 +295,7 @@ function createHelperTransportSupport(context: HelperTransportContext) {
     },
 
     getTimeMargin: function getTimeMargin() {
-      return context.getState().TIME_MARGIN;
+      return context.getState().TIME_MARGIN ?? 0;
     },
 
     sendRequest: function sendRequest(

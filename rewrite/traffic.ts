@@ -532,11 +532,18 @@ export function createExchangeSignature(exchange: NormalizedExchange): string {
     method: exchange.method,
     path: exchange.path,
     query: exchange.query,
-    request: exchange.request,
+    request: {
+      headers: exchange.request.headers,
+      body: {
+        kind: exchange.request.body.kind,
+      },
+    },
     response: {
       status: exchange.response.status,
       headers: exchange.response.headers,
-      body: exchange.response.body,
+      body: {
+        kind: exchange.response.body.kind,
+      },
     },
   });
 }
