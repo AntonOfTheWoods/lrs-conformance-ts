@@ -613,6 +613,40 @@ async function readFailedLeavesFromRunArtifact(pathValue: string): Promise<strin
   }
 }
 
+export async function assertRunArtifactExecutedTests(
+  runner: "candidate" | "upstream",
+  runArtifactPath: string,
+): Promise<void> {
+  const runnerLabel = runner === "candidate" ? "Candidate" : "Upstream";
+  let parsed: { summary?: { total?: unknown }; log?: { tests?: unknown[] } };
+
+  try {
+    parsed = await readJson<{ summary?: { total?: unknown }; log?: { tests?: unknown[] } }>(runArtifactPath);
+  } catch {
+    throw new Error(
+      `[traffic-diagnostic] ${runnerLabel} run artifact was not generated at ${runArtifactPath}. The export runner likely exited before writing results.`,
+    );
+  }
+
+  if (typeof parsed.summary?.total !== "number") {
+    throw new Error(
+      `[traffic-diagnostic] ${runnerLabel} run did not execute test cases (summary.total is null) at ${runArtifactPath}. Remove conflicting --grep/--directory/--optional filters and try again.`,
+    );
+  }
+
+  if (parsed.summary.total <= 0) {
+    throw new Error(
+      `[traffic-diagnostic] ${runnerLabel} run completed with zero tests at ${runArtifactPath}. Broaden selection flags and retry.`,
+    );
+  }
+
+  if (!Array.isArray(parsed.log?.tests) || parsed.log.tests.length === 0) {
+    throw new Error(
+      `[traffic-diagnostic] ${runnerLabel} run did not produce a usable test tree (log.tests is empty) at ${runArtifactPath}.`,
+    );
+  }
+}
+
 export async function readEffectiveRunnerExitCode(
   runner: "candidate" | "upstream",
   versionDir: string,
@@ -2274,8 +2308,11 @@ async function captureRunner(
 async function runVersion(config: DiagnosticConfig, version: SupportedVersion): Promise<void> {
   const versionDir = resolve(config.outDir, version);
   await mkdir(versionDir, { recursive: true });
+  const candidateRunPath = resolve(versionDir, "candidate-run.json");
+  const upstreamRunPath = resolve(versionDir, "upstream-run.json");
 
   const candidateRaw = await captureRunner("candidate", config, version, versionDir);
+  await assertRunArtifactExecutedTests("candidate", candidateRunPath);
   const candidateNormalized = normalizeTrafficArtifact(candidateRaw);
   const candidateRawPath = resolve(versionDir, "candidate-raw.json");
   const candidateNormalizedPath = resolve(versionDir, "candidate-normalized.json");
@@ -2307,8 +2344,6 @@ async function runVersion(config: DiagnosticConfig, version: SupportedVersion): 
       `[traffic-diagnostic] --db-state-mode=${config.dbStateMode} requested, but candidate DB-state artifacts were not generated.`,
     );
   }
-
-  const candidateRunPath = resolve(versionDir, "candidate-run.json");
 
   const upstreamRawPath = resolve(versionDir, "upstream-raw.json");
   const upstreamNormalizedPath = resolve(versionDir, "upstream-normalized.json");
@@ -2376,6 +2411,7 @@ async function runVersion(config: DiagnosticConfig, version: SupportedVersion): 
         : "no reusable oracle found";
     console.log(`[traffic-diagnostic] Refreshing upstream for ${version}: ${reason}`);
     upstreamRaw = await captureRunner("upstream", config, version, versionDir);
+    await assertRunArtifactExecutedTests("upstream", upstreamRunPath);
     upstreamNormalized = normalizeTrafficArtifact(upstreamRaw);
     await writeJson(upstreamRawPath, upstreamRaw);
     await writeJson(upstreamNormalizedPath, upstreamNormalized);
@@ -2411,7 +2447,6 @@ async function runVersion(config: DiagnosticConfig, version: SupportedVersion): 
     throw new Error("[traffic-diagnostic] Internal error: upstream artifacts were not initialized.");
   }
 
-  const upstreamRunPath = resolve(versionDir, "upstream-run.json");
   const candidateFailedLeaves = await readFailedLeavesFromRunArtifact(candidateRunPath);
   const upstreamRunArtifactAvailable = await pathExists(upstreamRunPath);
   const upstreamFailedLeaves = upstreamRunArtifactAvailable

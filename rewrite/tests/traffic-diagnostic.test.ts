@@ -17,6 +17,7 @@ import {
   compareTraceDbStateManifests,
   createTraceNodeIndex,
   mapReplayTargetUrl,
+  assertRunArtifactExecutedTests,
   readEffectiveRunnerExitCode,
   resolveReusableOracleVersionDir,
   recordReplayStatementIdMappings,
@@ -1515,6 +1516,44 @@ test("readEffectiveRunnerExitCode prefers the recorded upstream suite exit code"
 
     expect(await readEffectiveRunnerExitCode("upstream", tempDir, 0)).toBe(2);
     expect(await readEffectiveRunnerExitCode("candidate", tempDir, 0)).toBe(3);
+  } finally {
+    await rm(tempDir, { force: true, recursive: true });
+  }
+});
+
+test("assertRunArtifactExecutedTests rejects run artifacts with null summary totals", async () => {
+  const tempDir = await createAgentsTempDir("traffic-run-artifact-");
+
+  try {
+    const candidateRunPath = join(tempDir, "candidate-run.json");
+    await writeFile(candidateRunPath, `${JSON.stringify({ summary: { total: null }, log: { tests: [] } })}\n`, "utf8");
+    let thrown: unknown;
+    try {
+      await assertRunArtifactExecutedTests("candidate", candidateRunPath);
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(thrown).toBeDefined();
+    expect(thrown).toBeInstanceOf(Error);
+    expect((thrown as Error).message).toContain("Candidate run did not execute test cases");
+  } finally {
+    await rm(tempDir, { force: true, recursive: true });
+  }
+});
+
+test("assertRunArtifactExecutedTests accepts artifacts that executed tests", async () => {
+  const tempDir = await createAgentsTempDir("traffic-run-artifact-");
+
+  try {
+    const upstreamRunPath = join(tempDir, "upstream-run.json");
+    await writeFile(
+      upstreamRunPath,
+      `${JSON.stringify({ summary: { total: 1 }, log: { tests: [{ title: "sample" }] } })}\n`,
+      "utf8",
+    );
+
+    await assertRunArtifactExecutedTests("upstream", upstreamRunPath);
   } finally {
     await rm(tempDir, { force: true, recursive: true });
   }

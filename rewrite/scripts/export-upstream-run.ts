@@ -1320,22 +1320,23 @@ async function main(): Promise<number> {
     summary?: { failed?: number; total?: number; passed?: number; version?: string };
     log?: { tests?: unknown[] };
   };
+  const runLabel = config.suiteDir ? "Candidate" : "Upstream";
 
   if (typeof parsed.summary?.total !== "number") {
     throw new Error(
-      "Upstream run did not execute test cases (summary.total is null). Remove conflicting flags and try again.",
+      `${runLabel} run did not execute test cases (summary.total is null). Remove conflicting flags and try again.`,
     );
   }
 
   if (parsed.summary.total <= 0) {
     throw new Error(
-      "Upstream run completed with zero tests. Remove or broaden --grep/--directory so at least one upstream test executes.",
+      `${runLabel} run completed with zero tests. Remove or broaden --grep/--directory so at least one test executes.`,
     );
   }
 
   if (!Array.isArray(parsed.log?.tests) || parsed.log.tests.length === 0) {
     throw new Error(
-      "Upstream run did not produce a usable test tree (log.tests is empty). Re-run after stabilizing the target LRS and try export again.",
+      `${runLabel} run did not produce a usable test tree (log.tests is empty). Re-run after stabilizing the target LRS and try export again.`,
     );
   }
 
