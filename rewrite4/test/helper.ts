@@ -122,11 +122,14 @@ const helperContext = {
   uuid,
 };
 
-const transportSupport = (transportSupportModule as { createHelperTransportSupport: (context: unknown) => HelperExports })
-  .createHelperTransportSupport(helperContext);
-const fixtureSupport = (fixtureCryptoSupportModule as {
-  createHelperFixtureCryptoSupport: (context: unknown) => HelperExports;
-}).createHelperFixtureCryptoSupport(helperContext);
+const transportSupport = (
+  transportSupportModule as { createHelperTransportSupport: (context: unknown) => HelperExports }
+).createHelperTransportSupport(helperContext);
+const fixtureSupport = (
+  fixtureCryptoSupportModule as {
+    createHelperFixtureCryptoSupport: (context: unknown) => HelperExports;
+  }
+).createHelperFixtureCryptoSupport(helperContext);
 
 helperExports = {
   ...transportSupport,

@@ -1,8 +1,8 @@
-let request = require("super-request");
-const expect = require("chai").expect;
-const helper = require("../helper.ts");
-
-const xapiRequests = require("./util/requests.ts");
+// @ts-nocheck
+import request from "super-request";
+import { expect } from "chai";
+import helper from "../helper.ts";
+import xapiRequests from "./util/requests.ts";
 
 if (global.OAUTH) request = helper.OAuthRequest(request);
 

@@ -6,11 +6,8 @@
 
 import { expect } from "chai";
 import requestPromise from "supertest-as-promised";
-
-const helperModule = require("../helper.ts");
-const helper = helperModule.default ?? helperModule;
-const xapiRequestsModule = require("./util/requests.ts");
-const xapiRequests = xapiRequestsModule.default ?? xapiRequestsModule;
+import helper from "../helper.ts";
+import xapiRequests from "./util/requests.ts";
 
 var request = requestPromise;
 
