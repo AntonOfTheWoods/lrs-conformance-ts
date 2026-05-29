@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "test": "bun test ./rewrite/tests/parity-comparison.test.ts ./rewrite/tests/v1-v2-delta-matrix.test.ts ./rewrite/tests/traffic.test.ts ./rewrite/tests/traffic-diagnostic.test.ts ./rewrite/tests/export-upstream-run.test.ts ./rewrite/tests/rewrite4-bun-runtime.test.ts ./test/describe-runtime/migration-ledger.test.ts",
-    "typecheck": "tsgo --noEmit",
+    "typecheck": "tsgo --noEmit && tsgo --noEmit -p rewrite4/tsconfig.test.json",
     "lint": "oxlint --config .oxlintrc.jsonc .",
     "format": "oxfmt --config .oxfmtrc.jsonc --write .",
     "validate:archive-boundary": "bun ./scripts/validate-archive-boundary.ts",
@@ -36,6 +36,8 @@
   },
   "devDependencies": {
     "@types/bun": "^1.3.14",
+    "@types/jest": "^30.0.0",
+    "@types/mocha": "^10.0.10",
     "@typescript/native-preview": "^7.0.0-dev.20260522.1",
     "adl-lrs-conformance-tests": "git+https://github.com/adlnet/lrs-conformance-test-suite.git#5bc232d349c60faded8240da698f195106091638",
     "oxfmt": "^0.51.0",

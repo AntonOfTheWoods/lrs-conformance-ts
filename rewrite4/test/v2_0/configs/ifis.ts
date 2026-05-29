@@ -725,4 +725,3 @@ export const config = function () {
             }
         ];
     };
-}(module));

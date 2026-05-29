@@ -75,11 +75,11 @@ const requests = {
   },
 
   async getStatementExact(id: string, headerOverrides?: HeaderOverrides): Promise<AxiosResponse | undefined> {
-    return requests.getDocuments(PATH_STATEMENTS, { statementId: id }, { headers: headerOverrides });
+    return requests.getDocuments(PATH_STATEMENTS, { statementId: id }, headerOverrides);
   },
 
   async getStatementExactPromise(id: string, headerOverrides?: HeaderOverrides): Promise<AxiosResponse | undefined> {
-    return requests.getDocuments(PATH_STATEMENTS, { statementId: id }, { headers: headerOverrides });
+    return requests.getDocuments(PATH_STATEMENTS, { statementId: id }, headerOverrides);
   },
 
   generateRandomMultipartBoundary(): string {
@@ -208,12 +208,11 @@ const requests = {
   async getDocuments(
     resourcePath: string,
     params: QueryParams,
-    headerOverrides?: { headers?: HeaderOverrides } | HeaderOverrides,
+    headerOverrides?: HeaderOverrides,
   ): Promise<AxiosResponse | undefined> {
     const endpoint = joinPaths(LRS_ENDPOINT, resourcePath);
     const query = getDocumentQuery(params);
-    const headers =
-      headerOverrides && "headers" in headerOverrides ? headerOverrides.headers : (headerOverrides as HeaderOverrides);
+    const headers = headerOverrides;
 
     return (await catchResponse(axios.get(endpoint + query, { headers }))) as AxiosResponse | undefined;
   },

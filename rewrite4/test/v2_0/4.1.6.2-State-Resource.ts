@@ -480,7 +480,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
    * An LRS must reject with 400 Bad Request a POST request to the State API which contains name/value pairs with invalid JSON and the Content-Type header is "application/json"
    */
   it("An LRS must reject with 400 Bad Request a POST request to the State Resource which contains name/value pairs with invalid JSON and the Content-Type header is 'application/json' (Communication 2.3, XAPI-00235)", function (done) {
-    var parameters = {
+    var parameters: any = {
       activityId: "http://www.example.com/activityId/hashset",
       stateId: helper.generateUUID(),
     };

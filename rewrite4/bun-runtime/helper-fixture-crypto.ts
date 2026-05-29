@@ -403,7 +403,7 @@ function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
         throw new Error("Signed statement attachment generation failed.");
       }
 
-      var buffers = [];
+      var buffers: Buffer[] = [];
       buffers.push(Buffer.from(["", "--" + options.boundary, "Content-Type:application/json", "", ""].join("\r\n")));
       buffers.push(Buffer.from(JSON.stringify(statement), "utf8"));
       buffers.push(
@@ -424,7 +424,7 @@ function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
 
       return Buffer.concat(
         buffers,
-        buffers.reduce(function (size, buffer) {
+        buffers.reduce(function (size: number, buffer: Buffer) {
           return size + buffer.byteLength;
         }, 0),
       );

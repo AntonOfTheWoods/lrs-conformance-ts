@@ -1184,25 +1184,25 @@ StatementResult Object.
             var query = helper.getUrlEncoding({format: 'canonical'});
 
             // Build a better actor
-            var canonicalActor = {};
+            var canonicalActor: any = {};
             canonicalActor.mbox = agent.mbox;
             canonicalActor.objectType = agent.objectType;
             canonicalActor.name = agent.name;
 
             // Build a better verb
-            var mainVerb = {};
+            var mainVerb: any = {};
             mainVerb.id = verb1.id;
             mainVerb.display = {};
             mainVerb.display["en-GB"] = verb1.display["en-GB"];
 
             // Build a better substatement verb
-            var subVerb = {};
+            var subVerb: any = {};
             subVerb.id = verb2.id;
             subVerb.display = {};
             subVerb.display["en-GB"] = verb2.display["en-GB"];
 
             // Build a better activity
-            var canonicalSubActivity = {};
+            var canonicalSubActivity: any = {};
             canonicalSubActivity.objectType = activity.objectType;
             canonicalSubActivity.id = activity.id;
             canonicalSubActivity.definition = {};
@@ -1217,7 +1217,7 @@ StatementResult Object.
             canonicalSubActivity.definition.extensions = activity.definition.extensions;
 
             // Build a better group
-            var canonicalGroup = {};
+            var canonicalGroup: any = {};
             canonicalGroup.mbox = group.mbox;
             canonicalGroup.objectType = group.objectType;
             canonicalGroup.name = group.name;
