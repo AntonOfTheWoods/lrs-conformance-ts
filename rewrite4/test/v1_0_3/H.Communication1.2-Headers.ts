@@ -4,16 +4,21 @@
  */
 
 (function (module, fs, extend, moment, request, requestPromise, chai, liburl, Joi, helper, multipartParser, redirect) {
-    // "use strict";
+  // "use strict";
+  if (global.OAUTH) request = helper.OAuthRequest(request);
 
-    var expect = chai.expect;
-    if(global.OAUTH)
-        request = helper.OAuthRequest(request);
-
-describe('Headers Requirements (Communication 1.2)', () => {
-
-
-
-});
-
-}(module, require('fs'), require('extend'), require('moment'), require('super-request'), require('supertest-as-promised'), require('chai'), require('url'), require('joi'), require('./../helper.ts'), require('./../multipartParser.ts'), require('./../redirect.ts')));
+  describe("Headers Requirements (Communication 1.2)", () => {});
+})(
+  module,
+  require("fs"),
+  require("extend"),
+  require("moment"),
+  require("super-request"),
+  require("supertest-as-promised"),
+  require("chai"),
+  require("url"),
+  require("joi"),
+  require("./../helper.ts"),
+  require("./../multipartParser.ts"),
+  require("./../redirect.ts"),
+);

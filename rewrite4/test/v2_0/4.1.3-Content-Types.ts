@@ -3,17 +3,19 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-let request = require("super-request");
-const fs = require("fs");
-const crypto = require("crypto");
-const expect = require("chai").expect;
-const helper = require("../helper.ts");
-const xapiRequests = require("./util/requests.ts");
+import crypto from "crypto";
+import fs from "fs";
+import requestModule from "super-request";
+
+import helperModule from "../helper.ts";
+
+let request = requestModule as unknown as (target: string) => any;
+const helper = helperModule as any;
 
 if (global.OAUTH) request = helper.OAuthRequest(request);
 
 describe("Content Type Requirements (Communication 1.5)", function () {
-  var txtAtt1, txtAtt2, txtAtt3, t1attSize, t2attSize, t3attSize, t1attHash, t2attHash, t3attHash;
+  var txtAtt1, txtAtt2, txtAtt3, t1attSize, t2attSize, t1attHash, t2attHash, t3attHash;
 
   before("create attachments templates", function () {
     txtAtt1 = fs.readFileSync("test/v1_0_3/templates/attachments/simple_text1.txt");
@@ -22,10 +24,8 @@ describe("Content Type Requirements (Communication 1.5)", function () {
 
     var t1stats = fs.statSync("test/v1_0_3/templates/attachments/simple_text1.txt");
     var t2stats = fs.statSync("test/v1_0_3/templates/attachments/simple_text2.txt");
-    var t3stats = fs.statSync("test/v1_0_3/templates/attachments/simple_text3.txt");
     t1attSize = t1stats.size;
     t2attSize = t2stats.size;
-    t3attSize = t3stats.size;
     t1attHash = crypto.createHash("SHA256").update(txtAtt1).digest("hex");
     t2attHash = crypto.createHash("SHA256").update(txtAtt2).digest("hex");
     t3attHash = crypto.createHash("SHA256").update(txtAtt3).digest("hex");

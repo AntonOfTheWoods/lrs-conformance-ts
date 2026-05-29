@@ -5,6 +5,7 @@
     "lib": ["ESNext", "DOM"],
     "strict": false,
     "useUnknownInCatchVariables": false,
+    "noUnusedLocals": true,
     "noUncheckedIndexedAccess": false
   },
   "include": ["test/**/*.ts"],

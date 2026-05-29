@@ -1,8 +1,5 @@
 (function (module, fs, extend, moment, request, requestPromise, chai, Joi, helper, multipartParser) {
   "use strict";
-
-  var expect = chai.expect;
-
   /*
     JSON never specifies about duplicate keys and while many parsers
     automatically remove or merge such can not be relied upon, and the
@@ -134,24 +131,6 @@
       // All of these "defined" aren't really tests, rather ways to disambiguate future tests.
       done();
     });
-
-    function createFromTemplate(templates) {
-      // convert template mapping to JSON objects
-      var converted = helper.convertTemplate(templates);
-      // this handles if no override
-      var mockObject = helper.createTestObject(converted);
-      return mockObject;
-    }
-
-    function parse(string, done) {
-      var parsed;
-      try {
-        parsed = JSON.parse(string);
-      } catch (error) {
-        done(error);
-      }
-      return parsed;
-    }
   });
 })(
   module,

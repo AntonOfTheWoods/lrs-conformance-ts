@@ -5,7 +5,6 @@
 
 let superRequest = require("super-request");
 const oldHelpers = require("../helper.ts");
-const requests = require("./util/requests.ts");
 const { expect } = require("chai");
 
 if (global.OAUTH) superRequest = oldHelpers.OAuthRequest(superRequest);

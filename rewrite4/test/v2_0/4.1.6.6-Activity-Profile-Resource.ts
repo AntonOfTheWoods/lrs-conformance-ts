@@ -2,10 +2,15 @@
  * Description : This is a test suite that tests an LRS endpoint based on the testing requirements document
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
-let request = require("super-request");
-const expect = require("chai").expect;
-const helper = require("../helper.ts");
-const xapiRequests = require("./util/requests.ts");
+import requestModule from "super-request";
+import { expect } from "chai";
+
+import helperModule from "../helper.ts";
+import xapiRequestsModule from "./util/requests.ts";
+
+let request = requestModule as unknown as (target: string) => any;
+const helper = helperModule as any;
+const xapiRequests = xapiRequestsModule as any;
 
 if (global.OAUTH) request = helper.OAuthRequest(request);
 

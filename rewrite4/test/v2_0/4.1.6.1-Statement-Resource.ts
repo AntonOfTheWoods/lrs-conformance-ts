@@ -1016,7 +1016,6 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
   describe('If the "Accept-Language" header is present as part of the GET request to the Statement API and the "format" parameter is set to "canonical", the LRS MUST apply this data to choose the matching language in the response. (Communication 2.1.3.s1.table1.row11, XAPI-00172)', function () {
     var statement;
     var statementID;
-    var stmtTime;
     before("persist statement", function (done) {
       var templates = [
         { statement: "{{statements.context}}" },
@@ -1033,7 +1032,6 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
       statement = data.statement;
       statement.context.contextActivities.category.id = "http://www.example.com/test/array/statements/pri";
 
-      stmtTime = Date.now();
       request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
@@ -3301,7 +3299,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
       statement.timestamp = null;
       statement.id = id;
 
-      let _ = await xapiRequests.sendStatementPromise(statement);
+      await xapiRequests.sendStatementPromise(statement);
       let res = await xapiRequests.getStatementExactPromise(id);
 
       let statementFromLRS = res.data;

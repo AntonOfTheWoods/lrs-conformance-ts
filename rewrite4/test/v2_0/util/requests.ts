@@ -161,10 +161,7 @@ const requests = {
     return requests.getDocuments(PATH_ACTIVITIES_STATE, params, headerOverrides);
   },
 
-  async getMultipleStates(
-    params: QueryParams,
-    headerOverrides?: HeaderOverrides,
-  ): Promise<AxiosResponse | undefined> {
+  async getMultipleStates(params: QueryParams, headerOverrides?: HeaderOverrides): Promise<AxiosResponse | undefined> {
     return requests.getDocuments(PATH_ACTIVITIES_STATE, params, headerOverrides);
   },
 
@@ -184,10 +181,7 @@ const requests = {
     return requests.postDocument(PATH_AGENTS_PROFILE, document, params, headerOverrides);
   },
 
-  async deleteAgentProfile(
-    params: QueryParams,
-    headerOverrides?: HeaderOverrides,
-  ): Promise<AxiosResponse | undefined> {
+  async deleteAgentProfile(params: QueryParams, headerOverrides?: HeaderOverrides): Promise<AxiosResponse | undefined> {
     return requests.deleteDocument(PATH_AGENTS_PROFILE, params, headerOverrides);
   },
 
@@ -284,4 +278,5 @@ const requests = {
   },
 };
 
+export default requests;
 module.exports = requests;

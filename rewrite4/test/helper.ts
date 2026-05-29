@@ -127,4 +127,5 @@ helperExports = {
   ...fixtureSupport,
 };
 
+export default helperExports;
 module.exports = helperExports;
