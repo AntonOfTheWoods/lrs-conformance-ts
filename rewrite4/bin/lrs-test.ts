@@ -118,6 +118,10 @@ function shouldLoadLegacySuiteFile(sourceText: string): boolean {
   return /\bmodule\b/.test(sourceText) || /\brequire\s*\(/.test(sourceText);
 }
 
+export function shouldUseCommonJsCompatibleTsLoader(sourceText: string): boolean {
+  return /module\.exports/.test(sourceText) && !/^\s*(import|export)\s/m.test(sourceText);
+}
+
 function normalizeCommonJsCompatibleModuleSource(sourceText: string): string {
   return sourceText.replace(/^\s*export default .*;\s*$/gm, "");
 }
@@ -164,7 +168,7 @@ function loadLegacySuiteFile(absoluteFilePath: string, sourceText: string): void
     const resolvedPath = suiteRequire.resolve(specifier);
     if (resolvedPath.endsWith(".ts")) {
       const requiredSource = require("fs").readFileSync(resolvedPath, "utf8") as string;
-      if (/module\.exports/.test(requiredSource)) {
+      if (shouldUseCommonJsCompatibleTsLoader(requiredSource)) {
         return loadCommonJsCompatibleTsModule(resolvedPath);
       }
 

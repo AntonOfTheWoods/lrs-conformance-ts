@@ -15,7 +15,11 @@ import { registerSuiteFiles } from "../../rewrite4/bun-runtime/suite-loader.ts";
 import { createDescribeRuntime, type DescribeRuntime } from "../../rewrite4/bun-runtime/runtime.ts";
 import { resolveAuthorizationLaunchCommand } from "../../rewrite4/bin/OAuth.ts";
 import { listSuiteDefinitionFiles } from "../../rewrite4/bin/update-batteries.ts";
-import { buildLrsTestLoadPlan, normalizeLrsTestOptions } from "../../rewrite4/bin/lrs-test.ts";
+import {
+  buildLrsTestLoadPlan,
+  normalizeLrsTestOptions,
+  shouldUseCommonJsCompatibleTsLoader,
+} from "../../rewrite4/bin/lrs-test.ts";
 import { resolveLrsTestEntryPath } from "../../rewrite4/bin/testRunner.ts";
 
 type GlobalTestShape = typeof globalThis & {
@@ -130,6 +134,15 @@ test("rewrite4 bun lrs-test reuses suite-loader load-plan semantics", () => {
   expect(loadPlan.selectedFiles ? [...loadPlan.selectedFiles] : null).toEqual([
     "test/v1_0_3/H.Communication2.1-StatementResource.js",
   ]);
+});
+
+test("rewrite4 bun lrs-test does not force mixed ESM/CommonJS TS helpers through CJS transpile path", () => {
+  const mixedModuleSource = ['import fs from "node:fs";', "const helper = {};", "module.exports = helper;"].join("\n");
+
+  const pureCommonJsSource = ["const helper = {};", "module.exports = helper;"].join("\n");
+
+  expect(shouldUseCommonJsCompatibleTsLoader(mixedModuleSource)).toBe(false);
+  expect(shouldUseCommonJsCompatibleTsLoader(pureCommonJsSource)).toBe(true);
 });
 
 test("rewrite4 bun runtime preserves caller selection mode when forwarding to legacy runner", () => {
