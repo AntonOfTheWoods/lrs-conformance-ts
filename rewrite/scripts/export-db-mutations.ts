@@ -9,6 +9,10 @@ type PsqlCommandResult = {
   stdout: string;
 };
 
+type ReaderLike = {
+  read(): Promise<{ done: boolean; value?: Uint8Array }>;
+};
+
 export class MutationPsqlSession {
   private readonly encoder = new TextEncoder();
 
@@ -16,11 +20,11 @@ export class MutationPsqlSession {
 
   private readonly stderrPromise: Promise<string>;
 
-  private readonly subprocess: any;
+  private readonly subprocess: Bun.PipedSubprocess;
 
-  private readonly stdoutReader: any;
+  private readonly stdoutReader: ReaderLike;
 
-  private readonly stdinSink: any;
+  private readonly stdinSink: Bun.PipedSubprocess["stdin"];
 
   private buffer = "";
 
@@ -59,9 +63,9 @@ export class MutationPsqlSession {
       stderr: "pipe",
       stdout: "pipe",
     });
-    this.stdoutReader = this.subprocess.stdout.getReader();
+    this.stdoutReader = this.subprocess.stdout.getReader() as unknown as ReaderLike;
     this.stdinSink = this.subprocess.stdin;
-    this.stderrPromise = new Response(this.subprocess.stderr as any).text();
+    this.stderrPromise = readStreamText(this.subprocess.stderr);
   }
 
   async query(sql: string): Promise<string> {
@@ -170,6 +174,24 @@ export class MutationPsqlSession {
       }),
     ]);
   }
+}
+
+async function readStreamText(stream: ReadableStream<Uint8Array>): Promise<string> {
+  const decoder = new TextDecoder();
+  const reader = stream.getReader();
+  let output = "";
+
+  while (true) {
+    const result = await reader.read();
+    if (result.done) {
+      break;
+    }
+
+    output += decoder.decode(result.value, { stream: true });
+  }
+
+  output += decoder.decode();
+  return output;
 }
 
 export interface MutationCaptureOptions {
