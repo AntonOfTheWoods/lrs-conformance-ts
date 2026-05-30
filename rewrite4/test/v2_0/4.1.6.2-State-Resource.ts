@@ -451,11 +451,12 @@ expect(result).to.eql(document);});
   /**  XAPI-00235, Communication 2.3 State Resource
    * An LRS must reject with 400 Bad Request a POST request to the State API which contains name/value pairs with invalid JSON and the Content-Type header is "application/json"
    */
-  it("An LRS must reject with 400 Bad Request a POST request to the State Resource which contains name/value pairs with invalid JSON and the Content-Type header is 'application/json' (Communication 2.3, XAPI-00235)", async function () {let parameters: any = {
+  it("An LRS must reject with 400 Bad Request a POST request to the State Resource which contains name/value pairs with invalid JSON and the Content-Type header is 'application/json' (Communication 2.3, XAPI-00235)", async function () {
+    let parameters: any = {
       activityId: "http://www.example.com/activityId/hashset",
       stateId: helper.generateUUID(),
     };
-let agent = encodeURIComponent(
+    let agent = encodeURIComponent(
       JSON.stringify({
         objectType: "Agent",
         account: {
@@ -464,16 +465,18 @@ let agent = encodeURIComponent(
         },
       }),
     ).replace("%3A", "%22");
-parameters.registration = helper.generateUUID();
-let attachment = JSON.stringify(helper.buildDocument());
-let header = { "content-type": "application/json" };
-request(helper.getEndpointAndAuth())
+    parameters.registration = helper.generateUUID();
+    let attachment = JSON.stringify(helper.buildDocument());
+    let header = { "content-type": "application/json" };
+    await expectAsync(
+      request(helper.getEndpointAndAuth())
       .post(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters) + "&agent=" + agent)
       .headers(helper.addAllHeaders(header))
       .body(attachment)
-      .expect(400, function (err: unknown, res: any) {
-        throw err;
-      });});
+      ,
+      400,
+    );
+  });
 
   /**  XAPI-00227, Communication 2.3 State Resource
    * An LRS's State API can process a POST request with "registration" as a parameter

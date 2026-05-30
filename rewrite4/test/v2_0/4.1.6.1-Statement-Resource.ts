@@ -990,7 +990,8 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
   describe('If the "Accept-Language" header is present as part of the GET request to the Statement API and the "format" parameter is set to "canonical", the LRS MUST apply this data to choose the matching language in the response. (Communication 2.1.3.s1.table1.row11, XAPI-00172)', function () {
     let statement: any;
     let statementID: string;
-    before("persist statement", async function () {let templates = [
+    before("persist statement", async function () {
+      let templates = [
         { statement: "{{statements.context}}" },
         { context: "{{contexts.category}}" },
         {
@@ -1001,60 +1002,61 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
           },
         },
       ];
-let data = helper.createFromTemplate(templates);
-statement = data.statement;
-statement.context.contextActivities.category.id = "http://www.example.com/test/array/statements/pri";
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(statement)
-        .expect(200, function (err: unknown, res: any) {
-          statementID = (res.body as string[])[0] as string;
-          throw err;
-        });});
+      let data = helper.createFromTemplate(templates);
+      statement = data.statement;
+      statement.context.contextActivities.category.id = "http://www.example.com/test/array/statements/pri";
+      const res = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(statement),
+        200,
+      );
 
-    it("should apply this data to choose the matching language in the response", async function () {this.timeout(0);
-let query = helper.getUrlEncoding({
+      statementID = (res.body as string[])[0] as string;
+    });
+
+    it("should apply this data to choose the matching language in the response", async function () {
+      this.timeout(0);
+      let query = helper.getUrlEncoding({
         statementId: statementID,
         format: "canonical",
       });
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .wait(helper.genDelay(null, null, statementID))
-        .headers(helper.addAllHeaders({ "Accept-Language": "en-GB" }))
-        .expect(200, function (err: unknown, res: any) {
-          if (err) console.log(err);
+      const res = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .wait(helper.genDelay(null, null, statementID))
+          .headers(helper.addAllHeaders({ "Accept-Language": "en-GB" })),
+        200,
+      );
 
-          let statement = JSON.parse(res.body);
-          // console.log(statement);
-          expect(statement.verb.display).not.to.have.property("en-US");
-          expect(statement.context.contextActivities.category[0].definition.description).not.to.have.property("en-US");
-          expect(statement.context.contextActivities.category[0].definition.name).not.to.have.property("en-US");
-          throw err;
-        });});
+      let statement = JSON.parse(res.body as string);
+      expect(statement.verb.display).not.to.have.property("en-US");
+      expect(statement.context.contextActivities.category[0].definition.description).not.to.have.property("en-US");
+      expect(statement.context.contextActivities.category[0].definition.name).not.to.have.property("en-US");
+    });
 
-    it("should NOT apply this data to choose the matching language in the response when format is not set ", async function () {this.timeout(0);
-let query = helper.getUrlEncoding({
+    it("should NOT apply this data to choose the matching language in the response when format is not set ", async function () {
+      this.timeout(0);
+      let query = helper.getUrlEncoding({
         statementId: statementID,
       });
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .wait(helper.genDelay(null, null, statementID))
-        .headers(helper.addAllHeaders({ "Accept-Language": "en-GB" }))
-        .expect(200, function (err: unknown, res: any) {
-          if (err) console.log(err);
+      const res = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .wait(helper.genDelay(null, null, statementID))
+          .headers(helper.addAllHeaders({ "Accept-Language": "en-GB" })),
+        200,
+      );
 
-          let statement = JSON.parse(res.body);
-          // console.log(statement);
-          expect(statement.verb.display).to.have.property("en-US");
-          expect(statement.context.contextActivities.category[0].definition.description).to.have.property("en-US");
-          expect(statement.context.contextActivities.category[0].definition.name).to.have.property("en-US");
-
-          expect(statement.verb.display).to.have.property("en-GB");
-          expect(statement.context.contextActivities.category[0].definition.description).to.have.property("en-GB");
-          expect(statement.context.contextActivities.category[0].definition.name).to.have.property("en-GB");
-          throw err;
-        });});
+      let statement = JSON.parse(res.body as string);
+      expect(statement.verb.display).to.have.property("en-US");
+      expect(statement.context.contextActivities.category[0].definition.description).to.have.property("en-US");
+      expect(statement.context.contextActivities.category[0].definition.name).to.have.property("en-US");
+      expect(statement.verb.display).to.have.property("en-GB");
+      expect(statement.context.contextActivities.category[0].definition.description).to.have.property("en-GB");
+      expect(statement.context.contextActivities.category[0].definition.name).to.have.property("en-GB");
+    });
   });
 
   /**  XAPI-00168, Communication 2.1.3 GET Statements
@@ -1426,14 +1428,17 @@ request(helper.getEndpointAndAuth())
     MUST have a "Content-Type" header
      */
   describe('An LRSs Statement Resource, upon receiving a GET request, MUST have a "Content-Type" header(**Implicit**, Communication 2.1.3.s1.table1.row14, XAPI-00165)', function () {
-    it("should contain the content-type header", async function () {let query = helper.getUrlEncoding({ ascending: true });
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .headers(helper.addAllHeaders({}))
-        .expect(200, function (err: unknown, res: any) {
-          expect(res.headers).to.have.property("content-type");
+    it("should contain the content-type header", async function () {
+      let query = helper.getUrlEncoding({ ascending: true });
+      const res = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .headers(helper.addAllHeaders({})),
+        200,
+      );
 
-        });});
+      expect(res.headers).to.have.property("content-type");
+    });
   });
 
   /**  XAPI-00166, Communication 2.1.3 GET Statements
