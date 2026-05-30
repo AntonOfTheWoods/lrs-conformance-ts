@@ -65,7 +65,9 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
       );
     });
 
-    it('Should return a voided statement when using GET "voidedStatementId"', async function (this: { timeout(ms: number): void }) {
+    it('Should return a voided statement when using GET "voidedStatementId"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       this.timeout(0);
       const query = helper.getUrlEncoding({ voidedStatementId: voidedId });
       const res = await endAsync(

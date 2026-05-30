@@ -57,7 +57,9 @@ describe("Authority Property Requirements (Data 2.4.9)", () => {
   /**  XAPI-00099, Data 2.4.9 Authority
    * An LRS populates the "authority" property if it is not provided in the Statement
    */
-  describe('An LRS populates the "authority" property if it is not provided in the Statement, based on header information with the Agent corresponding to the user (contained within the header) (Implicit, Data 2.4.9.s3.b4, XAPI-00099) ', function (this: { timeout(ms: number): void }) {
+  describe('An LRS populates the "authority" property if it is not provided in the Statement, based on header information with the Agent corresponding to the user (contained within the header) (Implicit, Data 2.4.9.s3.b4, XAPI-00099) ', function (this: {
+    timeout(ms: number): void;
+  }) {
     it("should populate authority ", async function (this: { timeout(ms: number): void }) {
       this.timeout(0);
 

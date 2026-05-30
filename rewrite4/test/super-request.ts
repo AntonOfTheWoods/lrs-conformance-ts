@@ -47,8 +47,8 @@ type RequestFactory = ((endpoint: string) => {
 };
 
 export function endAsync(chain: RequestChain): Promise<RequestResponse> {
-  return new Promise(function (resolve, reject) {
-    chain.end(function (error, response) {
+  return new Promise((resolve, reject) => {
+    chain.end((error, response) => {
       if (error) {
         reject(error);
         return;
@@ -74,14 +74,14 @@ export function expectAsync(chain: RequestChain, status: number): Promise<Reques
 }
 
 function encodeRfc3986(value: string): string {
-  return encodeURIComponent(value).replace(/[!'()*]/g, function (character) {
+  return encodeURIComponent(value).replace(/[!'()*]/g, (character) => {
     return "%" + character.charCodeAt(0).toString(16).toUpperCase();
   });
 }
 
 function normalizeHeaders(headers: HeaderMap): Record<string, string> {
   const result: Record<string, string> = {};
-  Object.keys(headers || {}).forEach(function (key) {
+  Object.keys(headers || {}).forEach((key) => {
     const value = headers[key];
     if (typeof value === "undefined") {
       return;
@@ -94,7 +94,7 @@ function normalizeHeaders(headers: HeaderMap): Record<string, string> {
 function parseQuery(url: string): Array<[string, string]> {
   const parsed = new URL(url);
   const params: Array<[string, string]> = [];
-  parsed.searchParams.forEach(function (value, key) {
+  parsed.searchParams.forEach((value, key) => {
     params.push([key, value]);
   });
   return params;
@@ -107,7 +107,7 @@ function parseFormBody(headers: Record<string, string>, body: unknown): Array<[s
   }
 
   const params: Array<[string, string]> = [];
-  new URLSearchParams(body).forEach(function (value, key) {
+  new URLSearchParams(body).forEach((value, key) => {
     params.push([key, value]);
   });
   return params;
@@ -134,21 +134,21 @@ function buildOAuthAuthorizationHeader(
   }
 
   const allParams: Array<[string, string]> = [];
-  parseQuery(url).forEach(function (pair) {
+  parseQuery(url).forEach((pair) => {
     allParams.push(pair);
   });
-  parseFormBody(headers, body).forEach(function (pair) {
+  parseFormBody(headers, body).forEach((pair) => {
     allParams.push(pair);
   });
-  Object.keys(oauthParams).forEach(function (key) {
+  Object.keys(oauthParams).forEach((key) => {
     allParams.push([key, oauthParams[key] || ""]);
   });
 
   const normalizedParameterString = allParams
-    .map(function (pair) {
+    .map((pair) => {
       return [encodeRfc3986(pair[0]), encodeRfc3986(pair[1])];
     })
-    .sort(function (left, right) {
+    .sort((left, right) => {
       const leftKey = left[0] ?? "";
       const leftValue = left[1] ?? "";
       const rightKey = right[0] ?? "";
@@ -159,7 +159,7 @@ function buildOAuthAuthorizationHeader(
       }
       return leftKey < rightKey ? -1 : 1;
     })
-    .map(function (pair) {
+    .map((pair) => {
       return pair[0] + "=" + pair[1];
     })
     .join("&");
@@ -177,7 +177,7 @@ function buildOAuthAuthorizationHeader(
     "OAuth " +
     Object.keys(oauthParams)
       .sort()
-      .map(function (key) {
+      .map((key) => {
         return encodeRfc3986(key) + '="' + encodeRfc3986(oauthParams[key] || "") + '"';
       })
       .join(", ")
@@ -231,15 +231,15 @@ function createChain(endpoint: string, method: string, path: string): RequestCha
     _options: state._options,
     method: method,
     url: resolveUrl(),
-    headers: function (value) {
+    headers: (value) => {
       state.headers = Object.assign(state.headers, normalizeHeaders(value || {}));
       return chain;
     },
-    set: function (name, value) {
+    set: (name, value) => {
       state.headers[String(name).toLowerCase()] = String(value);
       return chain;
     },
-    json: function (payload) {
+    json: (payload) => {
       if (!state.headers["content-type"]) {
         state.headers["content-type"] = "application/json";
       }
@@ -247,17 +247,17 @@ function createChain(endpoint: string, method: string, path: string): RequestCha
       state.parseJsonResponse = true;
       return chain;
     },
-    body: function (payload) {
+    body: (payload) => {
       state.body = Buffer.isBuffer(payload) ? payload : String(payload);
       state.parseJsonResponse = false;
       return chain;
     },
-    form: function (value) {
+    form: (value) => {
       if (!state.headers["content-type"]) {
         state.headers["content-type"] = "application/x-www-form-urlencoded";
       }
       const searchParams = new URLSearchParams();
-      Object.keys(value || {}).forEach(function (key) {
+      Object.keys(value || {}).forEach((key) => {
         const current = value[key];
         if (typeof current === "undefined" || current === null) {
           return;
@@ -268,20 +268,20 @@ function createChain(endpoint: string, method: string, path: string): RequestCha
       state.parseJsonResponse = false;
       return chain;
     },
-    wait: function (delay) {
+    wait: (delay) => {
       if (delay && typeof delay.then === "function") {
         state.waitPromise = delay;
       }
       return chain;
     },
-    expect: function (status, callback) {
+    expect: (status, callback) => {
       state.expectedStatus = status;
       if (typeof callback === "function") {
         chain.end(callback);
       }
       return chain;
     },
-    end: function (callback) {
+    end: (callback) => {
       const done = typeof callback === "function" ? callback : () => {};
       void (async () => {
         try {
@@ -309,7 +309,7 @@ function createChain(endpoint: string, method: string, path: string): RequestCha
 
           const text = await response.text();
           const responseHeaders: Record<string, string> = {};
-          response.headers.forEach(function (value, key) {
+          response.headers.forEach((value, key) => {
             responseHeaders[key.toLowerCase()] = value;
           });
 
@@ -354,22 +354,22 @@ function createChain(endpoint: string, method: string, path: string): RequestCha
 
 function createRoot(endpoint: string) {
   return {
-    get: function (path: string) {
+    get: (path: string) => {
       return createChain(endpoint, "GET", path);
     },
-    post: function (path: string) {
+    post: (path: string) => {
       return createChain(endpoint, "POST", path);
     },
-    put: function (path: string) {
+    put: (path: string) => {
       return createChain(endpoint, "PUT", path);
     },
-    del: function (path: string) {
+    del: (path: string) => {
       return createChain(endpoint, "DELETE", path);
     },
-    delete: function (path: string) {
+    delete: (path: string) => {
       return createChain(endpoint, "DELETE", path);
     },
-    head: function (path: string) {
+    head: (path: string) => {
       return createChain(endpoint, "HEAD", path);
     },
   };

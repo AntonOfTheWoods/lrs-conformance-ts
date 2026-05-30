@@ -62,7 +62,7 @@ describe("About Resource Requirements (Communication 2.8)", () => {
       expect(about.version).toSatisfy((v: any) => Array.isArray(v));
 
       let foundVersion = false;
-      about.version.forEach(function (item: any) {
+      about.version.forEach((item: any) => {
         if (item === "1.0.3") {
           foundVersion = true;
         }

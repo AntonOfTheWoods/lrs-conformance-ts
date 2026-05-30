@@ -32,7 +32,7 @@ function walkTsFiles(root: string): string[] {
 }
 
 function usesSymbol(source: string, symbol: GlobalSymbol): boolean {
-  return symbol === "expect" && /\bexpect\s*\(/.test(source);
+  return symbol === "expect" && /(^|[^.$\w])expect\s*\(/m.test(source);
 }
 
 function hasBunTestImport(source: string): boolean {

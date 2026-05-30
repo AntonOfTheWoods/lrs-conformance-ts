@@ -62,7 +62,7 @@ describe("About Resource Requirements (Communication 2.8)", () => {
       expect(Array.isArray(about.version)).toBe(true);
 
       let foundVersion = false;
-      about.version.forEach(function (item: any) {
+      about.version.forEach((item: any) => {
         if (item === "2.0.0") {
           foundVersion = true;
         }
@@ -80,7 +80,7 @@ describe("About Resource Requirements (Communication 2.8)", () => {
       expect(about).toHaveProperty("version");
       expect(Array.isArray(about.version)).toBe(true);
       // let validVersions = ['0.9', '0.95', '1.0.0', '1.0.1', '1.0.3', '2.0.0'];
-      // about.version.forEach(function (item: any) {
+      // about.version.forEach((item: any) => {
       //     expect(validVersions).to.include(item);
       // });
 

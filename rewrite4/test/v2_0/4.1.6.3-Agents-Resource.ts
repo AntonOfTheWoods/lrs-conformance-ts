@@ -117,7 +117,7 @@ describe("Agents Resource Requirements (Communication 2.4)", () => {
           let person = res.body;
           expect(person).toHaveProperty("name");
           expect(Array.isArray(person.name)).toBe(true);
-          person.name.forEach(function (item: any) {
+          person.name.forEach((item: any) => {
             expect(typeof item).toBe("string");
           });
         });
@@ -140,7 +140,7 @@ describe("Agents Resource Requirements (Communication 2.4)", () => {
           let person = res.body;
           expect(person).toHaveProperty("mbox");
           expect(Array.isArray(person.mbox)).toBe(true);
-          person.mbox.forEach(function (item: any) {
+          person.mbox.forEach((item: any) => {
             expect(typeof item).toBe("string");
             let email = item.substring(MAIL_TO.length);
             expect(isValidEmailAddress(email)).toBe(true);
@@ -164,7 +164,7 @@ describe("Agents Resource Requirements (Communication 2.4)", () => {
           let person = res.body;
           expect(person).toHaveProperty("mbox");
           expect(Array.isArray(person.mbox)).toBe(true);
-          person.mbox.forEach(function (item: any) {
+          person.mbox.forEach((item: any) => {
             expect(typeof item).toBe("string");
             expect(item).toMatch(/^mailto:/);
           });
@@ -187,7 +187,7 @@ describe("Agents Resource Requirements (Communication 2.4)", () => {
           let person = res.body;
           expect(person).toHaveProperty("mbox_sha1sum");
           expect(Array.isArray(person.mbox_sha1sum)).toBe(true);
-          person.mbox_sha1sum.forEach(function (item: any) {
+          person.mbox_sha1sum.forEach((item: any) => {
             expect(typeof item).toBe("string");
           });
         });
@@ -209,7 +209,7 @@ describe("Agents Resource Requirements (Communication 2.4)", () => {
           let person = res.body;
           expect(person).toHaveProperty("openid");
           expect(Array.isArray(person.openid)).toBe(true);
-          person.openid.forEach(function (item: any) {
+          person.openid.forEach((item: any) => {
             expect(typeof item).toBe("string");
           });
         });
@@ -231,7 +231,7 @@ describe("Agents Resource Requirements (Communication 2.4)", () => {
           let person = res.body;
           expect(person).toHaveProperty("account");
           expect(Array.isArray(person.account)).toBe(true);
-          person.account.forEach(function (item: any) {
+          person.account.forEach((item: any) => {
             expect(!!item && typeof item === "object").toBe(true);
           });
         });

@@ -41,7 +41,9 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
   /**  XAPI-00097, Data 2.4.8 Stored
    * An LRS MUST assign the "stored" property timestamp upon receiving a statement.
    */
-  describe("An LRS MUST accept statements with the stored property (Data 2.4.8.s3.b2, XAPI-00097)", function (this: { timeout(ms: number): void }) {
+  describe("An LRS MUST accept statements with the stored property (Data 2.4.8.s3.b2, XAPI-00097)", function (this: {
+    timeout(ms: number): void;
+  }) {
     this.timeout(0);
     const storedTime = new Date("July 15, 2011").toISOString();
     const template = [{ statement: "{{statements.default}}" }, { stored: storedTime }];
