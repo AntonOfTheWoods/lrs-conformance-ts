@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "chai";
+import { expect } from "bun:test";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { endAsync } from "../super-request.ts";
@@ -72,9 +72,9 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
       );
 
       const result = helper.parse(getRes.body);
-      expect(result).to.have.property("stored");
+      expect(result).toHaveProperty("stored");
       const stmtStored = result.stored;
-      expect(stmtStored).to.not.eql(storedTime);
+      expect(stmtStored).not.toEqual(storedTime);
     });
 
     it("using PUT", async function () {
@@ -99,9 +99,9 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
       );
 
       const result = helper.parse(getRes.body);
-      expect(result).to.have.property("stored");
+      expect(result).toHaveProperty("stored");
       const stmtStored = result.stored;
-      expect(stmtStored).to.not.eql(storedTime);
+      expect(stmtStored).not.toEqual(storedTime);
     });
   });
 
@@ -120,12 +120,12 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
       const result = helper.parse(res.body);
       const stmts = result.statements;
       const milliChecker = (num: number) => {
-        expect(stmts[num]).to.have.property("stored");
+        expect(stmts[num]).toHaveProperty("stored");
         const milliseconds = parseMillisecondsFromIso(stmts[num].stored);
-        expect(milliseconds).to.not.equal(null);
+        expect(milliseconds).not.toEqual(null);
 
         if ((milliseconds as number) % 10 > 0) {
-          expect((milliseconds as number) % 10).to.be.above(0);
+          expect((milliseconds as number) % 10).toBeGreaterThan(0);
 
           return;
         }
@@ -136,7 +136,7 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
           return;
         }
 
-        expect((milliseconds as number) % 10).to.be.above(0);
+        expect((milliseconds as number) % 10).toBeGreaterThan(0);
       };
       milliChecker(0);
     });

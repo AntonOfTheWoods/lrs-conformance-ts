@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "chai";
+import { expect } from "bun:test";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { endAsync } from "../super-request.ts";
@@ -60,6 +60,6 @@ describe("Version Property Requirements (Data 2.4.10)", () => {
     );
 
     const results = helper.parse(getRes.body);
-    expect(results.version).to.equal(version);
+    expect(results.version).toEqual(version);
   });
 });
