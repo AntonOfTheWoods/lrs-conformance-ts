@@ -5,7 +5,7 @@
 
 import extend from "../../bun-runtime/extend-compat.ts";
 import helperImport from "../helper.ts";
-import requestBase from "super-request";
+import requestBase from "../super-request.ts";
 
 const helper: any = helperImport;
 let request: any = requestBase;

@@ -1,4 +1,4 @@
-import requestImport from "super-request";
+import requestImport from "../super-request.ts";
 import { expect } from "chai";
 import helperImport from "../helper.ts";
 import xapiRequestsImport from "./util/requests.ts";

@@ -2,7 +2,7 @@
  * Description : This is a test suite that tests an LRS endpoint based on the testing requirements document
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
-import requestModule from "super-request";
+import requestModule from "../super-request.ts";
 import { expect } from "chai";
 
 import helperModule from "../helper.ts";

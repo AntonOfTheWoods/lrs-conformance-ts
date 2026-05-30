@@ -4,7 +4,7 @@
  */
 
 import helperImport from "../helper.ts";
-import requestBase from "super-request";
+import requestBase from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
 
 const helper: any = helperImport;

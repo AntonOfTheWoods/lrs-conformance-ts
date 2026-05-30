@@ -34,7 +34,7 @@ type DescribeFn = (name: string, callback: () => void) => void;
 type ItFn = (name: string, callback: (done: (error?: unknown) => void) => void) => void;
 
 import helperImport from "./helper.ts";
-import requestModule from "super-request";
+import requestModule from "./super-request.ts";
 
 const helper = helperImport as TemplateHelper;
 

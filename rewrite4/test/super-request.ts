@@ -1,14 +1,59 @@
+import crypto from "node:crypto";
 
-const crypto = require("node:crypto");
+type OAuthOptions = {
+  consumer_key?: string;
+  consumer_secret?: string;
+  token?: string;
+  token_secret?: string;
+  verifier?: string;
+};
 
-function encodeRfc3986(value) {
+type HeaderMap = Record<string, string | undefined>;
+
+type RequestResponse = {
+  body: string | unknown;
+  headers: Record<string, string | undefined>;
+  request: {
+    href: string;
+  };
+  statusCode?: number;
+  text?: string;
+};
+
+type RequestChain = {
+  [key: string]: any;
+  _options?: {
+    oauth?: OAuthOptions;
+  };
+  body(payload: string | Buffer): RequestChain;
+  end(callback?: (error?: unknown, response?: RequestResponse) => void): RequestChain;
+  expect(status: number, callback?: (error?: unknown, response?: RequestResponse) => void): RequestChain;
+  form(value: Record<string, unknown>): RequestChain;
+  headers(value: HeaderMap): RequestChain;
+  json(payload: unknown): RequestChain;
+  set(name: string, value: string): RequestChain;
+  wait(delay: Promise<unknown> | { then?: unknown }): RequestChain;
+};
+
+type RequestFactory = ((endpoint: string) => {
+  get(path: string): RequestChain;
+  post(path: string): RequestChain;
+  put(path: string): RequestChain;
+  del(path: string): RequestChain;
+  delete(path: string): RequestChain;
+  head(path: string): RequestChain;
+}) & {
+  [key: string]: any;
+};
+
+function encodeRfc3986(value: string): string {
   return encodeURIComponent(value).replace(/[!'()*]/g, function (character) {
     return "%" + character.charCodeAt(0).toString(16).toUpperCase();
   });
 }
 
-function normalizeHeaders(headers) {
-  const result = {};
+function normalizeHeaders(headers: HeaderMap): Record<string, string> {
+  const result: Record<string, string> = {};
   Object.keys(headers || {}).forEach(function (key) {
     const value = headers[key];
     if (typeof value === "undefined") {
@@ -19,30 +64,36 @@ function normalizeHeaders(headers) {
   return result;
 }
 
-function parseQuery(url) {
+function parseQuery(url: string): Array<[string, string]> {
   const parsed = new URL(url);
-  const params = [];
+  const params: Array<[string, string]> = [];
   parsed.searchParams.forEach(function (value, key) {
     params.push([key, value]);
   });
   return params;
 }
 
-function parseFormBody(headers, body) {
+function parseFormBody(headers: Record<string, string>, body: unknown): Array<[string, string]> {
   const contentType = headers["content-type"] || "";
   if (!contentType.includes("application/x-www-form-urlencoded") || typeof body !== "string") {
     return [];
   }
 
-  const params = [];
+  const params: Array<[string, string]> = [];
   new URLSearchParams(body).forEach(function (value, key) {
     params.push([key, value]);
   });
   return params;
 }
 
-function buildOAuthAuthorizationHeader(method, url, headers, body, oauth) {
-  const oauthParams = {
+function buildOAuthAuthorizationHeader(
+  method: string,
+  url: string,
+  headers: Record<string, string>,
+  body: unknown,
+  oauth: OAuthOptions,
+): string {
+  const oauthParams: Record<string, string> = {
     oauth_consumer_key: oauth.consumer_key || "",
     oauth_nonce: crypto.randomBytes(16).toString("hex"),
     oauth_signature_method: "HMAC-SHA1",
@@ -52,10 +103,10 @@ function buildOAuthAuthorizationHeader(method, url, headers, body, oauth) {
   };
 
   if (oauth.verifier) {
-    oauthParams.oauth_verifier = oauth.verifier;
+    oauthParams["oauth_verifier"] = oauth.verifier;
   }
 
-  const allParams = [];
+  const allParams: Array<[string, string]> = [];
   parseQuery(url).forEach(function (pair) {
     allParams.push(pair);
   });
@@ -63,7 +114,7 @@ function buildOAuthAuthorizationHeader(method, url, headers, body, oauth) {
     allParams.push(pair);
   });
   Object.keys(oauthParams).forEach(function (key) {
-    allParams.push([key, oauthParams[key]]);
+    allParams.push([key, oauthParams[key] || ""]);
   });
 
   const normalizedParameterString = allParams
@@ -71,10 +122,15 @@ function buildOAuthAuthorizationHeader(method, url, headers, body, oauth) {
       return [encodeRfc3986(pair[0]), encodeRfc3986(pair[1])];
     })
     .sort(function (left, right) {
-      if (left[0] === right[0]) {
-        return left[1] < right[1] ? -1 : left[1] > right[1] ? 1 : 0;
+      const leftKey = left[0] ?? "";
+      const leftValue = left[1] ?? "";
+      const rightKey = right[0] ?? "";
+      const rightValue = right[1] ?? "";
+
+      if (leftKey === rightKey) {
+        return leftValue < rightValue ? -1 : leftValue > rightValue ? 1 : 0;
       }
-      return left[0] < right[0] ? -1 : 1;
+      return leftKey < rightKey ? -1 : 1;
     })
     .map(function (pair) {
       return pair[0] + "=" + pair[1];
@@ -88,21 +144,33 @@ function buildOAuthAuthorizationHeader(method, url, headers, body, oauth) {
   const signingKey = encodeRfc3986(oauth.consumer_secret || "") + "&" + encodeRfc3986(oauth.token_secret || "");
   const signature = crypto.createHmac("sha1", signingKey).update(baseString).digest("base64");
 
-  oauthParams.oauth_signature = signature;
+  oauthParams["oauth_signature"] = signature;
 
   return (
     "OAuth " +
     Object.keys(oauthParams)
       .sort()
       .map(function (key) {
-        return encodeRfc3986(key) + '="' + encodeRfc3986(oauthParams[key]) + '"';
+        return encodeRfc3986(key) + '="' + encodeRfc3986(oauthParams[key] || "") + '"';
       })
       .join(", ")
   );
 }
 
-function createChain(endpoint, method, path) {
-  const state = {
+function createChain(endpoint: string, method: string, path: string): RequestChain {
+  const state: {
+    endpoint: string;
+    method: string;
+    path: string;
+    headers: Record<string, string>;
+    body: unknown;
+    parseJsonResponse: boolean;
+    expectedStatus: number | undefined;
+    waitPromise: Promise<unknown> | { then?: unknown } | undefined;
+    _options: {
+      oauth?: OAuthOptions;
+    };
+  } = {
     endpoint,
     method,
     path,
@@ -114,7 +182,7 @@ function createChain(endpoint, method, path) {
     _options: {},
   };
 
-  function resolveUrl() {
+  function resolveUrl(): string {
     if (/^https?:\/\//i.test(state.path)) {
       return state.path;
     }
@@ -132,7 +200,7 @@ function createChain(endpoint, method, path) {
     return base + "/" + targetPath;
   }
 
-  const chain = {
+  const chain: RequestChain = {
     _options: state._options,
     method: method,
     url: resolveUrl(),
@@ -209,16 +277,16 @@ function createChain(endpoint, method, path) {
           const response = await fetch(url, {
             method: state.method,
             headers: requestHeaders,
-            body: state.method === "GET" || state.method === "HEAD" ? undefined : state.body,
+            body: state.method === "GET" || state.method === "HEAD" ? undefined : (state.body as any),
           });
 
           const text = await response.text();
-          const responseHeaders = {};
+          const responseHeaders: Record<string, string> = {};
           response.headers.forEach(function (value, key) {
             responseHeaders[key.toLowerCase()] = value;
           });
 
-          const responsePayload = {
+          const responsePayload: RequestResponse = {
             body: text,
             text: text,
             headers: responseHeaders,
@@ -257,27 +325,29 @@ function createChain(endpoint, method, path) {
   return chain;
 }
 
-function createRoot(endpoint) {
+function createRoot(endpoint: string) {
   return {
-    get: function (path) {
+    get: function (path: string) {
       return createChain(endpoint, "GET", path);
     },
-    post: function (path) {
+    post: function (path: string) {
       return createChain(endpoint, "POST", path);
     },
-    put: function (path) {
+    put: function (path: string) {
       return createChain(endpoint, "PUT", path);
     },
-    del: function (path) {
+    del: function (path: string) {
       return createChain(endpoint, "DELETE", path);
     },
-    delete: function (path) {
+    delete: function (path: string) {
       return createChain(endpoint, "DELETE", path);
     },
-    head: function (path) {
+    head: function (path: string) {
       return createChain(endpoint, "HEAD", path);
     },
   };
 }
 
-module.exports = createRoot;
+const requestFactory = createRoot as RequestFactory;
+
+export default requestFactory;

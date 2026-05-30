@@ -1,6 +1,0 @@
-{
-  "name": "super-request",
-  "version": "2.0.0-local",
-  "main": "index.js",
-  "types": "index.d.ts"
-}

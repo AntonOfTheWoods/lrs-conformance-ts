@@ -4,7 +4,7 @@
  */
 
 import { expect } from "chai";
-import requestBase from "super-request";
+import requestBase from "../super-request.ts";
 import helperImport from "../helper.ts";
 import { resolve } from "url";
 

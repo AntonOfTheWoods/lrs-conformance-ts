@@ -5,7 +5,7 @@
 
 import { expect } from "chai";
 import helperImport from "../helper.ts";
-import requestBase from "super-request";
+import requestBase from "../super-request.ts";
 import * as liburl from "url";
 
 const helper: any = helperImport;

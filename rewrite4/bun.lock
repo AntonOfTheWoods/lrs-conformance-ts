@@ -11,7 +11,6 @@
         "hono": "^4.10.3",
         "jose": "^6.1.0",
         "mocha": "^1.20.1",
-        "super-request": "file:./packages/super-request",
       },
     },
   },
@@ -61,8 +60,6 @@
     "ms": ["ms@0.6.2", "", {}, "sha512-/pc3eh7TWorTtbvXg8je4GvrvEqCfH7PA3P7iW01yL2E53FKixzgMBaQi0NOPbMJqY34cBSvR0tZtmlTkdUG4A=="],
 
     "sigmund": ["sigmund@1.0.1", "", {}, "sha512-fCvEXfh6NWpm+YSuY2bpXb/VIihqWA6hLsgboC+0nl71Q7N7o2eaCW8mJa/NLvQhs6jpd3VZV4UiUQlV6+lc8g=="],
-
-    "super-request": ["super-request@file:packages/super-request", {}],
 
     "type-detect": ["type-detect@0.1.1", "", {}, "sha512-5rqszGVwYgBoDkIm2oUtvkfZMQ0vk29iDMU0W2qCa3rG0vPDNczCMT4hV/bLBgLg8k8ri6+u3Zbt+S/14eMzlA=="],
 

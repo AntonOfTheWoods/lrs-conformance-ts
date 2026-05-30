@@ -4,7 +4,7 @@
  */
 import { expect } from "chai";
 import helperImport from "../helper.ts";
-import requestBase from "super-request";
+import requestBase from "../super-request.ts";
 import xapiRequestsImport from "./util/requests.ts";
 
 const helper: any = helperImport;

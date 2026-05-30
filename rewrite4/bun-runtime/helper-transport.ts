@@ -1,4 +1,4 @@
-import requestFactoryImport from "super-request";
+import requestFactoryImport from "../test/super-request.ts";
 
 type AnyRecord = Record<string, any>;
 type HeaderMap = Record<string, string | undefined>;

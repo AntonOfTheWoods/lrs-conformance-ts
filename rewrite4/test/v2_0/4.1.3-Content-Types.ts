@@ -5,7 +5,7 @@
 
 import crypto from "crypto";
 import fs from "fs";
-import requestModule from "super-request";
+import requestModule from "../super-request.ts";
 
 import helperModule from "../helper.ts";
 

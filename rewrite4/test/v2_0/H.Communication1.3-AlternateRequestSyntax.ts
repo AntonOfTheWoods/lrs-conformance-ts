@@ -5,7 +5,7 @@
 
 import { expect } from "chai";
 import oldHelpers from "../helper.ts";
-import superRequestBase from "super-request";
+import superRequestBase from "../super-request.ts";
 
 const helper: any = oldHelpers;
 let superRequest = superRequestBase;

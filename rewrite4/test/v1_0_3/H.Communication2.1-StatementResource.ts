@@ -9,7 +9,7 @@ import extend from "../../bun-runtime/extend-compat.ts";
 import fs from "fs";
 import helperImport from "../helper.ts";
 import multipartParser from "../multipartParser.ts";
-import requestBase from "super-request";
+import requestBase from "../super-request.ts";
 
 const helper: any = helperImport;
 let request: any = requestBase;
