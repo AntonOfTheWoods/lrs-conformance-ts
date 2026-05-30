@@ -36,17 +36,7 @@ declare module "supertest-as-promised" {
   export default value;
 }
 
-declare module "comb" {
-  const value: any;
-  export default value;
-}
-
 declare module "moment" {
-  const value: any;
-  export default value;
-}
-
-declare module "isemail" {
   const value: any;
   export default value;
 }

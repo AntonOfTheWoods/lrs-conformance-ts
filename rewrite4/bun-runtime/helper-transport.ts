@@ -1,6 +1,5 @@
 "use strict";
 
-import combImport from "comb";
 import requestFactoryImport from "super-request";
 
 type AnyRecord = Record<string, any>;
@@ -45,14 +44,6 @@ type RequestChain = AnyRecord & {
 };
 
 type RequestFactory = AnyRecord & ((endpoint: string) => RequestChain);
-
-type CombPromise = {
-  resolve: () => void;
-};
-
-type CombModule = {
-  Promise: new () => CombPromise;
-};
 
 type HelperExports = {
   OAuthRequest(request: RequestFactory): RequestFactory;
@@ -199,82 +190,84 @@ function createHelperTransportSupport(context: HelperTransportContext) {
     },
 
     genDelay: function genDelay(time: number, query?: string, id?: string) {
-      const comb = combImport as unknown as CombModule;
       let requestFactory = requestFactoryImport as unknown as RequestFactory;
 
       const delay = function () {
-        const p = new comb.Promise();
-        let endP = helper().getEndpointStatements();
-        if (query) {
-          endP += query;
-        }
-        let delta: number | undefined;
-        let finish: number | undefined;
-
-        function stmtFound(arr: Array<{ id?: string }>, expectedId: string) {
-          let found = false;
-          arr.forEach(function (statement) {
-            if (statement.id === expectedId) {
-              found = true;
-            }
-          });
-          return found;
-        }
-
-        function doRequest() {
-          if (getOAuthSettings()) {
-            requestFactory = helper().OAuthRequest(requestFactory);
+        return new Promise<void>((resolve, reject) => {
+          let endP = helper().getEndpointStatements();
+          if (query) {
+            endP += query;
           }
-          requestFactory(helper().getEndpointAndAuth())
-            .get(endP)
-            .headers(helper().addAllHeaders({}))
-            .end(function (err: unknown, res: RequestResponse) {
-              let result: AnyRecord;
-              if (err) {
-                throw err;
-              }
+          let delta: number | undefined;
+          let finish: number | undefined;
 
-              const consistentThroughHeader = res.headers["x-experience-api-consistent-through"];
-              const dateHeader = res.headers["date"];
-
-              try {
-                result = JSON.parse(res.body);
-              } catch (_error) {
-                result = {};
-              }
-
-              if (id && result["id"] && result["id"] === id) {
-                p.resolve();
-              } else if (id && Array.isArray(result["statements"]) && stmtFound(result["statements"], id)) {
-                p.resolve();
-              } else if (
-                new Date(consistentThroughHeader ?? Number.NaN).valueOf() + (helper().getTimeMargin() ?? Number.NaN) >=
-                time
-              ) {
-                p.resolve();
-              } else {
-                if (!delta) {
-                  delta =
-                    new Date(dateHeader ?? Number.NaN).valueOf() -
-                    new Date(consistentThroughHeader ?? Number.NaN).valueOf();
-                  finish = Date.now() + 10 * Math.abs(delta);
-
-                  if (isNaN(finish)) {
-                    throw new TypeError("X-Experience-API-Consistent-Through header was missing or not a number.");
-                  }
-                }
-
-                if (typeof finish === "number" && Date.now() >= finish) {
-                  p.resolve();
-                } else {
-                  setTimeout(doRequest, 1000);
-                }
+          function stmtFound(arr: Array<{ id?: string }>, expectedId: string) {
+            let found = false;
+            arr.forEach(function (statement) {
+              if (statement.id === expectedId) {
+                found = true;
               }
             });
-        }
+            return found;
+          }
 
-        doRequest();
-        return p;
+          function doRequest() {
+            if (getOAuthSettings()) {
+              requestFactory = helper().OAuthRequest(requestFactory);
+            }
+            requestFactory(helper().getEndpointAndAuth())
+              .get(endP)
+              .headers(helper().addAllHeaders({}))
+              .end(function (err: unknown, res: RequestResponse) {
+                let result: AnyRecord;
+                if (err) {
+                  reject(err);
+                  return;
+                }
+
+                const consistentThroughHeader = res.headers["x-experience-api-consistent-through"];
+                const dateHeader = res.headers["date"];
+
+                try {
+                  result = JSON.parse(res.body);
+                } catch (_error) {
+                  result = {};
+                }
+
+                if (id && result["id"] && result["id"] === id) {
+                  resolve();
+                } else if (id && Array.isArray(result["statements"]) && stmtFound(result["statements"], id)) {
+                  resolve();
+                } else if (
+                  new Date(consistentThroughHeader ?? Number.NaN).valueOf() +
+                    (helper().getTimeMargin() ?? Number.NaN) >=
+                  time
+                ) {
+                  resolve();
+                } else {
+                  if (!delta) {
+                    delta =
+                      new Date(dateHeader ?? Number.NaN).valueOf() -
+                      new Date(consistentThroughHeader ?? Number.NaN).valueOf();
+                    finish = Date.now() + 10 * Math.abs(delta);
+
+                    if (isNaN(finish)) {
+                      reject(new TypeError("X-Experience-API-Consistent-Through header was missing or not a number."));
+                      return;
+                    }
+                  }
+
+                  if (typeof finish === "number" && Date.now() >= finish) {
+                    resolve();
+                  } else {
+                    setTimeout(doRequest, 1000);
+                  }
+                }
+              });
+          }
+
+          doRequest();
+        });
       };
 
       return delay();

@@ -10,7 +10,6 @@
 import { createRequire } from "node:module";
 import requestFactory from "supertest-as-promised";
 import "should";
-import isEmail from "isemail";
 
 import helperImport from "../helper.ts";
 
@@ -43,8 +42,6 @@ if (oauthEnabled) {
 
   oauth = new OAuth.OAuth("", "", oauthConfig.consumer_key, oauthConfig.consumer_secret, "1.0", null, "HMAC-SHA1");
 }
-
-void isEmail;
 
 //extend the super-test-as-promised with a function to write the oauth headers
 function extendRequestWithOauth(pre: any): void {

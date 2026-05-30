@@ -5,8 +5,8 @@
 
 import { expect } from "chai";
 import helperImport from "../helper.ts";
-import isEmail from "isemail";
 import requestBase from "super-request";
+import validator from "validator";
 
 const helper: any = helperImport;
 let request: any = requestBase;
@@ -139,7 +139,7 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
           person.mbox.forEach(function (item: any) {
             expect(item).to.be.a("string");
             let email = item.substring(MAIL_TO.length);
-            expect(isEmail(email)).to.be.true;
+            expect(validator.isEmail(email)).to.be.true;
           });
         });
     });

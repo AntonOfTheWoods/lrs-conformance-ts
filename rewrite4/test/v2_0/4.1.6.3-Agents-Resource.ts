@@ -4,9 +4,9 @@
  */
 
 import { expect } from "chai";
-import isEmail from "isemail";
 import helperImport from "../helper.ts";
 import requestBase from "super-request";
+import validator from "validator";
 
 const helper: any = helperImport;
 let request: any = requestBase;
@@ -65,7 +65,9 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
       let parameters = {
         agent: statement.actor,
       };
-      return helper.sendRequest("get", helper.getEndpointAgents(), parameters, undefined, 200).then(function (res: any) {
+      return helper.sendRequest("get", helper.getEndpointAgents(), parameters, undefined, 200).then(function (
+        res: any,
+      ) {
         expect(res.body.objectType).to.eql("Person");
         expect(res.body).to.be.an("object");
       });
@@ -136,7 +138,7 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
           person.mbox.forEach(function (item: any) {
             expect(item).to.be.a("string");
             let email = item.substring(MAIL_TO.length);
-            expect(isEmail(email)).to.be.true;
+            expect(validator.isEmail(email)).to.be.true;
           });
         });
     });
