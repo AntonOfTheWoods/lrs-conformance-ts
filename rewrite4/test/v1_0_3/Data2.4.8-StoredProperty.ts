@@ -3,176 +3,143 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import __esmDep1 from "fs";
-import __esmDep2 from "extend";
-import __esmDep3 from "moment";
-import __esmDep4 from "super-request";
-import __esmDep5 from "supertest-as-promised";
-import __esmDep6 from "chai";
-import __esmDep7 from "url";
-import __esmDep8 from "joi";
-import __esmDep9 from "./../helper.ts";
-import __esmDep10 from "./../multipartParser.ts";
-import __esmDep11 from "./../redirect.ts";
+import { expect } from "chai";
+import helperImport from "../helper.ts";
+import moment from "moment";
+import requestBase from "super-request";
 
-(function (
-  module: any,
-  fs: any,
-  extend: any,
-  moment: any,
-  request: any,
-  requestPromise: any,
-  chai: any,
-  liburl: any,
-  Joi: any,
-  helper: any,
-  multipartParser: any,
-  redirect: any,
-) {
-  // "use strict";
+const helper: any = helperImport;
+let request: any = requestBase;
 
-  let expect = chai.expect;
-  if (global.OAUTH) request = helper.OAuthRequest(request);
+// "use strict";
 
-  describe("Stored Property Requirements (Data 2.4.8)", () => {
-    let param: any;
+if (global.OAUTH) request = helper.OAuthRequest(request);
 
-    /**  Matchup with Conformance Requirements Document
-     * XAPI-00097 - below
-     *
-     * Note XAPI-00023 - below
-     */
+describe("Stored Property Requirements (Data 2.4.8)", () => {
+  let param: any;
 
-    /**  XAPI-00097, Data 2.4.8 Stored
-     * An LRS MUST assign the "stored" property timestamp upon receiving a statement.
-     */
-    describe("An LRS MUST accept statements with the stored property (Data 2.4.8.s3.b2, XAPI-00097)", function () {
-      this.timeout(0);
-      let storedTime = new Date("July 15, 2011").toISOString();
-      let template = [{ statement: "{{statements.default}}" }, { stored: storedTime }];
-      let data = helper.createFromTemplate(template).statement;
-      let postId, putId;
+  /**  Matchup with Conformance Requirements Document
+   * XAPI-00097 - below
+   *
+   * Note XAPI-00023 - below
+   */
 
-      it("using POST", function (done) {
-        let stmtTime = Date.now();
-        request(helper.getEndpointAndAuth())
-          .post(helper.getEndpointStatements())
-          .headers(helper.addAllHeaders())
-          .json(data)
-          .expect(200)
-          .end((err, res) => {
-            if (err) {
-              done(err);
-            } else {
-              postId = res.body[0];
-              let query = "?statementId=" + postId;
+  /**  XAPI-00097, Data 2.4.8 Stored
+   * An LRS MUST assign the "stored" property timestamp upon receiving a statement.
+   */
+  describe("An LRS MUST accept statements with the stored property (Data 2.4.8.s3.b2, XAPI-00097)", function () {
+    this.timeout(0);
+    let storedTime = new Date("July 15, 2011").toISOString();
+    let template = [{ statement: "{{statements.default}}" }, { stored: storedTime }];
+    let data = helper.createFromTemplate(template).statement;
+    let postId, putId;
 
-              request(helper.getEndpointAndAuth())
-                .get(helper.getEndpointStatements() + query)
-                .wait(helper.genDelay(stmtTime, query, postId))
-                .headers(helper.addAllHeaders())
-                .expect(200)
-                .end((err, res) => {
-                  if (err) {
-                    done(err);
-                  } else {
-                    let result = helper.parse(res.body);
-                    expect(result).to.have.property("stored");
-                    let stmtStored = result.stored;
-                    expect(stmtStored).to.not.eql(storedTime);
-                    done();
-                  }
-                });
-            }
-          });
-      });
+    it("using POST", function (done) {
+      let stmtTime = Date.now();
+      request(helper.getEndpointAndAuth())
+        .post(helper.getEndpointStatements())
+        .headers(helper.addAllHeaders())
+        .json(data)
+        .expect(200)
+        .end((err, res) => {
+          if (err) {
+            done(err);
+          } else {
+            postId = res.body[0];
+            let query = "?statementId=" + postId;
 
-      it("using PUT", function (done) {
-        putId = helper.generateUUID();
-        param = "?statementId=" + putId;
-        let stmtTime = Date.now();
-
-        request(helper.getEndpointAndAuth())
-          .put(helper.getEndpointStatements() + param)
-          .headers(helper.addAllHeaders())
-          .json(data)
-          .expect(204)
-          .end((err, res) => {
-            if (err) {
-              done(err);
-            } else {
-              request(helper.getEndpointAndAuth())
-                .get(helper.getEndpointStatements() + param)
-                .wait(helper.genDelay(stmtTime, param, putId))
-                .headers(helper.addAllHeaders())
-                .expect(200)
-                .end((err, res) => {
-                  if (err) {
-                    done(err);
-                  } else {
-                    let result = helper.parse(res.body);
-                    expect(result).to.have.property("stored");
-                    let stmtStored = result.stored;
-                    expect(stmtStored).to.not.eql(storedTime);
-                    done();
-                  }
-                });
-            }
-          });
-      });
+            request(helper.getEndpointAndAuth())
+              .get(helper.getEndpointStatements() + query)
+              .wait(helper.genDelay(stmtTime, query, postId))
+              .headers(helper.addAllHeaders())
+              .expect(200)
+              .end((err, res) => {
+                if (err) {
+                  done(err);
+                } else {
+                  let result = helper.parse(res.body);
+                  expect(result).to.have.property("stored");
+                  let stmtStored = result.stored;
+                  expect(stmtStored).to.not.eql(storedTime);
+                  done();
+                }
+              });
+          }
+        });
     });
 
-    /**  XAPI-00023,  2.4 Statement Properties
-     * A "stored" property is a TimeStamp, per section 4.5. An LRS assigns the “stored” property upon receipt with a valid TimeStamp.
-     */
-    describe("A stored property must be a TimeStamp (Data 2.4.8.s2, XAPI-00023)", function () {
-      it("retrieve statements, test a stored property", (done) => {
-        request(helper.getEndpointAndAuth())
-          .get(helper.getEndpointStatements())
-          .headers(helper.addAllHeaders())
-          .expect(200)
-          .end((err, res) => {
-            if (err) {
-              done(err);
-            } else {
-              let result = helper.parse(res.body);
-              let stmts = result.statements;
-              let milliChecker = (num) => {
-                expect(stmts[num]).to.have.property("stored");
-                //formatted iso 8601
-                let chkStored = moment(stmts[num].stored, moment.ISO_8601);
-                expect(chkStored.isValid()).to.be.true;
-                expect(isNaN(chkStored._pf.parsedDateParts[6])).to.be.false;
-                //precision to milliseconds
-                if (chkStored._pf.parsedDateParts[6] % 10 > 0) {
-                  expect(chkStored._pf.parsedDateParts[6] % 10).to.be.above(0);
-                  done();
+    it("using PUT", function (done) {
+      putId = helper.generateUUID();
+      param = "?statementId=" + putId;
+      let stmtTime = Date.now();
+
+      request(helper.getEndpointAndAuth())
+        .put(helper.getEndpointStatements() + param)
+        .headers(helper.addAllHeaders())
+        .json(data)
+        .expect(204)
+        .end((err, res) => {
+          if (err) {
+            done(err);
+          } else {
+            request(helper.getEndpointAndAuth())
+              .get(helper.getEndpointStatements() + param)
+              .wait(helper.genDelay(stmtTime, param, putId))
+              .headers(helper.addAllHeaders())
+              .expect(200)
+              .end((err, res) => {
+                if (err) {
+                  done(err);
                 } else {
-                  if (++num < stmts.length) {
-                    milliChecker(num);
-                  } else {
-                    expect(chkStored._pf.parsedDateParts[6] % 10).to.be.above(0);
-                    done();
-                  }
+                  let result = helper.parse(res.body);
+                  expect(result).to.have.property("stored");
+                  let stmtStored = result.stored;
+                  expect(stmtStored).to.not.eql(storedTime);
+                  done();
                 }
-              };
-              milliChecker(0);
-            }
-          });
-      });
+              });
+          }
+        });
     });
   });
-})(
-  undefined,
-  __esmDep1,
-  __esmDep2,
-  __esmDep3,
-  __esmDep4,
-  __esmDep5,
-  __esmDep6,
-  __esmDep7,
-  __esmDep8,
-  __esmDep9,
-  __esmDep10,
-  __esmDep11,
-);
+
+  /**  XAPI-00023,  2.4 Statement Properties
+   * A "stored" property is a TimeStamp, per section 4.5. An LRS assigns the “stored” property upon receipt with a valid TimeStamp.
+   */
+  describe("A stored property must be a TimeStamp (Data 2.4.8.s2, XAPI-00023)", function () {
+    it("retrieve statements, test a stored property", (done) => {
+      request(helper.getEndpointAndAuth())
+        .get(helper.getEndpointStatements())
+        .headers(helper.addAllHeaders())
+        .expect(200)
+        .end((err, res) => {
+          if (err) {
+            done(err);
+          } else {
+            let result = helper.parse(res.body);
+            let stmts = result.statements;
+            let milliChecker = (num) => {
+              expect(stmts[num]).to.have.property("stored");
+              //formatted iso 8601
+              let chkStored = moment(stmts[num].stored, moment.ISO_8601);
+              expect(chkStored.isValid()).to.be.true;
+              expect(isNaN(chkStored._pf.parsedDateParts[6])).to.be.false;
+              //precision to milliseconds
+              if (chkStored._pf.parsedDateParts[6] % 10 > 0) {
+                expect(chkStored._pf.parsedDateParts[6] % 10).to.be.above(0);
+                done();
+              } else {
+                if (++num < stmts.length) {
+                  milliChecker(num);
+                } else {
+                  expect(chkStored._pf.parsedDateParts[6] % 10).to.be.above(0);
+                  done();
+                }
+              }
+            };
+            milliChecker(0);
+          }
+        });
+    });
+  });
+});

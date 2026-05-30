@@ -3,117 +3,91 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import __esmDep1 from "fs";
-import __esmDep2 from "extend";
-import __esmDep3 from "moment";
-import __esmDep4 from "super-request";
-import __esmDep5 from "supertest-as-promised";
-import __esmDep6 from "chai";
-import __esmDep7 from "url";
-import __esmDep8 from "joi";
-import __esmDep9 from "./../helper.ts";
-import __esmDep10 from "./../multipartParser.ts";
-import __esmDep11 from "./../redirect.ts";
+import { expect } from "chai";
+import helperImport from "../helper.ts";
+import requestBase from "super-request";
 
-(function (
-  module: any,
-  fs: any,
-  extend: any,
-  moment: any,
-  request: any,
-  requestPromise: any,
-  chai: any,
-  liburl: any,
-  Joi: any,
-  helper: any,
-  multipartParser: any,
-  redirect: any,
-) {
-  // "use strict";
+const helper: any = helperImport;
+let request: any = requestBase;
 
-  let expect = chai.expect;
-  if (global.OAUTH) request = helper.OAuthRequest(request);
+// "use strict";
 
-  describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
-    /**  Matchup with Conformance Requirements Document
-     * XAPI-00125 - below
-     * XAPI-00126 - below
-     */
+if (global.OAUTH) request = helper.OAuthRequest(request);
 
-    /**  XAPI-00126
-     * An LRS accepts HEAD requests.
-     */
-    describe("An LRS accepts HEAD requests (Communication 1.1, XAPI-00126)", function () {
-      /*  This is to be removed in a future version on the specification and is being removed now.
+describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
+  /**  Matchup with Conformance Requirements Document
+   * XAPI-00125 - below
+   * XAPI-00126 - below
+   */
+
+  /**  XAPI-00126
+   * An LRS accepts HEAD requests.
+   */
+  describe("An LRS accepts HEAD requests (Communication 1.1, XAPI-00126)", function () {
+    /*  This is to be removed in a future version on the specification and is being removed now.
         it('should succeed GET about with no body', function () {
             return helper.sendRequest('head', helper.getEndpointAbout(), undefined, undefined, 200);
         });
         */
 
-      it("should succeed HEAD activities with no body", function () {
-        let statement = helper.buildStatement();
-        let parameters = {
-          activityId: statement.object.id,
-        };
-        return helper
-          .sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200)
-          .then(function () {
-            return helper.sendRequest("head", helper.getEndpointActivities(), parameters, undefined, 200);
-          });
-      });
-
-      it("should succeed HEAD activities profile with no body", function () {
-        let parameters = helper.buildActivityProfile(),
-          document = helper.buildDocument();
-        return helper
-          .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204)
-          .then(function () {
-            return helper.sendRequest("head", helper.getEndpointActivitiesProfile(), parameters, undefined, 200);
-          });
-      });
-
-      it("should succeed HEAD activities state with no body", function () {
-        let parameters = helper.buildState(),
-          document = helper.buildDocument();
-        return helper
-          .sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204)
-          .then(function () {
-            return helper.sendRequest("head", helper.getEndpointActivitiesState(), parameters, undefined, 200);
-          });
-      });
-
-      it("should succeed HEAD agents with no body", function () {
-        let statement = helper.buildStatement();
-        let parameters = {
-          agent: statement.actor,
-        };
-        return helper
-          .sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200)
-          .then(function () {
-            return helper.sendRequest("head", helper.getEndpointAgents(), parameters, undefined, 200);
-          });
-      });
-
-      it("should succeed HEAD agents profile with no body", function () {
-        let parameters = helper.buildAgentProfile(),
-          document = helper.buildDocument();
-        return helper
-          .sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204)
-          .then(function () {
-            return helper.sendRequest("head", helper.getEndpointAgentsProfile(), parameters, undefined, 200);
-          });
-      });
-
-      it("should succeed HEAD statements with no body", function () {
-        return helper.sendRequest("head", helper.getEndpointStatements(), undefined, undefined, 200);
+    it("should succeed HEAD activities with no body", function () {
+      let statement = helper.buildStatement();
+      let parameters = {
+        activityId: statement.object.id,
+      };
+      return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
+        return helper.sendRequest("head", helper.getEndpointActivities(), parameters, undefined, 200);
       });
     });
 
-    /**  XAPI-00125
-     * An LRS responds to a HEAD request in the same way as a GET request, but without the message-body. This means run ALL GET tests with HEAD
-     */
-    describe("An LRS responds to a HEAD request in the same way as a GET request, but without the message-body (Communication 1.1.s3.b1, XAPI-00125) **This means run ALL GET tests with HEAD**", function () {
-      /*  This is to be removed in a future version on the specification and is being removed now.
+    it("should succeed HEAD activities profile with no body", function () {
+      let parameters = helper.buildActivityProfile(),
+        document = helper.buildDocument();
+      return helper
+        .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204)
+        .then(function () {
+          return helper.sendRequest("head", helper.getEndpointActivitiesProfile(), parameters, undefined, 200);
+        });
+    });
+
+    it("should succeed HEAD activities state with no body", function () {
+      let parameters = helper.buildState(),
+        document = helper.buildDocument();
+      return helper
+        .sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204)
+        .then(function () {
+          return helper.sendRequest("head", helper.getEndpointActivitiesState(), parameters, undefined, 200);
+        });
+    });
+
+    it("should succeed HEAD agents with no body", function () {
+      let statement = helper.buildStatement();
+      let parameters = {
+        agent: statement.actor,
+      };
+      return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
+        return helper.sendRequest("head", helper.getEndpointAgents(), parameters, undefined, 200);
+      });
+    });
+
+    it("should succeed HEAD agents profile with no body", function () {
+      let parameters = helper.buildAgentProfile(),
+        document = helper.buildDocument();
+      return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(function () {
+        return helper.sendRequest("head", helper.getEndpointAgentsProfile(), parameters, undefined, 200);
+      });
+    });
+
+    it("should succeed HEAD statements with no body", function () {
+      return helper.sendRequest("head", helper.getEndpointStatements(), undefined, undefined, 200);
+    });
+  });
+
+  /**  XAPI-00125
+   * An LRS responds to a HEAD request in the same way as a GET request, but without the message-body. This means run ALL GET tests with HEAD
+   */
+  describe("An LRS responds to a HEAD request in the same way as a GET request, but without the message-body (Communication 1.1.s3.b1, XAPI-00125) **This means run ALL GET tests with HEAD**", function () {
+    /*  This is to be removed in a future version on the specification and is being removed now.
         it('should succeed HEAD about with no body', function () {
             return helper.sendRequest('head', helper.getEndpointAbout(), undefined, undefined, 200)
                 .then(function (res) {
@@ -122,113 +96,93 @@ import __esmDep11 from "./../redirect.ts";
         });
         */
 
-      it("should succeed HEAD activities with no body", function () {
-        let templates = [{ statement: "{{statements.default}}" }];
-        let data = helper.createFromTemplate(templates);
-        let statement = data.statement;
-        let parameters = {
-          activityId: data.statement.object.id,
-        };
+    it("should succeed HEAD activities with no body", function () {
+      let templates = [{ statement: "{{statements.default}}" }];
+      let data = helper.createFromTemplate(templates);
+      let statement = data.statement;
+      let parameters = {
+        activityId: data.statement.object.id,
+      };
+      return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
         return helper
-          .sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200)
-          .then(function () {
-            return helper
-              .sendRequest("head", helper.getEndpointActivities(), parameters, undefined, 200)
-              .then(function (res) {
-                expect(Object.keys(res.body)).to.have.length(0);
-              });
-          });
-      });
-
-      it("should succeed HEAD activities profile with no body", function () {
-        let parameters = helper.buildActivityProfile(),
-          document = helper.buildDocument();
-        return helper
-          .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204)
-          .then(function () {
-            return helper
-              .sendRequest("head", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
-              .then(function (res) {
-                expect(Object.keys(res.body)).to.have.length(0);
-              });
-          });
-      });
-
-      it("should succeed HEAD activities state with no body", function () {
-        let parameters = helper.buildState(),
-          document = helper.buildDocument();
-        return helper
-          .sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204)
-          .then(function () {
-            return helper
-              .sendRequest("head", helper.getEndpointActivitiesState(), parameters, undefined, 200)
-              .then(function (res) {
-                expect(Object.keys(res.body)).to.have.length(0);
-              });
-          });
-      });
-
-      it("should succeed HEAD agents with no body", function () {
-        return helper
-          .sendRequest("head", helper.getEndpointAgents(), helper.buildAgent(), undefined, 200)
+          .sendRequest("head", helper.getEndpointActivities(), parameters, undefined, 200)
           .then(function (res) {
             expect(Object.keys(res.body)).to.have.length(0);
           });
       });
+    });
 
-      it("should succeed HEAD agents profile with no body", function () {
-        let parameters = helper.buildAgentProfile(),
-          document = helper.buildDocument();
-        return helper
-          .sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204)
-          .then(function () {
-            return helper
-              .sendRequest("head", helper.getEndpointAgentsProfile(), parameters, undefined, 200)
-              .then(function (res) {
-                expect(Object.keys(res.body)).to.have.length(0);
-              });
-          });
-      });
+    it("should succeed HEAD activities profile with no body", function () {
+      let parameters = helper.buildActivityProfile(),
+        document = helper.buildDocument();
+      return helper
+        .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204)
+        .then(function () {
+          return helper
+            .sendRequest("head", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
+            .then(function (res) {
+              expect(Object.keys(res.body)).to.have.length(0);
+            });
+        });
+    });
 
-      it("should succeed HEAD statements with no body", function () {
-        let statement = helper.buildStatement();
+    it("should succeed HEAD activities state with no body", function () {
+      let parameters = helper.buildState(),
+        document = helper.buildDocument();
+      return helper
+        .sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204)
+        .then(function () {
+          return helper
+            .sendRequest("head", helper.getEndpointActivitiesState(), parameters, undefined, 200)
+            .then(function (res) {
+              expect(Object.keys(res.body)).to.have.length(0);
+            });
+        });
+    });
+
+    it("should succeed HEAD agents with no body", function () {
+      return helper
+        .sendRequest("head", helper.getEndpointAgents(), helper.buildAgent(), undefined, 200)
+        .then(function (res) {
+          expect(Object.keys(res.body)).to.have.length(0);
+        });
+    });
+
+    it("should succeed HEAD agents profile with no body", function () {
+      let parameters = helper.buildAgentProfile(),
+        document = helper.buildDocument();
+      return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(function () {
         return helper
-          .sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200)
-          .then(function () {
-            return helper
-              .sendRequest("head", helper.getEndpointStatements(), undefined, undefined, 200)
-              .then(function (res) {
-                expect(Object.keys(res.body)).to.have.length(0);
-              });
+          .sendRequest("head", helper.getEndpointAgentsProfile(), parameters, undefined, 200)
+          .then(function (res) {
+            expect(Object.keys(res.body)).to.have.length(0);
           });
       });
     });
 
-    it("An LRS accepts HEAD requests without Content-Length headers (Communication 1.1)", function (done) {
-      request(helper.getEndpointAndAuth())
-        .head(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .expect(200, done);
-    });
-
-    it("An LRS accepts GET requests without Content-Length headers (Communication 1.1)", function (done) {
-      request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .expect(200, done);
+    it("should succeed HEAD statements with no body", function () {
+      let statement = helper.buildStatement();
+      return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
+        return helper
+          .sendRequest("head", helper.getEndpointStatements(), undefined, undefined, 200)
+          .then(function (res) {
+            expect(Object.keys(res.body)).to.have.length(0);
+          });
+      });
     });
   });
-})(
-  undefined,
-  __esmDep1,
-  __esmDep2,
-  __esmDep3,
-  __esmDep4,
-  __esmDep5,
-  __esmDep6,
-  __esmDep7,
-  __esmDep8,
-  __esmDep9,
-  __esmDep10,
-  __esmDep11,
-);
+
+  it("An LRS accepts HEAD requests without Content-Length headers (Communication 1.1)", function (done) {
+    request(helper.getEndpointAndAuth())
+      .head(helper.getEndpointStatements())
+      .headers(helper.addAllHeaders({}))
+      .expect(200, done);
+  });
+
+  it("An LRS accepts GET requests without Content-Length headers (Communication 1.1)", function (done) {
+    request(helper.getEndpointAndAuth())
+      .get(helper.getEndpointStatements())
+      .headers(helper.addAllHeaders({}))
+      .expect(200, done);
+  });
+});
