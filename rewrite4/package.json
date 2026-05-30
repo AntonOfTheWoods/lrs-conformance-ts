@@ -17,7 +17,6 @@
   },
   "main": "./bin/console_runner.ts",
   "scripts": {
-    "audit:mocha-chai": "bun ./scripts/audit-mocha-chai-migration.ts",
     "test": "bun ./node_modules/mocha/bin/mocha test/v1_0_3/*.ts test/v2_0/*.ts --reporter nyan",
     "test:bun:pilot": "bun test --preload ./test/bun-bootstrap.ts ./test/v1_0_3/*.ts ./test/v2_0/*.ts",
     "start": "bun ./bin/console_runner.ts",
@@ -25,8 +24,6 @@
   },
   "dependencies": {
     "@hono/node-server": "^2.0.4",
-    "chai": "^2.3.0",
-    "chai-things": "^0.2.0",
     "hono": "^4.10.3",
     "jose": "^6.1.0",
     "mocha": "^1.20.1"

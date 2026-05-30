@@ -656,45 +656,19 @@ test("rewrite4 suite loader prioritizes optional directories and selected files"
   }
 });
 
-test("rewrite4 suite loader installs chai-things before loading selected files", async () => {
+test("rewrite4 suite loader loads selected files without assertion plugin bootstrap", async () => {
   const runtimeRoot = await mkdtemp(join(tmpdir(), "rewrite4-suite-loader-"));
-  const globalState = globalThis as GlobalTestShape & { __chaiBootstrapTrace?: string[] };
+  const globalState = globalThis as GlobalTestShape;
 
   try {
     await mkdir(join(runtimeRoot, "bin"), { recursive: true });
-    await mkdir(join(runtimeRoot, "node_modules", "chai"), { recursive: true });
-    await mkdir(join(runtimeRoot, "node_modules", "chai-things"), { recursive: true });
     await mkdir(join(runtimeRoot, "test", "v1_0_3"), { recursive: true });
     await writeFile(
-      join(runtimeRoot, "node_modules", "chai", "index.js"),
-      [
-        "module.exports = {",
-        "  use(plugin) {",
-        "    global.__chaiBootstrapTrace.push(plugin.pluginName || plugin.name || 'unknown');",
-        "  },",
-        "};",
-        "",
-      ].join("\n"),
-      "utf8",
-    );
-    await writeFile(
-      join(runtimeRoot, "node_modules", "chai-things", "index.js"),
-      "module.exports = { pluginName: 'chai-things' };\n",
-      "utf8",
-    );
-    await writeFile(
       join(runtimeRoot, "test", "v1_0_3", "selected.js"),
-      [
-        "if (!Array.isArray(global.__chaiBootstrapTrace) || global.__chaiBootstrapTrace[0] !== 'chai-things') {",
-        "  throw new Error('chai-things not installed before suite load');",
-        "}",
-        "global.__suiteLoadTrace.push('v1_0_3/selected.js');",
-        "",
-      ].join("\n"),
+      "global.__suiteLoadTrace.push('v1_0_3/selected.js');\n",
       "utf8",
     );
 
-    globalState.__chaiBootstrapTrace = [];
     globalState.__suiteLoadTrace = [];
 
     const loadedFiles = await registerSuiteFiles({
@@ -707,11 +681,9 @@ test("rewrite4 suite loader installs chai-things before loading selected files",
       runtimeRoot,
     });
 
-    expect(globalState.__chaiBootstrapTrace).toEqual(["chai-things"]);
     expect(globalState.__suiteLoadTrace).toEqual(["v1_0_3/selected.js"]);
     expect(loadedFiles).toEqual(["test/v1_0_3/selected.js"]);
   } finally {
-    delete globalState.__chaiBootstrapTrace;
     delete globalState.__suiteLoadTrace;
     await rm(runtimeRoot, { force: true, recursive: true });
   }
@@ -776,11 +748,7 @@ test("rewrite4 suite loader registers time margin bootstrap for selected time-se
 
   try {
     await mkdir(join(runtimeRoot, "bin"), { recursive: true });
-    await mkdir(join(runtimeRoot, "node_modules", "chai"), { recursive: true });
-    await mkdir(join(runtimeRoot, "node_modules", "chai-things"), { recursive: true });
     await mkdir(join(runtimeRoot, "test", "v1_0_3"), { recursive: true });
-    await writeFile(join(runtimeRoot, "node_modules", "chai", "index.js"), "module.exports = { use() {} };\n", "utf8");
-    await writeFile(join(runtimeRoot, "node_modules", "chai-things", "index.js"), "module.exports = {};\n", "utf8");
     await writeFile(join(runtimeRoot, "test", "helper.ts"), "module.exports = { setTimeMargin() {} };\n", "utf8");
     await writeFile(
       join(runtimeRoot, "test", "v1_0_3", "H.Communication2.1-StatementResource.js"),
