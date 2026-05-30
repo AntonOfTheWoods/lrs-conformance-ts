@@ -281,7 +281,3 @@ const requests = {
 };
 
 export default requests;
-
-if (typeof module !== "undefined") {
-  module.exports = requests;
-}

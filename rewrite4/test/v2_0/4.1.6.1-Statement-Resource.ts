@@ -1064,7 +1064,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
           if (err) console.log(err);
 
           let statement = JSON.parse(res.body);
-          // console.log(require("util").inspect(statement,{depth:7}));
+          // console.log(statement);
           expect(statement.verb.display).not.to.have.property("en-US");
           expect(statement.context.contextActivities.category[0].definition.description).not.to.have.property("en-US");
           expect(statement.context.contextActivities.category[0].definition.name).not.to.have.property("en-US");
@@ -1086,7 +1086,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
           if (err) console.log(err);
 
           let statement = JSON.parse(res.body);
-          // console.log(require("util").inspect(statement,{depth:7}));
+          // console.log(statement);
           expect(statement.verb.display).to.have.property("en-US");
           expect(statement.context.contextActivities.category[0].definition.description).to.have.property("en-US");
           expect(statement.context.contextActivities.category[0].definition.name).to.have.property("en-US");

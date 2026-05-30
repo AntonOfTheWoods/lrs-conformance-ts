@@ -37,10 +37,7 @@ describe("Authentication Requirements (Communication 4.0)", function () {
         data.id = helper.generateUUID();
         let headers = helper.addAllHeaders({});
 
-        //warning: this ".\\" is super important. Node caches the modules, and the superrequest module has been modified to work correctly
-        //with oauth already. We get a new verions by appending some other characters to defeat the cache.
-        if (global.OAUTH) request = require(".\\super-request");
-        else headers["Authorization"] = "Basic " + new Buffer("RobCIsNot:AUserOnThisLRS123").toString("base64");
+        headers["Authorization"] = "Basic " + Buffer.from("RobCIsNot:AUserOnThisLRS123").toString("base64");
 
         // Assuming everything is fine, minus the auth credentials
         request(helper.getEndpointAndAuth())
@@ -80,10 +77,7 @@ describe("Authentication Requirements (Communication 4.0)", function () {
         data.id = helper.generateUUID();
         let headers = helper.addAllHeaders({});
 
-        //warning: this ".\\" is super important. Node caches the modules, and the superrequest module has been modified to work correctly
-        //with oauth already. We get a new verions by appending some other characters to defeat the cache.
-        if (global.OAUTH) request = require(".\\super-request");
-        else headers["Authorization"] = "Basic:" + new Buffer("RobCIsNot:AUserOnThisLRS").toString("base64"); //note bad encoding here.
+        headers["Authorization"] = "Basic:" + Buffer.from("RobCIsNot:AUserOnThisLRS").toString("base64"); //note bad encoding here.
 
         request(helper.getEndpointAndAuth())
           .put(helper.getEndpointStatements() + "?statementId=" + data.id)

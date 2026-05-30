@@ -5,6 +5,7 @@
 
 import { expect } from "chai";
 import helperImport from "../helper.ts";
+import isEmail from "isemail";
 import requestBase from "super-request";
 
 const helper: any = helperImport;
@@ -127,8 +128,6 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
     let data = helper.createFromTemplate(templates);
     let statement = data.statement;
     let MAIL_TO = "mailto:";
-    let isEmail = require("isemail");
-
     return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
       return helper
         .sendRequest("get", helper.getEndpointAgents(), { agent: statement.actor }, undefined, 200)
