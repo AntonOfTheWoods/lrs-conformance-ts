@@ -3047,28 +3047,25 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
           .expect(200),
       );
 
-      request(helper.getEndpointAndAuth())
+            const res = await endAsync(
+request(helper.getEndpointAndAuth())
         .get(helper.getEndpointStatements() + "?" + query)
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            throw err;
-          } else {
-            let boundary = multipartParser.getBoundary(res.headers["content-type"]);
-            expect(boundary).to.be.ok;
-            let parsed = multipartParser.parseMultipart(boundary, res.body);
-            expect(parsed).to.be.ok;
-            const firstPart = parsed[0];
-            if (!firstPart) {
+      );
+
+const responseBoundary = multipartParser.getBoundary(res.headers["content-type"] as string);
+expect(responseBoundary).to.be.ok;
+let parsed = multipartParser.parseMultipart(responseBoundary as string, res.body as string);
+expect(parsed).to.be.ok;
+const firstPart = parsed[0];
+if (!firstPart) {
               throw new Error("Expected at least one multipart section.");
               return;
             }
-            let results = helper.parse(firstPart.body);
-            expect(results).to.have.property("statements");
-          }
-        });
+let results = helper.parse(firstPart.body);
+expect(results).to.have.property("statements");
     });
   });
 

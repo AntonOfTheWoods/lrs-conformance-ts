@@ -60,19 +60,16 @@ describe("Id Property Requirements (Data 2.4.1)", () => {
 
       stmtid = (res.body as string[])[0] as string;
       query = "?statementId=" + stmtid;
-      request(helper.getEndpointAndAuth())
+        const res2 = await endAsync(
+request(helper.getEndpointAndAuth())
         .get(helper.getEndpointStatements() + query)
         .wait(helper.genDelay(stmtTime, query, stmtid))
         .headers(helper.addAllHeaders({}))
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            throw err;
-          } else {
-            let results = helper.parse(res.body);
-            expect(results.id).to.not.be.undefined;
-            expect(results.id).to.eql(stmtid);
-          }
-        });
+      );
+
+    let results = helper.parse(res2.body);
+expect(results.id).to.not.be.undefined;
+expect(results.id).to.eql(stmtid);
     });
   });
 });

@@ -51,18 +51,15 @@ describe("Version Property Requirements (Data 2.4.10)", () => {
         .expect(200),
     );
 
-    request(helper.getEndpointAndAuth())
+        const res = await endAsync(
+request(helper.getEndpointAndAuth())
       .get(helper.getEndpointStatements() + "?" + query)
       .wait(helper.genDelay(stmtTime, "?" + query, id))
       .headers(helper.addAllHeaders({}))
       .expect(200)
-      .end(function (err: unknown, res: any) {
-        if (err) {
-          throw err;
-        } else {
-          let results = helper.parse(res.body);
-          expect(results.version).to.match(REG_ALLOWED_VERSIONS);
-        }
-      });
+    );
+
+let results = helper.parse(res.body);
+expect(results.version).to.match(REG_ALLOWED_VERSIONS);
   });
 });

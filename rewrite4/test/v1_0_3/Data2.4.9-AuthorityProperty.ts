@@ -75,19 +75,16 @@ describe("Authority Property Requirements (Data 2.4.9)", () => {
           .expect(200),
       );
 
-      request(helper.getEndpointAndAuth())
+            const res = await endAsync(
+request(helper.getEndpointAndAuth())
         .get(helper.getEndpointStatements() + query)
         .headers(helper.addAllHeaders({}))
         .wait(helper.genDelay(stmtTime, query, data.id))
         .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            throw err;
-          } else {
-            let statement = helper.parse(res.body);
-            expect(statement).to.have.property("authority");
-          }
-        });
+      );
+
+let statement = helper.parse(res.body);
+expect(statement).to.have.property("authority");
     });
   });
 });

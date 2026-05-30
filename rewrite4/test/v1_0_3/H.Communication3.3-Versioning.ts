@@ -45,19 +45,16 @@ describe("Versioning Requirements (Communication 3.3)", () => {
         .expect(200),
     );
 
-    request(helper.getEndpointAndAuth())
+        const res = await endAsync(
+request(helper.getEndpointAndAuth())
       .get(helper.getEndpointStatements() + "?" + query)
       .wait(helper.genDelay(stmtTime, "?" + query, id))
       .headers(helper.addAllHeaders({}))
       .expect(200)
-      .end(function (err: unknown, res: any) {
-        if (err) {
-          throw err;
-        } else {
-          expect(res.headers).to.have.property("x-experience-api-version");
-          expect(res.headers["x-experience-api-version"]).to.match(REG_ALLOWED_VERSIONS);
-        }
-      });
+    );
+
+expect(res.headers).to.have.property("x-experience-api-version");
+expect(res.headers["x-experience-api-version"]).to.match(REG_ALLOWED_VERSIONS);
   });
 
   /**  XAPI-00330, Communication 3.3 Versioning
@@ -81,21 +78,18 @@ describe("Versioning Requirements (Communication 3.3)", () => {
           .expect(200),
       );
 
-      request(helper.getEndpointAndAuth())
+            const res = await endAsync(
+request(helper.getEndpointAndAuth())
         .get(helper.getEndpointStatements() + "?statementId=" + data.id)
         .wait(helper.genDelay(stmtTime, query, data.id))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            throw err;
-          } else {
-            let statement = helper.parse(res.body);
-            expect(helper.isEqual(data.actor, statement.actor)).to.be.true;
-            expect(helper.isEqual(data.object, statement.object)).to.be.true;
-            expect(helper.isEqual(data.verb, statement.verb)).to.be.true;
-          }
-        });
+      );
+
+let statement = helper.parse(res.body);
+expect(helper.isEqual(data.actor, statement.actor)).to.be.true;
+expect(helper.isEqual(data.object, statement.object)).to.be.true;
+expect(helper.isEqual(data.verb, statement.verb)).to.be.true;
     });
   });
 

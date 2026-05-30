@@ -40,23 +40,20 @@ describe("Encoding Requirements (Communication 1.4)", () => {
         .expect(200),
     );
 
-    request(helper.getEndpointAndAuth())
+        const res = await endAsync(
+request(helper.getEndpointAndAuth())
       .get(helper.getEndpointStatements() + "?" + query)
       .wait(helper.genDelay(stmtTime, "?" + query, null))
       .headers(helper.addAllHeaders({}))
       .expect(200)
-      .end(function (err: unknown, res: any) {
-        if (err) {
-          throw err;
-        } else {
-          let results = helper.parse(res.body);
-          let languages = results.statements[0].verb.display;
-          let unicodeConformant = true;
-          for (let key in languages) {
+    );
+
+let results = helper.parse(res.body);
+let languages = results.statements[0].verb.display;
+let unicodeConformant = true;
+for (let key in languages) {
             if (languages[key] !== unicode.verb.display[key]) unicodeConformant = false;
           }
-          expect(unicodeConformant).to.be.true;
-        }
-      });
+expect(unicodeConformant).to.be.true;
   });
 });

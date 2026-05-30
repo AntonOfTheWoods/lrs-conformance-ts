@@ -5,6 +5,7 @@
 
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
+import { endAsync } from "../super-request.ts";
 
 const helper: any = helperImport;
 let request: any = requestBase;
@@ -23,9 +24,9 @@ describe("Authentication Requirements (Communication 4.0)", function () {
     //
     // Equivalent authentication behavior is covered in this suite.
 
-    it("fails when given a random name pass pair", function (done) {
+    it("fails when given a random name pass pair", async function () {
       if (process.env["OAUTH1_ENABLED"] === "true") {
-        done();
+        return;
       } else {
         let templates = [
           {
@@ -40,32 +41,29 @@ describe("Authentication Requirements (Communication 4.0)", function () {
         headers["Authorization"] = "Basic " + Buffer.from("RobCIsNot:AUserOnThisLRS123").toString("base64");
 
         // Assuming everything is fine, minus the auth credentials
-        request(helper.getEndpointAndAuth())
-          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-          .headers(headers)
-          .json(data)
-          .expect(401)
-          .end();
+        await endAsync(
+          request(helper.getEndpointAndAuth())
+            .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+            .headers(headers)
+            .json(data)
+            .expect(401),
+        );
 
         // In the case of BOTH a bad header situation AND bad auth, the LRS can return either 401 or 400
         headers["X-Experience-API-Version"] = "BAD";
 
-        request(helper.getEndpointAndAuth())
-          .get(helper.getEndpointStatements())
-          .headers(headers)
-          .end(function (err: unknown, res: any) {
-            if (res.statusCode === 400 || res.statusCode === 401) {
-              done();
-            } else {
-              done("Response should have been either 401 or 400.");
-            }
-          });
+        const res = await endAsync(
+          request(helper.getEndpointAndAuth()).get(helper.getEndpointStatements()).headers(headers),
+        );
+        if (res.statusCode !== 400 && res.statusCode !== 401) {
+          throw new Error("Response should have been either 401 or 400.");
+        }
       }
     });
 
-    it("fails with a malformed header", function (done) {
+    it("fails with a malformed header", async function () {
       if (process.env["OAUTH1_ENABLED"] === "true") {
-        done();
+        return;
       } else {
         let templates = [
           {
@@ -79,26 +77,23 @@ describe("Authentication Requirements (Communication 4.0)", function () {
 
         headers["Authorization"] = "Basic:" + Buffer.from("RobCIsNot:AUserOnThisLRS").toString("base64"); //note bad encoding here.
 
-        request(helper.getEndpointAndAuth())
-          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-          .headers(headers)
-          .json(data)
-          .expect(401)
-          .end();
+        await endAsync(
+          request(helper.getEndpointAndAuth())
+            .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+            .headers(headers)
+            .json(data)
+            .expect(401),
+        );
 
         // Same as above
         headers["X-Experience-API-Version"] = "BAD";
 
-        request(helper.getEndpointAndAuth())
-          .get(helper.getEndpointStatements())
-          .headers(headers)
-          .end(function (err: unknown, res: any) {
-            if (res.statusCode === 400 || res.statusCode === 401) {
-              done();
-            } else {
-              done("Response should have been either 401 or 400.");
-            }
-          });
+        const res = await endAsync(
+          request(helper.getEndpointAndAuth()).get(helper.getEndpointStatements()).headers(headers),
+        );
+        if (res.statusCode !== 400 && res.statusCode !== 401) {
+          throw new Error("Response should have been either 401 or 400.");
+        }
       }
     });
   });
