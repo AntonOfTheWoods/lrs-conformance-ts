@@ -2359,21 +2359,17 @@ MUST have a "Content-Type" header
         });
     });
 
-    it('should NOT return the attachment if "attachments" is missing', function (done) {
+    it('should NOT return the attachment if "attachments" is missing', async function () {
       let query = "?statementId=" + statementId;
-      request(helper.getEndpointAndAuth())
+            const res = await endAsync(
+request(helper.getEndpointAndAuth())
         .get(helper.getEndpointStatements() + query)
         .wait(helper.genDelay(stmtTime, query, statementId))
         .headers(helper.addAllHeaders())
         .expect(200)
-        .end((err: unknown, res: any) => {
-          if (err) {
-            done(err);
-          } else {
-            expect(res.headers["content-type"]).to.match(/^application\/json/);
-            done();
-          }
-        });
+      );
+
+expect(res.headers["content-type"]).to.match(/^application\/json/);
     });
 
     it('should NOT return the attachment if "attachments" is false', async function () {
@@ -2390,31 +2386,26 @@ MUST have a "Content-Type" header
       expect(res.headers["content-type"]).to.match(/^application\/json/);
     });
 
-    it('should return the attachment when "attachment" is true', function (done) {
+    it('should return the attachment when "attachment" is true', async function () {
       let query = "?statementId=" + statementId + "&attachments=true";
-      request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + query)
-        .wait(helper.genDelay(stmtTime, query, statementId))
-        .headers(helper.addAllHeaders())
-        .expect(200)
-        .end((err: unknown, res: any) => {
-          if (err) {
-            done(err);
-          } else {
-            let ContentType = res.headers["content-type"];
-            let type = ContentType.split(";")[0];
-            expect(type).to.equal("multipart/mixed");
-            let boundary = ContentType.split(";")[1].replace(" boundary=", "");
+      const res = await endAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + query)
+          .wait(helper.genDelay(stmtTime, query, statementId))
+          .headers(helper.addAllHeaders())
+          .expect(200),
+      );
 
-            let body = res.body.split("--" + boundary);
-            let idx = -1;
-            for (let i in body) {
-              idx = Math.max(body[i].indexOf("here is a simple attachment"), idx);
-            }
-            expect(idx).to.not.eql(-1);
-            done();
-          }
-        });
+      const contentType = res.headers["content-type"] as string;
+      const type = contentType.split(";")[0] ?? "";
+      expect(type).to.equal("multipart/mixed");
+      const boundary = (contentType.split(";")[1] ?? "").replace(" boundary=", "");
+      const body = (res.body as string).split("--" + boundary);
+      let idx = -1;
+      for (const part of body) {
+        idx = Math.max(part.indexOf("here is a simple attachment"), idx);
+      }
+      expect(idx).to.not.eql(-1);
     });
   });
 

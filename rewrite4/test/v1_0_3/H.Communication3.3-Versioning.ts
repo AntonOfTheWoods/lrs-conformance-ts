@@ -121,15 +121,17 @@ request(helper.getEndpointAndAuth()).get(helper.getEndpointAbout()),
 
     it('should fail when Statement GET without header "X-Experience-API-Version"', function (done) {
       let stmtId = helper.generateUUID();
-      before("placing the statement to be gotten", function (done) {
+      before("placing the statement to be gotten", async function () {
         let templates = [{ statement: "{{statements.default}}" }];
         let data = helper.createFromTemplate(templates).statement;
 
-        request(helper.getEndpointAndAuth())
+                await expectAsync(
+request(helper.getEndpointAndAuth())
           .put(helper.getEndpointStatements() + "?statementId=" + stmtId)
           .headers(helper.addAllHeaders({}))
-          .json(data)
-          .expect(200, done);
+          .json(data),
+        200,
+        );
       });
 
       request(helper.getEndpointAndAuth())
