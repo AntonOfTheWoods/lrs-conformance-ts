@@ -63,21 +63,18 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
 
       postId = (res.body as string[])[0] as string;
       let query = "?statementId=" + postId;
-      request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + query)
-        .wait(helper.genDelay(stmtTime, query, postId))
-        .headers(helper.addAllHeaders())
-        .expect(200)
-        .end((err: unknown, res: any) => {
-          if (err) {
-            throw err;
-          } else {
-            let result = helper.parse(res.body);
-            expect(result).to.have.property("stored");
-            let stmtStored = result.stored;
-            expect(stmtStored).to.not.eql(storedTime);
-          }
-        });
+      const getRes = await endAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + query)
+          .wait(helper.genDelay(stmtTime, query, postId))
+          .headers(helper.addAllHeaders())
+          .expect(200),
+      );
+
+      let result = helper.parse(getRes.body);
+      expect(result).to.have.property("stored");
+      let stmtStored = result.stored;
+      expect(stmtStored).to.not.eql(storedTime);
     });
 
     it("using PUT", async function () {
@@ -93,21 +90,18 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
           .expect(204),
       );
 
-      request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + param)
-        .wait(helper.genDelay(stmtTime, param, putId))
-        .headers(helper.addAllHeaders())
-        .expect(200)
-        .end((err: unknown, res: any) => {
-          if (err) {
-            throw err;
-          } else {
-            let result = helper.parse(res.body);
-            expect(result).to.have.property("stored");
-            let stmtStored = result.stored;
-            expect(stmtStored).to.not.eql(storedTime);
-          }
-        });
+      const getRes = await endAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + param)
+          .wait(helper.genDelay(stmtTime, param, putId))
+          .headers(helper.addAllHeaders())
+          .expect(200),
+      );
+
+      let result = helper.parse(getRes.body);
+      expect(result).to.have.property("stored");
+      let stmtStored = result.stored;
+      expect(stmtStored).to.not.eql(storedTime);
     });
   });
 

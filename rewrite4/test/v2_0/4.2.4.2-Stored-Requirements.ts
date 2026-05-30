@@ -63,56 +63,46 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
 
       postId = (res.body as string[])[0] as string;
       const query = "?statementId=" + postId;
-      request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + query)
-        .wait(helper.genDelay(stmtTime, query, postId))
-        .headers(helper.addAllHeaders())
-        .expect(200)
-        .end((getErr: unknown, getRes: any) => {
-          if (getErr) {
-            throw getErr;
-            return;
-          }
+      const getRes = await endAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + query)
+          .wait(helper.genDelay(stmtTime, query, postId))
+          .headers(helper.addAllHeaders())
+          .expect(200),
+      );
 
-          const result = helper.parse(getRes.body);
-          expect(result).to.have.property("stored");
-          const stmtStored = result.stored;
-          expect(stmtStored).to.not.eql(storedTime);
-        });
+      const result = helper.parse(getRes.body);
+      expect(result).to.have.property("stored");
+      const stmtStored = result.stored;
+      expect(stmtStored).to.not.eql(storedTime);
     });
 
-    it("using PUT", async function () {putId = helper.generateUUID();
-param = "?statementId=" + putId;
-const stmtTime = Date.now();
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements() + param)
-        .headers(helper.addAllHeaders())
-        .json(data)
-        .expect(204)
-        .end((err: unknown) => {
-          if (err) {
-            throw err;
-            return;
-          }
+    it("using PUT", async function () {
+      putId = helper.generateUUID();
+      param = "?statementId=" + putId;
+      const stmtTime = Date.now();
 
-          request(helper.getEndpointAndAuth())
-            .get(helper.getEndpointStatements() + param)
-            .wait(helper.genDelay(stmtTime, param, putId))
-            .headers(helper.addAllHeaders())
-            .expect(200)
-            .end((getErr: unknown, getRes: any) => {
-              if (getErr) {
-                throw getErr;
-                return;
-              }
+      await endAsync(
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + param)
+          .headers(helper.addAllHeaders())
+          .json(data)
+          .expect(204),
+      );
 
-              const result = helper.parse(getRes.body);
-              expect(result).to.have.property("stored");
-              const stmtStored = result.stored;
-              expect(stmtStored).to.not.eql(storedTime);
-              
-            });
-        });});
+      const getRes = await endAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + param)
+          .wait(helper.genDelay(stmtTime, param, putId))
+          .headers(helper.addAllHeaders())
+          .expect(200),
+      );
+
+      const result = helper.parse(getRes.body);
+      expect(result).to.have.property("stored");
+      const stmtStored = result.stored;
+      expect(stmtStored).to.not.eql(storedTime);
+    });
   });
 
   /**  XAPI-00023,  2.4 Statement Properties
