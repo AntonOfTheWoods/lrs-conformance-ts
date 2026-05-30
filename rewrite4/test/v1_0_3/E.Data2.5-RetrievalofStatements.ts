@@ -190,17 +190,17 @@ describe("Retrieval of Statements (Data 2.5)", function () {
         .expect(200),
     );
 
-        const res = await endAsync(
-request(helper.getEndpointAndAuth())
-      .get(helper.getEndpointStatements() + "?" + query)
-      .wait(helper.genDelay(stmtTime, "?" + query, null))
-      .headers(helper.addAllHeaders({}))
-      .expect(200)
+    const res = await endAsync(
+      request(helper.getEndpointAndAuth())
+        .get(helper.getEndpointStatements() + "?" + query)
+        .wait(helper.genDelay(stmtTime, "?" + query, null))
+        .headers(helper.addAllHeaders({}))
+        .expect(200),
     );
 
-let results = helper.parse(res.body);
-expect(results.statements).to.exist;
-expect(results.more).to.exist;
+    let results = helper.parse(res.body);
+    expect(results.statements).to.exist;
+    expect(results.more).to.exist;
   });
 
   /**  XAPI-00109, Data 2.5 Retrieval of Statements
@@ -240,16 +240,13 @@ expect(results.more).to.exist;
       let result = helper.parse(res.body);
       expect(result).to.have.property("more");
       expect(isValidRelativeUrl(result.more)).to.be.true;
-        const res2 = await endAsync(
-request("")
-        .get(liburl.resolve(res.request.href, result.more))
-        .headers(helper.addAllHeaders({}))
-        .expect(200)
+      const res2 = await endAsync(
+        request("").get(liburl.resolve(res.request.href, result.more)).headers(helper.addAllHeaders({})).expect(200),
       );
 
-    let results2 = helper.parse(res2.body);
-expect(results2.statements).to.exist;
-expect(results2.more).to.exist;
+      let results2 = helper.parse(res2.body);
+      expect(results2.statements).to.exist;
+      expect(results2.more).to.exist;
     });
   });
 
@@ -283,23 +280,20 @@ expect(results2.more).to.exist;
         .expect(200),
     );
 
-        const res = await endAsync(
-request(helper.getEndpointAndAuth())
-      .get(helper.getEndpointStatements() + "?" + query)
-      .wait(helper.genDelay(stmtTime, "?" + query, id2))
-      .headers(helper.addAllHeaders({}))
-      .expect(200)
+    const res = await endAsync(
+      request(helper.getEndpointAndAuth())
+        .get(helper.getEndpointStatements() + "?" + query)
+        .wait(helper.genDelay(stmtTime, "?" + query, id2))
+        .headers(helper.addAllHeaders({}))
+        .expect(200),
     );
 
-let results = helper.parse(res.body);
-const res2 = await endAsync(
-request("")
-      .get(liburl.resolve(res.request.href, results.more))
-      .headers(helper.addAllHeaders({}))
-      .expect(200)
+    let results = helper.parse(res.body);
+    const res2 = await endAsync(
+      request("").get(liburl.resolve(res.request.href, results.more)).headers(helper.addAllHeaders({})).expect(200),
     );
 
-let results2 = helper.parse(res2.body);
-expect(results2.statements).to.exist;
+    let results2 = helper.parse(res2.body);
+    expect(results2.statements).to.exist;
   });
 });
