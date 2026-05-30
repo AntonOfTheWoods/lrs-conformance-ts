@@ -27,6 +27,7 @@
     "axios-oauth-1.0a": "^0.3.6",
     "chai": "^2.3.0",
     "chai-things": "^0.2.0",
+    "comb": "^1.0.1",
     "commander": "^2.6.0",
     "cookie-parser": "^1.4.1",
     "dirty-chai": "^1.0.0",
