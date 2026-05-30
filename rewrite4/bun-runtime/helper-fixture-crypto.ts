@@ -68,12 +68,12 @@ type SignableStatement = AnyRecord & {
 };
 
 function createMapping(mapper: JsonMapping, input: string) {
-  var object: unknown = {};
+  let object: unknown = {};
 
-  var nested: unknown = mapper;
-  var cleanString = input.substring(2);
+  let nested: unknown = mapper;
+  let cleanString = input.substring(2);
   cleanString = cleanString.substring(0, cleanString.length - 2);
-  var mapping = cleanString.split(".");
+  const mapping = cleanString.split(".");
   mapping.forEach(function (item) {
     nested = (nested as Record<string, unknown>)[item];
     if (nested) {
@@ -102,16 +102,16 @@ function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
 
   return {
     convertTemplate: function convertTemplate(list: Array<Record<string, unknown>>) {
-      var mapper = helper().getJsonMapping();
-      var templates: Array<Record<string, unknown>> = [];
+      const mapper = helper().getJsonMapping();
+      const templates: Array<Record<string, unknown>> = [];
       list.forEach(function (item) {
-        var key = Object.keys(item)[0];
+        const key = Object.keys(item)[0];
         if (!key) {
           return;
         }
-        var value = item[key];
+        const value = item[key];
 
-        var object: Record<string, unknown> = {};
+        const object: Record<string, unknown> = {};
         if (typeof value === "string" && value.indexOf("{{") === 0 && value.indexOf("}}") === value.length - 2) {
           object[key] = createMapping(mapper, value);
           templates.push(object);
@@ -123,12 +123,12 @@ function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
     },
 
     createFromTemplate: function createFromTemplate(templates: Array<Record<string, unknown>>) {
-      var converted = helper().convertTemplate(templates);
+      const converted = helper().convertTemplate(templates);
       return helper().createTestObject(converted);
     },
 
     createTestObject: function createTestObject(array: Array<Record<string, unknown>>) {
-      var from: Record<string, unknown> = {};
+      let from: Record<string, unknown> = {};
 
       array.reverse();
       array.forEach(function (to, index) {
@@ -137,11 +137,11 @@ function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
           return;
         }
 
-        var firstKey = Object.keys(to)[0];
+        const firstKey = Object.keys(to)[0];
         if (!firstKey) {
           return;
         }
-        var toKey = to[firstKey] as AnyRecord;
+        const toKey = to[firstKey] as AnyRecord;
         context.extend(true, toKey, from);
         from = to;
       });
@@ -149,15 +149,15 @@ function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
     },
 
     deepSearchObject: function deepSearchObject(object: Record<string, unknown>, primitive: unknown) {
-      var tested: unknown[] = [];
+      const tested: unknown[] = [];
 
-      var _internal = function (candidate: Record<string, unknown>, expected: unknown): boolean {
+      const _internal = function (candidate: Record<string, unknown>, expected: unknown): boolean {
         tested.push(candidate);
-        var found = false;
-        for (var i in candidate) {
-          if (candidate[i] == expected) return true;
+        let found = false;
+        for (const i in candidate) {
+          if (candidate[i] === expected) return true;
           else {
-            if (typeof candidate[i] == "object" && candidate[i] !== null && tested.indexOf(candidate[i])) {
+            if (typeof candidate[i] === "object" && candidate[i] !== null && tested.indexOf(candidate[i])) {
               found = found || _internal(candidate[i] as Record<string, unknown>, expected);
             }
           }
@@ -172,22 +172,22 @@ function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
     },
 
     getJsonMapping: function getJsonMapping() {
-      var state = context.getState();
-      var mapping: JsonMapping = {};
-      var folders = context.fs.readdirSync(state.TEMPLATE_FOLDER) as string[];
+      const state = context.getState();
+      const mapping: JsonMapping = {};
+      const folders = context.fs.readdirSync(state.TEMPLATE_FOLDER) as string[];
       folders.forEach(function (folder) {
-        var fileMapping: Record<string, unknown> = {};
+        const fileMapping: Record<string, unknown> = {};
         mapping[folder] = fileMapping;
 
-        var files = context.fs.readdirSync(state.TEMPLATE_FOLDER + "/" + folder) as string[];
+        const files = context.fs.readdirSync(state.TEMPLATE_FOLDER + "/" + folder) as string[];
         files.forEach(function (file) {
           if (file.indexOf(".json") <= 0) {
             return;
           }
 
-          var subfolder = state.TEMPLATE_FOLDER_RELATIVE + "/" + folder;
-          var data = context.extend(true, {}, context.helperRequire(subfolder + "/" + file));
-          var name = file.substring(0, file.indexOf(".json"));
+          const subfolder = state.TEMPLATE_FOLDER_RELATIVE + "/" + folder;
+          const data = context.extend(true, {}, context.helperRequire(subfolder + "/" + file));
+          const name = file.substring(0, file.indexOf(".json"));
           fileMapping[name] = data;
         });
       });
@@ -195,27 +195,27 @@ function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
     },
 
     getSHA1Sum: function getSHA1Sum(content: unknown) {
-      var normalizedContent = typeof content === "string" ? content : JSON.stringify(content);
+      const normalizedContent = typeof content === "string" ? content : JSON.stringify(content);
 
-      var shasum = context.crypto.createHash("sha1");
+      const shasum = context.crypto.createHash("sha1");
       shasum.update(Buffer.from(normalizedContent));
       return shasum.digest("hex");
     },
 
     getTestConfiguration: function getTestConfiguration() {
-      var state = context.getState();
-      var list: TestConfiguration[] = [];
+      const state = context.getState();
+      let list: TestConfiguration[] = [];
 
-      var files = context.fs.readdirSync(state.CONFIG_FOLDER) as string[];
+      const files = context.fs.readdirSync(state.CONFIG_FOLDER) as string[];
       files.forEach(function (file) {
         if (file.indexOf(".ts") <= 0) {
           return;
         }
 
-        var configFile = context.helperRequire(state.CONFIG_FOLDER_RELATIVE + "/" + file) as {
+        const configFile = context.helperRequire(state.CONFIG_FOLDER_RELATIVE + "/" + file) as {
           config(): TestConfiguration[];
         };
-        var config = configFile.config();
+        const config = configFile.config();
         validateConfiguration(config, "/" + file);
         list = list.concat(config);
       });
@@ -223,9 +223,9 @@ function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
     },
 
     getSingleTestConfiguration: function getSingleTestConfiguration(fileName: string) {
-      var state = context.getState();
-      var files = context.fs.readdirSync(state.CONFIG_FOLDER) as string[];
-      var fileExists = false;
+      const state = context.getState();
+      const files = context.fs.readdirSync(state.CONFIG_FOLDER) as string[];
+      let fileExists = false;
       files.forEach(function (file) {
         if (file === fileName) fileExists = true;
       });
@@ -234,7 +234,7 @@ function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
         throw new Error('Invalid configuration "missing name": ' + fileName);
       }
 
-      var configFile = context.helperRequire(state.CONFIG_FOLDER_RELATIVE + "/" + fileName) as {
+      const configFile = context.helperRequire(state.CONFIG_FOLDER_RELATIVE + "/" + fileName) as {
         config(): TestConfiguration[];
       };
       return configFile.config();
@@ -245,7 +245,7 @@ function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
     },
 
     buildFormBody: function buildFormBody(content: unknown, id?: string) {
-      var body: Record<string, unknown> = {
+      const body: Record<string, unknown> = {
         "X-Experience-API-Version": process.env.XAPI_VERSION,
         content: JSON.stringify(content),
       };
@@ -309,7 +309,7 @@ function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
     },
 
     buildDocument: function buildDocument() {
-      var document: Record<string, unknown> = {
+      const document: Record<string, unknown> = {
         name: helper().generateUUID(),
         location: {
           name: helper().generateUUID(),
@@ -320,7 +320,7 @@ function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
     },
 
     buildStatement: function buildStatement() {
-      var state = context.getState();
+      const state = context.getState();
       return helper().clone(context.helperRequire("./" + state.DIRECTORY + "/templates/statements/default.json"));
     },
 
@@ -329,7 +329,7 @@ function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
     },
 
     parse: function parse(input: string, done: (error?: unknown) => void) {
-      var parsed: unknown;
+      let parsed: unknown;
       try {
         parsed = JSON.parse(input);
       } catch (error) {
@@ -381,12 +381,12 @@ function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
 
       delete statement.attachments;
 
-      var signature = context.jws.sign({
+      const signature = context.jws.sign({
         header: { alg: options.algorithm },
         payload: options.breakJson ? JSON.stringify(statement).replace('"', "'") : statement,
         privateKey: options.privateKey,
       });
-      var signatureBuffer = Buffer.from(signature);
+      const signatureBuffer = Buffer.from(signature);
 
       statement.attachments = [
         {
@@ -398,12 +398,12 @@ function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
           sha2: context.crypto.createHash("SHA256").update(signatureBuffer).digest("hex"),
         },
       ];
-      var attachment = statement.attachments[0];
+      const attachment = statement.attachments[0];
       if (!attachment) {
         throw new Error("Signed statement attachment generation failed.");
       }
 
-      var buffers: Buffer[] = [];
+      const buffers: Buffer[] = [];
       buffers.push(Buffer.from(["", "--" + options.boundary, "Content-Type:application/json", "", ""].join("\r\n")));
       buffers.push(Buffer.from(JSON.stringify(statement), "utf8"));
       buffers.push(
@@ -431,7 +431,7 @@ function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
     },
 
     verifyStatement: function verifyStatement(_statement: unknown) {
-      var publicKey = [
+      const publicKey = [
         "-----BEGIN PUBLIC KEY-----",
         "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvZtrkWAFrUYi8zekTKhe",
         "DM7tvfNIB7FVbLtkPArlFMQE1kOe8sBEvENiMKvI8kv1jLuzbd/iSWd1Wqt81ooD",

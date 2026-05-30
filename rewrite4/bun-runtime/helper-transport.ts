@@ -100,7 +100,7 @@ function createHelperTransportSupport(context: HelperTransportContext) {
   return {
     addAllHeaders: function addAllHeaders(header: HeaderMap = {}, badAuth?: boolean) {
       badAuth = badAuth || false;
-      var newHeader = cloneHeader(context, header);
+      let newHeader = cloneHeader(context, header);
       newHeader = helper().addHeaderXapiVersion(newHeader);
       if (badAuth) {
         newHeader["Authorization"] = "Basic " + Buffer.from("foo:bar").toString("base64");
@@ -112,15 +112,15 @@ function createHelperTransportSupport(context: HelperTransportContext) {
     },
 
     addHeaderXapiVersion: function addHeaderXapiVersion(header: HeaderMap = {}) {
-      var newHeader = cloneHeader(context, header);
+      const newHeader = cloneHeader(context, header);
       newHeader["X-Experience-API-Version"] = helper().getXapiVersion();
       return newHeader;
     },
 
     addBasicAuthenicationHeader: function addBasicAuthenicationHeader(header: HeaderMap = {}) {
-      var newHeader = cloneHeader(context, header);
+      const newHeader = cloneHeader(context, header);
       if (process.env.BASIC_AUTH_ENABLED === "true") {
-        var userPass = Buffer.from(process.env.BASIC_AUTH_USER + ":" + process.env.BASIC_AUTH_PASSWORD).toString(
+        const userPass = Buffer.from(process.env.BASIC_AUTH_USER + ":" + process.env.BASIC_AUTH_PASSWORD).toString(
           "base64",
         );
         newHeader["Authorization"] = "Basic " + userPass;
@@ -129,16 +129,16 @@ function createHelperTransportSupport(context: HelperTransportContext) {
     },
 
     buildCaptureOwnerMetadata: function buildCaptureOwnerMetadata() {
-      var state = context.getState();
-      var executionState = runtimeGlobal.__lrsConformanceCaptureExecutionState;
+      const state = context.getState();
+      const executionState = runtimeGlobal.__lrsConformanceCaptureExecutionState;
       if (!executionState || !Array.isArray(executionState.suitePath)) {
         return null;
       }
 
-      var suitePath = executionState.suitePath.filter(function (segment: unknown) {
+      const suitePath = executionState.suitePath.filter(function (segment: unknown) {
         return typeof segment === "string" && segment.length > 0;
       });
-      var testTitle =
+      const testTitle =
         typeof executionState.testTitle === "string" && executionState.testTitle.length > 0
           ? executionState.testTitle
           : null;
@@ -146,11 +146,11 @@ function createHelperTransportSupport(context: HelperTransportContext) {
         return null;
       }
 
-      var casePath = testTitle ? suitePath.concat([testTitle]) : null;
-      var ownerPath = casePath || suitePath;
-      var fallbackSuiteTitle = suitePath.length > 0 ? suitePath[0] : "unmapped";
-      var sourceFilePath = process.env.LRS_CAPTURE_SOURCE_FILE_PATH || null;
-      var sourceSymbol = process.env.LRS_CAPTURE_SOURCE_SYMBOL || null;
+      const casePath = testTitle ? suitePath.concat([testTitle]) : null;
+      const ownerPath = casePath || suitePath;
+      const fallbackSuiteTitle = suitePath.length > 0 ? suitePath[0] : "unmapped";
+      const sourceFilePath = process.env.LRS_CAPTURE_SOURCE_FILE_PATH || null;
+      const sourceSymbol = process.env.LRS_CAPTURE_SOURCE_SYMBOL || null;
 
       return encodeURIComponent(
         JSON.stringify({
@@ -171,8 +171,8 @@ function createHelperTransportSupport(context: HelperTransportContext) {
     },
 
     addCaptureOwnerHeader: function addCaptureOwnerHeader(header: HeaderMap = {}) {
-      var newHeader = cloneHeader(context, header);
-      var metadata = helper().buildCaptureOwnerMetadata();
+      const newHeader = cloneHeader(context, header);
+      const metadata = helper().buildCaptureOwnerMetadata();
       if (metadata) {
         newHeader[context.getState().CAPTURE_OWNER_HEADER] = metadata;
       }
@@ -180,20 +180,20 @@ function createHelperTransportSupport(context: HelperTransportContext) {
     },
 
     genDelay: function genDelay(time: number, query?: string, id?: string) {
-      var comb = combImport as unknown as CombModule;
-      var requestFactory = requestFactoryImport as unknown as RequestFactory;
+      const comb = combImport as unknown as CombModule;
+      let requestFactory = requestFactoryImport as unknown as RequestFactory;
 
-      var delay = function () {
-        var p = new comb.Promise();
-        var endP = helper().getEndpointStatements();
+      const delay = function () {
+        const p = new comb.Promise();
+        let endP = helper().getEndpointStatements();
         if (query) {
           endP += query;
         }
-        var delta: number | undefined;
-        var finish: number | undefined;
+        let delta: number | undefined;
+        let finish: number | undefined;
 
         function stmtFound(arr: Array<{ id?: string }>, expectedId: string) {
-          var found = false;
+          let found = false;
           arr.forEach(function (statement) {
             if (statement.id === expectedId) {
               found = true;
@@ -210,13 +210,13 @@ function createHelperTransportSupport(context: HelperTransportContext) {
             .get(endP)
             .headers(helper().addAllHeaders({}))
             .end(function (err: unknown, res: RequestResponse) {
-              var result: AnyRecord;
+              let result: AnyRecord;
               if (err) {
                 throw err;
               }
 
-              var consistentThroughHeader = res.headers["x-experience-api-consistent-through"];
-              var dateHeader = res.headers.date;
+              const consistentThroughHeader = res.headers["x-experience-api-consistent-through"];
+              const dateHeader = res.headers.date;
 
               try {
                 result = JSON.parse(res.body);
@@ -309,21 +309,21 @@ function createHelperTransportSupport(context: HelperTransportContext) {
       expectedStatus: number,
       extraHeaders?: HeaderMap,
     ) {
-      var requestFactory = requestFactoryImport as unknown as RequestFactory;
-      var methodName = type === "delete" ? "del" : type;
+      let requestFactory = requestFactoryImport as unknown as RequestFactory;
+      const methodName = type === "delete" ? "del" : type;
       if (runtimeGlobal.OAUTH) {
         requestFactory = helper().OAuthRequest(requestFactory);
       }
 
-      var requestRoot = requestFactory(helper().getEndpointAndAuth());
-      var reqUrl = params ? url + "?" + helper().getUrlEncoding(params) : url;
+      const requestRoot = requestFactory(helper().getEndpointAndAuth());
+      const reqUrl = params ? url + "?" + helper().getUrlEncoding(params) : url;
 
-      var headers = helper().addAllHeaders(extraHeaders || {});
-      var requestMethod = requestRoot[methodName] as ((requestUrl: string) => RequestChain) | undefined;
+      const headers = helper().addAllHeaders(extraHeaders || {});
+      const requestMethod = requestRoot[methodName] as ((requestUrl: string) => RequestChain) | undefined;
       if (typeof requestMethod !== "function") {
         throw new TypeError("Unsupported request method: " + methodName);
       }
-      var pre = requestMethod.call(requestRoot, reqUrl);
+      const pre = requestMethod.call(requestRoot, reqUrl);
       if (body) {
         if (Buffer.isBuffer(body) || typeof body === "string") {
           if (!headers["content-type"] && !headers["Content-Type"]) {
@@ -343,7 +343,7 @@ function createHelperTransportSupport(context: HelperTransportContext) {
             return;
           }
 
-          var contentType = response && response.headers ? response.headers["content-type"] : undefined;
+          const contentType = response && response.headers ? response.headers["content-type"] : undefined;
           if (response && typeof response.body === "string" && contentType && contentType.indexOf("json") !== -1) {
             try {
               response.body = JSON.parse(response.body);
@@ -361,29 +361,29 @@ function createHelperTransportSupport(context: HelperTransportContext) {
 
     extendRequestWithOauth: function extendRequestWithOauth(pre: RequestChain) {
       pre.sign = function (oa: AnyRecord, token: string, secret: string) {
-        var additionalData: AnyRecord = {};
+        let additionalData: AnyRecord = {};
         additionalData = JSON.parse(JSON.stringify(additionalData));
         additionalData["oauth_verifier"] = runtimeGlobal.OAUTH?.verifier;
-        var params = oa._prepareParameters(token, secret, pre.method, pre.url, additionalData);
+        const params = oa._prepareParameters(token, secret, pre.method, pre.url, additionalData);
 
-        var signature = oa._buildAuthorizationHeaders(params);
+        const signature = oa._buildAuthorizationHeaders(params);
         pre.set("Authorization", signature);
       };
     },
 
     setTimeMargin: function setTimeMargin(done: (error?: unknown, ...ignored: unknown[]) => void) {
-      var requestFactory = requestFactoryImport as unknown as RequestFactory;
-      var temp: Array<Record<string, string>> = [{ statement: "{{statements.default}}" }];
-      var id = helper().generateUUID();
-      var query = helper().getUrlEncoding({
+      let requestFactory = requestFactoryImport as unknown as RequestFactory;
+      const temp: Array<Record<string, string>> = [{ statement: "{{statements.default}}" }];
+      const id = helper().generateUUID();
+      const query = helper().getUrlEncoding({
         statementId: id,
       });
-      var lrsTime: Date;
-      var suiteTime: Date;
-      var statementContainer = helper().createTestObject(helper().convertTemplate(temp)) as {
+      let lrsTime: Date;
+      let suiteTime: Date;
+      const statementContainer = helper().createTestObject(helper().convertTemplate(temp)) as {
         statement: AnyRecord;
       };
-      var stmt = statementContainer.statement;
+      const stmt = statementContainer.statement;
 
       stmt.id = id;
       suiteTime = new Date();
@@ -409,7 +409,7 @@ function createHelperTransportSupport(context: HelperTransportContext) {
                   if (redoErr) {
                     done(redoErr);
                   } else if (redoRes.statusCode === 200) {
-                    var result = JSON.parse(redoRes.body) as { stored: string };
+                    const result = JSON.parse(redoRes.body) as { stored: string };
                     lrsTime = new Date(result.stored);
                     context.setTimeMargin(suiteTime.valueOf() - lrsTime.valueOf());
                     done(redoErr, helper().getTimeMargin());
@@ -425,12 +425,12 @@ function createHelperTransportSupport(context: HelperTransportContext) {
     },
 
     getUrlEncoding: function getUrlEncoding(object: Record<string, unknown>) {
-      var encoding = "";
+      let encoding = "";
       Object.keys(object).forEach(function (key, index) {
         if (index !== 0) {
           encoding += "&";
         }
-        var value = object[key];
+        const value = object[key];
         encoding += key + "=" + (typeof value === "object" ? encodeURIComponent(JSON.stringify(value)) : value);
       });
       return encoding;
@@ -441,22 +441,22 @@ function createHelperTransportSupport(context: HelperTransportContext) {
     },
 
     OAuthRequest: function OAuthRequest(request: RequestFactory) {
-      var originalRequest = request;
+      const originalRequest = request;
 
       function authRequest(e: string) {
-        var r = originalRequest(e);
+        const r = originalRequest(e);
 
         function wrapPromise(p: RequestChain | undefined) {
           if (!p) return;
           if (p.__wrapped === true) return;
           p.__wrapped = true;
-          for (var i in p) {
+          for (const i in p) {
             (function (methodName) {
               if (typeof p[methodName] !== "function") return;
-              var preAuthMethod = p[methodName] as (...args: unknown[]) => unknown;
+              const preAuthMethod = p[methodName] as (...args: unknown[]) => unknown;
               p[methodName + "_preAuth_"] = preAuthMethod;
               p[methodName] = function () {
-                var test = preAuthMethod.apply(p, arguments as unknown as []);
+                const test = preAuthMethod.apply(p, arguments as unknown as []);
                 if (test) {
                   if (methodName === "end") {
                     wrapPromise(test as RequestChain | undefined);
@@ -475,14 +475,14 @@ function createHelperTransportSupport(context: HelperTransportContext) {
           if (testRequest.__wrapped === true) return;
           testRequest.__wrapped = true;
           if (testRequest._options) testRequest._options.oauth = runtimeGlobal.OAUTH;
-          for (var i in testRequest) {
+          for (const i in testRequest) {
             (function (methodName) {
               if (typeof testRequest[methodName] !== "function") return;
-              var preAuthMethod = testRequest[methodName] as (...args: unknown[]) => unknown;
+              const preAuthMethod = testRequest[methodName] as (...args: unknown[]) => unknown;
               testRequest["_preAuth_" + methodName] = preAuthMethod;
               testRequest[methodName] = function () {
-                var nextTest = preAuthMethod.apply(testRequest, arguments as unknown as []);
-                var wrappedNextTest = nextTest as RequestChain | undefined;
+                const nextTest = preAuthMethod.apply(testRequest, arguments as unknown as []);
+                const wrappedNextTest = nextTest as RequestChain | undefined;
                 if (wrappedNextTest && wrappedNextTest._options && !wrappedNextTest._options.oauth) {
                   wrappedNextTest._options.oauth = runtimeGlobal.OAUTH;
                   wrapMethods(wrappedNextTest);
