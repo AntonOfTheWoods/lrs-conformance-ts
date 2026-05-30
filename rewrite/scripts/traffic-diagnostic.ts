@@ -2347,12 +2347,13 @@ async function runVersion(config: DiagnosticConfig, version: SupportedVersion): 
 
   const upstreamRawPath = resolve(versionDir, "upstream-raw.json");
   const upstreamNormalizedPath = resolve(versionDir, "upstream-normalized.json");
-  const shouldReuseUpstreamOracle = !config.refreshUpstream && config.dbStateMode === "none";
+  const shouldReuseUpstreamOracle = !config.refreshUpstream;
+  const requireReusableDbStateArtifacts = config.dbStateMode !== "none";
   let oracleVersionDir = shouldReuseUpstreamOracle
     ? await resolveReusableOracleVersionDir({
         currentVersionDir: versionDir,
         oracleDir: config.oracleDir,
-        requireDbStateManifest: false,
+        requireDbStateManifest: requireReusableDbStateArtifacts,
         requireUpstreamRunArtifact: true,
         version,
       })
@@ -2382,7 +2383,7 @@ async function runVersion(config: DiagnosticConfig, version: SupportedVersion): 
     }
 
     const oracleDbStateManifestPath = resolve(oracleVersionDir, "upstream-db-state-manifest.json");
-    if (config.dbStateMode !== "none") {
+    if (requireReusableDbStateArtifacts) {
       const missingDbStatePath = await findMissingDbStateFingerprintPath(oracleDbStateManifestPath);
       if (missingDbStatePath !== null) {
         console.warn(

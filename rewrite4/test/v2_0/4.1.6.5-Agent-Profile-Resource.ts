@@ -14,6 +14,7 @@ let request: any = requestBase;
 if (global.OAUTH) request = helper.OAuthRequest(request);
 
 describe("Agent Profile Resource Requirements (Communication 2.6)", function () {
+  let document: any;
   /**  Matchup with Conformance
    * XAPI-00255 - below
    * XAPI-00256 - below

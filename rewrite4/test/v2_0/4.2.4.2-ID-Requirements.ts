@@ -54,6 +54,7 @@ import __esmDep12 from "./../templatingSelection.ts";
    */
 
   describe("Id Property Requirements (Data 2.4.1)", () => {
+    let data: any;
     templatingSelection.createTemplate("uuids.ts");
 
     /**  XAPI-00026,  Data 2.4.1 Id

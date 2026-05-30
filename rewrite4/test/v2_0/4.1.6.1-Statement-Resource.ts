@@ -27,6 +27,8 @@ if (global.OAUTH) request = helper.OAuthRequest(request);
  * XAPI-00141 - covered by XAPI-00195, XAPI-00275, XAPI-00294
  */
 describe("Statement Resource Requirements (Communication 2.1)", () => {
+  let data: any;
+  let txtAtt1: any, txtAtt2: any, t1attSize: any, t2attSize: any, t1attHash: any, t2attHash: any;
   /**  XAPI-00139, Communication 2.0 Resources
    * An LRS has a Statement API with endpoint "base IRI"+"/statements"
    */

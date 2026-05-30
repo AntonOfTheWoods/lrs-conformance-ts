@@ -15,6 +15,7 @@ const xapiRequests = xapiRequestsModule as any;
 if (global.OAUTH) request = helper.OAuthRequest(request);
 
 describe("Activity Profile Resource Requirements (Communication 2.7)", function () {
+  let document: any;
   /**  Matchup with
    * XAPI-00285 - below
    * XAPI-00286 - below

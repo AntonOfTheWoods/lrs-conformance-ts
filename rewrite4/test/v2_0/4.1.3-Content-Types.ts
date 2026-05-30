@@ -15,6 +15,7 @@ const helper = helperModule as any;
 if (global.OAUTH) request = helper.OAuthRequest(request);
 
 describe("Content Type Requirements (Communication 1.5)", function () {
+  let data: any;
   var txtAtt1, txtAtt2, txtAtt3, t1attSize, t2attSize, t1attHash, t2attHash, t3attHash;
 
   before("create attachments templates", function () {
