@@ -1,5 +1,3 @@
-"use strict";
-
 import crypto from "node:crypto";
 import childProcess from "child_process";
 import { EventEmitter } from "events";

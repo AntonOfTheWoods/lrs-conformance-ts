@@ -14,7 +14,6 @@ import requestBase from "super-request";
 const helper: any = helperImport;
 let request: any = requestBase;
 
-// "use strict";
 
 //Communication 2.0
 /**  Matchup with Conformance Requirements Document

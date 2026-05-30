@@ -10,7 +10,6 @@ import requestBase from "super-request";
 const helper: any = helperImport;
 let request: any = requestBase;
 
-// "use strict";
 
 const REG_ALLOWED_VERSIONS = /^2\.0\.0$|^1\.0(\.[1-3])$/;
 

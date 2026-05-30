@@ -35,7 +35,6 @@ type ItFn = (name: string, callback: (done: (error?: unknown) => void) => void) 
 
 import helperImport from "./helper.ts";
 import requestModule from "super-request";
-import "should";
 
 const helper = helperImport as TemplateHelper;
 

@@ -1,5 +1,3 @@
-"use strict";
-
 import requestFactoryImport from "super-request";
 
 type AnyRecord = Record<string, any>;

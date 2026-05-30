@@ -11,7 +11,6 @@
         "hono": "^4.10.3",
         "jose": "^6.1.0",
         "mocha": "^1.20.1",
-        "should": "^4.0.4",
         "super-request": "file:./packages/super-request",
       },
     },
@@ -60,14 +59,6 @@
     "mocha": ["mocha@1.21.5", "", { "dependencies": { "commander": "2.3.0", "debug": "2.0.0", "diff": "1.0.8", "escape-string-regexp": "1.0.2", "glob": "3.2.3", "growl": "1.8.1", "jade": "0.26.3", "mkdirp": "0.5.0" }, "bin": { "mocha": "./bin/mocha", "_mocha": "./bin/_mocha" } }, "sha512-ng2r0YrLCHtmp8W7HyLzSmbdidt3g1I63HhCmOqZH4vzFhmtHcYwcoAmpsJKL142He9NA2HJpmsz9amYDxoZ1Q=="],
 
     "ms": ["ms@0.6.2", "", {}, "sha512-/pc3eh7TWorTtbvXg8je4GvrvEqCfH7PA3P7iW01yL2E53FKixzgMBaQi0NOPbMJqY34cBSvR0tZtmlTkdUG4A=="],
-
-    "should": ["should@4.6.5", "", { "dependencies": { "should-equal": "0.3.1", "should-format": "0.0.7", "should-type": "0.0.4" } }, "sha512-k6+QDvVxph/xH9mVAEZjFF5iw0G17x59PiiRxdMvWMFuj0+gXlKdDMzODBlbsIyzfLk/2XigJlaI6qj1hFMlHg=="],
-
-    "should-equal": ["should-equal@0.3.1", "", { "dependencies": { "should-type": "0.0.4" } }, "sha512-/Q/o9EL9CJlCsy817ZkcQVlyUzyeWUxS9HkXUrqv4tTg+aOXEwvOpR1odT0K9DwcMA0gCy452K71YJA1E6K1mQ=="],
-
-    "should-format": ["should-format@0.0.7", "", { "dependencies": { "should-type": "0.0.4" } }, "sha512-8oNurKotJEQy+HboLxAHkgKQ+dRfV9TmVAvcY3He1RdnE994M39JTmkCt67cWaygVLKUfBcLRITkpHy2Hsgwcg=="],
-
-    "should-type": ["should-type@0.0.4", "", {}, "sha512-ve9tkv/i29COtupPlu2g4SXGefgSTjDTBI8d5UgSmT52T9T5VBpZY9/Ygn5Pb3dcCaiMyEzBAxBkpUGxEbbMDw=="],
 
     "sigmund": ["sigmund@1.0.1", "", {}, "sha512-fCvEXfh6NWpm+YSuY2bpXb/VIihqWA6hLsgboC+0nl71Q7N7o2eaCW8mJa/NLvQhs6jpd3VZV4UiUQlV6+lc8g=="],
 

@@ -1,7 +1,5 @@
 #!/usr/bin/env bun
 
-"use strict";
-
 import {
   normalizeRunnerOptions,
   RunnerOptionsError,

@@ -1,5 +1,3 @@
-"use strict";
-
 import { CompactSign } from "jose";
 
 type AnyRecord = Record<string, any>;

@@ -9,7 +9,6 @@ import requestBase from "super-request";
 const helper: any = helperImport;
 let request: any = requestBase;
 
-("use strict");
 
 request = helper.OAuthRequest(request);
 describe("Signed Statements (Data 2.6)", () => {

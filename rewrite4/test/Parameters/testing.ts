@@ -7,8 +7,6 @@
  * https://github.com/adlnet/xAPI_LRS_Test/blob/master/TestingRequirements.md
  *
  */
-import "should";
-
 import helperImport from "../helper.ts";
 
 const helper = helperImport as any;
