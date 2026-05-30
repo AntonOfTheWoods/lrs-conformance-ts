@@ -46,6 +46,33 @@ type RequestFactory = ((endpoint: string) => {
   [key: string]: any;
 };
 
+export function endAsync(chain: RequestChain): Promise<RequestResponse> {
+  return new Promise(function (resolve, reject) {
+    chain.end(function (error, response) {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve(
+        (response || {
+          body: "",
+          headers: {},
+          request: {
+            href: "",
+          },
+          text: "",
+        }) as RequestResponse,
+      );
+    });
+  });
+}
+
+export function expectAsync(chain: RequestChain, status: number): Promise<RequestResponse> {
+  chain.expect(status);
+  return endAsync(chain);
+}
+
 function encodeRfc3986(value: string): string {
   return encodeURIComponent(value).replace(/[!'()*]/g, function (character) {
     return "%" + character.charCodeAt(0).toString(16).toUpperCase();

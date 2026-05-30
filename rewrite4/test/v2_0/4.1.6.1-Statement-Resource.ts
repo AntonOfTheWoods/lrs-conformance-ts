@@ -11,6 +11,7 @@ import extend from "../../bun-runtime/extend-compat.ts";
 import helperImport from "../helper.ts";
 import multipartParser from "../multipartParser.ts";
 import requestBase from "../super-request.ts";
+import { endAsync, expectAsync } from "../super-request.ts";
 import xapiRequestsImport from "./util/requests.ts";
 
 const helper: any = helperImport;
@@ -36,37 +37,43 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
    * An LRS has a Statement API with endpoint "base IRI"+"/statements"
    */
   describe('An LRS has a Statement Resource with endpoint "base IRI"+"/statements" (Communication 2.1, XAPI-00139)', function () {
-    it('should allow "/statements" POST', function (done) {
+    it('should allow "/statements" POST', async function () {
       let templates = [{ statement: "{{statements.default}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
 
-      request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        .expect(200, done);
+      await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        200,
+      );
     });
 
-    it('should allow "/statements" PUT', function (done) {
+    it('should allow "/statements" PUT', async function () {
       let templates = [{ statement: "{{statements.default}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
       data.id = helper.generateUUID();
 
-      request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        .expect(204, done);
+      await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        204,
+      );
     });
 
-    it('should allow "/statements" GET', function (done) {
+    it('should allow "/statements" GET', async function () {
       let query = helper.getUrlEncoding({ verb: "http://adlnet.gov/expapi/non/existent" });
-      request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .headers(helper.addAllHeaders({}))
-        .expect(200, done);
+      await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .headers(helper.addAllHeaders({})),
+        200,
+      );
     });
   });
 
@@ -82,17 +89,19 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
    * An LRS's Statement API upon processing a valid PUT request successfully returns code 204 No Content
    */
   describe("An LRS's Statement Resource upon processing a successful PUT request returns code 204 No Content (Communication 2.1.1.s1, XAPI-00143)", function () {
-    it("should persist statement and return status 204", function (done) {
+    it("should persist statement and return status 204", async function () {
       let templates = [{ statement: "{{statements.default}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
       data.id = helper.generateUUID();
 
-      request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        .expect(204, done);
+      await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        204,
+      );
     });
   });
 
@@ -103,30 +112,34 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
    * An LRS's Statement API rejects a PUT request which does not have a "statementId" parameter, returning 400 Bad Request
    */
   describe('An LRS\'s Statement Resource accepts PUT requests only if it contains a "statementId" parameter (Multiplicity, Communication 2.1.1.s1.table1.row1, XAPI-00144, XAPI-00145)', function () {
-    it('should persist statement using "statementId" parameter', function (done) {
+    it('should persist statement using "statementId" parameter', async function () {
       let templates = [{ statement: "{{statements.default}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
       data.id = helper.generateUUID();
 
-      request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        .expect(204, done);
+      await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        204,
+      );
     });
 
-    it('should fail without using "statementId" parameter', function (done) {
+    it('should fail without using "statementId" parameter', async function () {
       let templates = [{ statement: "{{statements.default}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
       data.id = helper.generateUUID();
 
-      request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        .expect(400, done);
+      await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        400,
+      );
     });
   });
 
@@ -135,7 +148,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
    */
   describe("An LRS cannot modify a Statement, state, or Object in the event it receives a Statement with statementID equal to a Statement in the LRS already. (Communication 2.1.1.s2.b2, XAPI-00142)", function () {
     this.timeout(0);
-    it('should not update statement with matching "statementId" on PUT', function (done) {
+    it('should not update statement with matching "statementId" on PUT', async function () {
       let templates = [{ statement: "{{statements.default}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
@@ -146,44 +159,34 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
       modified.verb.id = "http://example.com/different/verb/iri";
       let stmtTime = Date.now();
 
-      request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        .expect(204)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            request(helper.getEndpointAndAuth())
-              .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-              .headers(helper.addAllHeaders({}))
-              .json(modified)
-              .end(function (err: unknown, res: any) {
-                if (err) {
-                  done(err);
-                } else {
-                  request(helper.getEndpointAndAuth())
-                    .get(helper.getEndpointStatements() + "?statementId=" + data.id)
-                    .wait(helper.genDelay(stmtTime, query, data.id))
-                    .headers(helper.addAllHeaders({}))
-                    .expect(200)
-                    .end(function (err: unknown, res: any) {
-                      if (err) {
-                        done(err);
-                      } else {
-                        let statement = helper.parse(res.body, done);
-                        expect(statement.verb.id).to.equal(data.verb.id);
-                        done();
-                      }
-                    });
-                }
-              });
-          }
-        });
+      await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        204,
+      );
+
+      await endAsync(
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .headers(helper.addAllHeaders({}))
+          .json(modified),
+      );
+
+      const res = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .wait(helper.genDelay(stmtTime, query, data.id))
+          .headers(helper.addAllHeaders({})),
+        200,
+      );
+
+      let statement = helper.parse(res.body);
+      expect(statement.verb.id).to.equal(data.verb.id);
     });
 
-    it('should not update statement with matching "statementId" on POST', function (done) {
+    it('should not update statement with matching "statementId" on POST', async function () {
       let templates = [{ statement: "{{statements.default}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
@@ -193,44 +196,34 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
       modified.verb.id = "http://example.com/different/verb/iri";
       let stmtTime = Date.now();
 
-      request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            request(helper.getEndpointAndAuth())
-              .post(helper.getEndpointStatements())
-              .headers(helper.addAllHeaders({}))
-              .json(modified)
-              .end(function (err: unknown, res: any) {
-                if (err) {
-                  done(err);
-                } else {
-                  request(helper.getEndpointAndAuth())
-                    .get(helper.getEndpointStatements() + "?statementId=" + data.id)
-                    .wait(helper.genDelay(stmtTime, query, data.id))
-                    .headers(helper.addAllHeaders({}))
-                    .expect(200)
-                    .end(function (err: unknown, res: any) {
-                      if (err) {
-                        done(err);
-                      } else {
-                        let statement = helper.parse(res.body, done);
-                        expect(statement.verb.id).to.equal(data.verb.id);
-                        done();
-                      }
-                    });
-                }
-              });
-          }
-        });
+      await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        200,
+      );
+
+      await endAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(modified),
+      );
+
+      const res = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .wait(helper.genDelay(stmtTime, query, data.id))
+          .headers(helper.addAllHeaders({})),
+        200,
+      );
+
+      let statement = helper.parse(res.body);
+      expect(statement.verb.id).to.equal(data.verb.id);
     });
 
-    it("should reject a batch of two or more statements where the same ID is used more than once.", function (done) {
+    it("should reject a batch of two or more statements where the same ID is used more than once.", async function () {
       let statementOne = helper.buildStatement();
       let statementTwo = JSON.parse(JSON.stringify(statementOne));
 
@@ -240,49 +233,41 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
 
       let payload = [statementOne, statementTwo];
 
-      xapiRequests
-        .sendStatementPromise(payload)
-        .then((res: any) => {
-          expect(res.status).to.eql(400);
-          done();
-        })
-        .catch((err: any) => {
-          expect(err.response.status).to.eql(400);
-          done();
-        });
+      try {
+        const res = await xapiRequests.sendStatementPromise(payload);
+        expect(res.status).to.eql(400);
+      } catch (err: any) {
+        expect(err.response.status).to.eql(400);
+      }
     });
 
-    it('should include a Last-Modified header which matches the "stored" Timestamp of the statement.', function (done) {
+    it('should include a Last-Modified header which matches the "stored" Timestamp of the statement.', async function () {
       let statement = helper.buildStatement();
-      xapiRequests.sendStatementPromise(statement).then((postResponse: any) => {
-        let storedId = postResponse.data[0];
-        xapiRequests.getStatementExact(storedId).then((getResponse: any) => {
-          let lastModifiedStr = getResponse.headers.get("last-modified");
-          let lastModified = Date.parse(lastModifiedStr);
-          expect(lastModified).to.not.eql(
-            Number.NaN,
-            `The Last-Modified header could not be parsed -- received: ${lastModifiedStr}`,
-          );
+      const postResponse = await xapiRequests.sendStatementPromise(statement);
+      let storedId = postResponse.data[0];
+      const getResponse = await xapiRequests.getStatementExact(storedId);
+      let lastModifiedStr = getResponse.headers.get("last-modified");
+      let lastModified = Date.parse(lastModifiedStr);
+      expect(lastModified).to.not.eql(
+        Number.NaN,
+        `The Last-Modified header could not be parsed -- received: ${lastModifiedStr}`,
+      );
 
-          let retrievedStatement = getResponse.data;
-          let storedStr = retrievedStatement.stored;
-          let stored = Date.parse(storedStr);
-          expect(stored).to.not.eql(
-            Number.NaN,
-            `The "stored" property could not be parsed into a DateTime, received: ${storedStr}`,
-          );
+      let retrievedStatement = getResponse.data;
+      let storedStr = retrievedStatement.stored;
+      let stored = Date.parse(storedStr);
+      expect(stored).to.not.eql(
+        Number.NaN,
+        `The "stored" property could not be parsed into a DateTime, received: ${storedStr}`,
+      );
 
-          let storedWithoutMS = stored - (stored % 1000);
-          let lastModifiedWithoutMS = lastModified - (lastModified % 1000);
+      let storedWithoutMS = stored - (stored % 1000);
+      let lastModifiedWithoutMS = lastModified - (lastModified % 1000);
 
-          expect(storedWithoutMS).to.eql(
-            lastModifiedWithoutMS,
-            `The "stored" property did not match the Last-Modified to the seconds value: ${storedStr} vs. ${lastModifiedStr}`,
-          );
-
-          done();
-        });
-      });
+      expect(storedWithoutMS).to.eql(
+        lastModifiedWithoutMS,
+        `The "stored" property did not match the Last-Modified to the seconds value: ${storedStr} vs. ${lastModifiedStr}`,
+      );
     });
   });
 
@@ -297,16 +282,18 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
    * An LRS's Statement API accepts POST requests
    */
   describe("An LRS's Statement Resource accepts POST requests (Communication 2.1.2.s1, XAPI-00147)", function () {
-    it('should persist statement using "POST"', function (done) {
+    it('should persist statement using "POST"', async function () {
       let templates = [{ statement: "{{statements.default}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
 
-      request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        .expect(200, done);
+      await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        200,
+      );
     });
   });
 
@@ -314,25 +301,21 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
    * An LRS's Statement API upon processing a successful POST request returns code 200 OK and all Statement UUIDs within the POST
    */
   describe("An LRS's Statement Resource upon processing a successful POST request returns code 200 OK and all Statement UUIDs within the POST **Implicit** (Communication 2.1.2.s1, XAPI-00146)", function () {
-    it('should persist statement using "POST" and return array of IDs', function (done) {
+    it('should persist statement using "POST" and return array of IDs', async function () {
       let templates = [{ statement: "{{statements.default}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
       data.id = helper.generateUUID();
 
-      request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            expect(res.body).to.be.an("array").to.have.length.above(0);
-            done();
-          }
-        });
+      const res = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        200,
+      );
+
+      expect(res.body).to.be.an("array").to.have.length.above(0);
     });
   });
 
