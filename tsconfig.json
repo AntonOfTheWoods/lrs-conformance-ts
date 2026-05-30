@@ -21,12 +21,12 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
-    "noImplicitAny": false,
+    "noImplicitAny": true,
 
     // Some stricter flags (disabled by default)
     "noUnusedLocals": true,
     "noUnusedParameters": false,
-    "noPropertyAccessFromIndexSignature": false
+     "noPropertyAccessFromIndexSignature": true
   },
   "exclude": ["archive", "rewrite4/local", "rewrite4/node_modules", "tmp", "node_modules"]
 }

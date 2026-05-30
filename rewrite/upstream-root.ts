@@ -34,7 +34,7 @@ export function resolveUpstreamRoot(): string {
     return cachedUpstreamRoot;
   }
 
-  const envRoot = process.env.LRS_UPSTREAM_ROOT;
+  const envRoot = process.env["LRS_UPSTREAM_ROOT"];
   if (envRoot) {
     const resolvedEnvRoot = resolve(envRoot);
     if (!isUpstreamSuiteRoot(resolvedEnvRoot)) {

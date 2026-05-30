@@ -47,12 +47,12 @@ function firstLine(text: string | undefined): string {
 }
 
 async function main(): Promise<void> {
-  const version = process.env.XAPI_VERSION ?? "2.0.0";
+  const version = process.env["XAPI_VERSION"] ?? "2.0.0";
   const artifactPath = resolve(
-    process.env.UPSTREAM_RUN_IN ?? `tmp/validation/oracles/upstream-baselines/upstream-run-${version}.json`,
+    process.env["UPSTREAM_RUN_IN"] ?? `tmp/validation/oracles/upstream-baselines/upstream-run-${version}.json`,
   );
   const reportPath = resolve(
-    process.env.UPSTREAM_RUN_REPORT_OUT ??
+    process.env["UPSTREAM_RUN_REPORT_OUT"] ??
       `tmp/validation/oracles/upstream-baselines/upstream-blockers-report-${version}.json`,
   );
 

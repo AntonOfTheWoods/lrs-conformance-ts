@@ -1114,7 +1114,7 @@ function rewriteStatementRefIdsInReplayJson(
   }
 
   const record = value as { [key: string]: ReplayJsonValue };
-  const isStatementRef = record.objectType === "StatementRef";
+  const isStatementRef = record["objectType"] === "StatementRef";
   let changed = false;
   const rewrittenRecord: { [key: string]: ReplayJsonValue } = {};
 
@@ -1475,7 +1475,7 @@ function hasSignedStatementAttachment(value: unknown): boolean {
       (attachment) =>
         attachment &&
         typeof attachment === "object" &&
-        (attachment as Record<string, unknown>).usageType === signedStatementAttachmentUsageType,
+        (attachment as Record<string, unknown>)["usageType"] === signedStatementAttachmentUsageType,
     )
   );
 }
@@ -1489,7 +1489,7 @@ function stripSignedStatementAttachmentDigests<T>(value: T): T {
     return value;
   }
 
-  if ((value as Record<string, unknown>).usageType === signedStatementAttachmentUsageType) {
+  if ((value as Record<string, unknown>)["usageType"] === signedStatementAttachmentUsageType) {
     const { sha2: _sha2, ...attachment } = value as Record<string, unknown>;
     return Object.fromEntries(
       Object.entries(attachment).map(([key, entry]) => [key, stripSignedStatementAttachmentDigests(entry)]),

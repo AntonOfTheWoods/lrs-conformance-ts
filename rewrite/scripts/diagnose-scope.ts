@@ -150,7 +150,7 @@ async function main(): Promise<number> {
     return 0;
   }
 
-  const version = process.env.XAPI_VERSION ?? "2.0.0";
+  const version = process.env["XAPI_VERSION"] ?? "2.0.0";
   const upstreamPath =
     getFlagValue(args, "--upstream") ?? `tmp/validation/oracles/upstream-baselines/upstream-run-${version}.json`;
   const livePath =

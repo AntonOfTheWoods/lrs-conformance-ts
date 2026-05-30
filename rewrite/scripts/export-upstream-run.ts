@@ -236,7 +236,7 @@ function parseConfig(args: string[]): ExportUpstreamConfig {
   validateArgs(args);
 
   const baseUrl = getFlagValue(args, "--base-url") ?? "http://localhost:8080/xapi";
-  const bunImage = getFlagValue(args, "--bun-image") ?? process.env.BUN_IMAGE ?? defaultBunImage;
+  const bunImage = getFlagValue(args, "--bun-image") ?? process.env["BUN_IMAGE"] ?? defaultBunImage;
   const providedSuiteRunnerModeArg = getFlagValue(args, "--provided-suite-runner-mode");
   const username = getFlagValue(args, "--username") ?? "janedoe";
   const password = getFlagValue(args, "--password") ?? "supersecret";
@@ -247,15 +247,15 @@ function parseConfig(args: string[]): ExportUpstreamConfig {
     getFlagValue(args, "--log-dir") ?? `tmp/validation/oracles/upstream-baselines/lrs-conformance-${versionFlag}`;
   const nodeImage = getFlagValue(args, "--node-image") ?? defaultNodeImage;
   const upstreamRepoUrl =
-    getFlagValue(args, "--upstream-repo-url") ?? process.env.UPSTREAM_REPO_URL ?? defaultUpstreamRepoUrl;
-  const upstreamRef = getFlagValue(args, "--upstream-ref") ?? process.env.UPSTREAM_REF ?? defaultUpstreamRef;
+    getFlagValue(args, "--upstream-repo-url") ?? process.env["UPSTREAM_REPO_URL"] ?? defaultUpstreamRepoUrl;
+  const upstreamRef = getFlagValue(args, "--upstream-ref") ?? process.env["UPSTREAM_REF"] ?? defaultUpstreamRef;
   const cloneDepthValue =
-    getFlagValue(args, "--clone-depth") ?? process.env.UPSTREAM_CLONE_DEPTH ?? `${defaultCloneDepth}`;
+    getFlagValue(args, "--clone-depth") ?? process.env["UPSTREAM_CLONE_DEPTH"] ?? `${defaultCloneDepth}`;
   const cloneBaseDirArg =
-    getFlagValue(args, "--clone-base-dir") ?? process.env.UPSTREAM_CLONE_BASE_DIR ?? "tmp/agents/upstream-clones";
-  const keepClone = args.includes("--keep-clone") || process.env.UPSTREAM_KEEP_CLONE === "1";
+    getFlagValue(args, "--clone-base-dir") ?? process.env["UPSTREAM_CLONE_BASE_DIR"] ?? "tmp/agents/upstream-clones";
+  const keepClone = args.includes("--keep-clone") || process.env["UPSTREAM_KEEP_CLONE"] === "1";
   const allowUnsafeOutputPath =
-    args.includes("--allow-unsafe-output-path") || process.env.ALLOW_UNSAFE_OUTPUT_PATH === "1";
+    args.includes("--allow-unsafe-output-path") || process.env["ALLOW_UNSAFE_OUTPUT_PATH"] === "1";
   const suiteDirArg = getFlagValue(args, "--suite-dir");
   const grep = getFlagValue(args, "--grep");
   const directory = getFlagValue(args, "--directory");

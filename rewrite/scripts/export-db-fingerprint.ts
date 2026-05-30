@@ -120,8 +120,8 @@ function parseConfig(args: string[]): Config {
   const composeFile = getFlagValue(args, "--compose-file") ?? "compose/lrsql/podman-compose.yml";
   const service = getFlagValue(args, "--service") ?? "db";
   const schema = getFlagValue(args, "--schema") ?? "public";
-  const user = getFlagValue(args, "--user") ?? process.env.LRSQL_DB_USER ?? "lrsql_user";
-  const database = getFlagValue(args, "--database") ?? process.env.LRSQL_DB_NAME ?? "lrsql_db";
+  const user = getFlagValue(args, "--user") ?? process.env["LRSQL_DB_USER"] ?? "lrsql_user";
+  const database = getFlagValue(args, "--database") ?? process.env["LRSQL_DB_NAME"] ?? "lrsql_db";
   const tableFilter = getFlagValue(args, "--table-filter");
   const excludedTables = new Set(collectFlagValues(args, "--exclude-table"));
   if (!args.includes("--include-volatile-seed-tables")) {
@@ -388,13 +388,13 @@ async function writeJson(pathValue: string, value: unknown): Promise<void> {
 export async function exportDbFingerprint(options: ExportDbFingerprintOptions): Promise<FingerprintArtifact> {
   const config: Config = {
     composeFile: options.composeFile ?? "compose/lrsql/podman-compose.yml",
-    database: options.database ?? process.env.LRSQL_DB_NAME ?? "lrsql_db",
+    database: options.database ?? process.env["LRSQL_DB_NAME"] ?? "lrsql_db",
     excludedTables: new Set(options.excludedTables ?? volatileSeedTables),
     outPath: resolveSafeArtifactPath(options.outPath),
     schema: options.schema ?? "public",
     service: options.service ?? "db",
     tableFilterRegex: options.tableFilterRegex,
-    user: options.user ?? process.env.LRSQL_DB_USER ?? "lrsql_user",
+    user: options.user ?? process.env["LRSQL_DB_USER"] ?? "lrsql_user",
   };
 
   const tables = await listTables(config);

@@ -256,10 +256,10 @@ function resolveSafeArtifactPath(pathValue: string): string {
 function createConfig(options: MutationCaptureOptions): MutationConfig {
   return {
     composeFile: options.composeFile ?? "compose/lrsql/podman-compose.yml",
-    database: options.database ?? process.env.LRSQL_DB_NAME ?? "lrsql_db",
+    database: options.database ?? process.env["LRSQL_DB_NAME"] ?? "lrsql_db",
     schema: options.schema ?? "public",
     service: options.service ?? "db",
-    user: options.user ?? process.env.LRSQL_DB_USER ?? "lrsql_user",
+    user: options.user ?? process.env["LRSQL_DB_USER"] ?? "lrsql_user",
   };
 }
 

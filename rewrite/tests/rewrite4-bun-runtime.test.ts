@@ -229,7 +229,7 @@ test("rewrite4 bun runtime delegates to the direct compat console runner entry",
   expect(execution.exitCode).toBe(7);
   expect(invocation).toBeDefined();
   expect(invocation?.cwd).toBe("/tmp/rewrite4-suite");
-  expect(invocation?.env.LRS_CANDIDATE_RUNTIME_MODE).toBeUndefined();
+  expect(invocation?.env["LRS_CANDIDATE_RUNTIME_MODE"]).toBeUndefined();
   expect(invocation?.execPath).toBe("/usr/bin/bun");
   expect(invocation?.forwardedArgv).toEqual([
     "--directory",
