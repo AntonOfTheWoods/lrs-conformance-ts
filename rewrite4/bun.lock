@@ -8,8 +8,6 @@
         "@hono/node-server": "^1.19.5",
         "chai": "^2.3.0",
         "chai-things": "^0.2.0",
-        "commander": "^2.6.0",
-        "extend": "^2.0.0",
         "hono": "^4.10.3",
         "jose": "^6.1.0",
         "mocha": "^1.20.1",
@@ -27,7 +25,7 @@
 
     "chai-things": ["chai-things@0.2.0", "", {}, "sha512-6ns0SU21xdRCoEXVKH3HGbwnsgfVMXQ+sU5V8PI9rfxaITos8lss1vUxbF1FAcJKjfqmmmLVlr/z3sLes00w+A=="],
 
-    "commander": ["commander@2.20.3", "", {}, "sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ=="],
+    "commander": ["commander@2.3.0", "", {}, "sha512-CD452fnk0jQyk3NfnK+KkR/hUPoHt5pVaKHogtyyv3N0U4QfAal9W0/rXLOg/vVZgQKa7jdtXypKs1YAip11uQ=="],
 
     "debug": ["debug@2.0.0", "", { "dependencies": { "ms": "0.6.2" } }, "sha512-jRxFR0Fb657ikmm6IjHY32v/Nqp9Ndcx4LBISXPfpguNaHh5JJnb+x37qalKPTu4fxMFnVBIyEGi72mmvl0BCw=="],
 
@@ -36,8 +34,6 @@
     "diff": ["diff@1.0.8", "", {}, "sha512-1zEb73vemXFpUmfh3fsta4YHz3lwebxXvaWmPbFv9apujQBWDnkrPDLXLQs1gZo4RCWMDsT89r0Pf/z8/02TGA=="],
 
     "escape-string-regexp": ["escape-string-regexp@1.0.2", "", {}, "sha512-cQpUid7bdTUnFin8S7BnNdOk+/eDqQmKgCANSyd/jAhrKEvxUvr9VQ8XZzXiOtest8NLfk3FSBZzwvemZNQ6Vg=="],
-
-    "extend": ["extend@2.0.2", "", {}, "sha512-AgFD4VU+lVLP6vjnlNfF7OeInLTyeyckCNPEsuxz1vi786UuK/nk6ynPuhn/h+Ju9++TQyr5EpLRI14fc1QtTQ=="],
 
     "glob": ["glob@3.2.3", "", { "dependencies": { "graceful-fs": "~2.0.0", "inherits": "2", "minimatch": "~0.2.11" } }, "sha512-WPaLsMHD1lYEqAmIQI6VOJSPwuBdGShDWnj1yUo0vQqEO809R8W3LM9OVU13CnnDhyv/EiNwOtxEW74SmrzS6w=="],
 
@@ -82,7 +78,5 @@
     "jade/commander": ["commander@0.6.1", "", {}, "sha512-0fLycpl1UMTGX257hRsu/arL/cUbcvQM4zMKwvLvzXtfdezIV4yotPS2dYtknF+NmEfWSoCEF6+hj9XLm/6hEw=="],
 
     "jade/mkdirp": ["mkdirp@0.3.0", "", {}, "sha512-OHsdUcVAQ6pOtg5JYWpCBo9W/GySVuwvP9hueRMW7UqshC0tbfzLv8wjySTPm3tfUZ/21CE9E1pJagOA91Pxew=="],
-
-    "mocha/commander": ["commander@2.3.0", "", {}, "sha512-CD452fnk0jQyk3NfnK+KkR/hUPoHt5pVaKHogtyyv3N0U4QfAal9W0/rXLOg/vVZgQKa7jdtXypKs1YAip11uQ=="],
   }
 }

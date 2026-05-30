@@ -5,7 +5,7 @@
 
 import { expect } from "chai";
 import crypto from "crypto";
-import extend from "extend";
+import extend from "../../bun-runtime/extend-compat.ts";
 import fs from "fs";
 import helperImport from "../helper.ts";
 import multipartParser from "../multipartParser.ts";

@@ -7,7 +7,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 
 import { expect } from "chai";
-import extend from "extend";
+import extend from "../../bun-runtime/extend-compat.ts";
 import helperImport from "../helper.ts";
 import multipartParser from "../multipartParser.ts";
 import requestBase from "super-request";

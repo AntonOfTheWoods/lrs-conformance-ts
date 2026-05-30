@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { isDeepStrictEqual } from "node:util";
 
-import extend from "extend";
+import extend from "../bun-runtime/extend-compat.ts";
 
 import * as fixtureCryptoSupportModule from "../bun-runtime/helper-fixture-crypto.ts";
 import * as transportSupportModule from "../bun-runtime/helper-transport.ts";

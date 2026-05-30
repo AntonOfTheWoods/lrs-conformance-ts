@@ -5,10 +5,9 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import commander from "commander";
-
 import { auth as doOAuth1Auth } from "./OAuth.ts";
 import { testRunner as TestRunner } from "./testRunner.ts";
+import { parseConsoleRunnerArgv } from "../bun-runtime/cli-args.ts";
 
 type RunnerMessage = {
   action?: string;
@@ -75,64 +74,26 @@ type OAuthResponse = {
   verifier: string;
 };
 
-const program = commander as any;
-
-function cleanDir(value: string, directory: string[]): string[] {
-  value.split(",").forEach(function (segment) {
-    directory.push(segment);
-  });
-  return directory;
-}
-
-program
-  .version("0.0.2")
-  .option("-x, --xapiVersion [string]", "🌟 New: Version of the xAPI spec to test against")
-  .option("-e, --endpoint [url]", "xAPI Endpoint")
-  .option("-u, --authUser [string]", "Basic Auth Username")
-  .option("-p, --authPassword [string]", "Basic Auth Password")
-  .option("-a, --basicAuth", "Enable Basic Auth")
-  .option("-o, --oAuth1", "Enable oAuth 1")
-  .option("-c, --consumer_key [string]", "oAuth 1 Consumer Key")
-  .option("-s, --consumer_secret [string]", "oAuth 1 Consumer Secret")
-  .option("-r, --request_token_path [string]", "Path to OAuth request token endpoint (relative to endpoint).")
-  .option("-t, --auth_token_path [string]", "Path to OAuth authorization token endpoint (relative to endpoint).")
-  .option("-l, --authorization_path [string]", "Path to OAuth user authorization endpoint (relative to endpoint).")
-  .option("-g, --grep [string]", "Only run tests that match the given pattern.")
-  .option("-b, --bail", "Abort the battery if one test fails.")
-  .option(
-    "-d, --directory [value]",
-    "Specific directories of tests (as a comma-separated list with no spaces).",
-    cleanDir,
-    [...[]],
-  )
-  .option(
-    "-m, --optional [value]",
-    "Optional directories of tests (as a comma-separated list with no spaces).",
-    cleanDir,
-    [...[]],
-  )
-  .option("-f, --file [value]", "Specific suite files (as a comma-separated list with no spaces).", cleanDir, [...[]])
-  .option("-z, --errors", "Results log of failing tests only.")
-  .parse(process.argv);
+const parsedArgv = parseConsoleRunnerArgv(process.argv.slice(2));
 
 const options: Record<string, unknown> = {
-  xapiVersion: program.xapiVersion,
-  endpoint: program.endpoint,
-  authUser: program.authUser,
-  authPass: program.authPassword,
-  basicAuth: program.basicAuth,
-  oAuth1: program.oAuth1,
-  consumer_key: program.consumer_key,
-  consumer_secret: program.consumer_secret,
-  request_token_path: program.request_token_path,
-  auth_token_path: program.auth_token_path,
-  authorization_path: program.authorization_path,
-  grep: program.grep,
-  bail: program.bail,
-  directory: program.directory,
-  optional: Array.isArray(program.optional) && program.optional.length > 0 ? program.optional : undefined,
-  file: Array.isArray(program.file) && program.file.length > 0 ? program.file : undefined,
-  errors: program.errors,
+  xapiVersion: parsedArgv.xapiVersion,
+  endpoint: parsedArgv.endpoint,
+  authUser: parsedArgv.authUser,
+  authPass: parsedArgv.authPass,
+  basicAuth: parsedArgv.basicAuth,
+  oAuth1: parsedArgv.oAuth1,
+  consumer_key: parsedArgv.consumer_key,
+  consumer_secret: parsedArgv.consumer_secret,
+  request_token_path: parsedArgv.request_token_path,
+  auth_token_path: parsedArgv.auth_token_path,
+  authorization_path: parsedArgv.authorization_path,
+  grep: parsedArgv.grep,
+  bail: parsedArgv.bail,
+  directory: parsedArgv.directory ?? [],
+  optional: Array.isArray(parsedArgv.optional) && parsedArgv.optional.length > 0 ? parsedArgv.optional : undefined,
+  file: Array.isArray(parsedArgv.file) && parsedArgv.file.length > 0 ? parsedArgv.file : undefined,
+  errors: parsedArgv.errors,
 };
 
 var testRunner: RunnerInstance | null = null;
@@ -236,7 +197,7 @@ function start(runnerOptions: Record<string, unknown>): void {
   });
 }
 
-if (!program.oAuth1) {
+if (!parsedArgv.oAuth1) {
   start(options);
 } else {
   const config: OAuthConfig = {

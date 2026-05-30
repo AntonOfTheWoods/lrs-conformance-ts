@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import extend from "extend";
+import extend from "../../bun-runtime/extend-compat.ts";
 import helperImport from "../helper.ts";
 import requestBase from "super-request";
 
