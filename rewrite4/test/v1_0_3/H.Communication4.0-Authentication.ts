@@ -11,11 +11,11 @@ const helper: any = helperImport;
 let request: any = requestBase;
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
-describe("Authentication Requirements (Communication 4.0)", function () {
+describe("Authentication Requirements (Communication 4.0)", () => {
   /**  XAPI-00334, Communication 2.1.3 GET Statements
    * An LRS rejects a Statement of bad authorization (either authentication needed or failed credentials) with error code 401 Unauthorized
    */
-  describe("An LRS rejects a Statement of bad authorization, either authentication needed or failed credentials, with error code 401 Unauthorized (Authentication, Communication 4.0, XAPI-00334)", function () {
+  describe("An LRS rejects a Statement of bad authorization, either authentication needed or failed credentials, with error code 401 Unauthorized (Authentication, Communication 4.0, XAPI-00334)", () => {
     // This test was not allowing for different, non-standardized prioritizations of request statuses
     // when rejecting Requests based on Authentication.  An LRS may receive a request with bad credentials,
     // but place higher priority on an improper header -- returning 400 for that header violation.  This test
@@ -24,7 +24,7 @@ describe("Authentication Requirements (Communication 4.0)", function () {
     //
     // Equivalent authentication behavior is covered in this suite.
 
-    it("fails when given a random name pass pair", async function () {
+    it("fails when given a random name pass pair", async () => {
       if (process.env["OAUTH1_ENABLED"] === "true") {
         return;
       } else {
@@ -61,7 +61,7 @@ describe("Authentication Requirements (Communication 4.0)", function () {
       }
     });
 
-    it("fails with a malformed header", async function () {
+    it("fails with a malformed header", async () => {
       if (process.env["OAUTH1_ENABLED"] === "true") {
         return;
       } else {
@@ -102,7 +102,7 @@ describe("Authentication Requirements (Communication 4.0)", function () {
    * An LRS must support HTTP Basic Authentication
    */
   //WARNING: This might not be a great test. OAUTH will override it
-  it("An LRS must support HTTP Basic Authentication (Authentication, Communication 4.0, XAPI-00335)", async function () {
+  it("An LRS must support HTTP Basic Authentication (Authentication, Communication 4.0, XAPI-00335)", async () => {
     if (process.env["OAUTH1_ENABLED"] === "true") {
       return;
     } else {

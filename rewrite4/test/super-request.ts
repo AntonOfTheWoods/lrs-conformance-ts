@@ -282,8 +282,8 @@ function createChain(endpoint: string, method: string, path: string): RequestCha
       return chain;
     },
     end: function (callback) {
-      const done = typeof callback === "function" ? callback : function () {};
-      void (async function () {
+      const done = typeof callback === "function" ? callback : () => {};
+      void (async () => {
         try {
           if (state.waitPromise) {
             await state.waitPromise;

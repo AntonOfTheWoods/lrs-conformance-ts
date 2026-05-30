@@ -13,7 +13,7 @@ let request: any = requestBase;
 
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
-describe("Attachments Property Requirements (Data 2.4.11)", function () {
+describe("Attachments Property Requirements (Data 2.4.11)", () => {
   /**  Matchup with Conformance Requirements Document
  * XAPI-00102 - in attachments.js
  * XAPI-00103 - in attachments.js

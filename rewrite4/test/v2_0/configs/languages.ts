@@ -12,7 +12,7 @@ let INVALID_DISPLAY_LANGUAGE = { display: INVALID_LANGUAGE };
 let INVALID_NAME_LANGUAGE = { name: INVALID_LANGUAGE };
 
 // configures tests
-export const config = function () {
+export const config = () => {
   return [
     {
       /**  XAPI-00121, Data 4.2 Language Maps

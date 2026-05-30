@@ -16,7 +16,7 @@ function isValidEmailAddress(value: unknown): boolean {
   return typeof value === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
-describe("Agents Resource Requirements (Communication 2.4)", function () {
+describe("Agents Resource Requirements (Communication 2.4)", () => {
   /**  Matchup with Conformance Requirements Document
    * XAPI-00236 - below
    * XAPI-00237 - below
@@ -37,7 +37,7 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
   /**  XAPI-00245, Communication 2.4 Agents Resource
    * An LRS has an Agents API with endpoint "base IRI" + /agents"
    */
-  it('An LRS has an Agents Resource with endpoint "base IRI" + /agents" (Communication 2.4, XAPI-00245) **Implicit** (in that it is not named this by the spec)', function () {
+  it('An LRS has an Agents Resource with endpoint "base IRI" + /agents" (Communication 2.4, XAPI-00245) **Implicit** (in that it is not named this by the spec)', () => {
     let templates = [{ statement: "{{statements.default}}" }];
     let data = helper.createFromTemplate(templates);
     let statement = data.statement;
@@ -52,14 +52,14 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
   /**  XAPI-00236, Communication 2.4 Agents Resource
    * An LRS's Agents API accepts GET requests with response 200 OK, Person Object
    */
-  it("An LRS's Agents Resource accepts GET requests (Communication 2.4.s2, XAPI-00236)", function () {
+  it("An LRS's Agents Resource accepts GET requests (Communication 2.4.s2, XAPI-00236)", () => {
     return helper.sendRequest("get", helper.getEndpointAgents(), helper.buildAgent(), undefined, 200);
   });
 
   /**  XAPI-00248, Communication 2.4 Agents Resource
    * An LRS's Agents API upon processing a successful GET request returns a Person Object based on matched data from the "agent" parameter and code 200 OK
    */
-  it('An LRS\'s Agent Resource upon processing a successful GET request returns a Person Object if the "agent" parameter can be found in the LRS and code 200 OK (Communication 2.4.s2.table1.row1, XAPI-00248)', function () {
+  it('An LRS\'s Agent Resource upon processing a successful GET request returns a Person Object if the "agent" parameter can be found in the LRS and code 200 OK (Communication 2.4.s2.table1.row1, XAPI-00248)', () => {
     let templates = [{ statement: "{{statements.default}}" }];
     let data = helper.createFromTemplate(templates);
     let statement = data.statement;
@@ -80,14 +80,14 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
   /**  XAPI-00243, Communication 2.4 Agents Resource
    * An LRS's Agents API rejects a GET request without "agent" as a parameter with error code 400 Bad Request
    */
-  it('An LRS\'s Agents Resource rejects a GET request without "agent" as a parameter with error code 400 Bad Request (multiplicity, Communication 2.4.s2.table1.row1, XAPI-00243)', function () {
+  it('An LRS\'s Agents Resource rejects a GET request without "agent" as a parameter with error code 400 Bad Request (multiplicity, Communication 2.4.s2.table1.row1, XAPI-00243)', () => {
     return helper.sendRequest("get", helper.getEndpointAgents(), undefined, undefined, 400);
   });
 
   /**  XAPI-00237, Communication 2.4 Agents Resource
    * A Person Object's "objectType" property is a String and is "Person" The LRS must return a valid “objectType” string.
    */
-  it('A Person Object\'s "objectType" property is a String and is "Person" (Format, Vocabulary, Communication 2.4.s5.table1.row1, XAPI-00237)', function () {
+  it('A Person Object\'s "objectType" property is a String and is "Person" (Format, Vocabulary, Communication 2.4.s5.table1.row1, XAPI-00237)', () => {
     let templates = [{ statement: "{{statements.default}}" }];
     let data = helper.createFromTemplate(templates);
     let statement = data.statement;
@@ -105,7 +105,7 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
   /**  XAPI-00238, Agents Resource
    * A Person Object's "name" property is an Array of Strings. The LRS must return a “name” property with a valid Array of Strings, if present.
    */
-  it('A Person Object\'s "name" property is an Array of Strings (Multiplicity, Communication 2.4.s5.table1.row2, XAPI-00238)', function () {
+  it('A Person Object\'s "name" property is an Array of Strings (Multiplicity, Communication 2.4.s5.table1.row2, XAPI-00238)', () => {
     let templates = [{ statement: "{{statements.default}}" }];
     let data = helper.createFromTemplate(templates);
     let statement = data.statement;
@@ -127,7 +127,7 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
   /**  XAPI-00239, Communication 2.4 Agents Resource
    * A Person Object's "mbox" property is an Array of IRIs. The LRS must return an “mbox” property with a valid array of IRIs, if present.
    */
-  it('A Person Object\'s "mbox" property is an Array of IRIs (Multiplicity, Communication 2.4.s5.table1.row3, XAPI-00239)', function () {
+  it('A Person Object\'s "mbox" property is an Array of IRIs (Multiplicity, Communication 2.4.s5.table1.row3, XAPI-00239)', () => {
     let templates = [{ statement: "{{statements.default}}" }];
     let data = helper.createFromTemplate(templates);
     let statement = data.statement;
@@ -152,7 +152,7 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
   /**  XAPI-00244, Communication 2.4 Agents Resource
    * A Person Object's "mbox" entries have the form "mailto:emailaddress". The LRS must return a Person Object which has a “mbox” value with the form "mailto:emailaddress"
    */
-  it('A Person Object\'s "mbox" entries have the form "mailto:emailaddress" (Format, Communication 2.4.s5.table1.row3, XAPI-00244)', function () {
+  it('A Person Object\'s "mbox" entries have the form "mailto:emailaddress" (Format, Communication 2.4.s5.table1.row3, XAPI-00244)', () => {
     let templates = [{ statement: "{{statements.default}}" }];
     let data = helper.createFromTemplate(templates);
     let statement = data.statement;
@@ -175,7 +175,7 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
   /**  XAPI-00240, Communication 2.4 Agents Resource
    * A Person Object's "mbox_sha1sum" property is an Array of Strings. The LRS must return a Person Object which has a “mbox_sha1sum” and is valid array of strings, if present.
    */
-  it('A Person Object\'s "mbox_sha1sum" property is an Array of Strings (Multiplicity, Communication 2.4.s5.table1.row4, XAPI-00240)', function () {
+  it('A Person Object\'s "mbox_sha1sum" property is an Array of Strings (Multiplicity, Communication 2.4.s5.table1.row4, XAPI-00240)', () => {
     let templates = [{ statement: "{{statements.no_actor}}" }, { actor: "{{agents.mbox_sha1sum}}" }];
     let data = helper.createFromTemplate(templates);
     let statement = data.statement;
@@ -197,7 +197,7 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
   /**  XAPI-00241, Communication 2.4 Agents Resource
    * A Person Object's "openid" property is an Array of Strings The LRS must return a “openid” value which is valid array of strings, if present.
    */
-  it('A Person Object\'s "openid" property is an Array of Strings (Multiplicity, Communication 2.4.s5.table1.row5, XAPI-00241)', function () {
+  it('A Person Object\'s "openid" property is an Array of Strings (Multiplicity, Communication 2.4.s5.table1.row5, XAPI-00241)', () => {
     let templates = [{ statement: "{{statements.no_actor}}" }, { actor: "{{agents.openid}}" }];
     let data = helper.createFromTemplate(templates);
     let statement = data.statement;
@@ -219,7 +219,7 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
   /**  XAPI-00242, Communication 2.4 Agents Resource
    * A Person Object's "account" property is an Array of Account Objects The LRS must return a Person Object with a “name” value which is a valid array of account objects, if present.
    */
-  it('A Person Object\'s "account" property is an Array of Account Objects (Multiplicity, Communication 2.4.s5.table1.row6, XAPI-00242)', function () {
+  it('A Person Object\'s "account" property is an Array of Account Objects (Multiplicity, Communication 2.4.s5.table1.row6, XAPI-00242)', () => {
     let templates = [{ statement: "{{statements.no_actor}}" }, { actor: "{{agents.account}}" }];
     let data = helper.createFromTemplate(templates);
     let statement = data.statement;
@@ -241,7 +241,7 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
   /**  XAPI-00249, Communication 2.4 Agents Resource
    * An LRSs Agents API rejects a GET request with "agent" as a parameter if it is not a valid (in structure) Agent with error code 400 Bad Request (XAPI-00249)
    */
-  it('An LRSs Agents Resource rejects a GET request with "agent" as a parameter if it is not a valid, in structure, Agent with error code 400 Bad Request (Communication 2.4, XAPI-00249)', function () {
+  it('An LRSs Agents Resource rejects a GET request with "agent" as a parameter if it is not a valid, in structure, Agent with error code 400 Bad Request (Communication 2.4, XAPI-00249)', () => {
     let parameter = helper.buildAgent();
     delete parameter.agent.account;
     return helper.sendRequest("get", helper.getEndpointAgents(), parameter, undefined, 400);

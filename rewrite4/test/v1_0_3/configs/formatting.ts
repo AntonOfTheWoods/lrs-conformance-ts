@@ -65,7 +65,7 @@ let INVALID_DISPLAY_ATTACHMENT = {
 };
 
 // configures tests
-export const config = function () {
+export const config = () => {
   return [
     {
       /**  XAPI-00003, 2.2 Formatting Requirements

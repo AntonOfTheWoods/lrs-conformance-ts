@@ -7,7 +7,7 @@
  */
 // defines overwriting data
 // configures tests
-export const config = function () {
+export const config = () => {
   return [
     {
       /**  XAPI-00019,  2.3.2 Voiding

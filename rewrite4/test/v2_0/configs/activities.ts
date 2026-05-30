@@ -16,7 +16,7 @@ let VALID_EXTENSION_COMPONENT = {
 };
 
 // configures tests
-export const config = function () {
+export const config = () => {
   return [
     {
       /**  XAPI-00047, Data 2.4.4.1 when the objectType is activity

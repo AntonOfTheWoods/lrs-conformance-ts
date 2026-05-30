@@ -10,7 +10,7 @@ let INVALID_OBJECTTYPE_INVALID_AGENT = { objectType: "agent" };
 let INVALID_OBJECTTYPE_INVALID_GROUP = { objectType: "group" };
 
 // configures tests
-export const config = function () {
+export const config = () => {
   return [
     {
       /** XAPI-00031, Data 2.4.2 Actor

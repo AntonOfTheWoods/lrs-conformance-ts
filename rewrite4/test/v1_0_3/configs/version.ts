@@ -13,7 +13,7 @@ let VALID_VERSION_1_0 = "1.0";
 let VALID_VERSION_1_0_9 = "1.0.9";
 
 // configures tests
-export const config = function () {
+export const config = () => {
   return [
     {
       /**  XAPI-00101, Data 2.4.10 Version

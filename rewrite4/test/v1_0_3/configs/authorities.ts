@@ -27,7 +27,7 @@ let INVALID_THREE_MEMBER = [
 ];
 
 // configures tests
-export const config = function () {
+export const config = () => {
   return [
     {
       /**  XAPI-00024,  Data 2.4 Statement Properties

@@ -12,7 +12,7 @@ let VALID_DECIMAL_DIGITS = 0.6767676;
 let VALID_MAX_DECIMAL_DIGITS = 100.6767676;
 
 // configures tests
-export const config = function () {
+export const config = () => {
   return [
     {
       /**  XAPI-00079, Data 2.4.5.1 score

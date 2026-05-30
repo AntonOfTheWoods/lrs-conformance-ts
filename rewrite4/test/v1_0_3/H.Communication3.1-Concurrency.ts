@@ -16,8 +16,8 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
   /**  XAPI-00322, Communication 3.1 Concurrency
    * An LRS must support HTTP/1.1 entity tags (ETags) to implement optimistic concurrency control when handling APIs where PUT may overwrite existing data (State, Agent Profile, and Activity Profile)
    */
-  describe("An LRS must support HTTP/1.1 entity tags (ETags) to implement optimistic concurrency control when handling Resources where PUT may overwrite existing data (Agent Profile, and Activity Profile, Communication 3.1, XAPI-00322)", function () {
-    it("When responding to a GET request to Agent Profile resource, include an ETag HTTP header in the response", function () {
+  describe("An LRS must support HTTP/1.1 entity tags (ETags) to implement optimistic concurrency control when handling Resources where PUT may overwrite existing data (Agent Profile, and Activity Profile, Communication 3.1, XAPI-00322)", () => {
+    it("When responding to a GET request to Agent Profile resource, include an ETag HTTP header in the response", () => {
       let parameters = helper.buildAgentProfile(),
         document = helper.buildDocument();
 
@@ -32,7 +32,7 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
         });
     });
 
-    it("When responding to a GET request to Activities Profile resource, include an ETag HTTP header in the response", function () {
+    it("When responding to a GET request to Activities Profile resource, include an ETag HTTP header in the response", () => {
       let parameters = helper.buildActivityProfile(),
         document = helper.buildDocument();
 
@@ -49,7 +49,7 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
         });
     });
 
-    it("When returning an ETag header, the value should be calculated as a SHA1 hexadecimal value", function () {
+    it("When returning an ETag header, the value should be calculated as a SHA1 hexadecimal value", () => {
       let parameters = helper.buildAgentProfile(),
         document = helper.buildDocument();
 
@@ -63,7 +63,7 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
       });
     });
 
-    it("When responding to a GET Request the Etag header must be enclosed in quotes", function () {
+    it("When responding to a GET Request the Etag header must be enclosed in quotes", () => {
       let parameters = helper.buildAgentProfile(),
         document = helper.buildDocument();
 
@@ -85,15 +85,15 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
       });
     });
 
-    describe("With a valid etag", function () {
+    describe("With a valid etag", () => {
       let parameters: any, document: any;
-      before("before", function () {
+      before("before", () => {
         parameters = helper.buildAgentProfile();
         document = helper.buildDocument();
         return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204);
       });
 
-      it("When responding to a PUT request, must handle the If-Match header as described in RFC 2616, HTTP/1.1 if it contains an ETag", function () {
+      it("When responding to a PUT request, must handle the If-Match header as described in RFC 2616, HTTP/1.1 if it contains an ETag", () => {
         document = helper.buildDocument();
         return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, null, 200).then((
           res: any,
@@ -108,17 +108,17 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
       });
     });
 
-    describe('When responding to a PUT request, handle the If-None-Match header as described in RFC 2616, HTTP/1.1 if it contains "*"', function () {
+    describe('When responding to a PUT request, handle the If-None-Match header as described in RFC 2616, HTTP/1.1 if it contains "*"', () => {
       let parameters = helper.buildActivityProfile();
 
-      it("succeeds when no document exists", function () {
+      it("succeeds when no document exists", () => {
         let document = helper.buildDocument();
         return helper.sendRequest("put", helper.getEndpointActivitiesProfile(), parameters, document, 204, {
           "If-None-Match": "*",
         });
       });
 
-      it("rejects if a document already exists", function () {
+      it("rejects if a document already exists", () => {
         let document2 = helper.buildDocument();
         return helper.sendRequest("put", helper.getEndpointActivitiesProfile(), parameters, document2, 412, {
           "If-None-Match": "*",
@@ -126,11 +126,11 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
       });
     });
 
-    describe("If Header precondition in PUT Requests for RFC2616 fail", function () {
+    describe("If Header precondition in PUT Requests for RFC2616 fail", () => {
       let parameters = helper.buildAgentProfile(),
         document = helper.buildDocument();
 
-      before("post the document and get the etag", function () {
+      before("post the document and get the etag", () => {
         return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then((
           res: any,
         ) => {
@@ -142,7 +142,7 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
         });
       });
 
-      it("Return HTTP 412 (Precondition Failed)", function () {
+      it("Return HTTP 412 (Precondition Failed)", () => {
         let badTag = '"1111111111111111111111111111111111111111"';
         let document2 = helper.buildDocument();
         return helper.sendRequest("put", helper.getEndpointAgentsProfile(), parameters, document2, 412, {
@@ -150,7 +150,7 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
         });
       });
 
-      it("Do not modify the resource", function () {
+      it("Do not modify the resource", () => {
         return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, null, 200).then((
           res: any,
         ) => {
@@ -160,12 +160,12 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
       });
     });
 
-    describe("If put request is received without either header for a resource that already exists", function () {
+    describe("If put request is received without either header for a resource that already exists", () => {
       let parameters = helper.buildActivityProfile();
       let document = helper.buildDocument();
       let document2 = helper.buildDocument();
 
-      before("post the document and get the etag", function () {
+      before("post the document and get the etag", () => {
         return helper
           .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204)
           .then((res: any) => {
@@ -177,11 +177,11 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
           });
       });
 
-      it("Return 409 conflict", function () {
+      it("Return 409 conflict", () => {
         return helper.sendRequest("put", helper.getEndpointActivitiesProfile(), parameters, document2, 409);
       });
 
-      it("Return error message explaining the situation", function () {
+      it("Return error message explaining the situation", () => {
         return helper
           .sendRequest("put", helper.getEndpointActivitiesProfile(), parameters, document2, 409)
           .then((res: any) => {
@@ -190,7 +190,7 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
           });
       });
 
-      it("Do not modify the resource", function () {
+      it("Do not modify the resource", () => {
         return helper
           .sendRequest("put", helper.getEndpointActivitiesProfile(), parameters, document2, 409)
           .then((res: any) => {

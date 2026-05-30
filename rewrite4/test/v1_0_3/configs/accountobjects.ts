@@ -9,7 +9,7 @@
 let INVALID_ACCOUNT_HOMEPAGE_IRL = { account: { homePage: "ab=c://should.fail.com" } };
 
 // configures tests
-export const config = function () {
+export const config = () => {
   return [
     {
       /**  XAPI-00042, 2.4.2.4 Account Object

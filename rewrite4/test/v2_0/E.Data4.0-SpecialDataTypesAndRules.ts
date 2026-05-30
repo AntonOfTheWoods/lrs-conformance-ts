@@ -33,7 +33,7 @@ function parseMillisecondsFromIso(value: unknown): number | null {
   return Number.isNaN(milliseconds) ? null : milliseconds;
 }
 
-describe("Special Data Types and Rules (Data 4.0)", function () {
+describe("Special Data Types and Rules (Data 4.0)", () => {
   //Data 4.1
   /**  Matchup with Conformance Requirements Document
    * XAPI-00118 - in extensions.js
@@ -46,13 +46,13 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
    * An Extension can be null, an empty string, objects with nothing in them. The LRS accepts with 200 if a PUT or 204 if a POST an otherwise valid statement which has any extension value including null, an empty string, or an empty object.
    * Tests for other emptys and PUT
    */
-  describe("An Extension can be null, an empty string, objects with nothing in them when using PUT. (Format, Data 4.1, XAPI-00119)", function () {
+  describe("An Extension can be null, an empty string, objects with nothing in them when using PUT. (Format, Data 4.1, XAPI-00119)", () => {
     const NULL_VALUE = { extensions: { "http://example.com/ex": null } },
       EMPTY_STRING_VALUE = { extensions: { "http://example.com/ex": "" } },
       EMPTY_OBJECT_VALUE = { extensions: { "http://example.com/ex": {} } },
       VALID_EXTENSION_EMPTY = { extensions: {} };
 
-    it("statement activity extensions can be empty object", async function () {
+    it("statement activity extensions can be empty object", async () => {
       const template = [
           { statement: "{{statements.object_activity}}" },
           { object: "{{activities.no_extensions}}" },
@@ -69,7 +69,7 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
       );
     });
 
-    it("statement activity extension values can be empty string", async function () {
+    it("statement activity extension values can be empty string", async () => {
       const template = [
           { statement: "{{statements.object_activity}}" },
           { object: "{{activities.no_extensions}}" },
@@ -86,7 +86,7 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
       );
     });
 
-    it("statement activity extension values can be null", async function () {
+    it("statement activity extension values can be null", async () => {
       const template = [
           { statement: "{{statements.object_activity}}" },
           { object: "{{activities.no_extensions}}" },
@@ -103,7 +103,7 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
       );
     });
 
-    it("statement activity extensions can be empty object", async function () {
+    it("statement activity extensions can be empty object", async () => {
       const template = [
           { statement: "{{statements.object_activity}}" },
           { object: "{{activities.no_extensions}}" },
@@ -120,7 +120,7 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
       );
     });
 
-    it("statement result extensions can be empty object", async function () {
+    it("statement result extensions can be empty object", async () => {
       const template = [
           { statement: "{{statements.result}}" },
           { result: "{{results.no_extensions}}" },
@@ -137,7 +137,7 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
       );
     });
 
-    it("statement result extension values can be empty string", async function () {
+    it("statement result extension values can be empty string", async () => {
       const template = [
           { statement: "{{statements.result}}" },
           { result: "{{results.no_extensions}}" },
@@ -154,7 +154,7 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
       );
     });
 
-    it("statement result extension values can be null", async function () {
+    it("statement result extension values can be null", async () => {
       const template = [{ statement: "{{statements.result}}" }, { result: "{{results.no_extensions}}" }, NULL_VALUE],
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
@@ -167,7 +167,7 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
       );
     });
 
-    it("statement result extension values can be empty object", async function () {
+    it("statement result extension values can be empty object", async () => {
       const template = [
           { statement: "{{statements.result}}" },
           { result: "{{results.no_extensions}}" },
@@ -184,7 +184,7 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
       );
     });
 
-    it("statement context extensions can be empty object", async function () {
+    it("statement context extensions can be empty object", async () => {
       const template = [
           { statement: "{{statements.context}}" },
           { context: "{{contexts.no_extensions}}" },
@@ -201,7 +201,7 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
       );
     });
 
-    it("statement context extension values can be empty string", async function () {
+    it("statement context extension values can be empty string", async () => {
       const template = [
           { statement: "{{statements.context}}" },
           { context: "{{contexts.no_extensions}}" },
@@ -218,7 +218,7 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
       );
     });
 
-    it("statement context extension values can be null", async function () {
+    it("statement context extension values can be null", async () => {
       const template = [{ statement: "{{statements.context}}" }, { context: "{{contexts.no_extensions}}" }, NULL_VALUE],
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
@@ -231,7 +231,7 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
       );
     });
 
-    it("statement context extension values can be empty object", async function () {
+    it("statement context extension values can be empty object", async () => {
       const template = [
           { statement: "{{statements.context}}" },
           { context: "{{contexts.no_extensions}}" },
@@ -248,7 +248,7 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
       );
     });
 
-    it("statement substatement activity extensions can be empty object", async function () {
+    it("statement substatement activity extensions can be empty object", async () => {
       const template = [
           { statement: "{{statements.object_substatement}}" },
           { object: "{{substatements.activity}}" },
@@ -266,7 +266,7 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
       );
     });
 
-    it("statement substatement activity extension values can be empty string", async function () {
+    it("statement substatement activity extension values can be empty string", async () => {
       const template = [
           { statement: "{{statements.object_substatement}}" },
           { object: "{{substatements.activity}}" },
@@ -284,7 +284,7 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
       );
     });
 
-    it("statement substatement activity extension values can be null", async function () {
+    it("statement substatement activity extension values can be null", async () => {
       const template = [
           { statement: "{{statements.object_substatement}}" },
           { object: "{{substatements.activity}}" },
@@ -302,7 +302,7 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
       );
     });
 
-    it("statement substatement activity extension values can be empty object", async function () {
+    it("statement substatement activity extension values can be empty object", async () => {
       const template = [
           { statement: "{{statements.object_substatement}}" },
           { object: "{{substatements.activity}}" },
@@ -320,7 +320,7 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
       );
     });
 
-    it("statement substatement result extensions can be empty object", async function () {
+    it("statement substatement result extensions can be empty object", async () => {
       const template = [
           { statement: "{{statements.object_substatement}}" },
           { object: "{{substatements.result}}" },
@@ -338,7 +338,7 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
       );
     });
 
-    it("statement substatement result extension values can be empty string", async function () {
+    it("statement substatement result extension values can be empty string", async () => {
       const template = [
           { statement: "{{statements.object_substatement}}" },
           { object: "{{substatements.result}}" },
@@ -356,7 +356,7 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
       );
     });
 
-    it("statement substatement result extension values can be null", async function () {
+    it("statement substatement result extension values can be null", async () => {
       const template = [
           { statement: "{{statements.object_substatement}}" },
           { object: "{{substatements.activity}}" },
@@ -374,7 +374,7 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
       );
     });
 
-    it("statement substatement result extension values can be empty object", async function () {
+    it("statement substatement result extension values can be empty object", async () => {
       const template = [
           { statement: "{{statements.object_substatement}}" },
           { object: "{{substatements.result}}" },
@@ -392,7 +392,7 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
       );
     });
 
-    it("statement substatement context extensions can be empty object", async function () {
+    it("statement substatement context extensions can be empty object", async () => {
       const template = [
           { statement: "{{statements.object_substatement}}" },
           { object: "{{substatements.context}}" },
@@ -410,7 +410,7 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
       );
     });
 
-    it("statement substatement context extension values can be empty string", async function () {
+    it("statement substatement context extension values can be empty string", async () => {
       const template = [
           { statement: "{{statements.object_substatement}}" },
           { object: "{{substatements.context}}" },
@@ -428,7 +428,7 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
       );
     });
 
-    it("statement substatement context extension values can be null", async function () {
+    it("statement substatement context extension values can be null", async () => {
       const template = [
           { statement: "{{statements.object_substatement}}" },
           { object: "{{substatements.context}}" },
@@ -446,7 +446,7 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
       );
     });
 
-    it("statement substatement context extension values can be empty object", async function () {
+    it("statement substatement context extension values can be empty object", async () => {
       const template = [
           { statement: "{{statements.object_substatement}}" },
           { object: "{{substatements.context}}" },
@@ -481,8 +481,8 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
   /**  XAPI-00122, Data 4.5 ISO 8601 Timestamps
    * A Timestamp MUST preserve precision to at least milliseconds (3 decimal points beyond seconds). The LRS accepts a statement with a valid timestamp which has more than 3 decimal points beyond seconds and when recalled it returns at least 3 decimals points beyond seconds.
    */
-  describe("A Timestamp MUST preserve precision to at least milliseconds, 3 decimal points beyond seconds. (Data 4.5.s1.b3, XAPI-00122)", function () {
-    it("retrieve statements, test a timestamp property", async function () {
+  describe("A Timestamp MUST preserve precision to at least milliseconds, 3 decimal points beyond seconds. (Data 4.5.s1.b3, XAPI-00122)", () => {
+    it("retrieve statements, test a timestamp property", async () => {
       const res = await endAsync(
         request(helper.getEndpointAndAuth())
           .get(helper.getEndpointStatements())
@@ -510,7 +510,7 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
       milliChecker(0);
     });
 
-    it("retrieve statements, test a stored property", async function () {
+    it("retrieve statements, test a stored property", async () => {
       const res = await endAsync(
         request(helper.getEndpointAndAuth())
           .get(helper.getEndpointStatements())

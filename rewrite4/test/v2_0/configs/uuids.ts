@@ -12,7 +12,7 @@ let INVALID_UUID_TOO_MANY_DIGITS = "AA97B177-9383-4934-8543-0F91A7A028368";
 let INVALID_UUID_INVALID_LETTER = "MA97B177-9383-4934-8543-0F91A7A02836";
 
 // configures tests
-export const config = function () {
+export const config = () => {
   return [
     {
       /**  XAPI-00030, Data 2.4.1 Id

@@ -13,7 +13,7 @@ let INVALID_DATE_0000 = "2008-09-15T15:53:00.601-0000";
 let INVALID_DATE_00_00 = "2008-09-15T15:53:00.601-00:00";
 
 // configures tests
-export const config = function () {
+export const config = () => {
   return [
     {
       /**  XAPI-00123, Data 4.5 ISO8601 Timestamps

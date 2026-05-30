@@ -46,7 +46,7 @@ let VALID_NAME = {
 let VALID_TYPE = { type: "http://adlnet.gov/expapi/activities/meeting" };
 
 // configures tests
-export const config = function () {
+export const config = () => {
   return [
     {
       // see above

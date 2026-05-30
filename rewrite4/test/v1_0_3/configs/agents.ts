@@ -17,7 +17,7 @@ let FOREIGN_IDENTIFIER_MBOX_SHA1SUM = { mbox_sha1sum: "cd9b00a5611f94eaa7b1661ed
 let FOREIGN_IDENTIFIER_OPENID = { openid: "http://openid.example.org/12345" };
 
 // configures tests
-export const config = function () {
+export const config = () => {
   return [
     {
       /**  XAPI-00032, Data 2.4.2.1 when the actor objectType is agent

@@ -59,7 +59,7 @@ let VALID_ATTACHMENT = {
 };
 
 // configures tests
-export const config = function () {
+export const config = () => {
   return [
     {
       /**  XAPI-00025,  Data 2.4 Statement Properties

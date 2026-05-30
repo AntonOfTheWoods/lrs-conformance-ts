@@ -13,7 +13,7 @@ let VALID_ACTIVITY = {
 };
 
 // Configures tests.
-export const config = function () {
+export const config = () => {
   return [
     {
       /**  XAPI-00093, Data 2.4.6.2 ContextActivities Property

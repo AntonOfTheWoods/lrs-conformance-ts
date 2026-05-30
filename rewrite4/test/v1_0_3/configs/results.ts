@@ -13,7 +13,7 @@ let INVALID_STRING = "should fail";
 let VALID_DURATION = "PT1H0M0.1S";
 
 // configures tests
-export const config = function () {
+export const config = () => {
   return [
     {
       /**  XAPI-00074, Data 2.4.5 result

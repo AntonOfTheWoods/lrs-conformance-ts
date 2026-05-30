@@ -10,7 +10,7 @@ let INVALID_STATEMENT_REF = "statementref";
 let INVALID_STRING = "should fail";
 
 // configures tests
-export const config = function () {
+export const config = () => {
   return [
     {
       /**  XAPI-00073, Data 2.4.4.3 when object is a statement

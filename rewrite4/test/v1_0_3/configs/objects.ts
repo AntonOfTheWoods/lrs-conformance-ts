@@ -13,7 +13,7 @@ let INVALID_STATEMENTREF = "statementref";
 let INVALID_SUBSTATEMENT = "substatement";
 
 // configures tests
-export const config = function () {
+export const config = () => {
   return [
     {
       /**  XAPI-00046, Data 2.4.4 Object

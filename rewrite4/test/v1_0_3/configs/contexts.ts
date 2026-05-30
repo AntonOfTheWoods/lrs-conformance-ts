@@ -11,7 +11,7 @@ let INVALID_NUMERIC = 12345;
 let INVALID_OBJECT = { key: "should fail" };
 let INVALID_STRING = "should fail";
 // configures tests
-export const config = function () {
+export const config = () => {
   return [
     {
       /**  XAPI-00087-1, Data 2.4.6 Context

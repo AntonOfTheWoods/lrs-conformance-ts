@@ -41,9 +41,8 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
   /**  XAPI-00097, Data 2.4.8 Stored
    * An LRS MUST assign the "stored" property timestamp upon receiving a statement.
    */
-  describe("An LRS MUST accept statements with the stored property (Data 2.4.8.s3.b2, XAPI-00097)", function () {
-    const context = this;
-    context.timeout(0);
+  describe("An LRS MUST accept statements with the stored property (Data 2.4.8.s3.b2, XAPI-00097)", function (this: { timeout(ms: number): void }) {
+    this.timeout(0);
     const storedTime = new Date("July 15, 2011").toISOString();
     const template = [{ statement: "{{statements.default}}" }, { stored: storedTime }];
     const data = helper.createFromTemplate(template).statement;
@@ -51,7 +50,7 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
     let putId: string;
     let param: string;
 
-    it("using POST", async function () {
+    it("using POST", async () => {
       const stmtTime = Date.now();
       const res = await endAsync(
         request(helper.getEndpointAndAuth())
@@ -77,7 +76,7 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
       expect(stmtStored).not.toEqual(storedTime);
     });
 
-    it("using PUT", async function () {
+    it("using PUT", async () => {
       putId = helper.generateUUID();
       param = "?statementId=" + putId;
       const stmtTime = Date.now();
@@ -108,8 +107,8 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
   /**  XAPI-00023,  2.4 Statement Properties
    * A "stored" property is a TimeStamp, per section 4.5. An LRS assigns the “stored” property upon receipt with a valid TimeStamp.
    */
-  describe("A stored property must be a TimeStamp (Data 2.4.8.s2, XAPI-00023)", function () {
-    it("retrieve statements, test a stored property", async function () {
+  describe("A stored property must be a TimeStamp (Data 2.4.8.s2, XAPI-00023)", () => {
+    it("retrieve statements, test a stored property", async () => {
       const res = await endAsync(
         request(helper.getEndpointAndAuth())
           .get(helper.getEndpointStatements())

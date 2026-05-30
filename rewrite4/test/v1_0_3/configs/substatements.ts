@@ -6,7 +6,7 @@
  *
  */
 // configures tests
-export const config = function () {
+export const config = () => {
   return [
     {
       name: 'A Sub-Statement is defined by the "objectType" of an "object" with value "SubStatement" (Data 2.4.4.3.s8.b1)',

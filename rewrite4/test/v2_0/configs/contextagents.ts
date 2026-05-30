@@ -55,7 +55,7 @@ let INVALID_RELEVANT_TYPE_NON_IRI_ELEMENT = {
 };
 
 // Configures tests.
-export const config = function () {
+export const config = () => {
   return [
     {
       /** ContextAgents Property

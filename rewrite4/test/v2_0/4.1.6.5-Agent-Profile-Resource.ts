@@ -14,7 +14,7 @@ let request: any = requestBase;
 
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
-describe("Agent Profile Resource Requirements (Communication 2.6)", function () {
+describe("Agent Profile Resource Requirements (Communication 2.6)", () => {
   let document: any;
   /**  Matchup with Conformance
    * XAPI-00255 - below
@@ -52,11 +52,11 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
   /**  XAPI-00282, Communication 2.6 Agent Profile Resource
    * An LRS has an Agent Profile API with endpoint "base IRI"+"/agents/profile"
    */
-  describe('An LRS has an Agent Profile Resource with endpoint "base IRI"+"/agents/profile" (Communication 2.2.s3.table2.row3.a, Communication 2.2.table2.row3.c, XAPI-00282)', function () {
+  describe('An LRS has an Agent Profile Resource with endpoint "base IRI"+"/agents/profile" (Communication 2.2.s3.table2.row3.a, Communication 2.2.table2.row3.c, XAPI-00282)', () => {
     /**  XAPI-00274, Communication 2.6 Agent Profile Resource
      * An LRS's Agent Profile API accepts valid GET requests with code 200 OK, Profile document
      */
-    it("An LRS's Agent Profile Resource accepts GET requests (Communication 2.6.s2, XAPI-00274)", function () {
+    it("An LRS's Agent Profile Resource accepts GET requests (Communication 2.6.s2, XAPI-00274)", () => {
       let parameters = helper.buildAgentProfile(),
         document = helper.buildDocument();
       return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(() => {
@@ -67,7 +67,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
     /**  XAPI-00273, Communication 2.6 Agent Profile Resource
      * An LRS's Agent Profile API upon processing a successful PUT request returns code 204 No Content
      */
-    it("An LRS's Agent Profile Resource upon processing a successful PUT request returns code 204 No Content (Communication 2.6.s3, XAPI-00273)", async function () {
+    it("An LRS's Agent Profile Resource upon processing a successful PUT request returns code 204 No Content (Communication 2.6.s3, XAPI-00273)", async () => {
       let parameters = helper.buildAgentProfile(),
         document = helper.buildDocument();
 
@@ -86,7 +86,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
     /**  XAPI-00283, Communication 2.6 Agent Profile Resource
      * An LRS will accept a POST request to the Agent Profile API
      */
-    it("An LRS's Agent Profile Resource upon processing a successful POST request returns code 204 No Content (Communication 2.6.s3, XAPI-00272, XAPI-00283)", function () {
+    it("An LRS's Agent Profile Resource upon processing a successful POST request returns code 204 No Content (Communication 2.6.s3, XAPI-00272, XAPI-00283)", () => {
       let parameters = helper.buildAgentProfile(),
         document = helper.buildDocument();
       return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204);
@@ -95,7 +95,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
     /**  XAPI-00271, Communication 2.6 Agent Profile Resource
      * An LRS's Agent Profile API upon processing a successful DELETE request deletes the associated profile and returns code 204 No Content
      */
-    it("An LRS's Agent Profile Resource upon processing a successful DELETE request deletes the associated profile and returns code 204 No Content (Communication 2.6.s3, XAPI-00271)", function () {
+    it("An LRS's Agent Profile Resource upon processing a successful DELETE request deletes the associated profile and returns code 204 No Content (Communication 2.6.s3, XAPI-00271)", () => {
       let parameters = helper.buildAgentProfile(),
         document = helper.buildDocument();
       return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(() => {
@@ -110,7 +110,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
   /**  XAPI-00269, Communication 2.6 Agent Profile Resource
    * An LRS's Agent Profile API upon processing a successful GET request with a valid Agent Object and valid "profileId" as a parameter returns the document satisfying the requirements of the GET and code 200 OK
    */
-  it('An LRS\'s Agent Profile Resource upon processing a successful GET request with a valid "profileId" as a parameter returns the document satisfying the requirements of the GET and code 200 OK (Communication 2.6.s3, XAPI-00259, XAPI-00269)', function () {
+  it('An LRS\'s Agent Profile Resource upon processing a successful GET request with a valid "profileId" as a parameter returns the document satisfying the requirements of the GET and code 200 OK (Communication 2.6.s3, XAPI-00259, XAPI-00269)', () => {
     let parameters = helper.buildAgentProfile(),
       document = helper.buildDocument();
     return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(() => {
@@ -126,7 +126,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
   /**  XAPI-00264, Communication 2.6 Agent Profile Resource
    * An LRS's Agent Profile API rejects a PUT request without "agent" as a parameter with error code 400 Bad Request
    */
-  it('An LRS\'s Agent Profile Resource rejects a PUT request without "agent" as a parameter with error code 400 Bad Request (multiplicity, Communication 2.6.s3.table1.row1, XAPI-00264)', async function () {
+  it('An LRS\'s Agent Profile Resource rejects a PUT request without "agent" as a parameter with error code 400 Bad Request (multiplicity, Communication 2.6.s3.table1.row1, XAPI-00264)', async () => {
     let parameters = helper.buildAgentProfile(),
       document = helper.buildDocument();
     delete parameters.agent;
@@ -143,8 +143,8 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
   /**  XAPI-00257, Communication 2.6 Agent Profile Resource
    * An LRS's Agent Profile API rejects a PUT request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request
    */
-  describe('An LRS\'s Agent Profile Resource rejects a PUT request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request (format, Communication 2.6.s3.table1.row1, XAPI-00257)', function () {
-    it('Should reject PUT with "agent" with invalid value', async function () {
+  describe('An LRS\'s Agent Profile Resource rejects a PUT request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request (format, Communication 2.6.s3.table1.row1, XAPI-00257)', () => {
+    it('Should reject PUT with "agent" with invalid value', async () => {
       let document = helper.buildDocument();
       let parameters = helper.buildAgentProfile();
       parameters.agent = true;
@@ -162,7 +162,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
   /**  XAPI-00263, Communication 2.6 Agent Profile Resource
    * An LRS's Agent Profile API rejects a POST request without "agent" as a parameter with error code 400 Bad Request
    */
-  it('An LRS\'s Agent Profile Resource rejects a POST request without "agent" as a parameter with error code 400 Bad Request (multiplicity, Communication 2.6.s3.table1.row1, XAPI-00263)', function () {
+  it('An LRS\'s Agent Profile Resource rejects a POST request without "agent" as a parameter with error code 400 Bad Request (multiplicity, Communication 2.6.s3.table1.row1, XAPI-00263)', () => {
     let parameters = helper.buildAgentProfile(),
       document = helper.buildDocument();
     delete parameters.agent;
@@ -172,8 +172,8 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
   /**  XAPI-00256, Communication 2.6 Agent Profile Resource
    * An LRS's Agent Profile API rejects a POST request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request
    */
-  it('An LRS\'s Agent Profile Resource rejects a POST request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request (format, Communication 2.6.s3.table1.row1, XAPI-00256)', function () {
-    it('Should reject POST with "agent" with invalid value', function () {
+  it('An LRS\'s Agent Profile Resource rejects a POST request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request (format, Communication 2.6.s3.table1.row1, XAPI-00256)', () => {
+    it('Should reject POST with "agent" with invalid value', () => {
       let document = helper.buildDocument();
       let parameters = helper.buildAgentProfile();
       parameters.agent = true;
@@ -184,7 +184,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
   /**  XAPI-00262, Communication 2.6 Agent Profile Resource
    * An LRS's Agent Profile API rejects a DELETE request without "agent" as a parameter with error code 400 Bad Request
    */
-  it('An LRS\'s Agent Profile Resource rejects a DELETE request without "agent" as a parameter with error code 400 Bad Request (multiplicity, Communication 2.6.s3.table1.row1, XAPI-00262)', function () {
+  it('An LRS\'s Agent Profile Resource rejects a DELETE request without "agent" as a parameter with error code 400 Bad Request (multiplicity, Communication 2.6.s3.table1.row1, XAPI-00262)', () => {
     let parameters = helper.buildAgentProfile();
     delete parameters.agent;
     return helper.sendRequest("delete", helper.getEndpointAgentsProfile(), parameters, undefined, 400);
@@ -193,8 +193,8 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
   /**  XAPI-00255, Communication 2.6 Agent Profile Resource
    * An LRS's Agent Profile API rejects a DELETE request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request
    */
-  describe('An LRS\'s Agent Profile Resource rejects a DELETE request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request (format, Communication 2.6.s3.table1.row1, XAPI-00255)', function () {
-    it('Should reject DELETE with "agent" with invalid value', function () {
+  describe('An LRS\'s Agent Profile Resource rejects a DELETE request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request (format, Communication 2.6.s3.table1.row1, XAPI-00255)', () => {
+    it('Should reject DELETE with "agent" with invalid value', () => {
       let document = helper.buildDocument();
       let parameters = helper.buildAgentProfile();
       parameters.agent = true;
@@ -205,8 +205,8 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
   /**  XAPI-00258, Communication 2.6 Agent Profile Resource
    * An LRS's Agent Profile API rejects a GET request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request
    */
-  describe('An LRS\'s Agent Profile Resource rejects a GET request with "agent" as a parameter if it is a valid, in structure, Agent with error code 400 Bad Request (multiplicity, Communication 2.6.s4.table1.row1, Communication 2.6.s3.table1.row1, XAPI-00258)', function () {
-    it('Should reject GET with "agent" with invalid value', function () {
+  describe('An LRS\'s Agent Profile Resource rejects a GET request with "agent" as a parameter if it is a valid, in structure, Agent with error code 400 Bad Request (multiplicity, Communication 2.6.s4.table1.row1, Communication 2.6.s3.table1.row1, XAPI-00258)', () => {
+    it('Should reject GET with "agent" with invalid value', () => {
       let parameters = helper.buildAgentProfile();
       parameters.agent = true;
       return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 400);
@@ -216,7 +216,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
   /** XAPI-00267, Communication 2.6 Agent Profile Resource
    * An LRS's Agent Profile API rejects a PUT request without "profileId" as a parameter with error code 400 Bad Request
    */
-  it('An LRS\'s Agent Profile Resource rejects a PUT request without "profileId" as a parameter with error code 400 Bad Request (multiplicity, Communication 2.6.s3.table1.row2, XAPI-00267)', async function () {
+  it('An LRS\'s Agent Profile Resource rejects a PUT request without "profileId" as a parameter with error code 400 Bad Request (multiplicity, Communication 2.6.s3.table1.row2, XAPI-00267)', async () => {
     let parameters = helper.buildAgentProfile(),
       document = helper.buildDocument();
     delete parameters.profileId;
@@ -233,7 +233,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
   /**  XAPI-00266, Communication 2.6 Agent Profile Resource
    * An LRS's Agent Profile API rejects a POST request without "profileId" as a parameter with error code 400 Bad Request
    */
-  it('An LRS\'s Agent Profile Resource rejects a POST request without "profileId" as a parameter with error code 400 Bad Request (multiplicity, Communication 2.6.s3.table1.row2, XAPI-00266)', function () {
+  it('An LRS\'s Agent Profile Resource rejects a POST request without "profileId" as a parameter with error code 400 Bad Request (multiplicity, Communication 2.6.s3.table1.row2, XAPI-00266)', () => {
     let parameters = helper.buildAgentProfile(),
       document = helper.buildDocument();
     delete parameters.profileId;
@@ -243,7 +243,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
   /**  XAPI-00265, Communication 2.6 Agent Profile Resource
    * An LRS's Agent Profile API rejects a DELETE request without "profileId" as a parameter with error code 400 Bad Request
    */
-  it('An LRS\'s Agent Profile Resource rejects a DELETE request without "profileId" as a parameter with error code 400 Bad Request (multiplicity, Communication 2.6.s3.table1.row2, XAPI-00265)', function () {
+  it('An LRS\'s Agent Profile Resource rejects a DELETE request without "profileId" as a parameter with error code 400 Bad Request (multiplicity, Communication 2.6.s3.table1.row2, XAPI-00265)', () => {
     let parameters = helper.buildAgentProfile();
     delete parameters.profileId;
     return helper.sendRequest("delete", helper.getEndpointAgentsProfile(), parameters, undefined, 400);
@@ -252,7 +252,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
   /**  XAPI-00270, Communication 2.6 Agent Profile Resource
    * An LRS's Agent Profile API upon processing a successful GET request with a valid Agent Object and without "profileId" as a parameter returns an array of ids of agent profile documents satisfying the requirements of the GET and code 200 OK
    */
-  it('An LRS\'s Agent Profile Resource upon processing a successful GET request without "profileId" as a parameter returns an array of ids of agent profile documents satisfying the requirements of the GET and code 200 OK (Communication 2.6.s4, XAPI-00270)', function () {
+  it('An LRS\'s Agent Profile Resource upon processing a successful GET request without "profileId" as a parameter returns an array of ids of agent profile documents satisfying the requirements of the GET and code 200 OK (Communication 2.6.s4, XAPI-00270)', () => {
     let parameters = helper.buildAgentProfile(),
       document = helper.buildDocument();
     return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(() => {
@@ -269,7 +269,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
   /**  XAPI-00261, Communication 2.6 Agent Profile Resource
    * An LRS's Agent Profile API rejects a GET request without "agent" as a parameter with error code 400 Bad Request
    */
-  it('An LRS\'s Agent Profile Resource rejects a GET request without "agent" as a parameter with error code 400 Bad Request (multiplicity, Communication 2.6.s4.table1.row1, XAPI-00261)', function () {
+  it('An LRS\'s Agent Profile Resource rejects a GET request without "agent" as a parameter with error code 400 Bad Request (multiplicity, Communication 2.6.s4.table1.row1, XAPI-00261)', () => {
     let parameters = helper.buildAgentProfile();
     delete parameters.agent;
     return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 400);
@@ -278,7 +278,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
   /**  XAPI-00268, Communication 2.6 Agent Profile Resource
    * An LRS's Agent Profile API can process a GET request with "since" as a parameter. Returning 200 OK and all matching profiles after the date/time of the “since” parameter
    */
-  it('An LRS\'s Agent Profile Resource can process a GET request with "since" as a parameter (Multiplicity, Communication 2.6.s4.table1.row2, XAPI-00268)', function () {
+  it('An LRS\'s Agent Profile Resource can process a GET request with "since" as a parameter (Multiplicity, Communication 2.6.s4.table1.row2, XAPI-00268)', () => {
     let parameters = helper.buildAgentProfile(),
       document = helper.buildDocument();
     return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(() => {
@@ -291,8 +291,8 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
   /**  XAPI-00260, Communication 2.6 Agent Profile Resource
    * An LRS's Agent Profile API rejects a GET request with "since" as a parameter if it is not a "TimeStamp", with error code 400 Bad Request
    */
-  describe('An LRS\'s Agent Profile Resource rejects a GET request with "since" as a parameter if it is not a "TimeStamp", with error code 400 Bad Request (format, Communication 2.6.s4.table1.row2, XAPI-00260)', function () {
-    it('Should reject GET with "since" with invalid value', function () {
+  describe('An LRS\'s Agent Profile Resource rejects a GET request with "since" as a parameter if it is not a "TimeStamp", with error code 400 Bad Request (format, Communication 2.6.s4.table1.row2, XAPI-00260)', () => {
+    it('Should reject GET with "since" with invalid value', () => {
       let parameters = helper.buildAgentProfile();
       delete parameters.profileId;
       parameters.since = true;
@@ -303,7 +303,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
   /**  XAPI-00275, Communication 2.6 Agent Profile Resource
    * The Agent Profile API's returned array of ids from a successful GET request all refer to documents stored after the TimeStamp in the "since" parameter of the GET request if such a parameter was present
    */
-  it('An LRS\'s returned array of ids from a successful GET request to the Agent Profile Resource all refer to documents stored after the TimeStamp in the "since" parameter of the GET request if such a parameter was present (Communication 2.6.s4.table1.row2, XAPI-00275)', function () {
+  it('An LRS\'s returned array of ids from a successful GET request to the Agent Profile Resource all refer to documents stored after the TimeStamp in the "since" parameter of the GET request if such a parameter was present (Communication 2.6.s4.table1.row2, XAPI-00275)', () => {
     let parameters = helper.buildAgentProfile(),
       profile1 = parameters.profileId;
     document = helper.buildDocument();
@@ -327,7 +327,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
    * An LRS's Agent Profile API performs a Document Merge if a profileId is found and both it and the document in the POST request have type "application/json" If the merge is successful, the LRS MUST respond with HTTP status code 204 No Content.
    * not quite, but is this close enough??
    */
-  it('An LRS\'s Agent Profile Resource performs a Document Merge if a document is found and both it and the document in the POST request have type "application/json" (Communication 2.2.s7.b1, Communication 2.2.s7.b2, Communication 2.2.s7.b3, XAPI-00279)', function () {
+  it('An LRS\'s Agent Profile Resource performs a Document Merge if a document is found and both it and the document in the POST request have type "application/json" (Communication 2.2.s7.b1, Communication 2.2.s7.b2, Communication 2.2.s7.b3, XAPI-00279)', () => {
     let parameters = helper.buildAgentProfile(),
       document = {
         car: "Honda",
@@ -355,7 +355,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
   /**  XAPI-00280, Communication 2.6 Agent Profile Resource
    * An LRS's Agent Profile API, upon receiving a POST request for a document not currently in the LRS, treats it as a PUT request and store a new document.Returning 204 No Content
    */
-  it("An LRS's Agent Profile Resource, upon receiving a POST request for a document not currently in the LRS, treats it as a PUT request and store a new document (Communication 2.2.s7, XAPI-00280)", function () {
+  it("An LRS's Agent Profile Resource, upon receiving a POST request for a document not currently in the LRS, treats it as a PUT request and store a new document (Communication 2.2.s7, XAPI-00280)", () => {
     let parameters = helper.buildAgentProfile(),
       document = helper.buildDocument();
     return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(() => {
@@ -371,9 +371,9 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
   /**  XAPI-00278, Communication 2.6 Agent Profile Resource
    * An LRS's Agent Profile API, rejects a POST request if the document is found and either document's type is not "application/json" with error code 400 Bad Request
    */
-  describe('An LRSs Agent Profile Resource, rejects a POST request if the document is found and either documents type is not "application/json" with error code 400 Bad Request (multiplicity, Communication 2.3.s3.table1.row3, Communication 2.2.s8.b1, XAPI-00278)', function () {
+  describe('An LRSs Agent Profile Resource, rejects a POST request if the document is found and either documents type is not "application/json" with error code 400 Bad Request (multiplicity, Communication 2.3.s3.table1.row3, Communication 2.2.s8.b1, XAPI-00278)', () => {
     // case 1 - bad post
-    it("If the document being posted to the Agent Profile Resource does not have a Content-Type of application/json and the existing document does, the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", async function () {
+    it("If the document being posted to the Agent Profile Resource does not have a Content-Type of application/json and the existing document does, the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", async () => {
       let parameters = helper.buildAgentProfile();
       let document = helper.buildDocument();
       await expectAsync(
@@ -405,7 +405,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
       expect(result).toEqual(document);
     });
     // case 2 - bad existing
-    it("If the existing document does not have a Content-Type of application/json but the document being posted to the Agent Profile Resource does the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", async function () {
+    it("If the existing document does not have a Content-Type of application/json but the document being posted to the Agent Profile Resource does the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", async () => {
       let parameters = helper.buildAgentProfile();
       let attachment = "/ asdf / undefined";
       let header = { "content-type": "application/octet-stream", "If-None-Match": "*" };
@@ -436,7 +436,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
       expect(res3.body).toEqual(attachment);
     });
     // case 3 - bad json
-    it("If the document being posted to the Agent Profile Resource has a content type of Content-Type of application/json but cannot be parsed as a JSON Object, the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", async function () {
+    it("If the document being posted to the Agent Profile Resource has a content type of Content-Type of application/json but cannot be parsed as a JSON Object, the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", async () => {
       let parameters = helper.buildAgentProfile();
       let document = helper.buildDocument();
       await expectAsync(
@@ -472,7 +472,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
   /**  XAPI-00281, Communication 2.6 Agent Profile Resource
    * An LRS must reject with 400 Bad Request a POST request to the Activitiy Profile API which contains name/value pairs with invalid JSON and the Content-Type header is "application/json"
    */
-  it("An LRS's Agent Profile Resource, rejects a POST request if the document is found and either document is not a valid JSON Object (Communication 2.6, XAPI-00281)", async function () {
+  it("An LRS's Agent Profile Resource, rejects a POST request if the document is found and either document is not a valid JSON Object (Communication 2.6, XAPI-00281)", async () => {
     let parameters = helper.buildAgentProfile();
     let document = helper.buildDocument();
     await expectAsync(
@@ -507,7 +507,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
   /**  XAPI-00284, Communication 2.6 Agent Profile Resource
    * An LRS must reject with 400 Bad Request a POST request to the Activitiy Profile API which contains name/value pairs with invalid JSON and the Content-Type header is "application/json"
    */
-  it("An LRS must reject with 400 Bad Request a POST request to the Activitiy Profile Resource which contains name/value pairs with invalid JSON and the Content-Type header is 'application/json' (Communication 2.6, XAPI-00284)", async function () {
+  it("An LRS must reject with 400 Bad Request a POST request to the Activitiy Profile Resource which contains name/value pairs with invalid JSON and the Content-Type header is 'application/json' (Communication 2.6, XAPI-00284)", async () => {
     let parameters = {
       profileId: helper.generateUUID(),
     };
@@ -534,7 +534,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
     );
   });
 
-  describe("The LRS shall include a Last-Modified header indicating when the document was last modified.", function () {
+  describe("The LRS shall include a Last-Modified header indicating when the document was last modified.", () => {
     let document = helper.buildDocument();
     let updatedDocument = {
       ...document,

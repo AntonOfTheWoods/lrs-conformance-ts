@@ -12,7 +12,7 @@ let INVALID_MAIL_TO_IRI = "http://should.fail.com";
 let INVALID_URI = "ab=c://should.fail.com";
 
 // configures tests
-export const config = function () {
+export const config = () => {
   return [
     {
       /**  XAPI-00038, Data 2.4.2.3 Inverse Functional Identifier

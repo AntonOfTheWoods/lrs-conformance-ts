@@ -61,8 +61,8 @@ describe("Object Property Requirements (Data 2.4.4)", () => {
   /**  XAPI-00064, Data 2.4.4.1 when objectType is activity
    * An Activity Definition uses the "interactionType" property if correctResponsesPattern is present. An LRS rejects a statement with 400 Bad Request if a correctResponsePattern is present and interactionType is not.
    */
-  describe('An Activity Definition uses the "interactionType" property if any of the correctResponsesPattern, choices, scale, source, target, or steps properties are used (Multiplicity, Data 2.4.4.1.s8, XAPI-00064) **Implicit**', function () {
-    it('Activity Definition uses correctResponsesPattern without "interactionType" property', async function () {
+  describe('An Activity Definition uses the "interactionType" property if any of the correctResponsesPattern, choices, scale, source, target, or steps properties are used (Multiplicity, Data 2.4.4.1.s8, XAPI-00064) **Implicit**', () => {
+    it('Activity Definition uses correctResponsesPattern without "interactionType" property', async () => {
       id = helper.generateUUID();
       let correctResponsesPatterntemplates = [
         { statement: "{{statements.default}}" },
@@ -80,7 +80,7 @@ describe("Object Property Requirements (Data 2.4.4)", () => {
       );
     });
 
-    it('Activity Definition uses choices without "interactionType" property', async function () {
+    it('Activity Definition uses choices without "interactionType" property', async () => {
       id = helper.generateUUID();
       let choicetemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.choice}}" }];
       choice = helper.createFromTemplate(choicetemplates);
@@ -95,7 +95,7 @@ describe("Object Property Requirements (Data 2.4.4)", () => {
       );
     });
 
-    it('Activity Definition uses fill-in without "interactionType" property', async function () {
+    it('Activity Definition uses fill-in without "interactionType" property', async () => {
       id = helper.generateUUID();
       let fillintemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.fill_in}}" }];
       fillin = helper.createFromTemplate(fillintemplates);
@@ -110,7 +110,7 @@ describe("Object Property Requirements (Data 2.4.4)", () => {
       );
     });
 
-    it('Activity Definition uses scale without "interactionType" property', async function () {
+    it('Activity Definition uses scale without "interactionType" property', async () => {
       id = helper.generateUUID();
       let scaletemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.likert}}" }];
       scale = helper.createFromTemplate(scaletemplates);
@@ -125,7 +125,7 @@ describe("Object Property Requirements (Data 2.4.4)", () => {
       );
     });
 
-    it('Activity Definition uses long-fill-in without "interactionType" property', async function () {
+    it('Activity Definition uses long-fill-in without "interactionType" property', async () => {
       id = helper.generateUUID();
       let fillintemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.long_fill_in}}" }];
       fillin = helper.createFromTemplate(fillintemplates);
@@ -140,7 +140,7 @@ describe("Object Property Requirements (Data 2.4.4)", () => {
       );
     });
 
-    it('Activity Definition uses source without "interactionType" property', async function () {
+    it('Activity Definition uses source without "interactionType" property', async () => {
       id = helper.generateUUID();
       let sourcetemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.matching}}" }];
       source = helper.createFromTemplate(sourcetemplates);
@@ -155,7 +155,7 @@ describe("Object Property Requirements (Data 2.4.4)", () => {
       );
     });
 
-    it('Activity Definition uses target without "interactionType" property', async function () {
+    it('Activity Definition uses target without "interactionType" property', async () => {
       id = helper.generateUUID();
       let targettemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.matching_target}}" }];
       target = helper.createFromTemplate(targettemplates);
@@ -170,7 +170,7 @@ describe("Object Property Requirements (Data 2.4.4)", () => {
       );
     });
 
-    it('Activity Definition uses numeric without "interactionType" property', async function () {
+    it('Activity Definition uses numeric without "interactionType" property', async () => {
       id = helper.generateUUID();
       let numerictemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.numeric}}" }];
       numeric = helper.createFromTemplate(numerictemplates);
@@ -185,7 +185,7 @@ describe("Object Property Requirements (Data 2.4.4)", () => {
       );
     });
 
-    it('Activity Definition uses other without "interactionType" property', async function () {
+    it('Activity Definition uses other without "interactionType" property', async () => {
       id = helper.generateUUID();
       let othertemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.other}}" }];
       other = helper.createFromTemplate(othertemplates);
@@ -200,7 +200,7 @@ describe("Object Property Requirements (Data 2.4.4)", () => {
       );
     });
 
-    it('Activity Definition uses performance without "interactionType" property', async function () {
+    it('Activity Definition uses performance without "interactionType" property', async () => {
       id = helper.generateUUID();
       let stepstemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.performance}}" }];
       steps = helper.createFromTemplate(stepstemplates);
@@ -215,7 +215,7 @@ describe("Object Property Requirements (Data 2.4.4)", () => {
       );
     });
 
-    it('Activity Definition uses sequencing without "interactionType" property', async function () {
+    it('Activity Definition uses sequencing without "interactionType" property', async () => {
       id = helper.generateUUID();
       let seqtemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.sequencing}}" }];
       seq = helper.createFromTemplate(seqtemplates);
@@ -230,7 +230,7 @@ describe("Object Property Requirements (Data 2.4.4)", () => {
       );
     });
 
-    it('Activity Definition uses true-false without "interactionType" property', async function () {
+    it('Activity Definition uses true-false without "interactionType" property', async () => {
       id = helper.generateUUID();
       let tftemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.true_false}}" }];
       tf = helper.createFromTemplate(tftemplates);
@@ -254,8 +254,8 @@ describe("Object Property Requirements (Data 2.4.4)", () => {
   /** XAPI-00065, Data 2.4.4.2 when the object is an agent or a group
    * Statements that use an Agent or Group as an Object MUST specify an "objectType" property. The LRS rejects with 400 Bad Request if the “objectType” property is absent and the Object is an Agent Object or Group Object.
    */
-  describe('Statements that use an Agent or Group as an Object MUST specify an "objectType" property. (Data 2.4.4.2.s1.b1, XAPI-00065)', function () {
-    it("should fail when using agent as object and no objectType", async function () {
+  describe('Statements that use an Agent or Group as an Object MUST specify an "objectType" property. (Data 2.4.4.2.s1.b1, XAPI-00065)', () => {
+    it("should fail when using agent as object and no objectType", async () => {
       let templates = [{ statement: "{{statements.object_agent_default}}" }];
       let data = helper.createFromTemplate(templates).statement;
       delete data.object.objectType;
@@ -269,7 +269,7 @@ describe("Object Property Requirements (Data 2.4.4)", () => {
       );
     });
 
-    it("should fail when using group as object and no objectType", async function () {
+    it("should fail when using group as object and no objectType", async () => {
       let templates = [{ statement: "{{statements.object_group_default}}" }];
       let data = helper.createFromTemplate(templates).statement;
       delete data.object.objectType;
@@ -283,7 +283,7 @@ describe("Object Property Requirements (Data 2.4.4)", () => {
       );
     });
 
-    it("substatement should fail when using agent as object and no objectType", async function () {
+    it("substatement should fail when using agent as object and no objectType", async () => {
       let templates = [
         { statement: "{{statements.object_substatement}}" },
         { object: "{{statements.object_agent_default}}" },
@@ -300,7 +300,7 @@ describe("Object Property Requirements (Data 2.4.4)", () => {
       );
     });
 
-    it("substatement should fail when using group as object and no objectType", async function () {
+    it("substatement should fail when using group as object and no objectType", async () => {
       let templates = [
         { statement: "{{statements.object_substatement}}" },
         { object: "{{statements.object_group_default}}" },

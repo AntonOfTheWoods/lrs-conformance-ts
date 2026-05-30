@@ -13,7 +13,7 @@ let request: any = requestBase;
 
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
-describe("About Resource Requirements (Communication 2.8)", function () {
+describe("About Resource Requirements (Communication 2.8)", () => {
   /**  Matchup with Conformance Requirements Document
    * XAPI-00315 - below
    * XAPI-00316 - below
@@ -27,14 +27,14 @@ describe("About Resource Requirements (Communication 2.8)", function () {
   /**  XAPI-00315, Communication 2.8 About Resource
    * An LRS has an About API with endpoint "base IRI"+"/about"
    */
-  it('An LRS has an About Resource with endpoint "base IRI"+"/about" (Communication 2.8, XAPI-00315)', function () {
+  it('An LRS has an About Resource with endpoint "base IRI"+"/about" (Communication 2.8, XAPI-00315)', () => {
     return helper.sendRequest("get", "/about", undefined, undefined, 200);
   });
 
   /**  XAPI-00319, Communication 2.8 About Resource
    * An LRS's About Resource accepts GET requests. Upon processing a successful GET request returns a version property and code 200 OK
    */
-  it("An LRS's About Resource upon processing a successful GET request returns a version property and code 200 OK (multiplicity, Communication 2.8.s4, XAPI-00319)", function () {
+  it("An LRS's About Resource upon processing a successful GET request returns a version property and code 200 OK (multiplicity, Communication 2.8.s4, XAPI-00319)", () => {
     return helper.sendRequest("get", "/about", undefined, undefined, 200).then((res: any) => {
       let about = res.body;
       expect(about).toHaveProperty("version");
@@ -44,7 +44,7 @@ describe("About Resource Requirements (Communication 2.8)", function () {
   /**  XAPI-00318, Communication 2.8 About Resource
    * An LRS's About API's version property is an array of strings
    */
-  it("An LRS's About Resource's version property is an array of strings (format, Communication 2.8.s4.table1.row1, XAPI-00318)", function () {
+  it("An LRS's About Resource's version property is an array of strings (format, Communication 2.8.s4.table1.row1, XAPI-00318)", () => {
     return helper.sendRequest("get", "/about", undefined, undefined, 200).then((res: any) => {
       let about = res.body;
       expect(about).toHaveProperty("version");
@@ -55,7 +55,7 @@ describe("About Resource Requirements (Communication 2.8)", function () {
   /**  XAPI-00317, Communication 2.8 About Resource
    * An LRS's About API's version property contains at least one string of "1.0.x"
    */
-  it("An LRS's About Resource's version property contains at least one string of \"1.0.3\" (Communication 2.8.s5.b1.b1, XAPI-00317)", function () {
+  it("An LRS's About Resource's version property contains at least one string of \"1.0.3\" (Communication 2.8.s5.b1.b1, XAPI-00317)", () => {
     return helper.sendRequest("get", "/about", undefined, undefined, 200).then((res: any) => {
       let about = res.body;
       expect(about).toHaveProperty("version");
@@ -74,7 +74,7 @@ describe("About Resource Requirements (Communication 2.8)", function () {
   /**  XAPI-00316, Communication 2.8 About Resource
    * An LRS's About API's version property can only have values of "0.9", "0.95", "1.0.0", or “1.0.x” with
    */
-  it('An LRS\'s About Resource\'s version property can only have values of "0.9", "0.95", "1.0.0", or ""1.0." + X" with (Communication 2.8.s5.b1.b1, XAPI-00316)', function () {
+  it('An LRS\'s About Resource\'s version property can only have values of "0.9", "0.95", "1.0.0", or ""1.0." + X" with (Communication 2.8.s5.b1.b1, XAPI-00316)', () => {
     return helper.sendRequest("get", "/about", undefined, undefined, 200).then((res: any) => {
       let about = res.body;
       expect(about).toHaveProperty("version");
@@ -91,8 +91,8 @@ describe("About Resource Requirements (Communication 2.8)", function () {
   /**  XAPI-00321, Communication 2.8 About Resource
    * An LRS rejects with error code 400 Bad Request, a Request which does not use a "X-Experience-API-Version" header name to any API except the About API
    */
-  describe('An LRS rejects with error code 400 Bad Request, a Request which does not use a "X-Experience-API-Version" header name to any Resource except the About Resource (multiplicity, Communication 2.8.s4.table1.row2, XAPI-00321)', function () {
-    it("using Statement Endpoint", async function () {
+  describe('An LRS rejects with error code 400 Bad Request, a Request which does not use a "X-Experience-API-Version" header name to any Resource except the About Resource (multiplicity, Communication 2.8.s4.table1.row2, XAPI-00321)', () => {
+    it("using Statement Endpoint", async () => {
       const res = await endAsync(
         request(helper.getEndpointAndAuth())
           .get(helper.getEndpointStatements())
@@ -122,7 +122,7 @@ describe("About Resource Requirements (Communication 2.8)", function () {
       }
     });
 
-    it("using Activities Endpoint", async function () {
+    it("using Activities Endpoint", async () => {
       const res = await endAsync(
         request(helper.getEndpointAndAuth())
           .get(helper.getEndpointActivities())
@@ -152,7 +152,7 @@ describe("About Resource Requirements (Communication 2.8)", function () {
       }
     });
 
-    it("using Activities Profile Endpoint", async function () {
+    it("using Activities Profile Endpoint", async () => {
       const res = await endAsync(
         request(helper.getEndpointAndAuth())
           .get(helper.getEndpointActivitiesProfile())
@@ -182,7 +182,7 @@ describe("About Resource Requirements (Communication 2.8)", function () {
       }
     });
 
-    it("using Activities State Endpoint", async function () {
+    it("using Activities State Endpoint", async () => {
       const res = await endAsync(
         request(helper.getEndpointAndAuth())
           .get(helper.getEndpointActivitiesState())
@@ -212,7 +212,7 @@ describe("About Resource Requirements (Communication 2.8)", function () {
       }
     });
 
-    it("using Agents Endpoint", async function () {
+    it("using Agents Endpoint", async () => {
       const res = await endAsync(
         request(helper.getEndpointAndAuth())
           .get(helper.getEndpointAgents())
@@ -242,7 +242,7 @@ describe("About Resource Requirements (Communication 2.8)", function () {
       }
     });
 
-    it("using Agents Profile Endpoint", async function () {
+    it("using Agents Profile Endpoint", async () => {
       const res = await endAsync(
         request(helper.getEndpointAndAuth())
           .get(helper.getEndpointAgentsProfile())

@@ -11,7 +11,7 @@ let FUTURE_DATE = new Date().setFullYear(new Date().getFullYear() + 5);
 let INVALID_STRING = "should fail";
 
 // configures tests
-export const config = function () {
+export const config = () => {
   return [
     {
       /**  XAPI-00022, Data 2.4 Statement Properties

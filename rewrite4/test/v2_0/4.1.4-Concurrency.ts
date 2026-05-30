@@ -105,7 +105,7 @@ function runConcurrencyTestsForDocumentResource(resourceName: string, resourcePa
         });
       });
 
-      describe("Properly handles POST requests with If-Match", function () {
+      describe("Properly handles POST requests with If-Match", () => {
         let document = helper.buildDocument();
         let originalName = document.name;
         let updatedDocument = {
@@ -149,7 +149,7 @@ function runConcurrencyTestsForDocumentResource(resourceName: string, resourcePa
         });
       });
 
-      describe("Properly handles DELETE requests with If-Match", function () {
+      describe("Properly handles DELETE requests with If-Match", () => {
         let document = helper.buildDocument();
         let originalName = document.name;
         let correctTag: string;
@@ -208,7 +208,7 @@ function runConcurrencyTestsForDocumentResource(resourceName: string, resourcePa
      * requires its implementation by the LRS.
      */
 
-    describe("If a PUT request is received without either header for a resource that already exists", function () {
+    describe("If a PUT request is received without either header for a resource that already exists", () => {
       let originalDocument = helper.buildDocument();
       let updatedDocument = helper.buildDocument();
 
@@ -250,7 +250,7 @@ describe("(4.1.4) Concurrency", () => {
   /**  XAPI-00322, Communication 3.1 Concurrency
    * An LRS must support HTTP/1.1 entity tags (ETags) to implement optimistic concurrency control when handling APIs where PUT may overwrite existing data (State, Agent Profile, and Activity Profile)
    */
-  describe("xAPI uses HTTP 1.1 entity tags (ETags) to implement optimistic concurrency control in the following resources, where PUT, POST or DELETE are allowed to overwrite or remove existing data.", function () {
+  describe("xAPI uses HTTP 1.1 entity tags (ETags) to implement optimistic concurrency control in the following resources, where PUT, POST or DELETE are allowed to overwrite or remove existing data.", () => {
     let stateParams = helper.buildState();
     let activityProfileParams = helper.buildActivityProfile();
     let agentsProfileParams = helper.buildAgentProfile();

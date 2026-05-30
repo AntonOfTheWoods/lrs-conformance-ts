@@ -17,7 +17,7 @@ let VALID_EXTENSION_OBJECT = { extensions: { "http://example.com/ex": { key: "va
 let VALID_EXTENSION_STRING = { extensions: { "http://example.com/ex": "valid" } };
 
 // configures tests
-export const config = function () {
+export const config = () => {
   return [
     {
       /**  XAPI-00120, Data 4.1 Extensions

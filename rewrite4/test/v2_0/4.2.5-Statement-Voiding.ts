@@ -30,11 +30,11 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
    * An LRS MUST consider a Statement it contains voided if the Statement is not itself a voiding Statement and the LRS also contains a voiding Statement referring to the first Statement.
    * Test: Void a statement and then send a GET for that statement which uses “statementId” instead of “voidedStatementId.” The statement should then not be returned in the GET request, which should return a 404.
    */
-  describe("A Voided Statement is defined as a Statement that is not a Voiding Statement and is the Target of a Voiding Statement within the LRS (Data 2.3.2.s2.b3, XAPI-00018)", function () {
+  describe("A Voided Statement is defined as a Statement that is not a Voiding Statement and is the Target of a Voiding Statement within the LRS (Data 2.3.2.s2.b3, XAPI-00018)", () => {
     const voidedId = helper.generateUUID();
     let stmtTime: number;
 
-    before("Persist voided statement", async function () {
+    before("Persist voided statement", async () => {
       const templates = [{ statement: "{{statements.default}}" }];
       let voided = helper.createFromTemplate(templates);
       voided = voided.statement;
@@ -49,7 +49,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
       );
     });
 
-    before("Persist voiding statement", async function () {
+    before("Persist voiding statement", async () => {
       const templates = [{ statement: "{{statements.voiding}}" }];
       let voiding = helper.createFromTemplate(templates);
       voiding = voiding.statement;
@@ -65,9 +65,8 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
       );
     });
 
-    it('Should return a voided statement when using GET "voidedStatementId"', async function () {
-      const context = this;
-      context.timeout(0);
+    it('Should return a voided statement when using GET "voidedStatementId"', async function (this: { timeout(ms: number): void }) {
+      this.timeout(0);
       const query = helper.getUrlEncoding({ voidedStatementId: voidedId });
       const res = await endAsync(
         request(helper.getEndpointAndAuth())
@@ -81,9 +80,8 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
       expect(statement.id).toEqual(voidedId);
     });
 
-    it('Should return 404 when using GET with "statementId"', async function () {
-      const context = this;
-      context.timeout(0);
+    it('Should return 404 when using GET with "statementId"', async function (this: { timeout(ms: number): void }) {
+      this.timeout(0);
       const query = helper.getUrlEncoding({ statementId: voidedId });
       await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -101,11 +99,11 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
    * If the LRS accepts that statement, the violating VOIDING statement SHOULD be ignored.
    * Adjust this test accordingly
    */
-  describe("A Voiding Statement cannot Target another Voiding Statement (Data 2.3.2.s2.b7, XAPI-00016)", function () {
+  describe("A Voiding Statement cannot Target another Voiding Statement (Data 2.3.2.s2.b7, XAPI-00016)", () => {
     let voidedId: string;
     let voidingId: string;
 
-    before("Persist voided statement", async function () {
+    before("Persist voided statement", async () => {
       const templates = [{ statement: "{{statements.default}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
@@ -121,7 +119,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
       voidedId = (res.body as string[])[0] as string;
     });
 
-    before("Persist voiding statement", async function () {
+    before("Persist voiding statement", async () => {
       const templates = [{ statement: "{{statements.voiding}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
@@ -138,9 +136,8 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
       voidingId = (res.body as string[])[0] as string;
     });
 
-    it("Should not void an already voided statement", async function () {
-      const context = this;
-      context.timeout(0);
+    it("Should not void an already voided statement", async function (this: { timeout(ms: number): void }) {
+      this.timeout(0);
       const templates = [{ statement: "{{statements.object_statementref}}" }, { verb: "{{verbs.voided}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
@@ -164,9 +161,8 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
       );
     });
 
-    it("Should not void a voiding statement", async function () {
-      const context = this;
-      context.timeout(0);
+    it("Should not void a voiding statement", async function (this: { timeout(ms: number): void }) {
+      this.timeout(0);
       const templates = [{ statement: "{{statements.object_statementref}}" }, { verb: "{{verbs.voided}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
@@ -195,12 +191,11 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
    *
    * Never reject a stateemnt for using the voided verb.
    */
-  describe("An LRS SHALL NOT reject a voided statement because it cannot find the ID of the Object of that statement, nor does the LRS have to try to find it. (4.2.4.1 LRS Rejection Cases, XAPI-00016)", function () {
+  describe("An LRS SHALL NOT reject a voided statement because it cannot find the ID of the Object of that statement, nor does the LRS have to try to find it. (4.2.4.1 LRS Rejection Cases, XAPI-00016)", () => {
     const nonExistentStatementID = helper.generateUUID();
 
-    it("Shall not reject a voided statement.", async function () {
-      const context = this;
-      context.timeout(0);
+    it("Shall not reject a voided statement.", async function (this: { timeout(ms: number): void }) {
+      this.timeout(0);
       const templates = [{ statement: "{{statements.object_statementref}}" }, { verb: "{{verbs.voided}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
