@@ -4,7 +4,7 @@
  */
 
 import requestModule from "../super-request.ts";
-import { expect } from "chai";
+import { expect } from "bun:test";
 
 import helperModule from "../helper.ts";
 import xapiRequestsModule from "./util/requests.ts";
@@ -71,8 +71,8 @@ describe("Activities Resource Requirements (Communication 2.5)", function () {
         res: any,
       ) {
         let activity = res.body;
-        expect(activity).to.be.ok;
-        expect(activity).to.eql(statement.object);
+        expect(activity).toBeTruthy();
+        expect(activity).toEqual(statement.object);
       });
     });
   });
@@ -121,8 +121,8 @@ describe("Activities Resource Requirements (Communication 2.5)", function () {
           res: any,
         ) {
           let activity = res.body;
-          expect(activity.definition.name["en-US"]).to.eql("example meeting");
-          expect(activity.definition.name["fr-FR"]).to.eql("réunion");
+          expect(activity.definition.name["en-US"]).toEqual("example meeting");
+          expect(activity.definition.name["fr-FR"]).toEqual("réunion");
         });
       });
   });
@@ -131,8 +131,8 @@ describe("Activities Resource Requirements (Communication 2.5)", function () {
     let randomIRI = "http://www.example.com/never-before-seen-activityId/" + helper.generateUUID();
     let res = await xapiRequests.getActivityWithIRI(randomIRI);
 
-    expect(res.status).to.eql(200);
-    expect(res.data.id).to.eql(randomIRI);
-    expect(res.data.objectType).to.eql("Activity");
+    expect(res.status).toEqual(200);
+    expect(res.data.id).toEqual(randomIRI);
+    expect(res.data.objectType).toEqual("Activity");
   });
 });

@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements.
  */
 
-import { expect } from "chai";
+import { expect } from "bun:test";
 import oldHelpers from "../helper.ts";
 import superRequestBase from "../super-request.ts";
 
@@ -14,6 +14,6 @@ if (process.env["OAUTH1_ENABLED"] === "true") superRequest = helper.OAuthRequest
 
 describe("Alternate Request Syntax Requirements", function () {
   it("The LRS Spec does not mandate any properties regarding Alternate Request Syntax in xAPI 2.0", async function () {
-    expect(true).to.eql(true);
+    expect(true).toEqual(true);
   });
 });

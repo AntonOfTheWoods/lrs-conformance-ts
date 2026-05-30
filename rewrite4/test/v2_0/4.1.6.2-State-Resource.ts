@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "chai";
+import { expect } from "bun:test";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { expectAsync } from "../super-request.ts";
@@ -111,7 +111,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
         res: any,
       ) {
         let body = res.body;
-        expect(body).to.eql(document);
+        expect(body).toEqual(document);
       });
     });
   });
@@ -138,7 +138,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
         res: any,
       ) {
         let body = res.body;
-        expect(body).to.eql(document);
+        expect(body).toEqual(document);
       });
     });
   });
@@ -331,7 +331,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
       );
 
       let result = helper.parse(res3.body);
-      expect(result).to.eql(document);
+      expect(result).toEqual(document);
     });
     // case 2 - bad existing
     it("If the existing document does not have a Content-Type of application/json but the document being posted to the State Resource does the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", async function () {
@@ -362,7 +362,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
         200,
       );
 
-      expect(res3.body).to.eql(attachment);
+      expect(res3.body).toEqual(attachment);
     });
     // case 3 - bad json
     it("If the document being posted to the State Resource has a content type of Content-Type of application/json but cannot be parsed as a JSON Object, the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", async function () {
@@ -394,7 +394,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
       );
 
       let result = helper.parse(res3.body);
-      expect(result).to.eql(document);
+      expect(result).toEqual(document);
     });
   });
 
@@ -421,7 +421,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
         res: any,
       ) {
         let body = res.body;
-        expect(body).to.eql(document);
+        expect(body).toEqual(document);
       });
     });
   });
@@ -445,7 +445,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
             .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
             .then(function (res: any) {
               let body = res.body;
-              expect(body).to.eql({
+              expect(body).toEqual({
                 car: "Honda",
                 type: "Civic",
               });
@@ -517,7 +517,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
         res: any,
       ) {
         let body = res.body;
-        expect(body).to.eql(document);
+        expect(body).toEqual(document);
       });
     });
   });
@@ -587,7 +587,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
         res: any,
       ) {
         let body = res.body;
-        expect(body).to.eql(document);
+        expect(body).toEqual(document);
       });
     });
   });
@@ -608,8 +608,8 @@ describe("State Resource Requirements (Communication 2.3)", function () {
         res: any,
       ) {
         let body = res.body;
-        expect(body).to.be.an("Array");
-        expect(body).to.contain(stateId);
+        expect(Array.isArray(body)).toBe(true);
+        expect(body).toContain(stateId);
       });
     });
   });
@@ -648,7 +648,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
         res: any,
       ) {
         let body = res.body;
-        expect(body).to.be.an("array");
+        expect(Array.isArray(body)).toBe(true);
       });
     });
   });
@@ -675,10 +675,10 @@ describe("State Resource Requirements (Communication 2.3)", function () {
           .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
           .then(function (res: any) {
             let body = res.body;
-            expect(body).to.be.an("array");
-            expect(body).to.have.length.above(1);
-            expect(body).to.contain(state1.stateId);
-            expect(body).to.contain(state2.stateId);
+            expect(Array.isArray(body)).toBe(true);
+            expect(body.length).toBeGreaterThan(1);
+            expect(body).toContain(state1.stateId);
+            expect(body).toContain(state2.stateId);
           });
       });
     });
@@ -706,8 +706,8 @@ describe("State Resource Requirements (Communication 2.3)", function () {
                   .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
                   .then(function (res: any) {
                     let body = res.body;
-                    expect(body).to.be.an("array");
-                    expect(body).to.have.length(0);
+                    expect(Array.isArray(body)).toBe(true);
+                    expect(body).toHaveLength(0);
                   });
               });
           });
@@ -734,7 +734,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
       let modifiedStr = res.headers.get("last-modified");
       let modifiedDate = Date.parse(modifiedStr);
 
-      expect(modifiedDate).to.not.be.NaN;
+      expect(modifiedDate).not.toBeNaN();
     });
 
     it("Updates the Last-Modified value when the corresponding document is updated.", async () => {
@@ -742,14 +742,14 @@ describe("State Resource Requirements (Communication 2.3)", function () {
       await xapiRequests.delay(1500);
 
       let updateRes = await xapiRequests.postDocument(resourcePath, updatedDocument, resourceParams);
-      expect(updateRes.status).to.eql(204);
+      expect(updateRes.status).toEqual(204);
 
       let updatedDocRes = await xapiRequests.getDocuments(resourcePath, resourceParams);
 
       let headerBeforeUpdate = Date.parse(originalDocRes.headers.get("last-modified"));
       let headerAfterUpdate = Date.parse(updatedDocRes.headers.get("last-modified"));
 
-      expect(headerAfterUpdate).to.be.greaterThan(headerBeforeUpdate);
+      expect(headerAfterUpdate).toBeGreaterThan(headerBeforeUpdate);
     });
 
     /**
@@ -791,7 +791,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
     //     let groupRes = await xapiRequests.getDocuments(resourcePath, groupParams);
     //     let groupTime = Date.parse(groupRes.headers.get("last-modified"));
 
-    //     expect(groupTime).to.equal(latestTime);
+    //     expect(groupTime).toEqual(latestTime);
     // });
   });
 });

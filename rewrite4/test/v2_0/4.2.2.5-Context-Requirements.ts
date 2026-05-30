@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "chai";
+import { expect } from "bun:test";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { expectAsync } from "../super-request.ts";
@@ -76,9 +76,9 @@ describe("Context Property Requirements (Data 2.4.6)", function () {
           );
 
           const statement = helper.parse(getRes.body);
-          expect(statement).to.have.property("context").to.have.property("contextActivities");
-          expect(statement.context.contextActivities).to.have.property(type);
-          expect(statement.context.contextActivities[type]).to.be.an("array");
+          expect(statement).toHaveProperty("context.contextActivities");
+          expect(statement.context.contextActivities).toHaveProperty(type);
+          expect(Array.isArray(statement.context.contextActivities[type])).toBe(true);
         },
       );
     });
@@ -115,12 +115,9 @@ describe("Context Property Requirements (Data 2.4.6)", function () {
           );
 
           const statement = helper.parse(getRes.body);
-          expect(statement)
-            .to.have.property("object")
-            .to.have.property("context")
-            .to.have.property("contextActivities");
-          expect(statement.object.context.contextActivities).to.have.property(type);
-          expect(statement.object.context.contextActivities[type]).to.be.an("array");
+          expect(statement).toHaveProperty("object.context.contextActivities");
+          expect(statement.object.context.contextActivities).toHaveProperty(type);
+          expect(Array.isArray(statement.object.context.contextActivities[type])).toBe(true);
         },
       );
     });

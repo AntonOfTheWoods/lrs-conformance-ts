@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "chai";
+import { expect } from "bun:test";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { endAsync } from "../super-request.ts";
@@ -37,7 +37,7 @@ describe("About Resource Requirements (Communication 2.8)", function () {
   it("An LRS's About Resource upon processing a successful GET request returns a version property and code 200 OK (multiplicity, Communication 2.8.s4, XAPI-00319)", function () {
     return helper.sendRequest("get", "/about", undefined, undefined, 200).then(function (res: any) {
       let about = res.body;
-      expect(about).to.have.property("version");
+      expect(about).toHaveProperty("version");
     });
   });
 
@@ -47,7 +47,8 @@ describe("About Resource Requirements (Communication 2.8)", function () {
   it("An LRS's About Resource's version property is an array of strings (format, Communication 2.8.s4.table1.row1, XAPI-00318)", function () {
     return helper.sendRequest("get", "/about", undefined, undefined, 200).then(function (res: any) {
       let about = res.body;
-      expect(about).to.have.property("version").to.be.an("array");
+      expect(about).toHaveProperty("version");
+      expect(Array.isArray(about.version)).toBe(true);
     });
   });
 
@@ -57,7 +58,8 @@ describe("About Resource Requirements (Communication 2.8)", function () {
   it("An LRS's About Resource's version property contains at least one string of \"2.0.0\" (Communication 2.8.s5.b1.b1, XAPI-00317)", function () {
     return helper.sendRequest("get", "/about", undefined, undefined, 200).then(function (res: any) {
       let about = res.body;
-      expect(about).to.have.property("version").to.be.an("array");
+      expect(about).toHaveProperty("version");
+      expect(Array.isArray(about.version)).toBe(true);
 
       let foundVersion = false;
       about.version.forEach(function (item: any) {
@@ -65,7 +67,7 @@ describe("About Resource Requirements (Communication 2.8)", function () {
           foundVersion = true;
         }
       });
-      expect(foundVersion).to.be.true;
+      expect(foundVersion).toBe(true);
     });
   });
 
@@ -75,13 +77,14 @@ describe("About Resource Requirements (Communication 2.8)", function () {
   it('An LRS\'s About Resource\'s version property can only have values of "0.9", "0.95", "1.0.0", or ""1.0." + X" with (Communication 2.8.s5.b1.b1, XAPI-00316)', function () {
     return helper.sendRequest("get", "/about", undefined, undefined, 200).then(function (res: any) {
       let about = res.body;
-      expect(about).to.have.property("version").to.be.an("array");
+      expect(about).toHaveProperty("version");
+      expect(Array.isArray(about.version)).toBe(true);
       // let validVersions = ['0.9', '0.95', '1.0.0', '1.0.1', '1.0.3', '2.0.0'];
       // about.version.forEach(function (item: any) {
       //     expect(validVersions).to.include(item);
       // });
 
-      expect(about.version).to.include("2.0.0");
+      expect(about.version).toContain("2.0.0");
     });
   });
 
@@ -98,14 +101,14 @@ describe("About Resource Requirements (Communication 2.8)", function () {
 
       if (res.statusCode === 400) {
         // if the status code is a 400, we expect that the request was handled and rejected by a 1.0.x compliant lrs and test for that version in the result headers or that the the request was forwarded to a 0.9x lrs and rejected
-        expect(res.statusCode).to.eql(400);
-        expect(res.headers["x-experience-api-version"]).to.exist;
-        expect(res.headers["x-experience-api-version"]).to.match(/^2\.0\.\d+$|^1\.0\.\d+$|^0?\.9\d*?$/);
+        expect(res.statusCode).toEqual(400);
+        expect(res.headers["x-experience-api-version"]).toBeTruthy();
+        expect(res.headers["x-experience-api-version"]).toMatch(/^2\.0\.\d+$|^1\.0\.\d+$|^0?\.9\d*?$/);
       } else if (res.statusCode === 200) {
         // if the status code is a 200, we expect that the request was rerouted to a 0.9x compliant lrs and test for that version in the result headers
-        expect(res.statusCode).to.eql(200);
-        expect(res.headers["x-experience-api-version"]).to.exist;
-        expect(res.headers["x-experience-api-version"]).to.match(/^0?\.9\d*?$/);
+        expect(res.statusCode).toEqual(200);
+        expect(res.headers["x-experience-api-version"]).toBeTruthy();
+        expect(res.headers["x-experience-api-version"]).toMatch(/^0?\.9\d*?$/);
       } else {
         // at this point there was some error and we pass along the message
         let str = "Received: status code - " + res.statusCode + " from LRS of version ";
@@ -137,14 +140,14 @@ describe("About Resource Requirements (Communication 2.8)", function () {
 
       if (res.statusCode === 400) {
         // if the status code is a 400, we expect that the request was handled and rejected by a 1.0.x compliant lrs and test for that version in the result headers or that the the request was forwarded to a 0.9x lrs and rejected
-        expect(res.statusCode).to.eql(400);
-        expect(res.headers["x-experience-api-version"]).to.exist;
-        expect(res.headers["x-experience-api-version"]).to.match(/^2\.0\.\d+$|^1\.0\.\d+$|^0?\.9\d*?$/);
+        expect(res.statusCode).toEqual(400);
+        expect(res.headers["x-experience-api-version"]).toBeTruthy();
+        expect(res.headers["x-experience-api-version"]).toMatch(/^2\.0\.\d+$|^1\.0\.\d+$|^0?\.9\d*?$/);
       } else if (res.statusCode === 200) {
         // if the status code is a 200, we expect that the request was rerouted to a 0.9x compliant lrs and test for that version in the result headers
-        expect(res.statusCode).to.eql(200);
-        expect(res.headers["x-experience-api-version"]).to.exist;
-        expect(res.headers["x-experience-api-version"]).to.match(/^0?\.9\d*?$/);
+        expect(res.statusCode).toEqual(200);
+        expect(res.headers["x-experience-api-version"]).toBeTruthy();
+        expect(res.headers["x-experience-api-version"]).toMatch(/^0?\.9\d*?$/);
       } else {
         // at this point there was some error and we pass along the message
         let str = "Received: status code - " + res.statusCode + " from LRS of version ";
@@ -167,14 +170,14 @@ describe("About Resource Requirements (Communication 2.8)", function () {
 
       if (res.statusCode === 400) {
         // if the status code is a 400, we expect that the request was handled and rejected by a 1.0.x compliant lrs and test for that version in the result headers or that the the request was forwarded to a 0.9x lrs and rejected
-        expect(res.statusCode).to.eql(400);
-        expect(res.headers["x-experience-api-version"]).to.exist;
-        expect(res.headers["x-experience-api-version"]).to.match(/^2\.0\.\d+$|^1\.0\.\d+$|^0?\.9\d*?$/);
+        expect(res.statusCode).toEqual(400);
+        expect(res.headers["x-experience-api-version"]).toBeTruthy();
+        expect(res.headers["x-experience-api-version"]).toMatch(/^2\.0\.\d+$|^1\.0\.\d+$|^0?\.9\d*?$/);
       } else if (res.statusCode === 200) {
         // if the status code is a 200, we expect that the request was rerouted to a 0.9x compliant lrs and test for that version in the result headers
-        expect(res.statusCode).to.eql(200);
-        expect(res.headers["x-experience-api-version"]).to.exist;
-        expect(res.headers["x-experience-api-version"]).to.match(/^0?\.9\d*?$/);
+        expect(res.statusCode).toEqual(200);
+        expect(res.headers["x-experience-api-version"]).toBeTruthy();
+        expect(res.headers["x-experience-api-version"]).toMatch(/^0?\.9\d*?$/);
       } else {
         // at this point there was some error and we pass along the message
         let str = "Received: status code - " + res.statusCode + " from LRS of version ";
@@ -197,14 +200,14 @@ describe("About Resource Requirements (Communication 2.8)", function () {
 
       if (res.statusCode === 400) {
         // if the status code is a 400, we expect that the request was handled and rejected by a 1.0.x compliant lrs and test for that version in the result headers or that the the request was forwarded to a 0.9x lrs and rejected
-        expect(res.statusCode).to.eql(400);
-        expect(res.headers["x-experience-api-version"]).to.exist;
-        expect(res.headers["x-experience-api-version"]).to.match(/^2\.0\.\d+$|^1\.0\.\d+$|^0?\.9\d*?$/);
+        expect(res.statusCode).toEqual(400);
+        expect(res.headers["x-experience-api-version"]).toBeTruthy();
+        expect(res.headers["x-experience-api-version"]).toMatch(/^2\.0\.\d+$|^1\.0\.\d+$|^0?\.9\d*?$/);
       } else if (res.statusCode === 200) {
         // if the status code is a 200, we expect that the request was rerouted to a 0.9x compliant lrs and test for that version in the result headers
-        expect(res.statusCode).to.eql(200);
-        expect(res.headers["x-experience-api-version"]).to.exist;
-        expect(res.headers["x-experience-api-version"]).to.match(/^0?\.9\d*?$/);
+        expect(res.statusCode).toEqual(200);
+        expect(res.headers["x-experience-api-version"]).toBeTruthy();
+        expect(res.headers["x-experience-api-version"]).toMatch(/^0?\.9\d*?$/);
       } else {
         // at this point there was some error and we pass along the message
         let str = "Received: status code - " + res.statusCode + " from LRS of version ";
@@ -227,14 +230,14 @@ describe("About Resource Requirements (Communication 2.8)", function () {
 
       if (res.statusCode === 400) {
         // if the status code is a 400, we expect that the request was handled and rejected by a 1.0.x compliant lrs and test for that version in the result headers or that the the request was forwarded to a 0.9x lrs and rejected
-        expect(res.statusCode).to.eql(400);
-        expect(res.headers["x-experience-api-version"]).to.exist;
-        expect(res.headers["x-experience-api-version"]).to.match(/^2\.0\.\d+$|^1\.0\.\d+$|^0?\.9\d*?$/);
+        expect(res.statusCode).toEqual(400);
+        expect(res.headers["x-experience-api-version"]).toBeTruthy();
+        expect(res.headers["x-experience-api-version"]).toMatch(/^2\.0\.\d+$|^1\.0\.\d+$|^0?\.9\d*?$/);
       } else if (res.statusCode === 200) {
         // if the status code is a 200, we expect that the request was rerouted to a 0.9x compliant lrs and test for that version in the result headers
-        expect(res.statusCode).to.eql(200);
-        expect(res.headers["x-experience-api-version"]).to.exist;
-        expect(res.headers["x-experience-api-version"]).to.match(/^0?\.9\d*?$/);
+        expect(res.statusCode).toEqual(200);
+        expect(res.headers["x-experience-api-version"]).toBeTruthy();
+        expect(res.headers["x-experience-api-version"]).toMatch(/^0?\.9\d*?$/);
       } else {
         // at this point there was some error and we pass along the message
         let str = "Received: status code - " + res.statusCode + " from LRS of version ";
@@ -257,14 +260,14 @@ describe("About Resource Requirements (Communication 2.8)", function () {
 
       if (res.statusCode === 400) {
         // if the status code is a 400, we expect that the request was handled and rejected by a 1.0.x compliant lrs and test for that version in the result headers or that the the request was forwarded to a 0.9x lrs and rejected
-        expect(res.statusCode).to.eql(400);
-        expect(res.headers["x-experience-api-version"]).to.exist;
-        expect(res.headers["x-experience-api-version"]).to.match(/^2\.0\.\d+$|^1\.0\.\d+$|^0?\.9\d*?$/);
+        expect(res.statusCode).toEqual(400);
+        expect(res.headers["x-experience-api-version"]).toBeTruthy();
+        expect(res.headers["x-experience-api-version"]).toMatch(/^2\.0\.\d+$|^1\.0\.\d+$|^0?\.9\d*?$/);
       } else if (res.statusCode === 200) {
         // if the status code is a 200, we expect that the request was rerouted to a 0.9x compliant lrs and test for that version in the result headers
-        expect(res.statusCode).to.eql(200);
-        expect(res.headers["x-experience-api-version"]).to.exist;
-        expect(res.headers["x-experience-api-version"]).to.match(/^0?\.9\d*?$/);
+        expect(res.statusCode).toEqual(200);
+        expect(res.headers["x-experience-api-version"]).toBeTruthy();
+        expect(res.headers["x-experience-api-version"]).toMatch(/^0?\.9\d*?$/);
       } else {
         // at this point there was some error and we pass along the message
         let str = "Received: status code - " + res.statusCode + " from LRS of version ";

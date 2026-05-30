@@ -12,7 +12,7 @@
  * XAPI-00025 - in attachments.js
  */
 
-import { expect } from "chai";
+import { expect } from "bun:test";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
@@ -68,8 +68,8 @@ describe("Id Property Requirements (Data 2.4.1)", () => {
                   done(getErr);
                 } else {
                   const results = helper.parse(getRes.body, done);
-                  expect(results.id).to.not.be.undefined;
-                  expect(results.id).to.eql(stmtId);
+                  expect(results.id).not.toBeUndefined();
+                  expect(results.id).toEqual(stmtId);
                   done();
                 }
               });

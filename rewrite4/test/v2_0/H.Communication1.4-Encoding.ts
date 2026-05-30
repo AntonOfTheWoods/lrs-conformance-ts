@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "chai";
+import { expect } from "bun:test";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { endAsync } from "../super-request.ts";
@@ -40,20 +40,20 @@ describe("Encoding Requirements (Communication 1.4)", () => {
         .expect(200),
     );
 
-        const res = await endAsync(
-request(helper.getEndpointAndAuth())
-      .get(helper.getEndpointStatements() + "?" + query)
-      .wait(helper.genDelay(stmtTime, "?" + query, null))
-      .headers(helper.addAllHeaders({}))
-      .expect(200)
+    const res = await endAsync(
+      request(helper.getEndpointAndAuth())
+        .get(helper.getEndpointStatements() + "?" + query)
+        .wait(helper.genDelay(stmtTime, "?" + query, null))
+        .headers(helper.addAllHeaders({}))
+        .expect(200),
     );
 
-const results = helper.parse(res.body);
-const languages = results.statements[0].verb.display;
-let unicodeConformant = true;
-for (const key in languages) {
-            if (languages[key] !== unicode.verb.display[key]) unicodeConformant = false;
-          }
-expect(unicodeConformant).to.be.true;
+    const results = helper.parse(res.body);
+    const languages = results.statements[0].verb.display;
+    let unicodeConformant = true;
+    for (const key in languages) {
+      if (languages[key] !== unicode.verb.display[key]) unicodeConformant = false;
+    }
+    expect(unicodeConformant).toBe(true);
   });
 });

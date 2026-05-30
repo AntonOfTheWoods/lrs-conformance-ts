@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "chai";
+import { expect } from "bun:test";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { expectAsync } from "../super-request.ts";
@@ -106,7 +106,7 @@ describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
         return helper.sendRequest("head", helper.getEndpointActivities(), parameters, undefined, 200).then(function (
           res: any,
         ) {
-          expect(Object.keys(res.body)).to.have.length(0);
+          expect(Object.keys(res.body)).toHaveLength(0);
         });
       });
     });
@@ -120,7 +120,7 @@ describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
           return helper
             .sendRequest("head", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
             .then(function (res: any) {
-              expect(Object.keys(res.body)).to.have.length(0);
+              expect(Object.keys(res.body)).toHaveLength(0);
             });
         });
     });
@@ -134,7 +134,7 @@ describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
           return helper
             .sendRequest("head", helper.getEndpointActivitiesState(), parameters, undefined, 200)
             .then(function (res: any) {
-              expect(Object.keys(res.body)).to.have.length(0);
+              expect(Object.keys(res.body)).toHaveLength(0);
             });
         });
     });
@@ -143,7 +143,7 @@ describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
       return helper.sendRequest("head", helper.getEndpointAgents(), helper.buildAgent(), undefined, 200).then(function (
         res: any,
       ) {
-        expect(Object.keys(res.body)).to.have.length(0);
+        expect(Object.keys(res.body)).toHaveLength(0);
       });
     });
 
@@ -154,7 +154,7 @@ describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
         return helper.sendRequest("head", helper.getEndpointAgentsProfile(), parameters, undefined, 200).then(function (
           res: any,
         ) {
-          expect(Object.keys(res.body)).to.have.length(0);
+          expect(Object.keys(res.body)).toHaveLength(0);
         });
       });
     });
@@ -165,7 +165,7 @@ describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
         return helper.sendRequest("head", helper.getEndpointStatements(), undefined, undefined, 200).then(function (
           res: any,
         ) {
-          expect(Object.keys(res.body)).to.have.length(0);
+          expect(Object.keys(res.body)).toHaveLength(0);
         });
       });
     });

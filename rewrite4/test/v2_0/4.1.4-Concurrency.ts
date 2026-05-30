@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "chai";
+import { expect } from "bun:test";
 import helperImport from "../helper.ts";
 import xapiRequestsImport from "./util/requests.ts";
 
@@ -23,7 +23,7 @@ function runConcurrencyTestsForDocumentResource(resourceName: string, resourcePa
       let documentResponse = await xapiRequests.getDocuments(resourcePath, resourceParams);
       const etag = documentResponse.headers.etag;
 
-      expect(etag).to.be.a("string");
+      expect(typeof etag).toBe("string");
     });
 
     it("When responding to a GET Request the Etag header must be enclosed in quotes", async () => {
@@ -32,11 +32,11 @@ function runConcurrencyTestsForDocumentResource(resourceName: string, resourcePa
       /** @type {string} */
       let etag = documentResponse.headers.etag;
 
-      expect(etag).to.be.a("string");
+      expect(typeof etag).toBe("string");
 
       if (etag[0] !== '"') {
-        expect(etag[0]).to.equal("W");
-        expect(etag[1]).to.equal("/");
+        expect(etag[0]).toEqual("W");
+        expect(etag[1]).toEqual("/");
         etag = etag.substring(2);
       }
 
@@ -51,13 +51,13 @@ function runConcurrencyTestsForDocumentResource(resourceName: string, resourcePa
       // expect(etag[41]).to.equal('"');
 
       let hasInnerContents = etag.length >= 3;
-      expect(hasInnerContents).to.equal(true);
+      expect(hasInnerContents).toEqual(true);
 
       let firstChar = etag[0];
       let lastChar = etag[etag.length - 1];
 
-      expect(firstChar).to.equal('"');
-      expect(lastChar).to.equal('"');
+      expect(firstChar).toEqual('"');
+      expect(lastChar).toEqual('"');
     });
 
     describe("When responding to a PUT, POST, or DELETE request, must handle the If-Match header as described in RFC 2616, HTTP/1.1 if it contains an ETag", async () => {
@@ -84,24 +84,24 @@ function runConcurrencyTestsForDocumentResource(resourceName: string, resourcePa
             "If-Match": incorrectTag,
           });
 
-          expect(incorrectResponse.status).to.equal(412);
+          expect(incorrectResponse.status).toEqual(412);
         });
 
         it("Should not have modified the document for PUT requests with an incorrect ETag", async () => {
           let originalDocResponse = await xapiRequests.getDocuments(resourcePath, resourceParams);
-          expect(originalDocResponse.data.name).to.equal(originalName);
+          expect(originalDocResponse.data.name).toEqual(originalName);
         });
 
         it("Should accept a PUT request with a correct ETag", async () => {
           let correctResponse = await xapiRequests.putDocument(resourcePath, updatedDocument, resourceParams, {
             "If-Match": correctTag,
           });
-          expect(correctResponse.status).to.equal(204);
+          expect(correctResponse.status).toEqual(204);
         });
 
         it("Should have modified the document for PUT requests with a correct ETag", async () => {
           let updatedResponse = await xapiRequests.getDocuments(resourcePath, resourceParams);
-          expect(updatedResponse.data).to.eql(updatedDocument);
+          expect(updatedResponse.data).toEqual(updatedDocument);
         });
       });
 
@@ -128,24 +128,24 @@ function runConcurrencyTestsForDocumentResource(resourceName: string, resourcePa
             "If-Match": incorrectTag,
           });
 
-          expect(incorrectResponse.status).to.equal(412);
+          expect(incorrectResponse.status).toEqual(412);
         });
 
         it("Should not have modified the document for POST requests with an incorrect ETag", async () => {
           let originalDocResponse = await xapiRequests.getDocuments(resourcePath, resourceParams);
-          expect(originalDocResponse.data.name).to.equal(originalName);
+          expect(originalDocResponse.data.name).toEqual(originalName);
         });
 
         it("Should accept a POST request with a correct ETag", async () => {
           let correctResponse = await xapiRequests.postDocument(resourcePath, updatedDocument, resourceParams, {
             "If-Match": correctTag,
           });
-          expect(correctResponse.status).to.equal(204);
+          expect(correctResponse.status).toEqual(204);
         });
 
         it("Should have modified the document for POST requests with a correct ETag", async () => {
           let updatedResponse = await xapiRequests.getDocuments(resourcePath, resourceParams);
-          expect(updatedResponse.data).to.eql(updatedDocument);
+          expect(updatedResponse.data).toEqual(updatedDocument);
         });
       });
 
@@ -168,21 +168,21 @@ function runConcurrencyTestsForDocumentResource(resourceName: string, resourcePa
             "If-Match": incorrectTag,
           });
 
-          expect(incorrectResponse.status).to.equal(412);
+          expect(incorrectResponse.status).toEqual(412);
         });
 
         it("Should not have modified the document for DELETE requests with an incorrect ETag", async () => {
           let originalDocResponse = await xapiRequests.getDocuments(resourcePath, resourceParams);
 
-          expect(originalDocResponse.status).to.equal(200);
-          expect(originalDocResponse.data.name).to.equal(originalName);
+          expect(originalDocResponse.status).toEqual(200);
+          expect(originalDocResponse.data.name).toEqual(originalName);
         });
 
         it("Should accept a DELETE request with a correct ETag", async () => {
           let correctResponse = await xapiRequests.deleteDocument(resourcePath, resourceParams, {
             "If-Match": correctTag,
           });
-          expect(correctResponse.status).to.equal(204);
+          expect(correctResponse.status).toEqual(204);
         });
 
         /**
@@ -216,31 +216,31 @@ function runConcurrencyTestsForDocumentResource(resourceName: string, resourcePa
         await xapiRequests.deleteDocument(resourcePath, resourceParams);
         let postResponse = await xapiRequests.postDocument(resourcePath, originalDocument, resourceParams);
 
-        expect(postResponse.status).to.equal(204);
+        expect(postResponse.status).toEqual(204);
 
         let getResponse = await xapiRequests.getDocuments(resourcePath, resourceParams);
 
-        expect(getResponse.status).to.equal(200);
-        expect(getResponse.headers.etag).to.not.be.undefined;
-        expect(getResponse.data).to.eql(originalDocument);
+        expect(getResponse.status).toEqual(200);
+        expect(getResponse.headers.etag).not.toBeUndefined();
+        expect(getResponse.data).toEqual(originalDocument);
       });
 
       it("Return 409 conflict", async () => {
         let res = await xapiRequests.putDocument(resourcePath, updatedDocument, resourceParams);
-        expect(res.status).to.equal(409);
+        expect(res.status).toEqual(409);
       });
 
       it("Return error message explaining the situation", async () => {
         let res = await xapiRequests.putDocument(resourcePath, updatedDocument, resourceParams);
         let responseText = res.data;
 
-        expect(responseText).to.not.be.empty;
+        expect(String(responseText).length).toBeGreaterThan(0);
       });
 
       it("Do not modify the resource", async () => {
         let getResponse = await xapiRequests.getDocuments(resourcePath, resourceParams);
 
-        expect(getResponse.data).to.eql(originalDocument);
+        expect(getResponse.data).toEqual(originalDocument);
       });
     });
   });

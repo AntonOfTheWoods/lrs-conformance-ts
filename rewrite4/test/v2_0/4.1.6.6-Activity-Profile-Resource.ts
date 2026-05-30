@@ -4,7 +4,7 @@
  */
 import requestModule from "../super-request.ts";
 import { expectAsync } from "../super-request.ts";
-import { expect } from "chai";
+import { expect } from "bun:test";
 
 import helperModule from "../helper.ts";
 import xapiRequestsModule from "./util/requests.ts";
@@ -133,7 +133,7 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", function 
           .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
           .then(function (res: any) {
             let body = res.body;
-            expect(body).to.eql(document);
+            expect(body).toEqual(document);
           });
       });
   });
@@ -234,8 +234,8 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", function 
           .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
           .then(function (res: any) {
             let body = res.body;
-            expect(body).to.be.an("array");
-            expect(body).to.be.length.above(0);
+            expect(Array.isArray(body)).toBe(true);
+            expect(body.length).toBeGreaterThan(0);
           });
       });
   });
@@ -288,9 +288,9 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", function 
           .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
           .then(function (res: any) {
             let body = res.body;
-            expect(body).to.be.an("array");
-            expect(body).to.be.length.above(0);
-            expect(body).to.contain(profile1);
+            expect(Array.isArray(body)).toBe(true);
+            expect(body.length).toBeGreaterThan(0);
+            expect(body).toContain(profile1);
           });
       });
   });
@@ -308,7 +308,7 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", function 
           .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
           .then(function (res: any) {
             let body = res.body;
-            expect(body).to.eql(document);
+            expect(body).toEqual(document);
           });
       });
   });
@@ -335,7 +335,7 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", function 
               .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
               .then(function (res: any) {
                 let body = res.body;
-                expect(body).to.eql({
+                expect(body).toEqual({
                   car: "Honda",
                   type: "Civic",
                 });
@@ -392,7 +392,7 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", function 
       );
 
       let result = helper.parse(res3.body);
-      expect(result).to.eql(document);
+      expect(result).toEqual(document);
     });
     // case 2 - bad existion
     it("If the existing document does not have a Content-Type of application/json but the document being posted to the Activity Profile Resource does the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", async function () {
@@ -423,7 +423,7 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", function 
         200,
       );
 
-      expect(res3.body).to.eql(attachment);
+      expect(res3.body).toEqual(attachment);
     });
     // case 3 - bad json
     it("If the document being posted to the Activity Profile Resource has a content type of Content-Type of application/json but cannot be parsed as a JSON Object, the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", async function () {
@@ -455,7 +455,7 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", function 
       );
 
       let result = helper.parse(res3.body);
-      expect(result).to.eql(document);
+      expect(result).toEqual(document);
     });
   });
 
@@ -495,7 +495,7 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", function 
       let modifiedStr = res.headers.get("last-modified");
       let modifiedDate = Date.parse(modifiedStr);
 
-      expect(modifiedDate).to.not.be.NaN;
+      expect(modifiedDate).not.toBeNaN();
     });
 
     it("Updates the Last-Modified value when the corresponding document is updated.", async () => {
@@ -503,14 +503,14 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", function 
       await xapiRequests.delay(1500);
 
       let updateRes = await xapiRequests.postDocument(resourcePath, updatedDocument, resourceParams);
-      expect(updateRes.status).to.eql(204);
+      expect(updateRes.status).toEqual(204);
 
       let updatedDocRes = await xapiRequests.getDocuments(resourcePath, resourceParams);
 
       let headerBeforeUpdate = Date.parse(originalDocRes.headers.get("last-modified"));
       let headerAfterUpdate = Date.parse(updatedDocRes.headers.get("last-modified"));
 
-      expect(headerAfterUpdate).to.be.greaterThan(headerBeforeUpdate);
+      expect(headerAfterUpdate).toBeGreaterThan(headerBeforeUpdate);
     });
 
     /**
@@ -551,7 +551,7 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", function 
     //     let groupRes = await xapiRequests.getDocuments(resourcePath, groupParams);
     //     let groupTime = Date.parse(groupRes.headers.get("last-modified"));
 
-    //     expect(groupTime).to.equal(latestTime);
+    //     expect(groupTime).toEqual(latestTime);
     // });
   });
 });
