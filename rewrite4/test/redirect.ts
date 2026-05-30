@@ -6,6 +6,9 @@ export function getXapiReference(title: string): string {
   }
 
   const lastMatch = matches[matches.length - 1];
+  if (!lastMatch) {
+    return "";
+  }
   return lastMatch.slice(1, -1);
 }
 

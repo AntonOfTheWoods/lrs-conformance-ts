@@ -1409,7 +1409,12 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
             expect(boundary).to.be.ok;
             let parsed = multipartParser.parseMultipart(boundary, res.body);
             expect(parsed).to.be.ok;
-            let results = helper.parse(parsed[0].body, done);
+            const firstPart = parsed[0];
+            if (!firstPart) {
+              done(new Error("Expected at least one multipart section."));
+              return;
+            }
+            let results = helper.parse(firstPart.body, done);
             expect(results).to.have.property("statements");
             done();
           }
@@ -2486,7 +2491,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
   describe('An LRSs Statement Resource does not return attachment data and only returns application/json if the "attachment" parameter set to "false" (Communication 2.1.3.s1.b1, XAPI-00161)', function () {
     this.timeout(0);
     let statementId = null;
-    let stmtTime = null;
+    let stmtTime: number | null = null;
 
     before("store statement", function (done) {
       let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
@@ -2756,7 +2761,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
             let results = helper.parse(res.body, done);
             expect(results).to.have.property("statements");
             // console.log(results.statements.length);
-            let ids = [];
+            const ids: Array<string | undefined> = [];
             results.statements.forEach(function (stmt) {
               ids.push(stmt.id);
             });
@@ -2787,7 +2792,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
             try {
               let results = helper.parse(res.body, done);
               expect(results).to.have.property("statements");
-              let ids = [];
+              const ids: Array<string | undefined> = [];
               results.statements.forEach(function (stmt) {
                 ids.push(stmt.id);
               });
@@ -2796,8 +2801,12 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
               expect(ids).to.not.contain(voidedId);
               done();
             } catch (e) {
-              if (e.message.length > 400) {
-                e.message = "expected results to have property 'statements' containing " + voidingId;
+              if (e instanceof Error) {
+                if (e.message.length > 400) {
+                  e.message = "expected results to have property 'statements' containing " + voidingId;
+                }
+                done(e);
+                return;
               }
               done(e);
             }
@@ -3263,7 +3272,12 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
                   expect(boundary).to.be.ok;
                   let parsed = multipartParser.parseMultipart(boundary, res.body);
                   expect(parsed).to.be.ok;
-                  let results = helper.parse(parsed[0].body, done);
+                  const firstPart = parsed[0];
+                  if (!firstPart) {
+                    done(new Error("Expected at least one multipart section."));
+                    return;
+                  }
+                  let results = helper.parse(firstPart.body, done);
                   expect(results).to.have.property("statements");
                   done();
                 }

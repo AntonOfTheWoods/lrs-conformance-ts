@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "test": "bun test ./rewrite/tests/parity-comparison.test.ts ./rewrite/tests/v1-v2-delta-matrix.test.ts ./rewrite/tests/traffic.test.ts ./rewrite/tests/traffic-diagnostic.test.ts ./rewrite/tests/export-upstream-run.test.ts ./rewrite/tests/rewrite4-bun-runtime.test.ts ./test/describe-runtime/migration-ledger.test.ts",
-    "typecheck": "tsgo --noEmit && tsgo --noEmit -p rewrite4/tsconfig.test.json",
+    "typecheck": "tsgo --noEmit",
     "lint": "oxlint --config .oxlintrc.jsonc .",
     "format": "oxfmt --config .oxfmtrc.jsonc --write .",
     "validate:archive-boundary": "bun ./scripts/validate-archive-boundary.ts",

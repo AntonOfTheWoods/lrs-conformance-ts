@@ -68,7 +68,9 @@ export function createTemplate(templateName: string): void {
               const converted = helper.convertTemplate(templateTest.templates);
               const mockObject = helper.createTestObject(converted);
               const key = Object.keys(mockObject)[0];
-              data = mockObject[key];
+              if (typeof key !== "undefined") {
+                data = mockObject[key];
+              }
             } else {
               data = templateTest.json;
             }

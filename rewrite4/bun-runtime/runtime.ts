@@ -255,11 +255,11 @@ function withExecutionGlobals<T>(fn: () => Promise<T> | T): Promise<T> {
   });
   const noopBefore = ((_titleOrFn: string | Runnable, _maybeFn?: Runnable) => {}) as ExecutionSuiteGlobals["before"];
 
-  globalState.describe = noopDescribe;
-  globalState.context = noopDescribe;
-  globalState.it = noopIt;
-  globalState.specify = noopIt;
-  globalState.before = noopBefore;
+  globalState.describe = noopDescribe as ExecutionSuiteGlobals["describe"];
+  globalState.context = noopDescribe as ExecutionSuiteGlobals["context"];
+  globalState.it = noopIt as ExecutionSuiteGlobals["it"];
+  globalState.specify = noopIt as ExecutionSuiteGlobals["specify"];
+  globalState.before = noopBefore as ExecutionSuiteGlobals["before"];
 
   return Promise.resolve(fn()).finally(() => {
     globalState.describe = previousDescribe;

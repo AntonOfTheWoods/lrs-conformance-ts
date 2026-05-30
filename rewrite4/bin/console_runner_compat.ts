@@ -60,12 +60,6 @@ type RunnerInstance = {
   uuid: string;
 };
 
-type TestRunnerConstructor = new (
-  name: string | null,
-  owner: string | null,
-  flags: Record<string, unknown>,
-) => RunnerInstance;
-
 type OAuthConfig = {
   auth_token_path: string;
   authorization_path: string;

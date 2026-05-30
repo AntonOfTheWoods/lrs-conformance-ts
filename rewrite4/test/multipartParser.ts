@@ -153,6 +153,9 @@ function parseHeader(delimiter: string, content: string): MultipartHeader {
 
   for (let index = 1; index < parts.length; index += 1) {
     const part = parts[index];
+    if (typeof part === "undefined") {
+      continue;
+    }
 
     if (isEmpty(part)) {
       return header;
@@ -205,6 +208,9 @@ export function parseMultipart(boundary: string, body: string): MultipartPart[] 
 
   for (let contentIndex = 1; contentIndex < contents.length; contentIndex += 1) {
     const content = contents[contentIndex];
+    if (typeof content === "undefined") {
+      continue;
+    }
 
     if (startsWith(content, `--${delimiter}`) || startsWith(content, "--")) {
       lastBoundary = true;

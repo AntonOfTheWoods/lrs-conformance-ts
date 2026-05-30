@@ -52,8 +52,6 @@ const timeMarginDependentFiles = new Set<string>([
   "test/v2_0/4.1.6.6-Activity-Profile-Resource.js",
 ]);
 
-const legacySuiteCommonJsPattern = /(?:^\s*\(function\s*\(module\b|^\s*\}\(module,\s*require\(|module\.exports)/m;
-
 const legacyTsTranspiler = new Bun.Transpiler({ loader: "ts" });
 const legacyJsTranspiler = new Bun.Transpiler({ loader: "js" });
 
@@ -198,11 +196,11 @@ function installSuiteGlobals(runtime: DescribeRuntime): () => void {
     },
   );
 
-  globalState.describe = describe;
-  globalState.context = describe;
-  globalState.it = it;
-  globalState.specify = it;
-  globalState.before = runtime.before.bind(runtime);
+  globalState.describe = describe as SuiteGlobalShape["describe"];
+  globalState.context = describe as SuiteGlobalShape["context"];
+  globalState.it = it as SuiteGlobalShape["it"];
+  globalState.specify = it as SuiteGlobalShape["specify"];
+  globalState.before = runtime.before.bind(runtime) as SuiteGlobalShape["before"];
 
   return () => {
     globalState.describe = previousDescribe;

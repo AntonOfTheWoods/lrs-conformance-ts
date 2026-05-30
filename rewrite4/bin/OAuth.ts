@@ -3,7 +3,7 @@
 import childProcess from "child_process";
 import { EventEmitter } from "events";
 import express from "express";
-import { OAuth } from "oauth";
+import oauthModule from "oauth";
 
 type OAuthConfig = {
   auth_token_path: string;
@@ -51,11 +51,6 @@ type HttpServer = {
   on(event: "connection", listener: (socket: SocketLike) => void): void;
 };
 
-type ExpressApp = {
-  get(route: string, handler: (req: ExpressRequest, res: ExpressResponse, next: () => void) => void): void;
-  listen(port: number): HttpServer;
-};
-
 type OAuthConsumer = {
   getOAuthAccessToken(
     requestToken: string,
@@ -67,16 +62,6 @@ type OAuthConsumer = {
     callback: (error: unknown, requestToken?: string, requestTokenSecret?: string, results?: unknown) => void,
   ): void;
 };
-
-type OAuthConstructor = new (
-  requestTokenUrl: string,
-  accessTokenUrl: string,
-  consumerKey: string | undefined,
-  consumerSecret: string | undefined,
-  version: string,
-  authorizeCallback: string,
-  signatureMethod: string,
-) => OAuthConsumer;
 
 type AuthorizationLaunchCommand = {
   args: string[];
@@ -140,7 +125,8 @@ export function openAuthorizationUrl(
 }
 
 export function auth(config: OAuthConfig, callback: OAuthCallback): void {
-  const consumer = new OAuth(
+  const OAuthConstructor = (oauthModule as unknown as { OAuth: new (...args: unknown[]) => OAuthConsumer }).OAuth;
+  const consumer: OAuthConsumer = new OAuthConstructor(
     `${config.endpoint}${config.request_token_path}?scope=all`,
     `${config.endpoint}${config.auth_token_path}`,
     config.consumer_key,
@@ -152,14 +138,14 @@ export function auth(config: OAuthConfig, callback: OAuthCallback): void {
   const app = express();
   const authorizationEvents = new EventEmitter();
 
-  app.get("/authback", function (req, res) {
+  app.get("/authback", function (req: ExpressRequest, res: ExpressResponse) {
     res.status(200).send("OK - you can close this tab");
     setTimeout(function () {
       authorizationEvents.emit("authorized", req.query.oauth_verifier, req.query.oauth_token);
     }, 500);
   });
 
-  const server = app.listen(3000);
+  const server: HttpServer = app.listen(3000);
   const sockets: Record<number, SocketLike> = {};
   let nextSocketId = 0;
 

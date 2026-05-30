@@ -79,11 +79,6 @@ type CleanRunRecord = {
   log?: CleanLogRecord;
 };
 
-type SpecReference = {
-  "1.0.3_link"?: string;
-  "1.0.3_ref"?: string;
-};
-
 export class Suite {
   title: string;
   log = "";

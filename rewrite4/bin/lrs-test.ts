@@ -112,8 +112,6 @@ export function buildLrsTestLoadPlan(normalizedOptions: NormalizedRunnerOptions)
   };
 }
 
-const legacySuiteCommonJsPattern = /(?:^\s*\(function\s*\(module\b|^\s*\}\(module,\s*require\(|module\.exports)/m;
-
 const legacyTsTranspiler = new Bun.Transpiler({ loader: "ts" });
 const legacyJsTranspiler = new Bun.Transpiler({ loader: "js" });
 
