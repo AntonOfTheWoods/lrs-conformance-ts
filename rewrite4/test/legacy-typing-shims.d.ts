@@ -36,17 +36,12 @@ declare module "supertest-as-promised" {
   export default value;
 }
 
-declare module "extend" {
+declare module "comb" {
   const value: any;
   export default value;
 }
 
 declare module "moment" {
-  const value: any;
-  export default value;
-}
-
-declare module "comb" {
   const value: any;
   export default value;
 }
@@ -76,27 +71,7 @@ declare module "chai-things" {
   export default value;
 }
 
-declare module "validator" {
-  const value: any;
-  export default value;
-}
-
-declare module "express" {
-  const value: any;
-  export default value;
-}
-
 declare module "form-urlencoded" {
-  const value: any;
-  export default value;
-}
-
-declare module "jws" {
-  const value: any;
-  export default value;
-}
-
-declare module "lodash.isequal" {
   const value: any;
   export default value;
 }
@@ -109,7 +84,6 @@ declare module "uuid" {
   };
   export default value;
 }
-
 declare module "oauth" {
   const value: any;
   export = value;

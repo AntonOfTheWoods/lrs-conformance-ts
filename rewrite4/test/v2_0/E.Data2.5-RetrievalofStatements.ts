@@ -253,7 +253,7 @@ describe("Retrieval of Statements (Data 2.5)", function () {
                 host_blacklist: false,
                 allow_trailing_dot: false,
                 allow_protocol_relative_urls: true,
-              }),
+              } as any),
             ).to.be.truthy;
             request("")
               .get(resolve(res.request.href, result.more))
