@@ -242,7 +242,7 @@ function processMessageReporter(processHandle: ChildProcessShape) {
       processHandle.postMessage?.("test start", test.title);
     });
     runner.on("test end", function (test: { title: string }) {
-      var executionState = getOrCreateCaptureExecutionState();
+      const executionState = getOrCreateCaptureExecutionState();
       if (executionState.testTitle === test.title) {
         executionState.testTitle = null;
       }
@@ -255,7 +255,7 @@ function processMessageReporter(processHandle: ChildProcessShape) {
       processHandle.postMessage?.("test fail", { title: test.title, message: err.toString() });
     });
     runner.on("end", function () {
-      var executionState = getOrCreateCaptureExecutionState();
+      const executionState = getOrCreateCaptureExecutionState();
       executionState.suitePath = [];
       executionState.testTitle = null;
       processHandle.postMessage?.("end", "All done");
@@ -267,14 +267,14 @@ function processMessageReporter(processHandle: ChildProcessShape) {
       processHandle.postMessage?.("start", runner.total);
     });
     runner.on("suite", function (suite: { title?: string }) {
-      var executionState = getOrCreateCaptureExecutionState();
+      const executionState = getOrCreateCaptureExecutionState();
       if (suite.title) {
         executionState.suitePath.push(suite.title);
       }
       processHandle.postMessage?.("suite start", suite.title);
     });
     runner.on("suite end", function (suite: { title?: string }) {
-      var executionState = getOrCreateCaptureExecutionState();
+      const executionState = getOrCreateCaptureExecutionState();
       if (suite.title && executionState.suitePath[executionState.suitePath.length - 1] === suite.title) {
         executionState.suitePath.pop();
       }
@@ -288,7 +288,7 @@ async function runTests(_options: RawOptions): Promise<void> {
   const Mocha = runtimeRequire("mocha") as any;
   const childProcessHandle = process as ChildProcessShape;
 
-  var optionsValidator = Joi.object({
+  const optionsValidator = Joi.object({
     xapiVersion: Joi.string(),
     directory: Joi.array().items(Joi.string()),
     endpoint: Joi.string()
@@ -334,7 +334,7 @@ async function runTests(_options: RawOptions): Promise<void> {
     errors: Joi.boolean(),
   }).unknown(false);
 
-  var validOptions = Joi.validate(_options, optionsValidator);
+  const validOptions = Joi.validate(_options, optionsValidator);
   if (validOptions.error) {
     childProcessHandle.postMessage?.("log", "Options not valid " + validOptions.error);
     process.exit();
@@ -358,7 +358,7 @@ async function runTests(_options: RawOptions): Promise<void> {
     console.warn(`No xAPI version or manual path specified -- defaulting to ${defaultXapiVersion}.`);
   }
 
-  var options = {
+  const options = {
     xapiVersion: normalizedOptions.xapiVersion,
     directory: normalizedOptions.directory,
     endpoint: normalizedOptions.endpoint,
@@ -379,12 +379,12 @@ async function runTests(_options: RawOptions): Promise<void> {
     errors: normalizedOptions.errors,
   };
 
-  var grep;
+  let grep: RegExp | undefined;
   if (options.grep) {
     grep = new RegExp(options.grep);
   }
 
-  var mocha = new Mocha({
+  const mocha = new Mocha({
     uii: "bdd",
     reporter: processMessageReporter(childProcessHandle),
     timeout: "15000",
@@ -457,7 +457,7 @@ async function runTests(_options: RawOptions): Promise<void> {
 }
 
 function hookupIPC(): void {
-  var childProcessHandle = process as ChildProcessShape;
+  const childProcessHandle = process as ChildProcessShape;
   childProcessHandle.postMessage = function (action, payload) {
     childProcessHandle.send?.({
       action: action,
@@ -465,9 +465,9 @@ function hookupIPC(): void {
     });
   };
   process.on("message", function (message: { action?: string; payload?: RawOptions }) {
-    if (message.action == "ping") {
+    if (message.action === "ping") {
       childProcessHandle.postMessage?.("log", "pong");
-    } else if (message.action == "runTests") {
+    } else if (message.action === "runTests") {
       childProcessHandle.postMessage?.("log", "runTests starting");
       void runTests(message.payload ?? {}).catch((error) => {
         console.error(error);
