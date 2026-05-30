@@ -3,8 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import chai, { expect } from "chai";
-import chaiThings from "chai-things";
+import { expect } from "chai";
 import helperImport from "../helper.ts";
 import requestBase from "super-request";
 import * as liburl from "url";
@@ -15,7 +14,6 @@ let request: any = requestBase;
 
 // "use strict";
 
-chai.use(chaiThings);
 if (global.OAUTH) request = helper.OAuthRequest(request);
 
 describe("Retrieval of Statements (Data 2.5)", function () {
@@ -257,7 +255,7 @@ describe("Retrieval of Statements (Data 2.5)", function () {
                 allow_trailing_dot: false,
                 allow_protocol_relative_urls: true,
               } as any),
-            ).to.be.truthy;
+            ).to.be.true;
             request("")
               .get(liburl.resolve(res.request.href, result.more))
               .headers(helper.addAllHeaders({}))

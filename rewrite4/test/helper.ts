@@ -7,7 +7,6 @@ import extend from "extend";
 import FormUrlencode from "form-urlencoded";
 import jws from "jws";
 import lodashIsEqual from "lodash.isequal";
-import * as uuid from "uuid";
 
 import * as fixtureCryptoSupportModule from "../bun-runtime/helper-fixture-crypto.ts";
 import * as transportSupportModule from "../bun-runtime/helper-transport.ts";
@@ -119,7 +118,6 @@ const helperContext = {
   setTimeMargin(value: number | undefined): void {
     timeMargin = value;
   },
-  uuid,
 };
 
 const transportSupport = (

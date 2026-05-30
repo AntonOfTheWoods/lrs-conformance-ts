@@ -172,7 +172,7 @@ function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
     },
 
     generateUUID: function generateUUID() {
-      return context.uuid.v4();
+      return context.crypto.randomUUID();
     },
 
     getJsonMapping: function getJsonMapping() {

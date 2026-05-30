@@ -46,42 +46,13 @@ declare module "moment" {
   export default value;
 }
 
-declare module "chai" {
-  export const expect: any;
-  export const use: any;
-  export const assert: any;
-  export const should: any;
-  const value: {
-    use(plugin: any): void;
-    expect: any;
-    assert: any;
-    should: any;
-    [key: string]: any;
-  };
-  export default value;
-}
-
 declare module "isemail" {
-  const value: any;
-  export default value;
-}
-
-declare module "chai-things" {
   const value: any;
   export default value;
 }
 
 declare module "form-urlencoded" {
   const value: any;
-  export default value;
-}
-
-declare module "uuid" {
-  export function v4(): string;
-  const value: {
-    v4: typeof v4;
-    [key: string]: any;
-  };
   export default value;
 }
 declare module "oauth" {

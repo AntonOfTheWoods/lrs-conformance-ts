@@ -2955,10 +2955,8 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
             done(err);
           } else {
             let result = helper.parse(res.body, done);
-            expect(result)
-              .to.have.property("statements")
-              .to.be.an("array")
-              .to.all.have.deep.property("actor.mbox", statement.actor.mbox);
+            const statements = result.statements as Array<{ actor?: { mbox?: string } }>;
+            expect(statements.every((statementItem) => statementItem.actor?.mbox === statement.actor.mbox)).to.be.true;
             done();
           }
         });
@@ -2976,10 +2974,8 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
             done(err);
           } else {
             let result = helper.parse(res.body, done);
-            expect(result)
-              .to.have.property("statements")
-              .to.be.an("array")
-              .to.all.have.deep.property("verb.id", statement.verb.id);
+            const statements = result.statements as Array<{ verb?: { id?: string } }>;
+            expect(statements.every((statementItem) => statementItem.verb?.id === statement.verb.id)).to.be.true;
             done();
           }
         });
@@ -2997,10 +2993,8 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
             done(err);
           } else {
             let result = helper.parse(res.body, done);
-            expect(result)
-              .to.have.property("statements")
-              .to.be.an("array")
-              .to.all.have.deep.property("object.id", statement.object.id);
+            const statements = result.statements as Array<{ object?: { id?: string } }>;
+            expect(statements.every((statementItem) => statementItem.object?.id === statement.object.id)).to.be.true;
             done();
           }
         });
@@ -3018,10 +3012,12 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
             done(err);
           } else {
             let result = helper.parse(res.body, done);
-            expect(result)
-              .to.have.property("statements")
-              .to.be.an("array")
-              .to.all.have.deep.property("context.registration", statement.context.registration);
+            const statements = result.statements as Array<{ context?: { registration?: string } }>;
+            expect(
+              statements.every(
+                (statementItem) => statementItem.context?.registration === statement.context.registration,
+              ),
+            ).to.be.true;
             done();
           }
         });

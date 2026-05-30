@@ -1,10 +1,9 @@
 "use strict";
 
+import crypto from "node:crypto";
 import type { ChildProcess } from "child_process";
 import { EventEmitter } from "events";
 import path from "path";
-
-import { v4 as uuidv4 } from "uuid";
 
 import specRefs from "../test/references.json";
 import { versionNumber } from "../version.ts";
@@ -190,7 +189,7 @@ export class TestRunner extends EventEmitter {
     this.lrsSettingsUUID = lrsSettingsUUID || null;
     this.rollupRule = rollupRule && rollupRuleMap[rollupRule] ? rollupRule : "mustPassAll";
     this.xapiVersion = typeof flags.xapiVersion === "string" ? flags.xapiVersion : versionNumber;
-    this.uuid = uuidv4();
+    this.uuid = crypto.randomUUID();
   }
 
   static resolveLrsTestEntryPath(dirname: string): string {

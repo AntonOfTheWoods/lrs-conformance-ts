@@ -10,7 +10,6 @@
 import { createRequire } from "node:module";
 import requestFactory from "supertest-as-promised";
 import "should";
-import chai from "chai";
 import isEmail from "isemail";
 
 import helperImport from "../helper.ts";
@@ -54,7 +53,6 @@ if (globalWithOauth.OAUTH) {
   );
 }
 
-void chai;
 void isEmail;
 
 //extend the super-test-as-promised with a function to write the oauth headers
