@@ -115,31 +115,6 @@ declare module "oauth" {
   export = value;
 }
 
-declare module "*helper.ts" {
-  const value: any;
-  export default value;
-}
-
-declare module "*multipartParser.ts" {
-  const value: any;
-  export default value;
-}
-
-declare module "*redirect.ts" {
-  const value: any;
-  export default value;
-}
-
-declare module "*templatingSelection.ts" {
-  const value: any;
-  export default value;
-}
-
-declare module "*util/requests.ts" {
-  const value: any;
-  export default value;
-}
-
 declare var id: any;
 declare var param: any;
 declare var correctResponsesPattern: any;
