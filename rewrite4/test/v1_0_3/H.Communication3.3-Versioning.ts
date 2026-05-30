@@ -14,7 +14,7 @@ let request: any = requestBase;
 
 const REG_ALLOWED_VERSIONS = /^2\.0\.0$|^1\.0(\.[1-3])$/;
 
-if (global.OAUTH) request = helper.OAuthRequest(request);
+if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
 describe("Versioning Requirements (Communication 3.3)", () => {
   /**  Matchup with Conformance Requirements Document

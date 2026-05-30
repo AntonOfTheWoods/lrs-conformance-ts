@@ -12,7 +12,7 @@ const helper: any = helperImport;
 const xapiRequests: any = xapiRequestsImport;
 let request: any = requestBase;
 
-if (global.OAUTH) request = helper.OAuthRequest(request);
+if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
 /**  Macthup with Conformance Requirements Document
  * XAPI-00187 - below

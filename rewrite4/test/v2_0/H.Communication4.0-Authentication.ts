@@ -23,7 +23,7 @@ describe("Authentication Requirements (Communication 4.0)", function () {
     // Equivalent authentication behavior is covered in this suite.
 
     it("fails when given a random name pass pair", function (done) {
-      if (global.OAUTH) {
+      if (process.env["OAUTH1_ENABLED"] === "true") {
         done();
       } else {
         const templates = [
@@ -61,7 +61,7 @@ describe("Authentication Requirements (Communication 4.0)", function () {
     });
 
     it("fails with a malformed header", function (done) {
-      if (global.OAUTH) {
+      if (process.env["OAUTH1_ENABLED"] === "true") {
         done();
       } else {
         const templates = [
@@ -103,7 +103,7 @@ describe("Authentication Requirements (Communication 4.0)", function () {
    */
   //WARNING: This might not be a great test. OAUTH will override it
   it("An LRS must support HTTP Basic Authentication (Authentication, Communication 4.0, XAPI-00335)", function (done) {
-    if (global.OAUTH) {
+    if (process.env["OAUTH1_ENABLED"] === "true") {
       done();
     } else {
       const templates = [

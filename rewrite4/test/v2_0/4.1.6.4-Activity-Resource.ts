@@ -13,7 +13,7 @@ let request = requestModule as unknown as (target: string) => any;
 const helper = helperModule as any;
 const xapiRequests = xapiRequestsModule as any;
 
-if (global.OAUTH) request = helper.OAuthRequest(request);
+if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
 describe("Activities Resource Requirements (Communication 2.5)", function () {
   /**

@@ -24,7 +24,7 @@ let request: any = requestBase;
  * XAPI-00141 - covered by XAPI-00195, XAPI-00275, XAPI-00294
  */
 
-if (global.OAUTH) request = helper.OAuthRequest(request);
+if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
 describe("Statement Resource Requirements (Communication 2.1)", () => {
   let data: any;

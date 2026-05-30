@@ -12,7 +12,7 @@ const helper: any = helperImport;
 const templatingSelection: any = templatingSelectionImport;
 let request: any = requestBase;
 
-if (global.OAUTH) request = helper.OAuthRequest(request);
+if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
 before("Before all tests are run", function (done) {
   console.log("Setting up\nAccounting for time differential between test suite and lrs");

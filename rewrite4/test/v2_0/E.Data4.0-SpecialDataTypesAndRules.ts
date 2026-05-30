@@ -13,7 +13,7 @@ const helper: any = helperImport;
 const templatingSelection: any = templatingSelectionImport;
 let request: any = requestBase;
 
-if (global.OAUTH) request = helper.OAuthRequest(request);
+if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
 describe("Special Data Types and Rules (Data 4.0)", function () {
   //Data 4.1

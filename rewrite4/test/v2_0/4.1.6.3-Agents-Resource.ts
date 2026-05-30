@@ -11,7 +11,7 @@ import requestBase from "super-request";
 const helper: any = helperImport;
 let request: any = requestBase;
 
-if (global.OAUTH) request = helper.OAuthRequest(request);
+if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
 describe("Agents Resource Requirements (Communication 2.4)", function () {
   /**  Matchup with Conformance Requirements Document

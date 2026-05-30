@@ -31,7 +31,6 @@ type SuiteGlobalShape = typeof globalThis & {
   specify?: SuiteIt;
   it?: SuiteIt;
   before?: SuiteBefore;
-  OAUTH?: Record<string, string>;
 };
 
 const timeMarginSetupFiles = new Set<string>([
@@ -107,6 +106,11 @@ function applyRunnerEnvironment(normalizedOptions: NormalizedRunnerOptions): Arr
   const previousBasicAuthUser = process.env["BASIC_AUTH_USER"];
   const previousBasicAuthPassword = process.env["BASIC_AUTH_PASSWORD"];
   const previousOAuthEnabled = process.env["OAUTH1_ENABLED"];
+  const previousOAuthConsumerKey = process.env["OAUTH1_CONSUMER_KEY"];
+  const previousOAuthConsumerSecret = process.env["OAUTH1_CONSUMER_SECRET"];
+  const previousOAuthToken = process.env["OAUTH1_TOKEN"];
+  const previousOAuthTokenSecret = process.env["OAUTH1_TOKEN_SECRET"];
+  const previousOAuthVerifier = process.env["OAUTH1_VERIFIER"];
   const previousXapiVersion = process.env["XAPI_VERSION"];
 
   process.env["DIRECTORY"] = normalizedOptions.directory[0] ?? "";
@@ -115,19 +119,12 @@ function applyRunnerEnvironment(normalizedOptions: NormalizedRunnerOptions): Arr
   process.env["BASIC_AUTH_USER"] = normalizedOptions.authUser ?? "";
   process.env["BASIC_AUTH_PASSWORD"] = normalizedOptions.authPass ?? "";
   process.env["OAUTH1_ENABLED"] = String(normalizedOptions.oAuth1);
+  process.env["OAUTH1_CONSUMER_KEY"] = normalizedOptions.consumer_key ?? "";
+  process.env["OAUTH1_CONSUMER_SECRET"] = normalizedOptions.consumer_secret ?? "";
+  process.env["OAUTH1_TOKEN"] = normalizedOptions.token ?? "";
+  process.env["OAUTH1_TOKEN_SECRET"] = normalizedOptions.token_secret ?? "";
+  process.env["OAUTH1_VERIFIER"] = normalizedOptions.verifier ?? "";
   process.env["XAPI_VERSION"] = normalizedOptions.xapiVersion;
-
-  if (normalizedOptions.oAuth1) {
-    (globalThis as SuiteGlobalShape).OAUTH = {
-      consumer_key: normalizedOptions.consumer_key ?? "",
-      consumer_secret: normalizedOptions.consumer_secret ?? "",
-      token: normalizedOptions.token ?? "",
-      token_secret: normalizedOptions.token_secret ?? "",
-      verifier: normalizedOptions.verifier ?? "",
-    };
-  } else {
-    delete (globalThis as SuiteGlobalShape).OAUTH;
-  }
 
   return [
     previousDirectory,
@@ -136,6 +133,11 @@ function applyRunnerEnvironment(normalizedOptions: NormalizedRunnerOptions): Arr
     previousBasicAuthUser,
     previousBasicAuthPassword,
     previousOAuthEnabled,
+    previousOAuthConsumerKey,
+    previousOAuthConsumerSecret,
+    previousOAuthToken,
+    previousOAuthTokenSecret,
+    previousOAuthVerifier,
     previousXapiVersion,
   ];
 }
@@ -156,6 +158,11 @@ function restoreRunnerEnvironment(previousValues: Array<string | undefined>): vo
     previousBasicAuthUser,
     previousBasicAuthPassword,
     previousOAuthEnabled,
+    previousOAuthConsumerKey,
+    previousOAuthConsumerSecret,
+    previousOAuthToken,
+    previousOAuthTokenSecret,
+    previousOAuthVerifier,
     previousXapiVersion,
   ] = previousValues;
 
@@ -174,8 +181,12 @@ function restoreRunnerEnvironment(previousValues: Array<string | undefined>): vo
   restore("BASIC_AUTH_USER", previousBasicAuthUser);
   restore("BASIC_AUTH_PASSWORD", previousBasicAuthPassword);
   restore("OAUTH1_ENABLED", previousOAuthEnabled);
+  restore("OAUTH1_CONSUMER_KEY", previousOAuthConsumerKey);
+  restore("OAUTH1_CONSUMER_SECRET", previousOAuthConsumerSecret);
+  restore("OAUTH1_TOKEN", previousOAuthToken);
+  restore("OAUTH1_TOKEN_SECRET", previousOAuthTokenSecret);
+  restore("OAUTH1_VERIFIER", previousOAuthVerifier);
   restore("XAPI_VERSION", previousXapiVersion);
-  delete (globalThis as SuiteGlobalShape).OAUTH;
 }
 
 function installSuiteGlobals(runtime: DescribeRuntime): () => void {

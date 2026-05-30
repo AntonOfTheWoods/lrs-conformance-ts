@@ -40,14 +40,14 @@ import "should";
 const helper = helperImport as TemplateHelper;
 
 const globalWithOauth = globalThis as typeof globalThis & {
-  OAUTH?: boolean;
   describe: DescribeFn;
   it: ItFn;
 };
 
-const activeRequest = globalWithOauth.OAUTH
-  ? (helper.OAuthRequest(requestModule) as (target: unknown) => RequestChain)
-  : requestModule;
+const activeRequest =
+  process.env["OAUTH1_ENABLED"] === "true"
+    ? (helper.OAuthRequest(requestModule) as (target: unknown) => RequestChain)
+    : requestModule;
 
 export function createTemplate(templateName: string): void {
   const configurations = helper.getSingleTestConfiguration(templateName);

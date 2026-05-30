@@ -13,7 +13,7 @@ let request: any = requestBase;
 
 // "use strict";
 
-if (global.OAUTH) request = helper.OAuthRequest(request);
+if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
 describe("Document Resource Requirements (Communication 2.2)", function () {
   /**  Macthup with Conformance Requirements Document

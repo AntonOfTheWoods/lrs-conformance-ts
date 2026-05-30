@@ -8,7 +8,7 @@ import requestBase from "super-request";
 
 const helper: any = helperImport;
 let request: any = requestBase;
-if (global.OAUTH) request = helper.OAuthRequest(request);
+if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
 describe("Authentication Requirements (Communication 4.0)", function () {
   /**  XAPI-00334, Communication 2.1.3 GET Statements
@@ -24,7 +24,7 @@ describe("Authentication Requirements (Communication 4.0)", function () {
     // Equivalent authentication behavior is covered in this suite.
 
     it("fails when given a random name pass pair", function (done) {
-      if (global.OAUTH) {
+      if (process.env["OAUTH1_ENABLED"] === "true") {
         done();
       } else {
         let templates = [
@@ -64,7 +64,7 @@ describe("Authentication Requirements (Communication 4.0)", function () {
     });
 
     it("fails with a malformed header", function (done) {
-      if (global.OAUTH) {
+      if (process.env["OAUTH1_ENABLED"] === "true") {
         done();
       } else {
         let templates = [
@@ -108,7 +108,7 @@ describe("Authentication Requirements (Communication 4.0)", function () {
    */
   //WARNING: This might not be a great test. OAUTH will override it
   it("An LRS must support HTTP Basic Authentication (Authentication, Communication 4.0, XAPI-00335)", function (done) {
-    if (global.OAUTH) {
+    if (process.env["OAUTH1_ENABLED"] === "true") {
       done();
     } else {
       let templates = [

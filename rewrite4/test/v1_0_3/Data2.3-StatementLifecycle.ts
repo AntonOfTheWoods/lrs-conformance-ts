@@ -14,7 +14,7 @@ let request: any = requestBase;
 
 // "use strict";
 
-if (global.OAUTH) request = helper.OAuthRequest(request);
+if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
 describe("Statement Lifecycle Requirements (Data 2.3)", () => {
   /**  Matchup with Conformance Requirements Document

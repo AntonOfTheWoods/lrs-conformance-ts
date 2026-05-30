@@ -18,18 +18,17 @@ const runtimeRequire = createRequire(import.meta.url);
 const helper = helperImport as any;
 const request = (requestFactory as any)(helper.getEndpoint());
 
-const globalWithOauth = globalThis as typeof globalThis & {
-  OAUTH?: {
-    consumer_key: string;
-    consumer_secret: string;
-    token: string;
-    token_secret: string;
-    verifier: string;
-  };
+const oauthConfig = {
+  consumer_key: process.env["OAUTH1_CONSUMER_KEY"] ?? "",
+  consumer_secret: process.env["OAUTH1_CONSUMER_SECRET"] ?? "",
+  token: process.env["OAUTH1_TOKEN"] ?? "",
+  token_secret: process.env["OAUTH1_TOKEN_SECRET"] ?? "",
+  verifier: process.env["OAUTH1_VERIFIER"] ?? "",
 };
+const oauthEnabled = process.env["OAUTH1_ENABLED"] === "true";
 
 let oauth: any;
-if (globalWithOauth.OAUTH) {
+if (oauthEnabled) {
   const OAuth = runtimeRequire("oauth") as {
     OAuth: new (
       requestTokenURL: string,
@@ -42,15 +41,7 @@ if (globalWithOauth.OAUTH) {
     ) => any;
   };
 
-  oauth = new OAuth.OAuth(
-    "",
-    "",
-    globalWithOauth.OAUTH.consumer_key,
-    globalWithOauth.OAUTH.consumer_secret,
-    "1.0",
-    null,
-    "HMAC-SHA1",
-  );
+  oauth = new OAuth.OAuth("", "", oauthConfig.consumer_key, oauthConfig.consumer_secret, "1.0", null, "HMAC-SHA1");
 }
 
 void isEmail;
@@ -61,7 +52,7 @@ function extendRequestWithOauth(pre: any): void {
   pre.sign = function (oa: any, token: string, secret: string) {
     let additionalData: Record<string, unknown> = {}; //TODO: deal with body params that need to be encoded into the hash (when the data is a form....)
     additionalData = JSON.parse(JSON.stringify(additionalData));
-    additionalData["oauth_verifier"] = globalWithOauth.OAUTH?.verifier; //Not sure why the lib does not do is, is required. Jam the verifier in
+    additionalData["oauth_verifier"] = oauthConfig.verifier; //Not sure why the lib does not do is, is required. Jam the verifier in
     const params = oa._prepareParameters(
       token,
       secret,
@@ -104,8 +95,8 @@ function sendRequest(type: string, url: string, params: unknown, body: unknown, 
   }
   //If we're doing oauth, set it up!
   try {
-    if (globalWithOauth.OAUTH) {
-      pre.sign(oauth, globalWithOauth.OAUTH.token, globalWithOauth.OAUTH.token_secret);
+    if (oauthEnabled) {
+      pre.sign(oauth, oauthConfig.token, oauthConfig.token_secret);
     }
   } catch (error) {
     console.log(error);

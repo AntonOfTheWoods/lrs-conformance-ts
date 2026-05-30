@@ -79,14 +79,33 @@ type HelperTransportContext = {
 };
 
 const runtimeGlobal = globalThis as typeof globalThis & {
-  OAUTH?: {
-    verifier?: string;
-  };
   __lrsConformanceCaptureExecutionState?: {
     suitePath?: unknown;
     testTitle?: unknown;
   };
 };
+
+type OAuthSettings = {
+  consumer_key: string;
+  consumer_secret: string;
+  token: string;
+  token_secret: string;
+  verifier: string;
+};
+
+function getOAuthSettings(): OAuthSettings | undefined {
+  if (process.env["OAUTH1_ENABLED"] !== "true") {
+    return undefined;
+  }
+
+  return {
+    consumer_key: process.env["OAUTH1_CONSUMER_KEY"] ?? "",
+    consumer_secret: process.env["OAUTH1_CONSUMER_SECRET"] ?? "",
+    token: process.env["OAUTH1_TOKEN"] ?? "",
+    token_secret: process.env["OAUTH1_TOKEN_SECRET"] ?? "",
+    verifier: process.env["OAUTH1_VERIFIER"] ?? "",
+  };
+}
 
 function cloneHeader(context: HelperTransportContext, header?: HeaderMap): HeaderMap {
   return context.extend(true, {}, header || {});
@@ -203,7 +222,7 @@ function createHelperTransportSupport(context: HelperTransportContext) {
         }
 
         function doRequest() {
-          if (runtimeGlobal.OAUTH) {
+          if (getOAuthSettings()) {
             requestFactory = helper().OAuthRequest(requestFactory);
           }
           requestFactory(helper().getEndpointAndAuth())
@@ -311,7 +330,7 @@ function createHelperTransportSupport(context: HelperTransportContext) {
     ) {
       let requestFactory = requestFactoryImport as unknown as RequestFactory;
       const methodName = type === "delete" ? "del" : type;
-      if (runtimeGlobal.OAUTH) {
+      if (getOAuthSettings()) {
         requestFactory = helper().OAuthRequest(requestFactory);
       }
 
@@ -364,7 +383,7 @@ function createHelperTransportSupport(context: HelperTransportContext) {
       preWithSign["sign"] = function (oa: AnyRecord, token: string, secret: string) {
         let additionalData: AnyRecord = {};
         additionalData = JSON.parse(JSON.stringify(additionalData));
-        additionalData["oauth_verifier"] = runtimeGlobal.OAUTH?.verifier;
+        additionalData["oauth_verifier"] = getOAuthSettings()?.verifier;
         const params = oa["_prepareParameters"](token, secret, pre.method, pre.url, additionalData);
 
         const signature = oa["_buildAuthorizationHeaders"](params);
@@ -389,7 +408,7 @@ function createHelperTransportSupport(context: HelperTransportContext) {
       stmt["id"] = id;
       suiteTime = new Date();
 
-      if (runtimeGlobal.OAUTH) {
+      if (getOAuthSettings()) {
         requestFactory = helper().OAuthRequest(requestFactory);
       }
 
@@ -475,7 +494,8 @@ function createHelperTransportSupport(context: HelperTransportContext) {
           if (!testRequest) return;
           if (testRequest["__wrapped"]) return;
           testRequest["__wrapped"] = true;
-          if (testRequest._options) testRequest._options.oauth = runtimeGlobal.OAUTH;
+          const oauthSettings = getOAuthSettings();
+          if (testRequest._options) testRequest._options.oauth = oauthSettings;
           for (const i in testRequest) {
             (function (methodName) {
               if (typeof testRequest[methodName] !== "function") return;
@@ -485,7 +505,7 @@ function createHelperTransportSupport(context: HelperTransportContext) {
                 const nextTest = preAuthMethod.apply(testRequest, arguments as unknown as []);
                 const wrappedNextTest = nextTest as RequestChain | undefined;
                 if (wrappedNextTest && wrappedNextTest._options && !wrappedNextTest._options.oauth) {
-                  wrappedNextTest._options.oauth = runtimeGlobal.OAUTH;
+                  wrappedNextTest._options.oauth = getOAuthSettings();
                   wrapMethods(wrappedNextTest);
                   return wrappedNextTest;
                 }

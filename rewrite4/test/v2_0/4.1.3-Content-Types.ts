@@ -12,7 +12,7 @@ import helperModule from "../helper.ts";
 let request = requestModule as unknown as (target: string) => any;
 const helper = helperModule as any;
 
-if (global.OAUTH) request = helper.OAuthRequest(request);
+if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
 describe("Content Type Requirements (Communication 1.5)", function () {
   let data: any;

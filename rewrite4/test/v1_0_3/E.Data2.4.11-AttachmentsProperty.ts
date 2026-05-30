@@ -11,7 +11,7 @@ const helper: any = helperImport;
 const templatingSelection: any = templatingSelectionImport;
 let request: any = requestBase;
 
-if (global.OAUTH) request = helper.OAuthRequest(request);
+if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
 describe("Attachments Property Requirements (Data 2.4.11)", function () {
   /**  Matchup with Conformance Requirements Document

@@ -10,7 +10,7 @@ import requestBase from "super-request";
 const helper: any = helperImport;
 let request: any = requestBase;
 
-if (global.OAUTH) request = helper.OAuthRequest(request);
+if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
 describe("Encoding Requirements (Communication 1.4)", () => {
   /**  XAPI-00015,  2.2. Formatting Requirements

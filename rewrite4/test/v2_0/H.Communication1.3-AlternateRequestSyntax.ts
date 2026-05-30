@@ -10,7 +10,7 @@ import superRequestBase from "super-request";
 const helper: any = oldHelpers;
 let superRequest = superRequestBase;
 
-if (global.OAUTH) superRequest = helper.OAuthRequest(superRequest);
+if (process.env["OAUTH1_ENABLED"] === "true") superRequest = helper.OAuthRequest(superRequest);
 
 describe("Alternate Request Syntax Requirements", function () {
   it("The LRS Spec does not mandate any properties regarding Alternate Request Syntax in xAPI 2.0", async function () {

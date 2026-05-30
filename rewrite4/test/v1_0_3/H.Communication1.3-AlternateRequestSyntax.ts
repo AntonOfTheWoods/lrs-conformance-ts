@@ -12,7 +12,7 @@ let request: any = requestBase;
 
 // "use strict";
 
-if (global.OAUTH) request = helper.OAuthRequest(request);
+if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
 describe("Alternate Request Syntax Requirements (Communication 1.3)", function () {
   /**  XAPI-00336, Communication 1.3 Alternate Request Syntax

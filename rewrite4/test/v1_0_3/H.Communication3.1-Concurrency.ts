@@ -15,8 +15,16 @@ let request: any = requestBase;
 
 const requestClient = request(helper.getEndpoint());
 void requestClient;
-if (global.OAUTH) {
-  new oauthLib.OAuth("", "", global.OAUTH.consumer_key, global.OAUTH.consumer_secret, "1.0", null, "HMAC-SHA1");
+if (process.env["OAUTH1_ENABLED"] === "true") {
+  new oauthLib.OAuth(
+    "",
+    "",
+    process.env["OAUTH1_CONSUMER_KEY"] ?? "",
+    process.env["OAUTH1_CONSUMER_SECRET"] ?? "",
+    "1.0",
+    null,
+    "HMAC-SHA1",
+  );
 }
 
 describe("Concurrency Requirements (Communication 3.1)", () => {
@@ -65,12 +73,12 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
         document = helper.buildDocument();
 
       return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(function () {
-        return helper
-          .sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200)
-          .then(function (res: any) {
-            expect(res.headers.etag).to.be.ok;
-            expect(res.headers.etag).to.match(/\b[0-9a-fA-F]{40}\b/);
-          });
+        return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200).then(function (
+          res: any,
+        ) {
+          expect(res.headers.etag).to.be.ok;
+          expect(res.headers.etag).to.match(/\b[0-9a-fA-F]{40}\b/);
+        });
       });
     });
 
@@ -79,20 +87,20 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
         document = helper.buildDocument();
 
       return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(function () {
-        return helper
-          .sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200)
-          .then(function (res: any) {
-            expect(res.headers.etag).to.be.ok;
-            let str = res.headers.etag;
-            //test for weak etags
-            if (str[0] !== '"') {
-              expect(str[0]).to.equal("W");
-              expect(str[1]).to.equal("/");
-              str = str.substring(2);
-            }
-            expect(str[0]).to.equal('"');
-            expect(str[41]).to.equal('"');
-          });
+        return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200).then(function (
+          res: any,
+        ) {
+          expect(res.headers.etag).to.be.ok;
+          let str = res.headers.etag;
+          //test for weak etags
+          if (str[0] !== '"') {
+            expect(str[0]).to.equal("W");
+            expect(str[1]).to.equal("/");
+            str = str.substring(2);
+          }
+          expect(str[0]).to.equal('"');
+          expect(str[41]).to.equal('"');
+        });
       });
     });
 
@@ -106,7 +114,9 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
 
       it("When responding to a PUT request, must handle the If-Match header as described in RFC 2616, HTTP/1.1 if it contains an ETag", function () {
         document = helper.buildDocument();
-        return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, null, 200).then(function (res: any) {
+        return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, null, 200).then(function (
+          res: any,
+        ) {
           let goodTag = res.headers.etag;
 
           let document = helper.buildDocument();
@@ -140,15 +150,15 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
         document = helper.buildDocument();
 
       before("post the document and get the etag", function () {
-        return helper
-          .sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204)
-          .then(function (res: any) {
-            return helper
-              .sendRequest("get", helper.getEndpointAgentsProfile(), parameters, null, 200)
-              .then(function (res: any) {
-                void res.headers.etag;
-              });
+        return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(function (
+          res: any,
+        ) {
+          return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, null, 200).then(function (
+            res: any,
+          ) {
+            void res.headers.etag;
           });
+        });
       });
 
       it("Return HTTP 412 (Precondition Failed)", function () {
@@ -160,7 +170,9 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
       });
 
       it("Do not modify the resource", function () {
-        return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, null, 200).then(function (res: any) {
+        return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, null, 200).then(function (
+          res: any,
+        ) {
           let result = res.body;
           expect(result).to.eql(document);
         });

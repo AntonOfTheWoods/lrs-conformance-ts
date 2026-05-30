@@ -20,30 +20,20 @@ const PATH_ACTIVITIES_STATE = "/activities/state";
 const PATH_AGENTS_PROFILE = "/agents/profile";
 const PATH_STATEMENTS = "/statements";
 
-const globalWithOauth = globalThis as typeof globalThis & {
-  OAUTH?: {
-    consumer_key: string;
-    consumer_secret: string;
-    token: string;
-    token_secret: string;
-    verifier: string;
-  };
-};
-
 axios.defaults.headers.common = {
   ...axios.defaults.headers.common,
   "Content-Type": "application/json",
   "X-Experience-API-Version": process.env["XAPI_VERSION"],
 };
 
-if (typeof globalWithOauth.OAUTH !== "undefined") {
+if (process.env["OAUTH1_ENABLED"] === "true") {
   addOAuthInterceptor(axios, {
     algorithm: "HMAC-SHA1",
-    key: globalWithOauth.OAUTH.consumer_key,
-    secret: globalWithOauth.OAUTH.consumer_secret,
-    token: globalWithOauth.OAUTH.token,
-    tokenSecret: globalWithOauth.OAUTH.token_secret,
-    verifier: globalWithOauth.OAUTH.verifier,
+    key: process.env["OAUTH1_CONSUMER_KEY"] ?? "",
+    secret: process.env["OAUTH1_CONSUMER_SECRET"] ?? "",
+    token: process.env["OAUTH1_TOKEN"] ?? "",
+    tokenSecret: process.env["OAUTH1_TOKEN_SECRET"] ?? "",
+    verifier: process.env["OAUTH1_VERIFIER"] ?? "",
   });
 } else {
   const user = process.env["BASIC_AUTH_USER"];

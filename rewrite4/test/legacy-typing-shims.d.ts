@@ -59,24 +59,3 @@ declare module "oauth" {
   const value: any;
   export = value;
 }
-
-declare var id: any;
-declare var param: any;
-declare var correctResponsesPattern: any;
-declare var choice: any;
-declare var fillin: any;
-declare var scale: any;
-declare var source: any;
-declare var target: any;
-declare var numeric: any;
-declare var other: any;
-declare var steps: any;
-declare var seq: any;
-declare var tf: any;
-declare var OAUTH: any;
-
-declare namespace NodeJS {
-  interface Global {
-    OAUTH?: any;
-  }
-}
