@@ -1,6 +1,5 @@
 "use strict";
 
-import combImport from "comb";
 import requestFactoryImport from "super-request";
 
 type AnyRecord = Record<string, any>;
@@ -34,6 +33,7 @@ type RequestChain = AnyRecord & {
   body: (payload: string | Buffer) => RequestChain;
   end: (callback: (error: unknown, response: RequestResponse) => void) => unknown;
   expect: (status: number) => RequestChain;
+  form?: (payload: Record<string, unknown>) => RequestChain;
   get: (url: string) => RequestChain;
   headers: (headers: HeaderMap) => RequestChain;
   json: (payload: unknown) => RequestChain;
@@ -41,18 +41,11 @@ type RequestChain = AnyRecord & {
   post: (url: string) => RequestChain;
   put: (url: string) => RequestChain;
   set: (name: string, value: string) => void;
+  wait?: (delay: Promise<unknown> | { then?: unknown }) => RequestChain;
   url?: string;
 };
 
 type RequestFactory = AnyRecord & ((endpoint: string) => RequestChain);
-
-type CombPromise = {
-  resolve: () => void;
-};
-
-type CombModule = {
-  Promise: new () => CombPromise;
-};
 
 type HelperExports = {
   OAuthRequest(request: RequestFactory): RequestFactory;
@@ -199,11 +192,16 @@ function createHelperTransportSupport(context: HelperTransportContext) {
     },
 
     genDelay: function genDelay(time: number, query?: string, id?: string) {
-      const comb = combImport as unknown as CombModule;
       let requestFactory = requestFactoryImport as unknown as RequestFactory;
 
       const delay = function () {
-        const p = new comb.Promise();
+        let resolved = false;
+        let resolvePromise: () => void = function () {};
+        let rejectPromise: (error: unknown) => void = function () {};
+        const p = new Promise<void>(function (resolve, reject) {
+          resolvePromise = resolve;
+          rejectPromise = reject;
+        });
         let endP = helper().getEndpointStatements();
         if (query) {
           endP += query;
@@ -231,27 +229,42 @@ function createHelperTransportSupport(context: HelperTransportContext) {
             .end(function (err: unknown, res: RequestResponse) {
               let result: AnyRecord;
               if (err) {
-                throw err;
+                rejectPromise(err);
+                return;
               }
 
               const consistentThroughHeader = res.headers["x-experience-api-consistent-through"];
               const dateHeader = res.headers["date"];
 
-              try {
-                result = JSON.parse(res.body);
-              } catch (_error) {
+              if (typeof res.body === "string") {
+                try {
+                  result = JSON.parse(res.body);
+                } catch (_error) {
+                  result = {};
+                }
+              } else if (res.body && typeof res.body === "object") {
+                result = res.body as AnyRecord;
+              } else {
                 result = {};
               }
 
+              function resolveOnce() {
+                if (resolved) {
+                  return;
+                }
+                resolved = true;
+                resolvePromise();
+              }
+
               if (id && result["id"] && result["id"] === id) {
-                p.resolve();
+                resolveOnce();
               } else if (id && Array.isArray(result["statements"]) && stmtFound(result["statements"], id)) {
-                p.resolve();
+                resolveOnce();
               } else if (
                 new Date(consistentThroughHeader ?? Number.NaN).valueOf() + (helper().getTimeMargin() ?? Number.NaN) >=
                 time
               ) {
-                p.resolve();
+                resolveOnce();
               } else {
                 if (!delta) {
                   delta =
@@ -260,12 +273,15 @@ function createHelperTransportSupport(context: HelperTransportContext) {
                   finish = Date.now() + 10 * Math.abs(delta);
 
                   if (isNaN(finish)) {
-                    throw new TypeError("X-Experience-API-Consistent-Through header was missing or not a number.");
+                    rejectPromise(
+                      new TypeError("X-Experience-API-Consistent-Through header was missing or not a number."),
+                    );
+                    return;
                   }
                 }
 
                 if (typeof finish === "number" && Date.now() >= finish) {
-                  p.resolve();
+                  resolveOnce();
                 } else {
                   setTimeout(doRequest, 1000);
                 }
@@ -429,7 +445,10 @@ function createHelperTransportSupport(context: HelperTransportContext) {
                   if (redoErr) {
                     done(redoErr);
                   } else if (redoRes.statusCode === 200) {
-                    const result = JSON.parse(redoRes.body) as { stored: string };
+                    const result =
+                      typeof redoRes.body === "string"
+                        ? (JSON.parse(redoRes.body) as { stored: string })
+                        : (redoRes.body as { stored: string });
                     lrsTime = new Date(result.stored);
                     context.setTimeMargin(suiteTime.valueOf() - lrsTime.valueOf());
                     done(redoErr, helper().getTimeMargin());

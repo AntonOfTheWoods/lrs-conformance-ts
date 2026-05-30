@@ -26,7 +26,6 @@
     "axios-oauth-1.0a": "^0.3.6",
     "chai": "^2.3.0",
     "chai-things": "^0.2.0",
-    "comb": "^2.0.0",
     "commander": "^2.6.0",
     "cookie-parser": "^1.4.1",
     "dirty-chai": "^1.0.0",
@@ -37,9 +36,8 @@
     "jws": "^3.1.3",
     "lodash.isequal": "^4.5.0",
     "mocha": "^1.20.1",
-    "request": "^2.37.0",
     "should": "^4.0.4",
-    "super-request": "^2.0.0",
+    "super-request": "file:./packages/super-request",
     "superagent-oauth": "^0.2.3",
     "supertest": "1.2.0",
     "uuid": "^9.0.0"

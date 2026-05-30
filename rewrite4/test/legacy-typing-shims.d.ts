@@ -30,8 +30,3 @@ declare module "super-request" {
   const value: RequestFactory;
   export default value;
 }
-
-declare module "comb" {
-  const value: any;
-  export default value;
-}
