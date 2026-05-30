@@ -31,11 +31,6 @@ declare module "super-request" {
   export default value;
 }
 
-declare module "supertest-as-promised" {
-  const value: any;
-  export default value;
-}
-
 declare module "comb" {
   const value: any;
   export default value;

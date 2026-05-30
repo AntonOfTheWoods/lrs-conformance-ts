@@ -5,27 +5,10 @@
 
 import { expect } from "chai";
 import helperImport from "../helper.ts";
-import oauthLib from "oauth";
-import requestBase from "supertest-as-promised";
 
 const helper: any = helperImport;
-let request: any = requestBase;
 
 ("use strict");
-
-const requestClient = request(helper.getEndpoint());
-void requestClient;
-if (process.env["OAUTH1_ENABLED"] === "true") {
-  new oauthLib.OAuth(
-    "",
-    "",
-    process.env["OAUTH1_CONSUMER_KEY"] ?? "",
-    process.env["OAUTH1_CONSUMER_SECRET"] ?? "",
-    "1.0",
-    null,
-    "HMAC-SHA1",
-  );
-}
 
 describe("Concurrency Requirements (Communication 3.1)", () => {
   /**  Matchup with Conformance Requirements Document

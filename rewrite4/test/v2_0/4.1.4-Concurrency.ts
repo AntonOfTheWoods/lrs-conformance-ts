@@ -5,17 +5,11 @@
  */
 
 import { expect } from "chai";
-import requestPromiseImport from "supertest-as-promised";
 import helperImport from "../helper.ts";
 import xapiRequestsImport from "./util/requests.ts";
 
-const requestPromise: any = requestPromiseImport;
 const helper: any = helperImport;
 const xapiRequests: any = xapiRequestsImport;
-
-let request = requestPromise;
-
-request = request(helper.getEndpoint());
 
 function runConcurrencyTestsForDocumentResource(resourceName: string, resourcePath: string, resourceParams: any) {
   describe(`Concurrency for the ${resourceName} Resource.`, () => {

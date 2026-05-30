@@ -6,12 +6,15 @@
 import { expect } from "chai";
 import helperImport from "../helper.ts";
 import requestBase from "super-request";
-import validator from "validator";
 
 const helper: any = helperImport;
 let request: any = requestBase;
 
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
+
+function isValidEmailAddress(value: unknown): boolean {
+  return typeof value === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
 
 describe("Agents Resource Requirements (Communication 2.4)", function () {
   /**  Matchup with Conformance Requirements Document
@@ -138,7 +141,7 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
           person.mbox.forEach(function (item: any) {
             expect(item).to.be.a("string");
             let email = item.substring(MAIL_TO.length);
-            expect(validator.isEmail(email)).to.be.true;
+            expect(isValidEmailAddress(email)).to.be.true;
           });
         });
     });

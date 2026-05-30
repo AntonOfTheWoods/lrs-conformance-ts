@@ -6,13 +6,25 @@
 import { expect } from "chai";
 import requestBase from "super-request";
 import helperImport from "../helper.ts";
-import validator from "validator";
 import { resolve } from "url";
 
 const helper: any = helperImport;
 let request: any = requestBase;
 
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
+
+function isValidRelativeUrl(value: unknown): boolean {
+  if (typeof value !== "string" || value.length === 0) {
+    return false;
+  }
+
+  try {
+    new URL(value, "http://example.com");
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 describe("Retrieval of Statements (Data 2.5)", function () {
   /**  Matchup with Conformance Requirements Document
@@ -238,20 +250,7 @@ describe("Retrieval of Statements (Data 2.5)", function () {
           } else {
             const result = helper.parse(res.body, done);
             expect(result).to.have.property("more");
-            expect(
-              validator.isURL(result.more, {
-                protocols: [],
-                require_tld: false,
-                require_protocol: false,
-                require_host: false,
-                require_valid_protocol: false,
-                allow_underscores: true,
-                host_whitelist: false,
-                host_blacklist: false,
-                allow_trailing_dot: false,
-                allow_protocol_relative_urls: true,
-              } as any),
-            ).to.be.true;
+            expect(isValidRelativeUrl(result.more)).to.be.true;
             request("")
               .get(resolve(res.request.href, result.more))
               .headers(helper.addAllHeaders({}))

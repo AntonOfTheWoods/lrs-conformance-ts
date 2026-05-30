@@ -7,63 +7,11 @@
  * https://github.com/adlnet/xAPI_LRS_Test/blob/master/TestingRequirements.md
  *
  */
-import { createRequire } from "node:module";
-import requestFactory from "supertest-as-promised";
 import "should";
 
 import helperImport from "../helper.ts";
 
-const runtimeRequire = createRequire(import.meta.url);
 const helper = helperImport as any;
-const request = (requestFactory as any)(helper.getEndpoint());
-
-const oauthConfig = {
-  consumer_key: process.env["OAUTH1_CONSUMER_KEY"] ?? "",
-  consumer_secret: process.env["OAUTH1_CONSUMER_SECRET"] ?? "",
-  token: process.env["OAUTH1_TOKEN"] ?? "",
-  token_secret: process.env["OAUTH1_TOKEN_SECRET"] ?? "",
-  verifier: process.env["OAUTH1_VERIFIER"] ?? "",
-};
-const oauthEnabled = process.env["OAUTH1_ENABLED"] === "true";
-
-let oauth: any;
-if (oauthEnabled) {
-  const OAuth = runtimeRequire("oauth") as {
-    OAuth: new (
-      requestTokenURL: string,
-      accessTokenURL: string,
-      consumerKey: string,
-      consumerSecret: string,
-      version: string,
-      authorize_callback: string | null,
-      signatureMethod: string,
-    ) => any;
-  };
-
-  oauth = new OAuth.OAuth("", "", oauthConfig.consumer_key, oauthConfig.consumer_secret, "1.0", null, "HMAC-SHA1");
-}
-
-//extend the super-test-as-promised with a function to write the oauth headers
-function extendRequestWithOauth(pre: any): void {
-  //the sign functions
-  pre.sign = function (oa: any, token: string, secret: string) {
-    let additionalData: Record<string, unknown> = {}; //TODO: deal with body params that need to be encoded into the hash (when the data is a form....)
-    additionalData = JSON.parse(JSON.stringify(additionalData));
-    additionalData["oauth_verifier"] = oauthConfig.verifier; //Not sure why the lib does not do is, is required. Jam the verifier in
-    const params = oa._prepareParameters(
-      token,
-      secret,
-      pre.method,
-      pre.url,
-      additionalData, // XXX: what if there's query and body? merge?
-    );
-
-    //Never is Echo, I think?
-    const signature = oa._buildAuthorizationHeaders(params);
-    //Set the auth header
-    pre.set("Authorization", signature);
-  };
-}
 /**
  * Sends an HTTP request using supertest
  * @param {string} type ex. GET, POST, PUT, DELETE and HEAD
@@ -74,31 +22,7 @@ function extendRequestWithOauth(pre: any): void {
  * @returns {*} promise
  */
 function sendRequest(type: string, url: string, params: unknown, body: unknown, expect: number): any {
-  const reqUrl = params ? url + "?" + helper.getUrlEncoding(params) : url;
-
-  const headers = helper.addAllHeaders({});
-  const pre = request[type](reqUrl);
-  //Add the .sign funciton to the request
-  extendRequestWithOauth(pre);
-  if (body) {
-    pre.send(body);
-  }
-  pre.set("X-Experience-API-Version", headers["X-Experience-API-Version"]);
-  if (process.env["BASIC_AUTH_ENABLED"] === "true") {
-    pre.set("Authorization", headers.Authorization);
-  }
-  if (headers["x-lrs-conformance-owner"]) {
-    pre.set("x-lrs-conformance-owner", headers["x-lrs-conformance-owner"]);
-  }
-  //If we're doing oauth, set it up!
-  try {
-    if (oauthEnabled) {
-      pre.sign(oauth, oauthConfig.token, oauthConfig.token_secret);
-    }
-  } catch (error) {
-    console.log(error);
-  }
-  return pre.expect(expect);
+  return helper.sendRequest(type, url, params as Record<string, unknown> | undefined, body as any, expect);
 }
 
 describe("These are tests with specific parameters that need to be met", function () {
