@@ -2,10 +2,10 @@ import { createRequire } from "node:module";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { isDeepStrictEqual } from "node:util";
 
 import extend from "extend";
 import jws from "jws";
-import lodashIsEqual from "lodash.isequal";
 
 import * as fixtureCryptoSupportModule from "../bun-runtime/helper-fixture-crypto.ts";
 import * as transportSupportModule from "../bun-runtime/helper-transport.ts";
@@ -112,7 +112,7 @@ const helperContext = {
   getState,
   helperRequire,
   jws,
-  lodashIsEqual,
+  lodashIsEqual: isDeepStrictEqual,
   setTimeMargin(value: number | undefined): void {
     timeMargin = value;
   },
