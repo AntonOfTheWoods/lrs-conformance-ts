@@ -13,7 +13,7 @@ const requestPromise: any = requestPromiseImport;
 const helper: any = helperImport;
 const xapiRequests: any = xapiRequestsImport;
 
-var request = requestPromise;
+let request = requestPromise;
 
 request = request(helper.getEndpoint());
 
@@ -75,7 +75,7 @@ function runConcurrencyTestsForDocumentResource(resourceName, resourcePath, reso
           ...document,
           name: "Updated Name:" + helper.generateUUID(),
         };
-        var correctTag;
+        let correctTag;
 
         before("Get the current ETag", async () => {
           await xapiRequests.deleteDocument(resourcePath, resourceParams);
@@ -119,7 +119,7 @@ function runConcurrencyTestsForDocumentResource(resourceName, resourcePath, reso
           ...document,
           name: "Updated Name:" + helper.generateUUID(),
         };
-        var correctTag;
+        let correctTag;
 
         before("Get the current ETag", async () => {
           await xapiRequests.deleteDocument(resourcePath, resourceParams);
@@ -159,7 +159,7 @@ function runConcurrencyTestsForDocumentResource(resourceName, resourcePath, reso
       describe("Properly handles DELETE requests with If-Match", function () {
         let document = helper.buildDocument();
         let originalName = document.name;
-        var correctTag;
+        let correctTag;
 
         before("Get the current ETag", async () => {
           await xapiRequests.deleteDocument(resourcePath, resourceParams);
@@ -216,8 +216,8 @@ function runConcurrencyTestsForDocumentResource(resourceName, resourcePath, reso
      */
 
     describe("If a PUT request is received without either header for a resource that already exists", function () {
-      var originalDocument = helper.buildDocument();
-      var updatedDocument = helper.buildDocument();
+      let originalDocument = helper.buildDocument();
+      let updatedDocument = helper.buildDocument();
 
       before("Create the document and get the etag", async () => {
         await xapiRequests.deleteDocument(resourcePath, resourceParams);

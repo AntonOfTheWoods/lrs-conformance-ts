@@ -6,9 +6,9 @@
  *
  */
 // defines overwriting data
-var INVALID_DATE = "01/011/2015";
-var FUTURE_DATE = new Date().setFullYear(new Date().getFullYear() + 5);
-var INVALID_STRING = "should fail";
+let INVALID_DATE = "01/011/2015";
+let FUTURE_DATE = new Date().setFullYear(new Date().getFullYear() + 5);
+let INVALID_STRING = "should fail";
 
 // configures tests
 export const config = function () {

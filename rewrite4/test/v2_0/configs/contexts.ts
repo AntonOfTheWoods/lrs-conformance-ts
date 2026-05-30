@@ -6,10 +6,10 @@
  *
  */
 // defines overwriting data
-var INVALID_LANGUAGE = { a12345: "should fail" };
-var INVALID_NUMERIC = 12345;
-var INVALID_OBJECT = { key: "should fail" };
-var INVALID_STRING = "should fail";
+let INVALID_LANGUAGE = { a12345: "should fail" };
+let INVALID_NUMERIC = 12345;
+let INVALID_OBJECT = { key: "should fail" };
+let INVALID_STRING = "should fail";
 // configures tests
 export const config = function () {
   return [

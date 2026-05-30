@@ -31,7 +31,7 @@ import __esmDep11 from "./../redirect.ts";
 ) {
   // "use strict";
 
-  var expect = chai.expect;
+  let expect = chai.expect;
   if (global.OAUTH) request = helper.OAuthRequest(request);
 
   describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
@@ -51,8 +51,8 @@ import __esmDep11 from "./../redirect.ts";
         */
 
       it("should succeed HEAD activities with no body", function () {
-        var statement = helper.buildStatement();
-        var parameters = {
+        let statement = helper.buildStatement();
+        let parameters = {
           activityId: statement.object.id,
         };
         return helper
@@ -63,7 +63,7 @@ import __esmDep11 from "./../redirect.ts";
       });
 
       it("should succeed HEAD activities profile with no body", function () {
-        var parameters = helper.buildActivityProfile(),
+        let parameters = helper.buildActivityProfile(),
           document = helper.buildDocument();
         return helper
           .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204)
@@ -73,7 +73,7 @@ import __esmDep11 from "./../redirect.ts";
       });
 
       it("should succeed HEAD activities state with no body", function () {
-        var parameters = helper.buildState(),
+        let parameters = helper.buildState(),
           document = helper.buildDocument();
         return helper
           .sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204)
@@ -83,8 +83,8 @@ import __esmDep11 from "./../redirect.ts";
       });
 
       it("should succeed HEAD agents with no body", function () {
-        var statement = helper.buildStatement();
-        var parameters = {
+        let statement = helper.buildStatement();
+        let parameters = {
           agent: statement.actor,
         };
         return helper
@@ -95,7 +95,7 @@ import __esmDep11 from "./../redirect.ts";
       });
 
       it("should succeed HEAD agents profile with no body", function () {
-        var parameters = helper.buildAgentProfile(),
+        let parameters = helper.buildAgentProfile(),
           document = helper.buildDocument();
         return helper
           .sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204)
@@ -123,10 +123,10 @@ import __esmDep11 from "./../redirect.ts";
         */
 
       it("should succeed HEAD activities with no body", function () {
-        var templates = [{ statement: "{{statements.default}}" }];
-        var data = helper.createFromTemplate(templates);
-        var statement = data.statement;
-        var parameters = {
+        let templates = [{ statement: "{{statements.default}}" }];
+        let data = helper.createFromTemplate(templates);
+        let statement = data.statement;
+        let parameters = {
           activityId: data.statement.object.id,
         };
         return helper
@@ -141,7 +141,7 @@ import __esmDep11 from "./../redirect.ts";
       });
 
       it("should succeed HEAD activities profile with no body", function () {
-        var parameters = helper.buildActivityProfile(),
+        let parameters = helper.buildActivityProfile(),
           document = helper.buildDocument();
         return helper
           .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204)
@@ -155,7 +155,7 @@ import __esmDep11 from "./../redirect.ts";
       });
 
       it("should succeed HEAD activities state with no body", function () {
-        var parameters = helper.buildState(),
+        let parameters = helper.buildState(),
           document = helper.buildDocument();
         return helper
           .sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204)
@@ -177,7 +177,7 @@ import __esmDep11 from "./../redirect.ts";
       });
 
       it("should succeed HEAD agents profile with no body", function () {
-        var parameters = helper.buildAgentProfile(),
+        let parameters = helper.buildAgentProfile(),
           document = helper.buildDocument();
         return helper
           .sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204)
@@ -191,7 +191,7 @@ import __esmDep11 from "./../redirect.ts";
       });
 
       it("should succeed HEAD statements with no body", function () {
-        var statement = helper.buildStatement();
+        let statement = helper.buildStatement();
         return helper
           .sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200)
           .then(function () {

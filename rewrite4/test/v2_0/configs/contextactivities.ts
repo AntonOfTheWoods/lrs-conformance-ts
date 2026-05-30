@@ -6,8 +6,8 @@
  *
  */
 // Defines overwriting data.
-var INVALID_OBJECT = { key: "should fail" };
-var VALID_ACTIVITY = {
+let INVALID_OBJECT = { key: "should fail" };
+let VALID_ACTIVITY = {
   objectType: "Activity",
   id: "http://www.example.com/meetings/occurances/34534",
 };

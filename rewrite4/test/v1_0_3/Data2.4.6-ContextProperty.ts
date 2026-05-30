@@ -33,7 +33,7 @@ import __esmDep12 from "./../templatingSelection.ts";
 ) {
   // "use strict";
 
-  var expect = chai.expect;
+  let expect = chai.expect;
   if (global.OAUTH) request = helper.OAuthRequest(request);
 
   describe("Context Property Requirements (Data 2.4.6)", function () {
@@ -65,19 +65,19 @@ import __esmDep12 from "./../templatingSelection.ts";
      * An LRS's Statement Resource returns a ContextActivity in an array, even if only a single ContextActivity is returned.
      */
     describe("An LRS returns a ContextActivity in an array, even if only a single ContextActivity is returned (Data 2.4.6.2.s4.b3, XAPI-00096)", function () {
-      var types = ["parent", "grouping", "category", "other"];
+      let types = ["parent", "grouping", "category", "other"];
       this.timeout(0);
 
       types.forEach(function (type) {
         it(
           'should return array for statement context "' + type + '"  when single ContextActivity is passed',
           function (done) {
-            var templates = [{ statement: "{{statements.context}}" }, { context: "{{contexts." + type + "}}" }];
-            var data = helper.createFromTemplate(templates);
+            let templates = [{ statement: "{{statements.context}}" }, { context: "{{contexts." + type + "}}" }];
+            let data = helper.createFromTemplate(templates);
             data = data.statement;
             data.id = helper.generateUUID();
-            var query = "?statementId=" + data.id;
-            var stmtTime = Date.now();
+            let query = "?statementId=" + data.id;
+            let stmtTime = Date.now();
             request(helper.getEndpointAndAuth())
               .post(helper.getEndpointStatements())
               .headers(helper.addAllHeaders({}))
@@ -96,7 +96,7 @@ import __esmDep12 from "./../templatingSelection.ts";
                       if (err) {
                         done(err);
                       } else {
-                        var statement = helper.parse(res.body, done);
+                        let statement = helper.parse(res.body, done);
                         expect(statement).to.have.property("context").to.have.property("contextActivities");
                         expect(statement.context.contextActivities).to.have.property(type);
                         expect(statement.context.contextActivities[type]).to.be.an("array");
@@ -115,16 +115,16 @@ import __esmDep12 from "./../templatingSelection.ts";
             type +
             '"  when single ContextActivity is passed',
           function (done) {
-            var templates = [
+            let templates = [
               { statement: "{{statements.object_substatement}}" },
               { object: "{{substatements.context}}" },
               { context: "{{contexts." + type + "}}" },
             ];
-            var data = helper.createFromTemplate(templates);
+            let data = helper.createFromTemplate(templates);
             data = data.statement;
             data.id = helper.generateUUID();
-            var query = "?statementId=" + data.id;
-            var stmtTime = Date.now();
+            let query = "?statementId=" + data.id;
+            let stmtTime = Date.now();
 
             request(helper.getEndpointAndAuth())
               .post(helper.getEndpointStatements())
@@ -144,7 +144,7 @@ import __esmDep12 from "./../templatingSelection.ts";
                       if (err) {
                         done(err);
                       } else {
-                        var statement = helper.parse(res.body, done);
+                        let statement = helper.parse(res.body, done);
                         expect(statement)
                           .to.have.property("object")
                           .to.have.property("context")

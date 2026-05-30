@@ -3,39 +3,17 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import __esmDep1 from "fs";
-import __esmDep2 from "extend";
-import __esmDep3 from "moment";
-import __esmDep4 from "super-request";
-import __esmDep5 from "supertest-as-promised";
-import __esmDep6 from "chai";
-import __esmDep7 from "url";
-import __esmDep8 from "joi";
-import __esmDep9 from "./../helper.ts";
-import __esmDep10 from "./../multipartParser.ts";
-import __esmDep11 from "./../redirect.ts";
-import __esmDep12 from "./../templatingSelection.ts";
+import helperImport from "../helper.ts";
+import requestBase from "super-request";
+import templatingSelectionImport from "../templatingSelection.ts";
 
-(function (
-  module: any,
-  fs: any,
-  extend: any,
-  moment: any,
-  request: any,
-  requestPromise: any,
-  chai: any,
-  liburl: any,
-  Joi: any,
-  helper: any,
-  multipartParser: any,
-  redirect: any,
-  templatingSelection: any,
-) {
-  // "use strict";
+const helper: any = helperImport;
+const templatingSelection: any = templatingSelectionImport;
+let request: any = requestBase;
 
-  if (global.OAUTH) request = helper.OAuthRequest(request);
+if (global.OAUTH) request = helper.OAuthRequest(request);
 
-  /**  Matchup with Conformance Requirements Document
+/**  Matchup with Conformance Requirements Document
  * XAPI-00031 - in actors.js
 
  * 2.4.2.1 Actor is Agent - may have more in agents.js
@@ -59,30 +37,15 @@ import __esmDep12 from "./../templatingSelection.ts";
  * XAPI-00043 - in accountobjects.js
  */
 
-  describe("Actor Property Requirements (Data 2.4.2)", () => {
-    //Data 2.4.2
-    templatingSelection.createTemplate("actors.ts");
-    //Data 2.4.2.1
-    templatingSelection.createTemplate("agents.ts");
-    //Data 2.4.2.2
-    templatingSelection.createTemplate("groups.ts");
-    //Data 2.4.2.3
-    templatingSelection.createTemplate("ifis.ts");
-    //Data 2.4.2.4
-    templatingSelection.createTemplate("accountobjects.ts");
-  });
-})(
-  undefined,
-  __esmDep1,
-  __esmDep2,
-  __esmDep3,
-  __esmDep4,
-  __esmDep5,
-  __esmDep6,
-  __esmDep7,
-  __esmDep8,
-  __esmDep9,
-  __esmDep10,
-  __esmDep11,
-  __esmDep12,
-);
+describe("Actor Property Requirements (Data 2.4.2)", () => {
+  //Data 2.4.2
+  templatingSelection.createTemplate("actors.ts");
+  //Data 2.4.2.1
+  templatingSelection.createTemplate("agents.ts");
+  //Data 2.4.2.2
+  templatingSelection.createTemplate("groups.ts");
+  //Data 2.4.2.3
+  templatingSelection.createTemplate("ifis.ts");
+  //Data 2.4.2.4
+  templatingSelection.createTemplate("accountobjects.ts");
+});

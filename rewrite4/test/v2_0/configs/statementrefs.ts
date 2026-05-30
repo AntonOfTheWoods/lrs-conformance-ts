@@ -6,8 +6,8 @@
  *
  */
 // defines overwriting data
-var INVALID_STATEMENT_REF = "statementref";
-var INVALID_STRING = "should fail";
+let INVALID_STATEMENT_REF = "statementref";
+let INVALID_STRING = "should fail";
 
 // configures tests
 export const config = function () {

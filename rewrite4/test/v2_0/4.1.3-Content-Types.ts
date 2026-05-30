@@ -16,15 +16,15 @@ if (global.OAUTH) request = helper.OAuthRequest(request);
 
 describe("Content Type Requirements (Communication 1.5)", function () {
   let data: any;
-  var txtAtt1, txtAtt2, txtAtt3, t1attSize, t2attSize, t1attHash, t2attHash, t3attHash;
+  let txtAtt1, txtAtt2, txtAtt3, t1attSize, t2attSize, t1attHash, t2attHash, t3attHash;
 
   before("create attachments templates", function () {
     txtAtt1 = fs.readFileSync("test/v1_0_3/templates/attachments/simple_text1.txt");
     txtAtt2 = fs.readFileSync("test/v1_0_3/templates/attachments/simple_text2.txt");
     txtAtt3 = fs.readFileSync("test/v1_0_3/templates/attachments/simple_text3.txt");
 
-    var t1stats = fs.statSync("test/v1_0_3/templates/attachments/simple_text1.txt");
-    var t2stats = fs.statSync("test/v1_0_3/templates/attachments/simple_text2.txt");
+    let t1stats = fs.statSync("test/v1_0_3/templates/attachments/simple_text1.txt");
+    let t2stats = fs.statSync("test/v1_0_3/templates/attachments/simple_text2.txt");
     t1attSize = t1stats.size;
     t2attSize = t2stats.size;
     t1attHash = crypto.createHash("SHA256").update(txtAtt1).digest("hex");
@@ -56,7 +56,7 @@ describe("Content Type Requirements (Communication 1.5)", function () {
    * An LRS rejects with error code 400 Bad Request, a PUT or POST Request which does not have a "Content-Type" header with value "application/json" or "multipart/mixed"
    */
   describe('An LRS rejects with error code 400 Bad Request, a Request which uses Attachments and does not have a "Content-Type" header with value "application/json" or "multipart/mixed" (Format, Data 2.4.11, XAPI-00127)', function () {
-    var data, pictureAtt, pattSize, pattHash, templates;
+    let data, pictureAtt, pattSize, pattHash, templates;
 
     before("create attachment templates", function () {
       templates = [
@@ -79,7 +79,7 @@ describe("Content Type Requirements (Communication 1.5)", function () {
       data = data.statement;
 
       pictureAtt = fs.readFileSync("test/v1_0_3/templates/attachments/basic_image_p2.jpeg", { encoding: "hex" });
-      var pstats = fs.statSync("test/v1_0_3/templates/attachments/basic_image_p2.jpeg");
+      let pstats = fs.statSync("test/v1_0_3/templates/attachments/basic_image_p2.jpeg");
       pattSize = pstats.size;
       pattHash = crypto.createHash("SHA256").update(pictureAtt).digest("hex");
     });
@@ -101,7 +101,7 @@ describe("Content Type Requirements (Communication 1.5)", function () {
     });
 
     it('should fail when attachment uses "fileUrl" and request content-type is "multipart/form-data"', function (done) {
-      var header = { "Content-Type": "multipart/form-data; boundary=-------314159265358979323846" };
+      let header = { "Content-Type": "multipart/form-data; boundary=-------314159265358979323846" };
 
       request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
@@ -111,17 +111,17 @@ describe("Content Type Requirements (Communication 1.5)", function () {
     });
 
     it('should succeed when attachment is raw data and request content-type is "multipart/mixed"', function (done) {
-      var header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
+      let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
 
       delete data.attachments[0].fileUrl;
       data.attachments[0].contentType = "image/jpeg";
       data.attachments[0].length = pattSize;
       data.attachments[0].sha2 = pattHash;
-      var dashes = "--";
-      var crlf = "\r\n";
-      var boundary = "-------314159265358979323846";
+      let dashes = "--";
+      let crlf = "\r\n";
+      let boundary = "-------314159265358979323846";
 
-      var msg = dashes + boundary + crlf;
+      let msg = dashes + boundary + crlf;
       msg += "Content-Type: application/json" + crlf + crlf;
       msg += JSON.stringify(data) + crlf;
       msg += dashes + boundary + crlf;
@@ -139,18 +139,18 @@ describe("Content Type Requirements (Communication 1.5)", function () {
     });
 
     it('should fail when attachment is raw data and request content-type is "multipart/form-data"', function (done) {
-      var header = { "Content-Type": "multipart/form-data; boundary=-------314159265358979323846" };
+      let header = { "Content-Type": "multipart/form-data; boundary=-------314159265358979323846" };
 
       delete data.attachments[0].fileUrl;
       data.attachments[0].contentType = "image/jpeg";
       data.attachments[0].length = pattSize;
       data.attachments[0].sha2 = pattHash;
 
-      var dashes = "--";
-      var crlf = "\r\n";
-      var boundary = "-------314159265358979323846";
+      let dashes = "--";
+      let crlf = "\r\n";
+      let boundary = "-------314159265358979323846";
 
-      var msg = dashes + boundary + crlf;
+      let msg = dashes + boundary + crlf;
       msg += "Content-Type: application/json" + crlf + crlf;
       msg += JSON.stringify(data) + crlf;
       msg += dashes + boundary + crlf;
@@ -216,8 +216,8 @@ describe("Content Type Requirements (Communication 1.5)", function () {
    */
   describe("An LRS rejects with error code 400 Bad Request, a PUT or POST Request which has excess multi-part sections that are not attachments. (Communication 1.5.1.s1.b2, Data 2.4.11, XAPI-00128)", function () {
     it("should fail when passing statement attachments with excess multipart sections", function (done) {
-      var header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
-      var templates = [
+      let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
+      let templates = [
         { statement: "{{statements.attachment}}" },
         {
           attachments: [
@@ -248,11 +248,11 @@ describe("Content Type Requirements (Communication 1.5)", function () {
       data.attachments[1].length = t2attSize;
       data.attachments[1].sha2 = t2attHash;
 
-      var dashes = "--";
-      var crlf = "\r\n";
-      var boundary = "-------314159265358979323846";
+      let dashes = "--";
+      let crlf = "\r\n";
+      let boundary = "-------314159265358979323846";
 
-      var msg = dashes + boundary + crlf;
+      let msg = dashes + boundary + crlf;
       msg += "Content-Type: application/json" + crlf + crlf;
       msg += JSON.stringify(data) + crlf;
       msg += dashes + boundary + crlf;
@@ -288,8 +288,8 @@ describe("Content Type Requirements (Communication 1.5)", function () {
    */
   describe('An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content-Type" header with value "application/json", and has a discrepancy in the number of Attachments vs. the number of fileURL members (Communication 1.5.1.s1.b2, Data 2.4.11, XAPI-00129)', function () {
     it('should fail when passing statement attachments and missing attachment"s binary', function (done) {
-      var header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
-      var templates = [
+      let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
+      let templates = [
         { statement: "{{statements.attachment}}" },
         {
           attachments: [
@@ -320,11 +320,11 @@ describe("Content Type Requirements (Communication 1.5)", function () {
       data.attachments[1].length = t2attSize;
       data.attachments[1].sha2 = t2attHash;
 
-      var dashes = "--";
-      var crlf = "\r\n";
-      var boundary = "-------314159265358979323846";
+      let dashes = "--";
+      let crlf = "\r\n";
+      let boundary = "-------314159265358979323846";
 
-      var msg = dashes + boundary + crlf;
+      let msg = dashes + boundary + crlf;
       msg += "Content-Type: application/json" + crlf + crlf;
       msg += JSON.stringify(data) + crlf;
       msg += dashes + boundary + crlf;
@@ -347,9 +347,9 @@ describe("Content Type Requirements (Communication 1.5)", function () {
    */
   describe('An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and does not have a body header named "boundary" (Communication 1.5.2.s2.b2, Data 2.4.11, RFC 2046, XAPI-00131)', function () {
     it("should fail if boundary not provided in body", function (done) {
-      var header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
+      let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
 
-      var templates = [
+      let templates = [
         { statement: "{{statements.attachment}}" },
         {
           attachments: [
@@ -370,11 +370,11 @@ describe("Content Type Requirements (Communication 1.5)", function () {
       data.attachments[0].length = t1attSize;
       data.attachments[0].sha2 = t1attHash;
 
-      var dashes = "--";
-      var crlf = "\r\n";
-      var boundary = "-------314159265358979323846";
+      let dashes = "--";
+      let crlf = "\r\n";
+      let boundary = "-------314159265358979323846";
 
-      var msg = "Content-Type: application/json" + crlf + crlf;
+      let msg = "Content-Type: application/json" + crlf + crlf;
       msg += JSON.stringify(data) + crlf;
       msg += dashes + boundary + crlf;
       msg += "Content-Type: text/plain" + crlf;
@@ -396,8 +396,8 @@ describe("Content Type Requirements (Communication 1.5)", function () {
    */
   describe('An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and does not have a Boundary before each "Content-Type" header (Communication 1.5.2.s2.b2, Data 2.4.11, RFC 2046, XAPI-00130)', function () {
     it("should fail if boundary not provided in body", function (done) {
-      var header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
-      var templates = [
+      let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
+      let templates = [
         { statement: "{{statements.attachment}}" },
         {
           attachments: [
@@ -418,11 +418,11 @@ describe("Content Type Requirements (Communication 1.5)", function () {
       data.attachments[0].length = t1attSize;
       data.attachments[0].sha2 = t1attHash;
 
-      var dashes = "--";
-      var crlf = "\r\n";
-      var boundary = "-------314159265358979323846";
+      let dashes = "--";
+      let crlf = "\r\n";
+      let boundary = "-------314159265358979323846";
 
-      var msg = dashes + boundary + crlf;
+      let msg = dashes + boundary + crlf;
       msg += "Content-Type: application/json" + crlf + crlf;
       msg += JSON.stringify(data) + crlf;
       msg += "Content-Type: text/plain" + crlf;
@@ -439,8 +439,8 @@ describe("Content Type Requirements (Communication 1.5)", function () {
     });
 
     it("should fail if boundary not provided in header", function (done) {
-      var header = { "Content-Type": "multipart/mixed;" };
-      var templates = [
+      let header = { "Content-Type": "multipart/mixed;" };
+      let templates = [
         { statement: "{{statements.attachment}}" },
         {
           attachments: [
@@ -461,11 +461,11 @@ describe("Content Type Requirements (Communication 1.5)", function () {
       data.attachments[0].length = t1attSize;
       data.attachments[0].sha2 = t1attHash;
 
-      var dashes = "--";
-      var crlf = "\r\n";
-      var boundary = "-------314159265358979323846";
+      let dashes = "--";
+      let crlf = "\r\n";
+      let boundary = "-------314159265358979323846";
 
-      var msg = dashes + boundary + crlf;
+      let msg = dashes + boundary + crlf;
       msg += "Content-Type: application/json" + crlf + crlf;
       msg += JSON.stringify(data) + crlf;
       msg += dashes + boundary + crlf;
@@ -488,8 +488,8 @@ describe("Content Type Requirements (Communication 1.5)", function () {
    */
   describe('An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and does not the first document part with a "Content-Type" header with a value of "application/json" (RFC 2046, Communication 1.5.2.s2.b2.b1, Data 2.4.11, XAPI-00134)', function () {
     it('should fail when attachment is raw data and first part content type is not "application/json"', function (done) {
-      var header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
-      var templates = [
+      let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
+      let templates = [
         { statement: "{{statements.attachment}}" },
         {
           attachments: [
@@ -510,11 +510,11 @@ describe("Content Type Requirements (Communication 1.5)", function () {
       data.attachments[0].length = t1attSize;
       data.attachments[0].sha2 = t1attHash;
 
-      var dashes = "--";
-      var crlf = "\r\n";
-      var boundary = "-------314159265358979323846";
+      let dashes = "--";
+      let crlf = "\r\n";
+      let boundary = "-------314159265358979323846";
 
-      var msg = dashes + boundary + crlf;
+      let msg = dashes + boundary + crlf;
       msg += "Content-Type: text/plain" + crlf + crlf;
       msg += JSON.stringify(data) + crlf;
       msg += dashes + boundary + crlf;
@@ -537,8 +537,8 @@ describe("Content Type Requirements (Communication 1.5)", function () {
    */
   describe('An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and does not have all of the Statements in the first document part (RFC 2046, Data 2.4.11, Communication 1.5.2.s2.b2.b1, XAPI-00133)', function () {
     it("should fail when statements separated into multiple parts", function (done) {
-      var header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
-      var templates = [
+      let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
+      let templates = [
         { statement: "{{statements.attachment}}" },
         {
           attachments: [
@@ -559,11 +559,11 @@ describe("Content Type Requirements (Communication 1.5)", function () {
       data.attachments[0].length = t1attSize;
       data.attachments[0].sha2 = t1attHash;
 
-      var dashes = "--";
-      var crlf = "\r\n";
-      var boundary = "-------314159265358979323846";
+      let dashes = "--";
+      let crlf = "\r\n";
+      let boundary = "-------314159265358979323846";
 
-      var msg = dashes + boundary + crlf;
+      let msg = dashes + boundary + crlf;
       msg += "Content-Type: application/json" + crlf + crlf;
       msg += JSON.stringify(data) + crlf;
       msg += dashes + boundary + crlf;
@@ -589,8 +589,8 @@ describe("Content Type Requirements (Communication 1.5)", function () {
    */
   describe('An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and for any part except the first does not have a Header named "X-Experience-API-Hash" with a value of one of those found in a "sha2" property of a Statement in the first part of this document (Communication 1.5.2.s2.b2.b3", Communication 1.5.2.s1.b4, Data 2.4.11, XAPI-00132)', function () {
     it('should fail when attachments missing header "X-Experience-API-Hash"', function (done) {
-      var header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
-      var templates = [
+      let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
+      let templates = [
         { statement: "{{statements.attachment}}" },
         {
           attachments: [
@@ -611,11 +611,11 @@ describe("Content Type Requirements (Communication 1.5)", function () {
       data.attachments[0].length = t1attSize;
       data.attachments[0].sha2 = t1attHash;
 
-      var dashes = "--";
-      var crlf = "\r\n";
-      var boundary = "-------314159265358979323846";
+      let dashes = "--";
+      let crlf = "\r\n";
+      let boundary = "-------314159265358979323846";
 
-      var msg = dashes + boundary + crlf;
+      let msg = dashes + boundary + crlf;
       msg += "Content-Type: application/json" + crlf + crlf;
       msg += JSON.stringify(data) + crlf;
       msg += dashes + boundary + crlf;
@@ -632,8 +632,8 @@ describe("Content Type Requirements (Communication 1.5)", function () {
     });
 
     it('should fail when attachments header "X-Experience-API-Hash" does not match "sha2"', function (done) {
-      var header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
-      var templates = [
+      let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
+      let templates = [
         { statement: "{{statements.attachment}}" },
         {
           attachments: [
@@ -654,11 +654,11 @@ describe("Content Type Requirements (Communication 1.5)", function () {
       data.attachments[0].length = t1attSize;
       data.attachments[0].sha2 = t1attHash;
 
-      var dashes = "--";
-      var crlf = "\r\n";
-      var boundary = "-------314159265358979323846";
+      let dashes = "--";
+      let crlf = "\r\n";
+      let boundary = "-------314159265358979323846";
 
-      var msg = dashes + boundary + crlf;
+      let msg = dashes + boundary + crlf;
       msg += "Content-Type: application/json" + crlf + crlf;
       msg += JSON.stringify(data) + crlf;
       msg += dashes + boundary + crlf;
@@ -681,8 +681,8 @@ describe("Content Type Requirements (Communication 1.5)", function () {
    * An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and for any part except the first does not have a Header named "Content-Transfer-Encoding" with a value of "binary"
    */
   it('An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and for any part except the first does not have a Header named "Content-Transfer-Encoding" with a value of "binary" (Data 2.4.11, XAPI-00135)', function (done) {
-    var header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
-    var templates = [
+    let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
+    let templates = [
       { statement: "{{statements.attachment}}" },
       {
         attachments: [
@@ -703,11 +703,11 @@ describe("Content Type Requirements (Communication 1.5)", function () {
     data.attachments[0].length = t1attSize;
     data.attachments[0].sha2 = t1attHash;
 
-    var dashes = "--";
-    var crlf = "\r\n";
-    var boundary = "-------314159265358979323846";
+    let dashes = "--";
+    let crlf = "\r\n";
+    let boundary = "-------314159265358979323846";
 
-    var msg = dashes + boundary + crlf;
+    let msg = dashes + boundary + crlf;
     msg += "Content-Type: application/json" + crlf + crlf;
     msg += JSON.stringify(data) + crlf;
     msg += dashes + boundary + crlf;

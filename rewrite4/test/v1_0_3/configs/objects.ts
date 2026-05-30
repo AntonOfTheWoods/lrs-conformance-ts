@@ -6,11 +6,11 @@
  *
  */
 // defines overwriting data
-var INVALID_ACTIVITY = "activity";
-var INVALID_AGENT = "agent";
-var INVALID_GROUP = "group";
-var INVALID_STATEMENTREF = "statementref";
-var INVALID_SUBSTATEMENT = "substatement";
+let INVALID_ACTIVITY = "activity";
+let INVALID_AGENT = "agent";
+let INVALID_GROUP = "group";
+let INVALID_STATEMENTREF = "statementref";
+let INVALID_SUBSTATEMENT = "substatement";
 
 // configures tests
 export const config = function () {

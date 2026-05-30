@@ -33,7 +33,7 @@ import __esmDep12 from "./../templatingSelection.ts";
 ) {
   // "use strict";
 
-  var expect = chai.expect;
+  let expect = chai.expect;
   if (global.OAUTH) request = helper.OAuthRequest(request);
 
   before("Before all tests are run", function (done) {
@@ -69,7 +69,7 @@ import __esmDep12 from "./../templatingSelection.ts";
       this.timeout(0);
 
       it("should pass and keep precision", function (done) {
-        var templates = [{ statement: "{{statements.result}}" }, { result: "{{results.default}}" }],
+        let templates = [{ statement: "{{statements.result}}" }, { result: "{{results.default}}" }],
           data = helper.createFromTemplate(templates).statement,
           id = helper.generateUUID(),
           query = "?statementId=" + id,
@@ -102,7 +102,7 @@ import __esmDep12 from "./../templatingSelection.ts";
                   if (err) {
                     done(err);
                   } else {
-                    var score = helper.parse(res.body).result.score;
+                    let score = helper.parse(res.body).result.score;
                     expect(score.min).to.eql(min);
                     expect(score.raw).to.eql(raw);
                     expect(score.max).to.eql(max);
@@ -122,7 +122,7 @@ import __esmDep12 from "./../templatingSelection.ts";
       "The LRS rejects with error code 400 Bad Request parameter values which do not validate to the same standards required for values of the same types in Statements (Data 2.2.s4.b4, XAPI-00012)",
       function (done: any) {
         it("should reject when statementId value is invalid", function () {
-          var query = helper.getUrlEncoding({ statementId: "wrong" });
+          let query = helper.getUrlEncoding({ statementId: "wrong" });
           request(helper.getEndpointAndAuth())
             .get(helper.getEndpointStatements() + "?" + query)
             .headers(helper.addAllHeaders({}))
@@ -130,7 +130,7 @@ import __esmDep12 from "./../templatingSelection.ts";
         });
 
         it("should reject when statementId value is invalid", function () {
-          var query = helper.getUrlEncoding({ voidedStatementId: "wrong" });
+          let query = helper.getUrlEncoding({ voidedStatementId: "wrong" });
           request(helper.getEndpointAndAuth())
             .get(helper.getEndpointStatements() + "?" + query)
             .headers(helper.addAllHeaders({}))
@@ -138,7 +138,7 @@ import __esmDep12 from "./../templatingSelection.ts";
         });
 
         it("should reject when statementId value is invalid", function () {
-          var query = helper.getUrlEncoding({ agent: "wrong" });
+          let query = helper.getUrlEncoding({ agent: "wrong" });
           request(helper.getEndpointAndAuth())
             .get(helper.getEndpointStatements() + "?" + query)
             .headers(helper.addAllHeaders({}))
@@ -146,7 +146,7 @@ import __esmDep12 from "./../templatingSelection.ts";
         });
 
         it("should reject when statementId value is invalid", function () {
-          var query = helper.getUrlEncoding({ verb: "not.a.valid.iri.com/verb" });
+          let query = helper.getUrlEncoding({ verb: "not.a.valid.iri.com/verb" });
           request(helper.getEndpointAndAuth())
             .get(helper.getEndpointStatements() + "?" + query)
             .headers(helper.addAllHeaders({}))
@@ -154,7 +154,7 @@ import __esmDep12 from "./../templatingSelection.ts";
         });
 
         it("should reject when statementId value is invalid", function () {
-          var query = helper.getUrlEncoding({ activity: "not.a.valid.iri.com/activity" });
+          let query = helper.getUrlEncoding({ activity: "not.a.valid.iri.com/activity" });
           request(helper.getEndpointAndAuth())
             .get(helper.getEndpointStatements() + "?" + query)
             .headers(helper.addAllHeaders({}))
@@ -162,7 +162,7 @@ import __esmDep12 from "./../templatingSelection.ts";
         });
 
         it("should reject when statementId value is invalid", function () {
-          var query = helper.getUrlEncoding({ registration: "wrong" });
+          let query = helper.getUrlEncoding({ registration: "wrong" });
           request(helper.getEndpointAndAuth())
             .get(helper.getEndpointStatements() + "?" + query)
             .headers(helper.addAllHeaders({}))
@@ -178,10 +178,10 @@ import __esmDep12 from "./../templatingSelection.ts";
       templatingSelection.createTemplate("verify.ts");
 
       it("An LRS rejects a not well-created JSON Object", function (done) {
-        var malformedTemplates = [{ statement: "{{statements.default}}" }];
-        var malformed = helper.createFromTemplate(malformedTemplates);
+        let malformedTemplates = [{ statement: "{{statements.default}}" }];
+        let malformed = helper.createFromTemplate(malformedTemplates);
         malformed = malformed.statement;
-        var string = '"objectType": "Agent"';
+        let string = '"objectType": "Agent"';
         malformed.actor.objectType = string;
 
         request(helper.getEndpointAndAuth())
@@ -200,15 +200,15 @@ import __esmDep12 from "./../templatingSelection.ts";
       function (done: any) {
         // verb id
         it("should fail with bad verb id scheme", function () {
-          var templates = [
+          let templates = [
             {
               statement: "{{statements.default}}",
             },
           ];
-          var data = helper.createFromTemplate(templates).statement;
+          let data = helper.createFromTemplate(templates).statement;
           data.id = helper.generateUUID();
           data.verb.id = data.verb.id.replace("http://", ""); // remove the scheme portion of the IRI
-          var headers = helper.addAllHeaders({});
+          let headers = helper.addAllHeaders({});
 
           request(helper.getEndpointAndAuth())
             .put(helper.getEndpointStatements() + "?statementId=" + data.id)
@@ -219,15 +219,15 @@ import __esmDep12 from "./../templatingSelection.ts";
 
         // openid
         it("should fail with bad verb openid scheme", function () {
-          var templates = [
+          let templates = [
             {
               statement: "{{statements.actor}}",
             },
           ];
-          var data = helper.createFromTemplate(templates).statement;
+          let data = helper.createFromTemplate(templates).statement;
           data.id = helper.generateUUID();
           data.actor.openid = "open.id.com/testUser";
-          var headers = helper.addAllHeaders({});
+          let headers = helper.addAllHeaders({});
 
           request(helper.getEndpointAndAuth())
             .put(helper.getEndpointStatements() + "?statementId=" + data.id)
@@ -238,15 +238,15 @@ import __esmDep12 from "./../templatingSelection.ts";
 
         // account homePage
         it("should fail with bad account homePage", function () {
-          var templates = [
+          let templates = [
             {
               statement: "{{statements.actor}}",
             },
           ];
-          var data = helper.createFromTemplate(templates).statement;
+          let data = helper.createFromTemplate(templates).statement;
           data.id = helper.generateUUID();
           data.actor.account = { homePage: "homePage.com/testUser", name: "123456" };
-          var headers = helper.addAllHeaders({});
+          let headers = helper.addAllHeaders({});
 
           request(helper.getEndpointAndAuth())
             .put(helper.getEndpointStatements() + "?statementId=" + data.id)
@@ -257,15 +257,15 @@ import __esmDep12 from "./../templatingSelection.ts";
 
         // object id
         it("should fail with bad object id", function () {
-          var templates = [
+          let templates = [
             {
               statement: "{{statements.default}}",
             },
           ];
-          var data = helper.createFromTemplate(templates).statement;
+          let data = helper.createFromTemplate(templates).statement;
           data.id = helper.generateUUID();
           data.object.id = data.object.id.replace("http://", ""); // remove the scheme portion of the IRI
-          var headers = helper.addAllHeaders({});
+          let headers = helper.addAllHeaders({});
 
           request(helper.getEndpointAndAuth())
             .put(helper.getEndpointStatements() + "?statementId=" + data.id)
@@ -276,7 +276,7 @@ import __esmDep12 from "./../templatingSelection.ts";
 
         // object type
         it("should fail with bad object type", function () {
-          var templates = [
+          let templates = [
             {
               statement: "{{statements.default}}",
             },
@@ -284,10 +284,10 @@ import __esmDep12 from "./../templatingSelection.ts";
               object: "{{activities.default}}",
             },
           ];
-          var data = helper.createFromTemplate(templates).statement;
+          let data = helper.createFromTemplate(templates).statement;
           data.id = helper.generateUUID();
           data.object.definition.type = data.object.definition.type.replace("http://", ""); // remove the scheme portion of the IRI
-          var headers = helper.addAllHeaders({});
+          let headers = helper.addAllHeaders({});
 
           request(helper.getEndpointAndAuth())
             .put(helper.getEndpointStatements() + "?statementId=" + data.id)
@@ -298,7 +298,7 @@ import __esmDep12 from "./../templatingSelection.ts";
 
         // object moreInfo
         it("should fail with bad object moreInfo", function () {
-          var templates = [
+          let templates = [
             {
               statement: "{{statements.default}}",
             },
@@ -306,10 +306,10 @@ import __esmDep12 from "./../templatingSelection.ts";
               object: "{{activities.default}}",
             },
           ];
-          var data = helper.createFromTemplate(templates).statement;
+          let data = helper.createFromTemplate(templates).statement;
           data.id = helper.generateUUID();
           data.object.definition.moreInfo = data.object.definition.moreInfo.replace("http://", ""); // remove the scheme portion of the IRI
-          var headers = helper.addAllHeaders({});
+          let headers = helper.addAllHeaders({});
 
           request(helper.getEndpointAndAuth())
             .put(helper.getEndpointStatements() + "?statementId=" + data.id)
@@ -320,7 +320,7 @@ import __esmDep12 from "./../templatingSelection.ts";
 
         // attachment usageType
         it("should fail with attachment bad usageType", function () {
-          var templates = [
+          let templates = [
             {
               statement: "{{statements.attachment}}",
             },
@@ -338,10 +338,10 @@ import __esmDep12 from "./../templatingSelection.ts";
               ],
             },
           ];
-          var data = helper.createFromTemplate(templates).statement;
+          let data = helper.createFromTemplate(templates).statement;
           data.id = helper.generateUUID();
           data.attachments[0].usageType = data.attachments[0].usageType.replace("http://", ""); // remove the scheme portion of the IRI
-          var headers = helper.addAllHeaders({});
+          let headers = helper.addAllHeaders({});
 
           request(helper.getEndpointAndAuth())
             .put(helper.getEndpointStatements() + "?statementId=" + data.id)
@@ -352,7 +352,7 @@ import __esmDep12 from "./../templatingSelection.ts";
 
         // attachment fileUrl
         it("should fail with bad attachment fileUrl", function () {
-          var templates = [
+          let templates = [
             {
               statement: "{{statements.attachment}}",
             },
@@ -370,10 +370,10 @@ import __esmDep12 from "./../templatingSelection.ts";
               ],
             },
           ];
-          var data = helper.createFromTemplate(templates).statement;
+          let data = helper.createFromTemplate(templates).statement;
           data.id = helper.generateUUID();
           data.attachments[0].fileUrl = data.attachments[0].fileUrl.replace("http://", ""); // remove the scheme portion of the IRI
-          var headers = helper.addAllHeaders({});
+          let headers = helper.addAllHeaders({});
 
           request(helper.getEndpointAndAuth())
             .put(helper.getEndpointStatements() + "?statementId=" + data.id)
@@ -384,7 +384,7 @@ import __esmDep12 from "./../templatingSelection.ts";
 
         // object definition extension
         it("should fail with bad object definition extension", function () {
-          var templates = [
+          let templates = [
             {
               statement: "{{statements.default}}",
             },
@@ -392,10 +392,10 @@ import __esmDep12 from "./../templatingSelection.ts";
               object: "{{activities.default}}",
             },
           ];
-          var data = helper.createFromTemplate(templates).statement;
+          let data = helper.createFromTemplate(templates).statement;
           data.id = helper.generateUUID();
           data.object.definition.extensions = { "not.valid.com/extension": 1234 };
-          var headers = helper.addAllHeaders({});
+          let headers = helper.addAllHeaders({});
 
           request(helper.getEndpointAndAuth())
             .put(helper.getEndpointStatements() + "?statementId=" + data.id)
@@ -406,7 +406,7 @@ import __esmDep12 from "./../templatingSelection.ts";
 
         // context extension
         it("should fail with bad context extension", function () {
-          var templates = [
+          let templates = [
             {
               statement: "{{statements.default}}",
             },
@@ -414,10 +414,10 @@ import __esmDep12 from "./../templatingSelection.ts";
               context: "{{contexts.default}}",
             },
           ];
-          var data = helper.createFromTemplate(templates).statement;
+          let data = helper.createFromTemplate(templates).statement;
           data.id = helper.generateUUID();
           data.context.extensions["example.com/extension/wrong"] = 1234;
-          var headers = helper.addAllHeaders({});
+          let headers = helper.addAllHeaders({});
 
           request(helper.getEndpointAndAuth())
             .put(helper.getEndpointStatements() + "?statementId=" + data.id)
@@ -428,7 +428,7 @@ import __esmDep12 from "./../templatingSelection.ts";
 
         // result extension
         it("should fail with bad result extension", function () {
-          var templates = [
+          let templates = [
             {
               statement: "{{statements.default}}",
             },
@@ -436,10 +436,10 @@ import __esmDep12 from "./../templatingSelection.ts";
               result: "{{results.default}}",
             },
           ];
-          var data = helper.createFromTemplate(templates).statement;
+          let data = helper.createFromTemplate(templates).statement;
           data.id = helper.generateUUID();
           data.result.extensions["example.com/extension/wrong"] = 1234;
-          var headers = helper.addAllHeaders({});
+          let headers = helper.addAllHeaders({});
 
           request(helper.getEndpointAndAuth())
             .put(helper.getEndpointStatements() + "?statementId=" + data.id)

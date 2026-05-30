@@ -14,9 +14,10 @@ import __esmDep6 from "oauth";
   "use strict";
 
   helper = helper.default ?? helper;
-  var expect = chai.expect;
+  let expect = chai.expect;
 
-  var request = request(helper.getEndpoint());
+  const requestClient = request(helper.getEndpoint());
+  void requestClient;
   if (global.OAUTH) {
     new oauthLib.OAuth("", "", global.OAUTH.consumer_key, global.OAUTH.consumer_secret, "1.0", null, "HMAC-SHA1");
   }
@@ -31,7 +32,7 @@ import __esmDep6 from "oauth";
      */
     describe("An LRS must support HTTP/1.1 entity tags (ETags) to implement optimistic concurrency control when handling Resources where PUT may overwrite existing data (Agent Profile, and Activity Profile, Communication 3.1, XAPI-00322)", function () {
       it("When responding to a GET request to Agent Profile resource, include an ETag HTTP header in the response", function () {
-        var parameters = helper.buildAgentProfile(),
+        let parameters = helper.buildAgentProfile(),
           document = helper.buildDocument();
 
         return helper
@@ -46,7 +47,7 @@ import __esmDep6 from "oauth";
       });
 
       it("When responding to a GET request to Activities Profile resource, include an ETag HTTP header in the response", function () {
-        var parameters = helper.buildActivityProfile(),
+        let parameters = helper.buildActivityProfile(),
           document = helper.buildDocument();
 
         return helper
@@ -63,7 +64,7 @@ import __esmDep6 from "oauth";
       });
 
       it("When returning an ETag header, the value should be calculated as a SHA1 hexadecimal value", function () {
-        var parameters = helper.buildAgentProfile(),
+        let parameters = helper.buildAgentProfile(),
           document = helper.buildDocument();
 
         return helper
@@ -79,7 +80,7 @@ import __esmDep6 from "oauth";
       });
 
       it("When responding to a GET Request the Etag header must be enclosed in quotes", function () {
-        var parameters = helper.buildAgentProfile(),
+        let parameters = helper.buildAgentProfile(),
           document = helper.buildDocument();
 
         return helper
@@ -89,7 +90,7 @@ import __esmDep6 from "oauth";
               .sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200)
               .then(function (res) {
                 expect(res.headers.etag).to.be.ok;
-                var str = res.headers.etag;
+                let str = res.headers.etag;
                 //test for weak etags
                 if (str[0] !== '"') {
                   expect(str[0]).to.equal("W");
@@ -103,7 +104,7 @@ import __esmDep6 from "oauth";
       });
 
       describe("With a valid etag", function () {
-        var parameters, document;
+        let parameters, document;
         before("before", function () {
           parameters = helper.buildAgentProfile();
           document = helper.buildDocument();
@@ -115,9 +116,9 @@ import __esmDep6 from "oauth";
           return helper
             .sendRequest("get", helper.getEndpointAgentsProfile(), parameters, null, 200)
             .then(function (res) {
-              var goodTag = res.headers.etag;
+              let goodTag = res.headers.etag;
 
-              var document = helper.buildDocument();
+              let document = helper.buildDocument();
               return helper.sendRequest("put", helper.getEndpointAgentsProfile(), parameters, document, 204, {
                 "If-Match": goodTag,
               });
@@ -126,17 +127,17 @@ import __esmDep6 from "oauth";
       });
 
       describe('When responding to a PUT request, handle the If-None-Match header as described in RFC 2616, HTTP/1.1 if it contains "*"', function () {
-        var parameters = helper.buildActivityProfile();
+        let parameters = helper.buildActivityProfile();
 
         it("succeeds when no document exists", function () {
-          var document = helper.buildDocument();
+          let document = helper.buildDocument();
           return helper.sendRequest("put", helper.getEndpointActivitiesProfile(), parameters, document, 204, {
             "If-None-Match": "*",
           });
         });
 
         it("rejects if a document already exists", function () {
-          var document2 = helper.buildDocument();
+          let document2 = helper.buildDocument();
           return helper.sendRequest("put", helper.getEndpointActivitiesProfile(), parameters, document2, 412, {
             "If-None-Match": "*",
           });
@@ -144,7 +145,7 @@ import __esmDep6 from "oauth";
       });
 
       describe("If Header precondition in PUT Requests for RFC2616 fail", function () {
-        var parameters = helper.buildAgentProfile(),
+        let parameters = helper.buildAgentProfile(),
           document = helper.buildDocument();
 
         before("post the document and get the etag", function () {
@@ -160,8 +161,8 @@ import __esmDep6 from "oauth";
         });
 
         it("Return HTTP 412 (Precondition Failed)", function () {
-          var badTag = '"1111111111111111111111111111111111111111"';
-          var document2 = helper.buildDocument();
+          let badTag = '"1111111111111111111111111111111111111111"';
+          let document2 = helper.buildDocument();
           return helper.sendRequest("put", helper.getEndpointAgentsProfile(), parameters, document2, 412, {
             "If-Match": badTag,
           });
@@ -171,16 +172,16 @@ import __esmDep6 from "oauth";
           return helper
             .sendRequest("get", helper.getEndpointAgentsProfile(), parameters, null, 200)
             .then(function (res) {
-              var result = res.body;
+              let result = res.body;
               expect(result).to.eql(document);
             });
         });
       });
 
       describe("If put request is received without either header for a resource that already exists", function () {
-        var parameters = helper.buildActivityProfile();
-        var document = helper.buildDocument();
-        var document2 = helper.buildDocument();
+        let parameters = helper.buildActivityProfile();
+        let document = helper.buildDocument();
+        let document2 = helper.buildDocument();
 
         before("post the document and get the etag", function () {
           return helper

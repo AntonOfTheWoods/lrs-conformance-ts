@@ -6,7 +6,7 @@
  *
  */
 // Defines overwriting data.
-var CONTEXT_WHOSE_contextGroups_HAS_INVALID_OBJECT_TYPE = {
+let CONTEXT_WHOSE_contextGroups_HAS_INVALID_OBJECT_TYPE = {
   contextGroups: [
     {
       objectType: "Should fail",
@@ -23,7 +23,7 @@ var CONTEXT_WHOSE_contextGroups_HAS_INVALID_OBJECT_TYPE = {
     },
   ],
 };
-var CONTEXT_WHOSE_contextGroups_HAS_INVALID_GROUP = {
+let CONTEXT_WHOSE_contextGroups_HAS_INVALID_GROUP = {
   contextGroups: [
     {
       objectType: "contextGroup",
@@ -34,7 +34,7 @@ var CONTEXT_WHOSE_contextGroups_HAS_INVALID_GROUP = {
   ],
 };
 
-var INVALID_RELEVANT_TYPE_IS_EMPTY = {
+let INVALID_RELEVANT_TYPE_IS_EMPTY = {
   contextGroups: [
     {
       objectType: "contextGroup",
@@ -47,7 +47,7 @@ var INVALID_RELEVANT_TYPE_IS_EMPTY = {
   ],
 };
 
-var INVALID_RELEVANT_TYPE_NON_IRI_ELEMENT = {
+let INVALID_RELEVANT_TYPE_NON_IRI_ELEMENT = {
   contextGroups: [
     {
       objectType: "contextGroup",

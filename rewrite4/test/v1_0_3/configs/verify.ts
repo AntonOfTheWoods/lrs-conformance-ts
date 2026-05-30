@@ -12,18 +12,18 @@
  */
 
 // defines overwriting data
-// var INVALID_STRING = 'should fail';
-// var INVALID_VERSION_0_9_9 = '0.9.9';
-// var INVALID_VERSION_1_1_0 = '1.1.0';
-// var VALID_VERSION_1_0 = '1.0';
-// var VALID_VERSION_1_0_9 = '1.0.9';
-var VALID_DESCRIPTION = {
+// let INVALID_STRING = 'should fail';
+// let INVALID_VERSION_0_9_9 = '0.9.9';
+// let INVALID_VERSION_1_1_0 = '1.1.0';
+// let VALID_VERSION_1_0 = '1.0';
+// let VALID_VERSION_1_0_9 = '1.0.9';
+let VALID_DESCRIPTION = {
   description: {
     "en-GB": "An example meeting that happened on a specific occasion with certain people present.",
     "en-US": "An example meeting that happened on a specific occasion with certain people present.",
   },
 };
-var VALID_EXTENSIONS = {
+let VALID_EXTENSIONS = {
   extensions: {
     "http://example.com/profiles/meetings/extension/location": "X:\\meetings\\minutes\\examplemeeting.one",
     "http://example.com/profiles/meetings/extension/reporter": {
@@ -32,18 +32,18 @@ var VALID_EXTENSIONS = {
     },
   },
 };
-var VALID_INTERACTION_TYPE = {
+let VALID_INTERACTION_TYPE = {
   interactionType: "fill-in",
   correctResponsesPattern: ['Bob"s your uncle'],
 };
-var VALID_MORE_INFO = { moreInfo: "http://virtualmeeting.example.com/345256" };
-var VALID_NAME = {
+let VALID_MORE_INFO = { moreInfo: "http://virtualmeeting.example.com/345256" };
+let VALID_NAME = {
   name: {
     "en-GB": "example meeting",
     "en-US": "example meeting",
   },
 };
-var VALID_TYPE = { type: "http://adlnet.gov/expapi/activities/meeting" };
+let VALID_TYPE = { type: "http://adlnet.gov/expapi/activities/meeting" };
 
 // configures tests
 export const config = function () {

@@ -6,8 +6,8 @@
  *
  */
 // defines overwriting data
-var INVALID_OBJECTTYPE_INVALID_AGENT = { objectType: "agent" };
-var INVALID_OBJECTTYPE_INVALID_GROUP = { objectType: "group" };
+let INVALID_OBJECTTYPE_INVALID_AGENT = { objectType: "agent" };
+let INVALID_OBJECTTYPE_INVALID_GROUP = { objectType: "group" };
 
 // configures tests
 export const config = function () {

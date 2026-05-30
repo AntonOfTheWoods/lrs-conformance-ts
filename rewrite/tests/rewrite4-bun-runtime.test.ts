@@ -817,31 +817,31 @@ test("legacy compat suites keep explicit shared runtime locals instead of relyin
   const expectedDeclarations = [
     {
       filePath: join(process.cwd(), "rewrite4", "test", "v1_0_3", "H.Communication2.1-StatementResource.ts"),
-      patterns: [/var data:\s*any;/, /var txtAtt1:\s*any,[\s\S]*t2attHash:\s*any;/],
+      patterns: [/(?:let|const) data:\s*any;/, /(?:let|const) txtAtt1:\s*any,[\s\S]*t2attHash:\s*any;/],
     },
     {
       filePath: join(process.cwd(), "rewrite4", "test", "v1_0_3", "Data2.4.1-IDProperty.ts"),
-      patterns: [/var data:\s*any;/],
+      patterns: [/(?:let|const) data:\s*any;/],
     },
     {
       filePath: join(process.cwd(), "rewrite4", "test", "v1_0_3", "Data2.4.4-ObjectProperty.ts"),
-      patterns: [/var id:\s*any,[\s\S]*\btf:\s*any;/],
+      patterns: [/(?:let|const) id:\s*any,[\s\S]*\btf:\s*any;/],
     },
     {
       filePath: join(process.cwd(), "rewrite4", "test", "v1_0_3", "Data2.4.8-StoredProperty.ts"),
-      patterns: [/var param:\s*any;/],
+      patterns: [/(?:let|const) param:\s*any;/],
     },
     {
       filePath: join(process.cwd(), "rewrite4", "test", "v1_0_3", "H.Communication1.5-ContentTypes.ts"),
-      patterns: [/var data:\s*any;/],
+      patterns: [/(?:let|const) data:\s*any;/],
     },
     {
       filePath: join(process.cwd(), "rewrite4", "test", "v1_0_3", "H.Communication2.6-AgentProfileResource.ts"),
-      patterns: [/var document:\s*any;/],
+      patterns: [/(?:let|const) document:\s*any;/],
     },
     {
       filePath: join(process.cwd(), "rewrite4", "test", "v1_0_3", "H.Communication2.7-ActivityProfileResource.ts"),
-      patterns: [/var document:\s*any;/],
+      patterns: [/(?:let|const) document:\s*any;/],
     },
   ];
 

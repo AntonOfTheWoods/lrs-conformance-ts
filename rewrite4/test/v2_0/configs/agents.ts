@@ -6,15 +6,15 @@
  *
  */
 // defines overwriting data
-var INVALID_OBJECT = { key: "value" };
-var INVALID_OBJECTTYPE_NUMERIC = { objectType: 123 };
-var INVALID_OBJECTTYPE_OBJECT = { objectType: INVALID_OBJECT };
-var INVALID_OBJECTTYPE_NAME_NUMERIC = { name: 123 };
-var INVALID_OBJECTTYPE_NAME_OBJECT = { name: INVALID_OBJECT };
-var FOREIGN_IDENTIFIER_ACCOUNT = { account: { homePage: "http://www.example.com", name: "xAPI account name" } };
-var FOREIGN_IDENTIFIER_MBOX = { mbox: "mailto:xapi@adlnet.gov" };
-var FOREIGN_IDENTIFIER_MBOX_SHA1SUM = { mbox_sha1sum: "cd9b00a5611f94eaa7b1661edab976068e364975" };
-var FOREIGN_IDENTIFIER_OPENID = { openid: "http://openid.example.org/12345" };
+let INVALID_OBJECT = { key: "value" };
+let INVALID_OBJECTTYPE_NUMERIC = { objectType: 123 };
+let INVALID_OBJECTTYPE_OBJECT = { objectType: INVALID_OBJECT };
+let INVALID_OBJECTTYPE_NAME_NUMERIC = { name: 123 };
+let INVALID_OBJECTTYPE_NAME_OBJECT = { name: INVALID_OBJECT };
+let FOREIGN_IDENTIFIER_ACCOUNT = { account: { homePage: "http://www.example.com", name: "xAPI account name" } };
+let FOREIGN_IDENTIFIER_MBOX = { mbox: "mailto:xapi@adlnet.gov" };
+let FOREIGN_IDENTIFIER_MBOX_SHA1SUM = { mbox_sha1sum: "cd9b00a5611f94eaa7b1661edab976068e364975" };
+let FOREIGN_IDENTIFIER_OPENID = { openid: "http://openid.example.org/12345" };
 
 // configures tests
 export const config = function () {

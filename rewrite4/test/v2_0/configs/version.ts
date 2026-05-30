@@ -6,11 +6,11 @@
  *
  */
 // defines overwriting data
-var INVALID_STRING = "should fail";
-var INVALID_VERSION_0_9_9 = "0.9.9";
-var INVALID_VERSION_1_1_0 = "1.1.0";
-var VALID_VERSION_1_0 = "1.0";
-var VALID_VERSION_1_0_9 = "1.0.9";
+let INVALID_STRING = "should fail";
+let INVALID_VERSION_0_9_9 = "0.9.9";
+let INVALID_VERSION_1_1_0 = "1.1.0";
+let VALID_VERSION_1_0 = "1.0";
+let VALID_VERSION_1_0_9 = "1.0.9";
 
 // configures tests
 export const config = function () {

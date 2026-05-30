@@ -6,10 +6,10 @@
  *
  */
 // defines overwriting data
-var INVALID_OBJECT = { key: "value" };
-var INVALID_MAIL_TO_EMAIL = "mailto:should.fail.com";
-var INVALID_MAIL_TO_IRI = "http://should.fail.com";
-var INVALID_URI = "ab=c://should.fail.com";
+let INVALID_OBJECT = { key: "value" };
+let INVALID_MAIL_TO_EMAIL = "mailto:should.fail.com";
+let INVALID_MAIL_TO_IRI = "http://should.fail.com";
+let INVALID_URI = "ab=c://should.fail.com";
 
 // configures tests
 export const config = function () {

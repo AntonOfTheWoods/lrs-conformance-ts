@@ -6,11 +6,11 @@
  *
  */
 // defines overwriting data
-var INVALID_DURATION = "PA1H0M0S";
-var INVALID_NUMERIC = 12345;
-var INVALID_OBJECT = { key: "invalid" };
-var INVALID_STRING = "should fail";
-var VALID_DURATION = "PT1H0M0.1S";
+let INVALID_DURATION = "PA1H0M0S";
+let INVALID_NUMERIC = 12345;
+let INVALID_OBJECT = { key: "invalid" };
+let INVALID_STRING = "should fail";
+let VALID_DURATION = "PT1H0M0.1S";
 
 // configures tests
 export const config = function () {

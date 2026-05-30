@@ -6,9 +6,9 @@
  *
  */
 // defines overwriting data
-var INVALID_NUMERIC = 12345;
-var INVALID_STRING = "should fail";
-var INVALID_CONTENT_TYPE = {
+let INVALID_NUMERIC = 12345;
+let INVALID_STRING = "should fail";
+let INVALID_CONTENT_TYPE = {
   usageType: "http://example.com/attachment-usage/test",
   display: { "en-US": "A test attachment" },
   contentType: INVALID_NUMERIC,
@@ -16,7 +16,7 @@ var INVALID_CONTENT_TYPE = {
   sha2: "495395e777cd98da653df9615d09c0fd6bb2f8d4788394cd53c56a3bfdcd848a",
   fileUrl: "http://over.there.com/file.txt",
 };
-var INVALID_FILE_URL = {
+let INVALID_FILE_URL = {
   usageType: "http://example.com/attachment-usage/test",
   display: { "en-US": "A test attachment" },
   contentType: "text/plain; charset=ascii",
@@ -24,7 +24,7 @@ var INVALID_FILE_URL = {
   sha2: "495395e777cd98da653df9615d09c0fd6bb2f8d4788394cd53c56a3bfdcd848a",
   fileUrl: INVALID_STRING,
 };
-var INVALID_LENGTH = {
+let INVALID_LENGTH = {
   usageType: "http://example.com/attachment-usage/test",
   display: { "en-US": "A test attachment" },
   contentType: "text/plain; charset=ascii",
@@ -32,7 +32,7 @@ var INVALID_LENGTH = {
   sha2: "495395e777cd98da653df9615d09c0fd6bb2f8d4788394cd53c56a3bfdcd848a",
   fileUrl: "http://over.there.com/file.txt",
 };
-var INVALID_SHA2 = {
+let INVALID_SHA2 = {
   usageType: "http://example.com/attachment-usage/test",
   display: { "en-US": "A test attachment" },
   contentType: "text/plain; charset=ascii",
@@ -40,7 +40,7 @@ var INVALID_SHA2 = {
   sha2: INVALID_NUMERIC,
   fileUrl: "http://over.there.com/file.txt",
 };
-var INVALID_USAGE_TYPE = {
+let INVALID_USAGE_TYPE = {
   usageType: INVALID_STRING,
   display: { "en-US": "A test attachment" },
   contentType: "text/plain; charset=ascii",
@@ -48,7 +48,7 @@ var INVALID_USAGE_TYPE = {
   sha2: "495395e777cd98da653df9615d09c0fd6bb2f8d4788394cd53c56a3bfdcd848a",
   fileUrl: "http://over.there.com/file.txt",
 };
-var VALID_ATTACHMENT = {
+let VALID_ATTACHMENT = {
   usageType: "http://example.com/attachment-usage/test",
   display: { "en-US": "A test attachment" },
   description: { "en-US": "A test attachment (description)" },

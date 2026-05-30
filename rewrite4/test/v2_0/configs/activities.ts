@@ -6,9 +6,9 @@
  *
  */
 // defines overwriting data
-var INVALID_IRI = "ab=c://should.fail.com";
-var INVALID_STRING = "should error";
-var VALID_EXTENSION_COMPONENT = {
+let INVALID_IRI = "ab=c://should.fail.com";
+let INVALID_STRING = "should error";
+let VALID_EXTENSION_COMPONENT = {
   id: "valid",
   description: {
     "en-US": "valid",

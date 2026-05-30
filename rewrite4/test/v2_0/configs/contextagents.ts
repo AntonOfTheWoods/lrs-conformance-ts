@@ -6,7 +6,7 @@
  *
  */
 // Defines overwriting data.
-var CONTEXT_WHOSE_contextAgents_HAS_INVALID_OBJECT_TYPE = {
+let CONTEXT_WHOSE_contextAgents_HAS_INVALID_OBJECT_TYPE = {
   contextAgents: [
     {
       objectType: "Should fail",
@@ -17,7 +17,7 @@ var CONTEXT_WHOSE_contextAgents_HAS_INVALID_OBJECT_TYPE = {
     },
   ],
 };
-var CONTEXT_WHOSE_contextAgents_HAS_INVALID_AGENT = {
+let CONTEXT_WHOSE_contextAgents_HAS_INVALID_AGENT = {
   contextAgents: [
     {
       objectType: "contextAgent",
@@ -28,7 +28,7 @@ var CONTEXT_WHOSE_contextAgents_HAS_INVALID_AGENT = {
   ],
 };
 
-var INVALID_RELEVANT_TYPE_IS_EMPTY = {
+let INVALID_RELEVANT_TYPE_IS_EMPTY = {
   contextAgents: [
     {
       objectType: "contextAgent",
@@ -41,7 +41,7 @@ var INVALID_RELEVANT_TYPE_IS_EMPTY = {
   ],
 };
 
-var INVALID_RELEVANT_TYPE_NON_IRI_ELEMENT = {
+let INVALID_RELEVANT_TYPE_NON_IRI_ELEMENT = {
   contextAgents: [
     {
       objectType: "contextAgent",

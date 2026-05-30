@@ -6,12 +6,12 @@
  *
  */
 // defines overwriting data
-var INVALID_ONE_MEMBER = [
+let INVALID_ONE_MEMBER = [
   {
     mbox: "mailto:bob@example.com",
   },
 ];
-var INVALID_THREE_MEMBER = [
+let INVALID_THREE_MEMBER = [
   {
     account: {
       homePage: "http://example.com/xAPI/OAuth/Token",

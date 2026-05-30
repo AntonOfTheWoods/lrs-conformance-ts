@@ -6,9 +6,9 @@
  *
  */
 // defines overwriting data
-var INVALID_URI = "ab=c://should.fail.com";
-var INVALID_LANGUAGE_MAP_NUMERIC = { display: 12345 };
-var INVALID_LANGUAGE_MAP_STRING = { display: "a12345 attended" };
+let INVALID_URI = "ab=c://should.fail.com";
+let INVALID_LANGUAGE_MAP_NUMERIC = { display: 12345 };
+let INVALID_LANGUAGE_MAP_STRING = { display: "a12345 attended" };
 
 // configures tests
 export const config = function () {

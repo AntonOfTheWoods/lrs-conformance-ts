@@ -6,10 +6,10 @@
  *
  */
 // defines overwriting data
-var INVALID_LANGUAGE = { a12345678: "should error" };
-var INVALID_DESCRIPTION_LANGUAGE = { description: INVALID_LANGUAGE };
-var INVALID_DISPLAY_LANGUAGE = { display: INVALID_LANGUAGE };
-var INVALID_NAME_LANGUAGE = { name: INVALID_LANGUAGE };
+let INVALID_LANGUAGE = { a12345678: "should error" };
+let INVALID_DESCRIPTION_LANGUAGE = { description: INVALID_LANGUAGE };
+let INVALID_DISPLAY_LANGUAGE = { display: INVALID_LANGUAGE };
+let INVALID_NAME_LANGUAGE = { name: INVALID_LANGUAGE };
 
 // configures tests
 export const config = function () {

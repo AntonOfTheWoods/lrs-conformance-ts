@@ -12,13 +12,13 @@ const typedHelper = helper as {
  *
  */
 // defines overwriting data
-var INVALID_NUMERIC = 12345;
-var INVALID_OBJECT = { key: "should fail" };
-var INVALID_UUID_TOO_MANY_DIGITS = "AA97B177-9383-4934-8543-0F91A7A028368";
-var INVALID_UUID_INVALID_LETTER = "MA97B177-9383-4934-8543-0F91A7A02836";
-var VALID_EXTENSION = { extensions: { "http://example.com/null": null } };
-var INVALID_ACCOUNT_NAME_IRL = { account: { name: INVALID_OBJECT } };
-var VALID_ATTACHMENT = {
+let INVALID_NUMERIC = 12345;
+let INVALID_OBJECT = { key: "should fail" };
+let INVALID_UUID_TOO_MANY_DIGITS = "AA97B177-9383-4934-8543-0F91A7A028368";
+let INVALID_UUID_INVALID_LETTER = "MA97B177-9383-4934-8543-0F91A7A02836";
+let VALID_EXTENSION = { extensions: { "http://example.com/null": null } };
+let INVALID_ACCOUNT_NAME_IRL = { account: { name: INVALID_OBJECT } };
+let VALID_ATTACHMENT = {
   usageType: "http://example.com/attachment-usage/test",
   display: { "en-US": "A test attachment" },
   description: { "en-US": "A test attachment (description)" },
@@ -27,7 +27,7 @@ var VALID_ATTACHMENT = {
   sha2: "495395e777cd98da653df9615d09c0fd6bb2f8d4788394cd53c56a3bfdcd848a",
   fileUrl: "http://over.there.com/file.txt",
 };
-var VALID_ATTACHMENT_DISPLAY = {
+let VALID_ATTACHMENT_DISPLAY = {
   usageType: "http://example.com/attachment-usage/test",
   display: { "en-US": "A test attachment", es: "Un accesorio de prueba" },
   description: { "en-US": "A test attachment (description)" },
@@ -36,7 +36,7 @@ var VALID_ATTACHMENT_DISPLAY = {
   sha2: "495395e777cd98da653df9615d09c0fd6bb2f8d4788394cd53c56a3bfdcd848a",
   fileUrl: "http://over.there.com/file.txt",
 };
-var VALID_ATTACHMENT_DESCRIPTION = {
+let VALID_ATTACHMENT_DESCRIPTION = {
   usageType: "http://example.com/attachment-usage/test",
   display: { "en-US": "A test attachment" },
   description: { "en-US": "A test attachment (description)", "es-MX": "Un accesorio de prueba (descripción)" },
@@ -45,7 +45,7 @@ var VALID_ATTACHMENT_DESCRIPTION = {
   sha2: "495395e777cd98da653df9615d09c0fd6bb2f8d4788394cd53c56a3bfdcd848a",
   fileUrl: "http://over.there.com/file.txt",
 };
-var INVALID_DESCRIPTION_ATTACHMENT = {
+let INVALID_DESCRIPTION_ATTACHMENT = {
   usageType: "http://example.com/attachment-usage/test",
   display: { "en-US": "A test attachment" },
   description: { "en-US": "A test attachment (description)", something: "Un accesorio de prueba (descripción)" },
@@ -54,7 +54,7 @@ var INVALID_DESCRIPTION_ATTACHMENT = {
   sha2: "495395e777cd98da653df9615d09c0fd6bb2f8d4788394cd53c56a3bfdcd848a",
   fileUrl: "http://over.there.com/file.txt",
 };
-var INVALID_DISPLAY_ATTACHMENT = {
+let INVALID_DISPLAY_ATTACHMENT = {
   usageType: "http://example.com/attachment-usage/test",
   display: { "en-US": "A test attachment", something: "Un accesorio de prueba" },
   description: { "en-US": "A test attachment (description)" },

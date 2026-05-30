@@ -50,7 +50,7 @@ import __esmDep11 from "./../redirect.ts";
             if (err) {
               done(err);
             } else {
-              var results = helper.parse(res.body, done);
+              let results = helper.parse(res.body, done);
               chai.expect(results).to.have.property("statements");
               chai.expect(results).to.have.property("more");
               done();
@@ -59,14 +59,14 @@ import __esmDep11 from "./../redirect.ts";
       });
 
       it("An LRS rejects an alternate request syntax not issued as a POST", function () {
-        var parameters = { method: "POST" };
-        var formBody = helper.buildFormBody(helper.buildStatement());
+        let parameters = { method: "POST" };
+        let formBody = helper.buildFormBody(helper.buildStatement());
         return helper.sendRequest("put", helper.getEndpointStatements(), parameters, formBody, 400);
       });
 
       it("An LRS accepts an alternate request syntax PUT issued as a POST", function () {
-        var parameters = { method: "PUT" };
-        var formBody = {
+        let parameters = { method: "PUT" };
+        let formBody = {
           statementId: helper.generateUUID(),
           content: helper.buildStatement(),
         };
@@ -80,9 +80,9 @@ import __esmDep11 from "./../redirect.ts";
       });
 
       it("During an alternate request syntax the LRS treats the listed form parameters, 'Authorization', 'X-Experience-API-Version', 'Content-Type', 'Content-Length', 'If-Match' and 'If-None-Match', as header parameters (Communictation 1.3.s3.b7)", function () {
-        var parameters = { method: "PUT" };
-        var sID = helper.generateUUID();
-        var formBody = {
+        let parameters = { method: "PUT" };
+        let sID = helper.generateUUID();
+        let formBody = {
           statementId: sID,
           "X-Experience-API-Version": "0.8",
           content: helper.buildStatement(),
@@ -97,15 +97,15 @@ import __esmDep11 from "./../redirect.ts";
       });
 
       it("An LRS will reject an alternate request syntax which contains any extra information with error code 400 Bad Request (Communication 1.3.s3.b4)", function () {
-        var templates = [{ statement: "{{statements.default}}" }];
-        var data = helper.createFromTemplate(templates);
-        var statement = data.statement;
-        var sID = helper.generateUUID();
-        var parameters = {
+        let templates = [{ statement: "{{statements.default}}" }];
+        let data = helper.createFromTemplate(templates);
+        let statement = data.statement;
+        let sID = helper.generateUUID();
+        let parameters = {
           method: "PUT",
           statementId: sID,
         };
-        var body = {
+        let body = {
           statementId: sID,
           content: statement,
         };
@@ -115,14 +115,14 @@ import __esmDep11 from "./../redirect.ts";
 
       describe('An LRS will reject an alternate request syntax sending content which does not have a form parameter with the name of "content" (Communication 1.3.s3.b4)', function () {
         it("will pass PUT with content body which is url encoded", function (done) {
-          var headers = helper.addAllHeaders({});
-          var auth = headers["Authorization"];
-          var query = helper.getUrlEncoding({ method: "PUT" });
+          let headers = helper.addAllHeaders({});
+          let auth = headers["Authorization"];
+          let query = helper.getUrlEncoding({ method: "PUT" });
 
-          var templates = [{ statement: "{{statements.default}}" }];
-          var data = helper.createFromTemplate(templates).statement;
+          let templates = [{ statement: "{{statements.default}}" }];
+          let data = helper.createFromTemplate(templates).statement;
 
-          var form = {
+          let form = {
             statementId: helper.generateUUID(),
             content: JSON.stringify(data),
             "X-Experience-API-Version": "1.0.3",
@@ -137,18 +137,18 @@ import __esmDep11 from "./../redirect.ts";
         });
 
         it("will fail PUT with no content body", function () {
-          var parameters = { method: "PUT" };
+          let parameters = { method: "PUT" };
           return helper.sendRequest("post", helper.getEndpointStatements(), parameters, undefined, 400);
         });
 
         it("will fail PUT with content body which is not url encoded", function (done) {
-          var headers = helper.addAllHeaders({});
-          var query = helper.getUrlEncoding({ method: "PUT" });
-          var templates = [{ statement: "{{statements.default}}" }];
-          var data = helper.createFromTemplate(templates).statement;
+          let headers = helper.addAllHeaders({});
+          let query = helper.getUrlEncoding({ method: "PUT" });
+          let templates = [{ statement: "{{statements.default}}" }];
+          let data = helper.createFromTemplate(templates).statement;
           headers["content-type"] = "application/x-www-form-urlencoded";
 
-          var form = {
+          let form = {
             statementId: helper.generateUUID(),
             content: JSON.stringify(data),
             "X-Experience-API-Version": "1.0.3",

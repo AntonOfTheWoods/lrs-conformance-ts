@@ -36,7 +36,7 @@ import __esmDep12 from "./../templatingSelection.ts";
   if (global.OAUTH) request = helper.OAuthRequest(request);
 
   describe("Object Property Requirements (Data 2.4.4)", () => {
-    var id: any,
+    let id: any,
       correctResponsesPattern: any,
       choice: any,
       fillin: any,
@@ -85,7 +85,7 @@ import __esmDep12 from "./../templatingSelection.ts";
     describe('An Activity Definition uses the "interactionType" property if any of the correctResponsesPattern, choices, scale, source, target, or steps properties are used (Multiplicity, Data 2.4.4.1.s8, XAPI-00064) **Implicit**', function () {
       it('Activity Definition uses correctResponsesPattern without "interactionType" property', function (done) {
         id = helper.generateUUID();
-        var correctResponsesPatterntemplates = [
+        let correctResponsesPatterntemplates = [
           { statement: "{{statements.default}}" },
           { object: "{{activities.other}}" },
         ];
@@ -101,7 +101,7 @@ import __esmDep12 from "./../templatingSelection.ts";
 
       it('Activity Definition uses choices without "interactionType" property', function (done) {
         id = helper.generateUUID();
-        var choicetemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.choice}}" }];
+        let choicetemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.choice}}" }];
         choice = helper.createFromTemplate(choicetemplates);
         choice = choice.statement;
         delete choice.object.definition.interactionType;
@@ -114,7 +114,7 @@ import __esmDep12 from "./../templatingSelection.ts";
 
       it('Activity Definition uses fill-in without "interactionType" property', function (done) {
         id = helper.generateUUID();
-        var fillintemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.fill_in}}" }];
+        let fillintemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.fill_in}}" }];
         fillin = helper.createFromTemplate(fillintemplates);
         fillin = fillin.statement;
         delete fillin.object.definition.interactionType;
@@ -127,7 +127,7 @@ import __esmDep12 from "./../templatingSelection.ts";
 
       it('Activity Definition uses scale without "interactionType" property', function (done) {
         id = helper.generateUUID();
-        var scaletemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.likert}}" }];
+        let scaletemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.likert}}" }];
         scale = helper.createFromTemplate(scaletemplates);
         scale = scale.statement;
         delete scale.object.definition.interactionType;
@@ -140,7 +140,7 @@ import __esmDep12 from "./../templatingSelection.ts";
 
       it('Activity Definition uses long-fill-in without "interactionType" property', function (done) {
         id = helper.generateUUID();
-        var fillintemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.long_fill_in}}" }];
+        let fillintemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.long_fill_in}}" }];
         fillin = helper.createFromTemplate(fillintemplates);
         fillin = fillin.statement;
         delete fillin.object.definition.interactionType;
@@ -153,7 +153,7 @@ import __esmDep12 from "./../templatingSelection.ts";
 
       it('Activity Definition uses source without "interactionType" property', function (done) {
         id = helper.generateUUID();
-        var sourcetemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.matching}}" }];
+        let sourcetemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.matching}}" }];
         source = helper.createFromTemplate(sourcetemplates);
         source = source.statement;
         delete source.object.definition.interactionType;
@@ -166,7 +166,7 @@ import __esmDep12 from "./../templatingSelection.ts";
 
       it('Activity Definition uses target without "interactionType" property', function (done) {
         id = helper.generateUUID();
-        var targettemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.matching_target}}" }];
+        let targettemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.matching_target}}" }];
         target = helper.createFromTemplate(targettemplates);
         target = target.statement;
         delete target.object.definition.interactionType;
@@ -179,7 +179,7 @@ import __esmDep12 from "./../templatingSelection.ts";
 
       it('Activity Definition uses numeric without "interactionType" property', function (done) {
         id = helper.generateUUID();
-        var numerictemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.numeric}}" }];
+        let numerictemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.numeric}}" }];
         numeric = helper.createFromTemplate(numerictemplates);
         numeric = numeric.statement;
         delete numeric.object.definition.interactionType;
@@ -192,7 +192,7 @@ import __esmDep12 from "./../templatingSelection.ts";
 
       it('Activity Definition uses other without "interactionType" property', function (done) {
         id = helper.generateUUID();
-        var othertemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.other}}" }];
+        let othertemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.other}}" }];
         other = helper.createFromTemplate(othertemplates);
         other = other.statement;
         delete other.object.definition.interactionType;
@@ -205,7 +205,7 @@ import __esmDep12 from "./../templatingSelection.ts";
 
       it('Activity Definition uses performance without "interactionType" property', function (done) {
         id = helper.generateUUID();
-        var stepstemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.performance}}" }];
+        let stepstemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.performance}}" }];
         steps = helper.createFromTemplate(stepstemplates);
         steps = steps.statement;
         delete steps.object.definition.interactionType;
@@ -218,7 +218,7 @@ import __esmDep12 from "./../templatingSelection.ts";
 
       it('Activity Definition uses sequencing without "interactionType" property', function (done) {
         id = helper.generateUUID();
-        var seqtemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.sequencing}}" }];
+        let seqtemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.sequencing}}" }];
         seq = helper.createFromTemplate(seqtemplates);
         seq = seq.statement;
         delete seq.object.definition.interactionType;
@@ -231,7 +231,7 @@ import __esmDep12 from "./../templatingSelection.ts";
 
       it('Activity Definition uses true-false without "interactionType" property', function (done) {
         id = helper.generateUUID();
-        var tftemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.true_false}}" }];
+        let tftemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.true_false}}" }];
         tf = helper.createFromTemplate(tftemplates);
         tf = tf.statement;
         delete tf.object.definition.interactionType;
@@ -253,8 +253,8 @@ import __esmDep12 from "./../templatingSelection.ts";
      */
     describe('Statements that use an Agent or Group as an Object MUST specify an "objectType" property. (Data 2.4.4.2.s1.b1, XAPI-00065)', function () {
       it("should fail when using agent as object and no objectType", function (done) {
-        var templates = [{ statement: "{{statements.object_agent_default}}" }];
-        var data = helper.createFromTemplate(templates).statement;
+        let templates = [{ statement: "{{statements.object_agent_default}}" }];
+        let data = helper.createFromTemplate(templates).statement;
         delete data.object.objectType;
 
         request(helper.getEndpointAndAuth())
@@ -265,8 +265,8 @@ import __esmDep12 from "./../templatingSelection.ts";
       });
 
       it("should fail when using group as object and no objectType", function (done) {
-        var templates = [{ statement: "{{statements.object_group_default}}" }];
-        var data = helper.createFromTemplate(templates).statement;
+        let templates = [{ statement: "{{statements.object_group_default}}" }];
+        let data = helper.createFromTemplate(templates).statement;
         delete data.object.objectType;
 
         request(helper.getEndpointAndAuth())
@@ -277,11 +277,11 @@ import __esmDep12 from "./../templatingSelection.ts";
       });
 
       it("substatement should fail when using agent as object and no objectType", function (done) {
-        var templates = [
+        let templates = [
           { statement: "{{statements.object_substatement}}" },
           { object: "{{statements.object_agent_default}}" },
         ];
-        var data = helper.createFromTemplate(templates).statement;
+        let data = helper.createFromTemplate(templates).statement;
         delete data.object.objectType;
 
         request(helper.getEndpointAndAuth())
@@ -292,11 +292,11 @@ import __esmDep12 from "./../templatingSelection.ts";
       });
 
       it("substatement should fail when using group as object and no objectType", function (done) {
-        var templates = [
+        let templates = [
           { statement: "{{statements.object_substatement}}" },
           { object: "{{statements.object_group_default}}" },
         ];
-        var data = helper.createFromTemplate(templates).statement;
+        let data = helper.createFromTemplate(templates).statement;
         delete data.object.objectType;
 
         request(helper.getEndpointAndAuth())

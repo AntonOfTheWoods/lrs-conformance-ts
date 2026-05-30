@@ -6,10 +6,10 @@
  *
  */
 // defines overwriting data
-var INVALID_NUMERIC = 12345;
-var INVALID_STRING = "should fail";
-var VALID_DECIMAL_DIGITS = 0.6767676;
-var VALID_MAX_DECIMAL_DIGITS = 100.6767676;
+let INVALID_NUMERIC = 12345;
+let INVALID_STRING = "should fail";
+let VALID_DECIMAL_DIGITS = 0.6767676;
+let VALID_MAX_DECIMAL_DIGITS = 100.6767676;
 
 // configures tests
 export const config = function () {

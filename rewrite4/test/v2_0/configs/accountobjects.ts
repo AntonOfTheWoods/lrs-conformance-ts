@@ -6,7 +6,7 @@
  *
  */
 // defines overwriting data
-var INVALID_ACCOUNT_HOMEPAGE_IRL = { account: { homePage: "ab=c://should.fail.com" } };
+let INVALID_ACCOUNT_HOMEPAGE_IRL = { account: { homePage: "ab=c://should.fail.com" } };
 
 // configures tests
 export const config = function () {

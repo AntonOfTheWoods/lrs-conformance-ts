@@ -6,15 +6,15 @@
  *
  */
 // defines overwriting data
-var INVALID_EXTENSION_KEY = { extensions: { "should fail": true } };
-var NULL_VALUE = { extensions: { "http://example.com/ex": null } };
-var EMPTY_STRING_VALUE = { extensions: { "http://example.com/ex": "" } };
-var EMPTY_OBJECT_VALUE = { extensions: { "http://example.com/ex": {} } };
-var VALID_EXTENSION_EMPTY = { extensions: {} };
-var VALID_EXTENSION_BOOLEAN = { extensions: { "http://example.com/ex": true } };
-var VALID_EXTENSION_NUMERIC = { extensions: { "http://example.com/ex": 12345 } };
-var VALID_EXTENSION_OBJECT = { extensions: { "http://example.com/ex": { key: "valid" } } };
-var VALID_EXTENSION_STRING = { extensions: { "http://example.com/ex": "valid" } };
+let INVALID_EXTENSION_KEY = { extensions: { "should fail": true } };
+let NULL_VALUE = { extensions: { "http://example.com/ex": null } };
+let EMPTY_STRING_VALUE = { extensions: { "http://example.com/ex": "" } };
+let EMPTY_OBJECT_VALUE = { extensions: { "http://example.com/ex": {} } };
+let VALID_EXTENSION_EMPTY = { extensions: {} };
+let VALID_EXTENSION_BOOLEAN = { extensions: { "http://example.com/ex": true } };
+let VALID_EXTENSION_NUMERIC = { extensions: { "http://example.com/ex": 12345 } };
+let VALID_EXTENSION_OBJECT = { extensions: { "http://example.com/ex": { key: "valid" } } };
+let VALID_EXTENSION_STRING = { extensions: { "http://example.com/ex": "valid" } };
 
 // configures tests
 export const config = function () {

@@ -31,11 +31,11 @@ import __esmDep11 from "./../redirect.ts";
 ) {
   // "use strict";
 
-  var expect = chai.expect;
+  let expect = chai.expect;
   if (global.OAUTH) request = helper.OAuthRequest(request);
 
   describe("Stored Property Requirements (Data 2.4.8)", () => {
-    var param: any;
+    let param: any;
 
     /**  Matchup with Conformance Requirements Document
      * XAPI-00097 - below
@@ -48,13 +48,13 @@ import __esmDep11 from "./../redirect.ts";
      */
     describe("An LRS MUST accept statements with the stored property (Data 2.4.8.s3.b2, XAPI-00097)", function () {
       this.timeout(0);
-      var storedTime = new Date("July 15, 2011").toISOString();
-      var template = [{ statement: "{{statements.default}}" }, { stored: storedTime }];
-      var data = helper.createFromTemplate(template).statement;
-      var postId, putId;
+      let storedTime = new Date("July 15, 2011").toISOString();
+      let template = [{ statement: "{{statements.default}}" }, { stored: storedTime }];
+      let data = helper.createFromTemplate(template).statement;
+      let postId, putId;
 
       it("using POST", function (done) {
-        var stmtTime = Date.now();
+        let stmtTime = Date.now();
         request(helper.getEndpointAndAuth())
           .post(helper.getEndpointStatements())
           .headers(helper.addAllHeaders())
@@ -65,7 +65,7 @@ import __esmDep11 from "./../redirect.ts";
               done(err);
             } else {
               postId = res.body[0];
-              var query = "?statementId=" + postId;
+              let query = "?statementId=" + postId;
 
               request(helper.getEndpointAndAuth())
                 .get(helper.getEndpointStatements() + query)
@@ -76,9 +76,9 @@ import __esmDep11 from "./../redirect.ts";
                   if (err) {
                     done(err);
                   } else {
-                    var result = helper.parse(res.body);
+                    let result = helper.parse(res.body);
                     expect(result).to.have.property("stored");
-                    var stmtStored = result.stored;
+                    let stmtStored = result.stored;
                     expect(stmtStored).to.not.eql(storedTime);
                     done();
                   }
@@ -90,7 +90,7 @@ import __esmDep11 from "./../redirect.ts";
       it("using PUT", function (done) {
         putId = helper.generateUUID();
         param = "?statementId=" + putId;
-        var stmtTime = Date.now();
+        let stmtTime = Date.now();
 
         request(helper.getEndpointAndAuth())
           .put(helper.getEndpointStatements() + param)
@@ -110,9 +110,9 @@ import __esmDep11 from "./../redirect.ts";
                   if (err) {
                     done(err);
                   } else {
-                    var result = helper.parse(res.body);
+                    let result = helper.parse(res.body);
                     expect(result).to.have.property("stored");
-                    var stmtStored = result.stored;
+                    let stmtStored = result.stored;
                     expect(stmtStored).to.not.eql(storedTime);
                     done();
                   }
@@ -135,12 +135,12 @@ import __esmDep11 from "./../redirect.ts";
             if (err) {
               done(err);
             } else {
-              var result = helper.parse(res.body);
-              var stmts = result.statements;
-              var milliChecker = (num) => {
+              let result = helper.parse(res.body);
+              let stmts = result.statements;
+              let milliChecker = (num) => {
                 expect(stmts[num]).to.have.property("stored");
                 //formatted iso 8601
-                var chkStored = moment(stmts[num].stored, moment.ISO_8601);
+                let chkStored = moment(stmts[num].stored, moment.ISO_8601);
                 expect(chkStored.isValid()).to.be.true;
                 expect(isNaN(chkStored._pf.parsedDateParts[6])).to.be.false;
                 //precision to milliseconds
