@@ -81,19 +81,17 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
         });
     });
 
-    it("using PUT", function (done) {
-      putId = helper.generateUUID();
-      param = "?statementId=" + putId;
-      const stmtTime = Date.now();
-
-      request(helper.getEndpointAndAuth())
+    it("using PUT", async function () {putId = helper.generateUUID();
+param = "?statementId=" + putId;
+const stmtTime = Date.now();
+request(helper.getEndpointAndAuth())
         .put(helper.getEndpointStatements() + param)
         .headers(helper.addAllHeaders())
         .json(data)
         .expect(204)
         .end((err: unknown) => {
           if (err) {
-            done(err);
+            throw err;
             return;
           }
 
@@ -104,7 +102,7 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
             .expect(200)
             .end((getErr: unknown, getRes: any) => {
               if (getErr) {
-                done(getErr);
+                throw getErr;
                 return;
               }
 
@@ -112,10 +110,9 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
               expect(result).to.have.property("stored");
               const stmtStored = result.stored;
               expect(stmtStored).to.not.eql(storedTime);
-              done();
+              
             });
-        });
-    });
+        });});
   });
 
   /**  XAPI-00023,  2.4 Statement Properties

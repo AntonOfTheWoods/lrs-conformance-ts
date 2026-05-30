@@ -138,7 +138,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
       voidingId = (res.body as string[])[0] as string;
     });
 
-    it("Should not void an already voided statement", function (done) {
+    it("Should not void an already voided statement", async function () {
       const context = this;
       context.timeout(0);
       const templates = [{ statement: "{{statements.object_statementref}}" }, { verb: "{{verbs.voided}}" }];
@@ -147,26 +147,24 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
       data.object.id = voidedId;
       const stmtTime = Date.now();
 
-      request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        .end(function (err: unknown) {
-          if (err) {
-            done(err);
-            return;
-          }
+      await endAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+      );
 
-          const query = "?voidedStatementId=" + voidedId;
-          request(helper.getEndpointAndAuth())
-            .get(helper.getEndpointStatements())
-            .wait(helper.genDelay(stmtTime, query, voidedId))
-            .headers(helper.addAllHeaders({}))
-            .expect(200, done);
-        });
+      const query = "?voidedStatementId=" + voidedId;
+      await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements())
+          .wait(helper.genDelay(stmtTime, query, voidedId))
+          .headers(helper.addAllHeaders({})),
+        200,
+      );
     });
 
-    it("Should not void a voiding statement", function (done) {
+    it("Should not void a voiding statement", async function () {
       const context = this;
       context.timeout(0);
       const templates = [{ statement: "{{statements.object_statementref}}" }, { verb: "{{verbs.voided}}" }];
@@ -174,23 +172,21 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
       data = data.statement;
       data.object.id = voidingId;
       const stmtTime = Date.now();
-      request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        .end(function (err: unknown) {
-          if (err) {
-            done(err);
-            return;
-          }
+      await endAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+      );
 
-          const query = "?statementId=" + voidingId;
-          request(helper.getEndpointAndAuth())
-            .get(helper.getEndpointStatements() + query)
-            .headers(helper.addAllHeaders({}))
-            .wait(helper.genDelay(stmtTime, query, voidingId))
-            .expect(200, done);
-        });
+      const query = "?statementId=" + voidingId;
+      await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + query)
+          .headers(helper.addAllHeaders({}))
+          .wait(helper.genDelay(stmtTime, query, voidingId)),
+        200,
+      );
     });
   });
 

@@ -97,9 +97,9 @@ describe("Authentication Requirements (Communication 4.0)", function () {
    * An LRS must support HTTP Basic Authentication
    */
   //WARNING: This might not be a great test. OAUTH will override it
-  it("An LRS must support HTTP Basic Authentication (Authentication, Communication 4.0, XAPI-00335)", function (done) {
+  it("An LRS must support HTTP Basic Authentication (Authentication, Communication 4.0, XAPI-00335)", async function () {
     if (process.env["OAUTH1_ENABLED"] === "true") {
-      done();
+      return;
     } else {
       const templates = [
         {
@@ -110,11 +110,13 @@ describe("Authentication Requirements (Communication 4.0)", function () {
       data.id = helper.generateUUID();
       const headers = helper.addAllHeaders({});
 
-      request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-        .headers(headers)
-        .json(data)
-        .expect(204, done);
+      await endAsync(
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .headers(headers)
+          .json(data)
+          .expect(204),
+      );
     }
   });
 });

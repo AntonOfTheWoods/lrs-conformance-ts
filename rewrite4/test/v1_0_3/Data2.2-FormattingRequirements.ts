@@ -15,9 +15,17 @@ let request: any = requestBase;
 
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
-before("Before all tests are run", function (done) {
+before("Before all tests are run", async function () {
   console.log("Setting up\nAccounting for time differential between test suite and lrs");
-  helper.setTimeMargin(done);
+  await new Promise<void>((resolve, reject) => {
+    helper.setTimeMargin((err: unknown) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+  });
 });
 
 describe("Formatting Requirements (Data 2.2)", () => {

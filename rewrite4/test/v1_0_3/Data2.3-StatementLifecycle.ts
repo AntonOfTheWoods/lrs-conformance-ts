@@ -6,7 +6,7 @@
 import { expect } from "chai";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
-import { expectAsync } from "../super-request.ts";
+import { expectAsync, endAsync } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
 
 const helper: any = helperImport;
@@ -136,7 +136,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
       voidingId = (res.body as string[])[0] as string;
     });
 
-    it("should not void an already voided statement", function (done) {
+    it("should not void an already voided statement", async function () {
       this.timeout(0);
       let templates = [{ statement: "{{statements.object_statementref}}" }, { verb: "{{verbs.voided}}" }];
       let data = helper.createFromTemplate(templates);
@@ -144,47 +144,46 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
       data.object.id = voidedId;
       let stmtTime = Date.now();
 
-      request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        .end(function (err: unknown, _res: any) {
-          if (err) {
-            done(err);
-          } else {
-            let query = "?voidedStatementId=" + voidedId;
-            request(helper.getEndpointAndAuth())
-              .get(helper.getEndpointStatements())
-              .wait(helper.genDelay(stmtTime, query, voidedId))
-              .headers(helper.addAllHeaders({}))
-              .expect(200, done);
-          }
-        });
+      await endAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+      );
+
+      let query = "?voidedStatementId=" + voidedId;
+      await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements())
+          .wait(helper.genDelay(stmtTime, query, voidedId))
+          .headers(helper.addAllHeaders({})),
+        200,
+      );
     });
 
-    it("should not void a voiding statement", function (done) {
+    it("should not void a voiding statement", async function () {
       this.timeout(0);
       let templates = [{ statement: "{{statements.object_statementref}}" }, { verb: "{{verbs.voided}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
       data.object.id = voidingId;
       let stmtTime = Date.now();
-      request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        .end(function (err: unknown, _res: any) {
-          if (err) {
-            done(err);
-          } else {
-            let query = "?statementId=" + voidingId;
-            request(helper.getEndpointAndAuth())
-              .get(helper.getEndpointStatements() + query)
-              .headers(helper.addAllHeaders({}))
-              .wait(helper.genDelay(stmtTime, query, voidingId))
-              .expect(200, done);
-          }
-        });
+
+      await endAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+      );
+
+      let query = "?statementId=" + voidingId;
+      await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + query)
+          .headers(helper.addAllHeaders({}))
+          .wait(helper.genDelay(stmtTime, query, voidingId)),
+        200,
+      );
     });
   });
 });

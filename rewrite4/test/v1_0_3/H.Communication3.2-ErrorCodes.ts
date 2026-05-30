@@ -203,7 +203,7 @@ describe("Error Codes Requirements (Communication 3.2)", () => {
    * An LRS rejects with a 400 Bad Request any batch of Statements in which one or more Statements is rejected and if necessary, restores the LRS to the state in which it was before the batch began processing. The response may identify the first statementId which failed.
    */
   describe("An LRS does not process any batch of Statements in which one or more Statements is rejected and if necessary, restores the LRS to the state in which it was before the batch began processing (Communication 3.2.s3.b9, XAPI-00326, **Implicit**)", function () {
-    it("should not persist any statements on a single failure", function (done) {
+    it("should not persist any statements on a single failure", async function () {
       this.timeout(0);
       let templates = [{ statement: "{{statements.default}}" }];
       let correct = helper.createFromTemplate(templates);
@@ -217,22 +217,21 @@ describe("Error Codes Requirements (Communication 3.2)", () => {
       let query = "?statementId=" + correct.id;
       let stmtTime = Date.now();
 
-      request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json([correct, incorrect])
-        .expect(400)
-        .end(function (err: unknown, _res: any) {
-          if (err) {
-            done(err);
-          } else {
-            request(helper.getEndpointAndAuth())
-              .get(helper.getEndpointStatements() + "?statementId=" + correct.id)
-              .wait(helper.genDelay(stmtTime, query, correct.id))
-              .headers(helper.addAllHeaders({}))
-              .expect(404, done);
-          }
-        });
+      await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json([correct, incorrect]),
+        400,
+      );
+
+      await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?statementId=" + correct.id)
+          .wait(helper.genDelay(stmtTime, query, correct.id))
+          .headers(helper.addAllHeaders({})),
+        404,
+      );
     });
   });
 

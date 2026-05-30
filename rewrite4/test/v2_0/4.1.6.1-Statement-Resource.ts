@@ -1254,7 +1254,7 @@ request(helper.getEndpointAndAuth())
   describe('An LRS\'s Statement Resource can process a GET request with "attachments" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row13, XAPI-00167)', function () {
     let stmtTime: number, stmtId: string;
 
-    before("set up statement with two attachments for test", function (done) {
+    before("set up statement with two attachments for test", async function () {
       let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
       let templates = [
         { statement: "{{statements.attachment}}" },
@@ -1317,18 +1317,14 @@ request(helper.getEndpointAndAuth())
       msg += dashes + boundary + dashes + crlf;
 
       stmtTime = Date.now();
-      request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders(header))
-        .body(msg)
-        .expect(200, function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            stmtId = helper.parse(res.body, done)[0];
-            done();
-          }
-        });
+      const res = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders(header))
+          .body(msg),
+        200,
+      );
+      stmtId = helper.parse(res.body)[0];
     });
 
     it('should return multipart response format StatementResult using GET with "attachments" parameter as true', async function () {
@@ -1369,46 +1365,59 @@ request(helper.getEndpointAndAuth())
       expect(results).to.have.property("statements");
     });
 
-    it('should process using GET with "attachments"', function (done) {
+    it('should process using GET with "attachments"', async function () {
       this.timeout(0);
       let query = helper.getUrlEncoding({ attachments: true, statementId: stmtId });
-      request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .wait(helper.genDelay(stmtTime, "?" + query, stmtId))
-        .headers(helper.addAllHeaders({}))
-        .expect(200, function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            expect(res.headers["content-type"]).to.include("multipart/mixed");
-            // Find the boundary
-            let b = res.headers["content-type"].split(";");
-            let boundary;
-            let quotes = b[1].match(/"/g);
-            if (quotes) {
-              boundary = b[1].trim().match(/"([^"]+)"/)[1];
-            } else {
-              let temp = b[1].trim();
-              boundary = temp.substring(temp.indexOf("=") + 1);
-            }
-            // Verify we have the statement we asked for
-            // Use boundary to get the first part of response, excluding "--"
-            let x = res.body.split(boundary);
-            let c = x[1].substring(x[1].indexOf("{"), x[1].lastIndexOf("}") + 1);
-            let result = helper.parse(c, done);
-            expect(result).to.have.property("id");
-            expect(result.id).to.equal(stmtId);
-            // Create an array of global matches of the pattern, the length of which is equal to the number of times that pattern appears in the given string
-            let regex1 = new RegExp(t1attHash, "g");
-            let regex2 = new RegExp(t2attHash, "g");
-            let match1 = (res.body.match(regex1) || []).length;
-            let match2 = (res.body.match(regex2) || []).length;
-            // Compare that number to 2 the number of times it is expected for a given has to appear in the response, once in the attachments property, and once along with the attachment
-            expect(match1).to.eql(2);
-            expect(match2).to.eql(2);
-            done();
-          }
-        });
+      const res = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .wait(helper.genDelay(stmtTime, "?" + query, stmtId))
+          .headers(helper.addAllHeaders({})),
+        200,
+      );
+      expect(res.headers["content-type"]).to.include("multipart/mixed");
+      // Find the boundary
+      let b = (res.headers["content-type"] as string).split(";");
+      const boundaryPart = b[1];
+      if (!boundaryPart) {
+        throw new Error("Missing multipart boundary segment.");
+      }
+      let boundary: string;
+      let quotes = boundaryPart.match(/"/g);
+      if (quotes) {
+        const matchedBoundary = boundaryPart.trim().match(/"([^"]+)"/);
+        if (!matchedBoundary || !matchedBoundary[1]) {
+          throw new Error("Failed to parse quoted multipart boundary.");
+        }
+        boundary = matchedBoundary[1];
+      } else {
+        let temp = boundaryPart.trim();
+        boundary = temp.substring(temp.indexOf("=") + 1);
+      }
+      // Verify we have the statement we asked for
+      // Use boundary to get the first part of response, excluding "--"
+      let x = (res.body as string).split(boundary);
+      const firstPart = x[1];
+      if (!firstPart) {
+        throw new Error("Missing first multipart section.");
+      }
+      const bodyStart = firstPart.indexOf("{");
+      const bodyEnd = firstPart.lastIndexOf("}") + 1;
+      if (bodyStart < 0 || bodyEnd <= bodyStart) {
+        throw new Error("Failed to extract statement JSON from multipart body.");
+      }
+      let c = firstPart.substring(bodyStart, bodyEnd);
+      let result = helper.parse(c);
+      expect(result).to.have.property("id");
+      expect(result.id).to.equal(stmtId);
+      // Create an array of global matches of the pattern, the length of which is equal to the number of times that pattern appears in the given string
+      let regex1 = new RegExp(t1attHash as string, "g");
+      let regex2 = new RegExp(t2attHash as string, "g");
+      let match1 = ((res.body as string).match(regex1) || []).length;
+      let match2 = ((res.body as string).match(regex2) || []).length;
+      // Compare that number to 2 the number of times it is expected for a given has to appear in the response, once in the attachments property, and once along with the attachment
+      expect(match1).to.eql(2);
+      expect(match2).to.eql(2);
     });
   });
 
@@ -1423,7 +1432,7 @@ request(helper.getEndpointAndAuth())
         .headers(helper.addAllHeaders({}))
         .expect(200, function (err: unknown, res: any) {
           expect(res.headers).to.have.property("content-type");
-          
+
         });});
   });
 
@@ -3058,12 +3067,12 @@ xapiRequests
         .sendStatementPromise(statement)
         .then((res: any) => {
           expect(res.status).to.eql(400);
-          
+
         })
         .catch((err: any) => {
           expect(err.response).to.not.be.undefined;
           expect(err.response.status).to.eql(400);
-          
+
         });});
   });
 
