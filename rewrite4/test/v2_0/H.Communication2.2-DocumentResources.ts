@@ -42,7 +42,7 @@ describe("Document Resource Requirements (Communication 2.2)", function () {
       .headers(helper.addAllHeaders({}))
       .json([correct, incorrect])
       .expect(400)
-      .end(function (err, res) {
+      .end(function (err: unknown, res: any) {
         if (err) {
           done(err);
         } else {
@@ -72,7 +72,7 @@ describe("Document Resource Requirements (Communication 2.2)", function () {
         .then(function () {
           return helper
             .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
-            .then(function (res) {
+            .then(function (res: any) {
               const body = res.body;
               expect(body).to.eql({
                 car: "MKZ",
@@ -117,7 +117,7 @@ describe("Document Resource Requirements (Communication 2.2)", function () {
         .then(function () {
           return helper
             .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
-            .then(function (res) {
+            .then(function (res: any) {
               const body = res.body;
               expect(body).to.eql({
                 car: {

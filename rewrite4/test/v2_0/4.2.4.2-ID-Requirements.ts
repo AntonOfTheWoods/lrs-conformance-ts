@@ -54,7 +54,7 @@ describe("Id Property Requirements (Data 2.4.1)", () => {
         .headers(helper.addAllHeaders({}))
         .json(data)
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
             return;
@@ -66,7 +66,7 @@ describe("Id Property Requirements (Data 2.4.1)", () => {
             .get(helper.getEndpointStatements() + query)
             .wait(helper.genDelay(stmtTime, query, stmtId))
             .headers(helper.addAllHeaders({}))
-            .end(function (getErr, getRes) {
+            .end(function (getErr: unknown, getRes: any) {
               if (getErr) {
                 done(getErr);
                 return;

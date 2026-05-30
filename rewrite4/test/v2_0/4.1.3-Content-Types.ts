@@ -16,7 +16,14 @@ if (global.OAUTH) request = helper.OAuthRequest(request);
 
 describe("Content Type Requirements (Communication 1.5)", function () {
   let data: any;
-  let txtAtt1, txtAtt2, txtAtt3, t1attSize, t2attSize, t1attHash, t2attHash, t3attHash;
+  let txtAtt1: Buffer,
+    txtAtt2: Buffer,
+    txtAtt3: Buffer,
+    t1attSize: number,
+    t2attSize: number,
+    t1attHash: string,
+    t2attHash: string,
+    t3attHash: string;
 
   before("create attachments templates", function () {
     txtAtt1 = fs.readFileSync("test/v1_0_3/templates/attachments/simple_text1.txt");
@@ -56,7 +63,7 @@ describe("Content Type Requirements (Communication 1.5)", function () {
    * An LRS rejects with error code 400 Bad Request, a PUT or POST Request which does not have a "Content-Type" header with value "application/json" or "multipart/mixed"
    */
   describe('An LRS rejects with error code 400 Bad Request, a Request which uses Attachments and does not have a "Content-Type" header with value "application/json" or "multipart/mixed" (Format, Data 2.4.11, XAPI-00127)', function () {
-    let data, pictureAtt, pattSize, pattHash, templates;
+    let data: any, pictureAtt: string, pattSize: number, pattHash: string, templates: any[];
 
     before("create attachment templates", function () {
       templates = [

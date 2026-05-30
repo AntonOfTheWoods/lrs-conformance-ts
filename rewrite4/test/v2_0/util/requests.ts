@@ -13,7 +13,7 @@ type AxiosResponse = import("axios").AxiosResponse;
 type HeaderOverrides = Record<string, string> | undefined;
 type QueryParams = Record<string, unknown>;
 
-const LRS_ENDPOINT = process.env.LRS_ENDPOINT ?? "";
+const LRS_ENDPOINT = process.env["LRS_ENDPOINT"] ?? "";
 const PATH_ACTIVITIES = "/activities";
 const PATH_ACTIVITIES_PROFILE = "/activities/profile";
 const PATH_ACTIVITIES_STATE = "/activities/state";
@@ -33,7 +33,7 @@ const globalWithOauth = globalThis as typeof globalThis & {
 axios.defaults.headers.common = {
   ...axios.defaults.headers.common,
   "Content-Type": "application/json",
-  "X-Experience-API-Version": process.env.XAPI_VERSION,
+  "X-Experience-API-Version": process.env["XAPI_VERSION"],
 };
 
 if (typeof globalWithOauth.OAUTH !== "undefined") {
@@ -46,8 +46,8 @@ if (typeof globalWithOauth.OAUTH !== "undefined") {
     verifier: globalWithOauth.OAUTH.verifier,
   });
 } else {
-  const user = process.env.BASIC_AUTH_USER;
-  const pass = process.env.BASIC_AUTH_PASSWORD;
+  const user = process.env["BASIC_AUTH_USER"];
+  const pass = process.env["BASIC_AUTH_PASSWORD"];
 
   axios.defaults.headers.common.Authorization = `Basic ${Buffer.from(`${user}:${pass}`).toString("base64")}`;
 }

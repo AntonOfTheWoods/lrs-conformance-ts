@@ -188,7 +188,7 @@ describe("Error Codes Requirements (Communication 3.2)", () => {
         .headers(helper.addAllHeaders({}))
         .json([correct, incorrect])
         .expect(400)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {

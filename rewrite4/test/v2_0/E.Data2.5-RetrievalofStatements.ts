@@ -53,7 +53,7 @@ describe("Retrieval of Statements (Data 2.5)", function () {
         .wait(helper.genDelay(stmtTime, query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -146,7 +146,7 @@ describe("Retrieval of Statements (Data 2.5)", function () {
         .wait(helper.genDelay(stmtTime, undefined, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -177,7 +177,7 @@ describe("Retrieval of Statements (Data 2.5)", function () {
       .headers(helper.addAllHeaders({}))
       .json([statement1, statement2])
       .expect(200)
-      .end(function (err, res) {
+      .end(function (err: unknown, res: any) {
         if (err) {
           done(err);
         } else {
@@ -186,7 +186,7 @@ describe("Retrieval of Statements (Data 2.5)", function () {
             .wait(helper.genDelay(stmtTime, "?" + query, null))
             .headers(helper.addAllHeaders({}))
             .expect(200)
-            .end(function (err, res) {
+            .end(function (err: unknown, res: any) {
               if (err) {
                 done(err);
               } else {
@@ -210,7 +210,7 @@ describe("Retrieval of Statements (Data 2.5)", function () {
         .get(helper.getEndpointStatements() + "?" + query)
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -235,7 +235,7 @@ describe("Retrieval of Statements (Data 2.5)", function () {
         .get(helper.getEndpointStatements() + "?limit=1")
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -259,7 +259,7 @@ describe("Retrieval of Statements (Data 2.5)", function () {
               .get(resolve(res.request.href, result.more))
               .headers(helper.addAllHeaders({}))
               .expect(200)
-              .end(function (err, res) {
+              .end(function (err: unknown, res: any) {
                 if (err) {
                   done(err);
                 } else {
@@ -299,7 +299,7 @@ describe("Retrieval of Statements (Data 2.5)", function () {
       .headers(helper.addAllHeaders({}))
       .json([statement1, statement2])
       .expect(200)
-      .end(function (err, res) {
+      .end(function (err: unknown, res: any) {
         if (err) {
           done(err);
         } else {
@@ -308,7 +308,7 @@ describe("Retrieval of Statements (Data 2.5)", function () {
             .wait(helper.genDelay(stmtTime, "?" + query, id2))
             .headers(helper.addAllHeaders({}))
             .expect(200)
-            .end(function (err, res) {
+            .end(function (err: unknown, res: any) {
               if (err) {
                 done(err);
               } else {
@@ -317,7 +317,7 @@ describe("Retrieval of Statements (Data 2.5)", function () {
                   .get(resolve(res.request.href, results.more))
                   .headers(helper.addAllHeaders({}))
                   .expect(200)
-                  .end(function (err, res) {
+                  .end(function (err: unknown, res: any) {
                     if (err) {
                       done(err);
                     } else {

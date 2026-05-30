@@ -69,7 +69,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
         .wait(helper.genDelay(stmtTime, "?" + query, voidedId))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
             return;
@@ -113,7 +113,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
         .headers(helper.addAllHeaders({}))
         .json(data)
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
             return;
@@ -135,7 +135,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
         .headers(helper.addAllHeaders({}))
         .json(data)
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
             return;
@@ -159,7 +159,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .end(function (err) {
+        .end(function (err: unknown) {
           if (err) {
             done(err);
             return;
@@ -186,7 +186,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .end(function (err) {
+        .end(function (err: unknown) {
           if (err) {
             done(err);
             return;
@@ -225,7 +225,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
         .headers(helper.addAllHeaders({}))
         .json(data)
         .expect(200)
-        .end(function (err) {
+        .end(function (err: unknown) {
           if (err) {
             done(err);
             return;

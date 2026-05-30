@@ -128,7 +128,7 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", function 
       .then(function () {
         return helper
           .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
-          .then(function (res) {
+          .then(function (res: any) {
             let body = res.body;
             expect(body).to.eql(document);
           });
@@ -225,7 +225,7 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", function 
         delete parameters.profileId;
         return helper
           .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
-          .then(function (res) {
+          .then(function (res: any) {
             let body = res.body;
             expect(body).to.be.an("array");
             expect(body).to.be.length.above(0);
@@ -279,7 +279,7 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", function 
         parameters.since = since;
         return helper
           .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
-          .then(function (res) {
+          .then(function (res: any) {
             let body = res.body;
             expect(body).to.be.an("array");
             expect(body).to.be.length.above(0);
@@ -299,7 +299,7 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", function 
       .then(function () {
         return helper
           .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
-          .then(function (res) {
+          .then(function (res: any) {
             let body = res.body;
             expect(body).to.eql(document);
           });
@@ -326,7 +326,7 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", function 
           .then(function () {
             return helper
               .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
-              .then(function (res) {
+              .then(function (res: any) {
                 let body = res.body;
                 expect(body).to.eql({
                   car: "Honda",
@@ -364,7 +364,7 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", function 
         .post(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
         .headers(helper.addAllHeaders({}))
         .json(document)
-        .expect(204, function (err, res) {
+        .expect(204, function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -375,14 +375,14 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", function 
               .post(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
               .headers(helper.addAllHeaders(header2))
               .body(document2)
-              .expect(400, function (err, res) {
+              .expect(400, function (err: unknown, res: any) {
                 if (err) {
                   done(err);
                 } else {
                   request(helper.getEndpointAndAuth())
                     .get(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
                     .headers(helper.addAllHeaders({}))
-                    .expect(200, function (err, res) {
+                    .expect(200, function (err: unknown, res: any) {
                       if (err) {
                         done(err);
                       } else {
@@ -406,7 +406,7 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", function 
         .put(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
         .headers(helper.addAllHeaders(header))
         .body(attachment)
-        .expect(204, function (err, res) {
+        .expect(204, function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -416,14 +416,14 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", function 
               .post(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
               .headers(helper.addAllHeaders({}))
               .json(attachment2)
-              .expect(400, function (err, res) {
+              .expect(400, function (err: unknown, res: any) {
                 if (err) {
                   done(err);
                 } else {
                   request(helper.getEndpointAndAuth())
                     .get(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
                     .headers(helper.addAllHeaders({}))
-                    .expect(200, function (err, res) {
+                    .expect(200, function (err: unknown, res: any) {
                       if (err) {
                         done(err);
                       } else {
@@ -445,7 +445,7 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", function 
         .post(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
         .headers(helper.addAllHeaders({}))
         .json(document)
-        .expect(204, function (err, res) {
+        .expect(204, function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -456,14 +456,14 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", function 
               .post(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
               .headers(helper.addAllHeaders(header))
               .body(attachment)
-              .expect(400, function (err, res) {
+              .expect(400, function (err: unknown, res: any) {
                 if (err) {
                   done(err);
                 } else {
                   request(helper.getEndpointAndAuth())
                     .get(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
                     .headers(helper.addAllHeaders({}))
-                    .expect(200, function (err, res) {
+                    .expect(200, function (err: unknown, res: any) {
                       if (err) {
                         done(err);
                       } else {

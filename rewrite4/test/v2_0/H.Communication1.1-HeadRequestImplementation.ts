@@ -88,7 +88,7 @@ describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
     /*  This is to be removed in a future version on the specification and is being removed now.
         it('should succeed HEAD about with no body', function () {
             return helper.sendRequest('head', helper.getEndpointAbout(), undefined, undefined, 200)
-                .then(function (res) {
+                .then(function (res: any) {
                     expect(Object.keys(res.body)).to.have.length(0);
                 });
         });
@@ -104,7 +104,7 @@ describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
       return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
         return helper
           .sendRequest("head", helper.getEndpointActivities(), parameters, undefined, 200)
-          .then(function (res) {
+          .then(function (res: any) {
             expect(Object.keys(res.body)).to.have.length(0);
           });
       });
@@ -118,7 +118,7 @@ describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
         .then(function () {
           return helper
             .sendRequest("head", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
-            .then(function (res) {
+            .then(function (res: any) {
               expect(Object.keys(res.body)).to.have.length(0);
             });
         });
@@ -132,7 +132,7 @@ describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
         .then(function () {
           return helper
             .sendRequest("head", helper.getEndpointActivitiesState(), parameters, undefined, 200)
-            .then(function (res) {
+            .then(function (res: any) {
               expect(Object.keys(res.body)).to.have.length(0);
             });
         });
@@ -141,7 +141,7 @@ describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
     it("should succeed HEAD agents with no body", function () {
       return helper
         .sendRequest("head", helper.getEndpointAgents(), helper.buildAgent(), undefined, 200)
-        .then(function (res) {
+        .then(function (res: any) {
           expect(Object.keys(res.body)).to.have.length(0);
         });
     });
@@ -152,7 +152,7 @@ describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
       return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(function () {
         return helper
           .sendRequest("head", helper.getEndpointAgentsProfile(), parameters, undefined, 200)
-          .then(function (res) {
+          .then(function (res: any) {
             expect(Object.keys(res.body)).to.have.length(0);
           });
       });
@@ -163,7 +163,7 @@ describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
       return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
         return helper
           .sendRequest("head", helper.getEndpointStatements(), undefined, undefined, 200)
-          .then(function (res) {
+          .then(function (res: any) {
             expect(Object.keys(res.body)).to.have.length(0);
           });
       });

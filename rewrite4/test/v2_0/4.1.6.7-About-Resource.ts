@@ -34,7 +34,7 @@ describe("About Resource Requirements (Communication 2.8)", function () {
    * An LRS's About Resource accepts GET requests. Upon processing a successful GET request returns a version property and code 200 OK
    */
   it("An LRS's About Resource upon processing a successful GET request returns a version property and code 200 OK (multiplicity, Communication 2.8.s4, XAPI-00319)", function () {
-    return helper.sendRequest("get", "/about", undefined, undefined, 200).then(function (res) {
+    return helper.sendRequest("get", "/about", undefined, undefined, 200).then(function (res: any) {
       let about = res.body;
       expect(about).to.have.property("version");
     });
@@ -44,7 +44,7 @@ describe("About Resource Requirements (Communication 2.8)", function () {
    * An LRS's About API's version property is an array of strings
    */
   it("An LRS's About Resource's version property is an array of strings (format, Communication 2.8.s4.table1.row1, XAPI-00318)", function () {
-    return helper.sendRequest("get", "/about", undefined, undefined, 200).then(function (res) {
+    return helper.sendRequest("get", "/about", undefined, undefined, 200).then(function (res: any) {
       let about = res.body;
       expect(about).to.have.property("version").to.be.an("array");
     });
@@ -54,12 +54,12 @@ describe("About Resource Requirements (Communication 2.8)", function () {
    * An LRS's About API's version property contains at least one string of "1.0.x"
    */
   it("An LRS's About Resource's version property contains at least one string of \"2.0.0\" (Communication 2.8.s5.b1.b1, XAPI-00317)", function () {
-    return helper.sendRequest("get", "/about", undefined, undefined, 200).then(function (res) {
+    return helper.sendRequest("get", "/about", undefined, undefined, 200).then(function (res: any) {
       let about = res.body;
       expect(about).to.have.property("version").to.be.an("array");
 
       let foundVersion = false;
-      about.version.forEach(function (item) {
+      about.version.forEach(function (item: any) {
         if (item === "2.0.0") {
           foundVersion = true;
         }
@@ -72,11 +72,11 @@ describe("About Resource Requirements (Communication 2.8)", function () {
    * An LRS's About API's version property can only have values of "0.9", "0.95", "1.0.0", or “1.0.x” with
    */
   it('An LRS\'s About Resource\'s version property can only have values of "0.9", "0.95", "1.0.0", or ""1.0." + X" with (Communication 2.8.s5.b1.b1, XAPI-00316)', function () {
-    return helper.sendRequest("get", "/about", undefined, undefined, 200).then(function (res) {
+    return helper.sendRequest("get", "/about", undefined, undefined, 200).then(function (res: any) {
       let about = res.body;
       expect(about).to.have.property("version").to.be.an("array");
       // let validVersions = ['0.9', '0.95', '1.0.0', '1.0.1', '1.0.3', '2.0.0'];
-      // about.version.forEach(function (item) {
+      // about.version.forEach(function (item: any) {
       //     expect(validVersions).to.include(item);
       // });
 
@@ -92,7 +92,7 @@ describe("About Resource Requirements (Communication 2.8)", function () {
       request(helper.getEndpointAndAuth())
         .get(helper.getEndpointStatements())
         .headers(helper.addBasicAuthenicationHeader({}))
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else if (res.statusCode === 400) {
@@ -134,7 +134,7 @@ describe("About Resource Requirements (Communication 2.8)", function () {
       request(helper.getEndpointAndAuth())
         .get(helper.getEndpointActivities())
         .headers(helper.addBasicAuthenicationHeader({}))
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else if (res.statusCode === 400) {
@@ -167,7 +167,7 @@ describe("About Resource Requirements (Communication 2.8)", function () {
       request(helper.getEndpointAndAuth())
         .get(helper.getEndpointActivitiesProfile())
         .headers(helper.addBasicAuthenicationHeader({}))
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else if (res.statusCode === 400) {
@@ -200,7 +200,7 @@ describe("About Resource Requirements (Communication 2.8)", function () {
       request(helper.getEndpointAndAuth())
         .get(helper.getEndpointActivitiesState())
         .headers(helper.addBasicAuthenicationHeader({}))
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else if (res.statusCode === 400) {
@@ -233,7 +233,7 @@ describe("About Resource Requirements (Communication 2.8)", function () {
       request(helper.getEndpointAndAuth())
         .get(helper.getEndpointAgents())
         .headers(helper.addBasicAuthenicationHeader({}))
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else if (res.statusCode === 400) {
@@ -266,7 +266,7 @@ describe("About Resource Requirements (Communication 2.8)", function () {
       request(helper.getEndpointAndAuth())
         .get(helper.getEndpointAgentsProfile())
         .headers(helper.addBasicAuthenicationHeader({}))
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else if (res.statusCode === 400) {

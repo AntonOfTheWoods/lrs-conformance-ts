@@ -108,7 +108,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
     return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(function () {
       return helper
         .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
-        .then(function (res) {
+        .then(function (res: any) {
           let body = res.body;
           expect(body).to.eql(document);
         });
@@ -135,7 +135,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
     return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(function () {
       return helper
         .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
-        .then(function (res) {
+        .then(function (res: any) {
           let body = res.body;
           expect(body).to.eql(document);
         });
@@ -309,7 +309,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
         .post(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
         .headers(helper.addAllHeaders({}))
         .json(document)
-        .expect(204, function (err, res) {
+        .expect(204, function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -320,14 +320,14 @@ describe("State Resource Requirements (Communication 2.3)", function () {
               .post(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
               .headers(helper.addAllHeaders(header2))
               .body(document2)
-              .expect(400, function (err, res) {
+              .expect(400, function (err: unknown, res: any) {
                 if (err) {
                   done(err);
                 } else {
                   request(helper.getEndpointAndAuth())
                     .get(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
                     .headers(helper.addAllHeaders({}))
-                    .expect(200, function (err, res) {
+                    .expect(200, function (err: unknown, res: any) {
                       if (err) {
                         done(err);
                       } else {
@@ -351,7 +351,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
         .put(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
         .headers(helper.addAllHeaders(header))
         .body(attachment)
-        .expect(204, function (err, res) {
+        .expect(204, function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -361,14 +361,14 @@ describe("State Resource Requirements (Communication 2.3)", function () {
               .post(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
               .headers(helper.addAllHeaders({}))
               .json(attachment2)
-              .expect(400, function (err, res) {
+              .expect(400, function (err: unknown, res: any) {
                 if (err) {
                   done(err);
                 } else {
                   request(helper.getEndpointAndAuth())
                     .get(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
                     .headers(helper.addAllHeaders({}))
-                    .expect(200, function (err, res) {
+                    .expect(200, function (err: unknown, res: any) {
                       if (err) {
                         done(err);
                       } else {
@@ -390,7 +390,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
         .post(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
         .headers(helper.addAllHeaders({}))
         .json(document)
-        .expect(204, function (err, res) {
+        .expect(204, function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -401,14 +401,14 @@ describe("State Resource Requirements (Communication 2.3)", function () {
               .post(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
               .headers(helper.addAllHeaders(header))
               .body(attachment)
-              .expect(400, function (err, res) {
+              .expect(400, function (err: unknown, res: any) {
                 if (err) {
                   done(err);
                 } else {
                   request(helper.getEndpointAndAuth())
                     .get(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
                     .headers(helper.addAllHeaders({}))
-                    .expect(200, function (err, res) {
+                    .expect(200, function (err: unknown, res: any) {
                       if (err) {
                         done(err);
                       } else {
@@ -445,7 +445,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
     return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(function () {
       return helper
         .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
-        .then(function (res) {
+        .then(function (res: any) {
           let body = res.body;
           expect(body).to.eql(document);
         });
@@ -469,7 +469,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
         .then(function () {
           return helper
             .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
-            .then(function (res) {
+            .then(function (res: any) {
               let body = res.body;
               expect(body).to.eql({
                 car: "Honda",
@@ -507,7 +507,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
       .post(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters) + "&agent=" + agent)
       .headers(helper.addAllHeaders(header))
       .body(attachment)
-      .expect(400, function (err, res) {
+      .expect(400, function (err: unknown, res: any) {
         done(err);
       });
   });
@@ -544,7 +544,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
     return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(function () {
       return helper
         .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
-        .then(function (res) {
+        .then(function (res: any) {
           let body = res.body;
           expect(body).to.eql(document);
         });
@@ -614,7 +614,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
     return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(function () {
       return helper
         .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
-        .then(function (res) {
+        .then(function (res: any) {
           let body = res.body;
           expect(body).to.eql(document);
         });
@@ -635,7 +635,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
 
       return helper
         .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
-        .then(function (res) {
+        .then(function (res: any) {
           let body = res.body;
           expect(body).to.be.an("Array");
           expect(body).to.contain(stateId);
@@ -675,7 +675,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
       delete parameters.stateId;
       return helper
         .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
-        .then(function (res) {
+        .then(function (res: any) {
           let body = res.body;
           expect(body).to.be.an("array");
         });
@@ -691,16 +691,16 @@ describe("State Resource Requirements (Communication 2.3)", function () {
     let state2 = helper.buildState();
     let since = new Date(Date.now() - 60 * 1000 - helper.getTimeMargin()).toISOString(); //Date 1  minute ago
 
-    return helper.sendRequest("post", helper.getEndpointActivitiesState(), state1, document, 204).then(function (res) {
+    return helper.sendRequest("post", helper.getEndpointActivitiesState(), state1, document, 204).then(function (res: any) {
       return helper
         .sendRequest("post", helper.getEndpointActivitiesState(), state2, document, 204)
-        .then(function (res) {
+        .then(function (res: any) {
           let parameters = helper.buildState();
           delete parameters.stateId;
           parameters.since = since;
           return helper
             .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
-            .then(function (res) {
+            .then(function (res: any) {
               let body = res.body;
               expect(body).to.be.an("array");
               expect(body).to.have.length.above(1);
@@ -731,7 +731,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
               .then(function () {
                 return helper
                   .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
-                  .then(function (res) {
+                  .then(function (res: any) {
                     let body = res.body;
                     expect(body).to.be.an("array");
                     expect(body).to.have.length(0);

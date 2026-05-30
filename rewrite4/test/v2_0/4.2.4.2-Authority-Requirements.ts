@@ -71,7 +71,7 @@ describe("Authority Property Requirements (Data 2.4.9)", () => {
         .headers(helper.addAllHeaders({}))
         .json(data)
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
             return;
@@ -82,7 +82,7 @@ describe("Authority Property Requirements (Data 2.4.9)", () => {
             .headers(helper.addAllHeaders({}))
             .wait(helper.genDelay(stmtTime, query, data.id))
             .expect(200)
-            .end(function (getErr, getRes) {
+            .end(function (getErr: unknown, getRes: any) {
               if (getErr) {
                 done(getErr);
                 return;

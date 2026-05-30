@@ -65,7 +65,7 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
       let parameters = {
         agent: statement.actor,
       };
-      return helper.sendRequest("get", helper.getEndpointAgents(), parameters, undefined, 200).then(function (res) {
+      return helper.sendRequest("get", helper.getEndpointAgents(), parameters, undefined, 200).then(function (res: any) {
         expect(res.body.objectType).to.eql("Person");
         expect(res.body).to.be.an("object");
       });
@@ -90,7 +90,7 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
     return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
       return helper
         .sendRequest("get", helper.getEndpointAgents(), { agent: statement.actor }, undefined, 200)
-        .then(function (res) {
+        .then(function (res: any) {
           let person = res.body;
           expect(person).to.have.property("objectType").to.equal("Person");
         });
@@ -108,10 +108,10 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
     return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
       return helper
         .sendRequest("get", helper.getEndpointAgents(), { agent: statement.actor }, undefined, 200)
-        .then(function (res) {
+        .then(function (res: any) {
           let person = res.body;
           expect(person).to.have.property("name").to.be.an("array");
-          person.name.forEach(function (item) {
+          person.name.forEach(function (item: any) {
             expect(item).to.be.a("string");
           });
         });
@@ -130,10 +130,10 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
     return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
       return helper
         .sendRequest("get", helper.getEndpointAgents(), { agent: statement.actor }, undefined, 200)
-        .then(function (res) {
+        .then(function (res: any) {
           let person = res.body;
           expect(person).to.have.property("mbox").to.be.an("array");
-          person.mbox.forEach(function (item) {
+          person.mbox.forEach(function (item: any) {
             expect(item).to.be.a("string");
             let email = item.substring(MAIL_TO.length);
             expect(isEmail(email)).to.be.true;
@@ -153,10 +153,10 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
     return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
       return helper
         .sendRequest("get", helper.getEndpointAgents(), { agent: statement.actor }, undefined, 200)
-        .then(function (res) {
+        .then(function (res: any) {
           let person = res.body;
           expect(person).to.have.property("mbox").to.be.an("array");
-          person.mbox.forEach(function (item) {
+          person.mbox.forEach(function (item: any) {
             expect(item).to.be.a("string");
             expect(item).to.match(/^mailto:/);
           });
@@ -175,10 +175,10 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
     return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
       return helper
         .sendRequest("get", helper.getEndpointAgents(), { agent: statement.actor }, undefined, 200)
-        .then(function (res) {
+        .then(function (res: any) {
           let person = res.body;
           expect(person).to.have.property("mbox_sha1sum").to.be.an("array");
-          person.mbox_sha1sum.forEach(function (item) {
+          person.mbox_sha1sum.forEach(function (item: any) {
             expect(item).to.be.a("string");
           });
         });
@@ -196,10 +196,10 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
     return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
       return helper
         .sendRequest("get", helper.getEndpointAgents(), { agent: statement.actor }, undefined, 200)
-        .then(function (res) {
+        .then(function (res: any) {
           let person = res.body;
           expect(person).to.have.property("openid").to.be.an("array");
-          person.openid.forEach(function (item) {
+          person.openid.forEach(function (item: any) {
             expect(item).to.be.a("string");
           });
         });
@@ -217,10 +217,10 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
     return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
       return helper
         .sendRequest("get", helper.getEndpointAgents(), { agent: statement.actor }, undefined, 200)
-        .then(function (res) {
+        .then(function (res: any) {
           let person = res.body;
           expect(person).to.have.property("account").to.be.an("array");
-          person.account.forEach(function (item) {
+          person.account.forEach(function (item: any) {
             expect(item).to.be.an("object");
           });
         });

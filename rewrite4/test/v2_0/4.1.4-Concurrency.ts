@@ -17,7 +17,7 @@ let request = requestPromise;
 
 request = request(helper.getEndpoint());
 
-function runConcurrencyTestsForDocumentResource(resourceName, resourcePath, resourceParams) {
+function runConcurrencyTestsForDocumentResource(resourceName: string, resourcePath: string, resourceParams: any) {
   describe(`Concurrency for the ${resourceName} Resource.`, () => {
     let document = helper.buildDocument();
 
@@ -75,7 +75,7 @@ function runConcurrencyTestsForDocumentResource(resourceName, resourcePath, reso
           ...document,
           name: "Updated Name:" + helper.generateUUID(),
         };
-        let correctTag;
+        let correctTag: string;
 
         before("Get the current ETag", async () => {
           await xapiRequests.deleteDocument(resourcePath, resourceParams);
@@ -119,7 +119,7 @@ function runConcurrencyTestsForDocumentResource(resourceName, resourcePath, reso
           ...document,
           name: "Updated Name:" + helper.generateUUID(),
         };
-        let correctTag;
+        let correctTag: string;
 
         before("Get the current ETag", async () => {
           await xapiRequests.deleteDocument(resourcePath, resourceParams);
@@ -159,7 +159,7 @@ function runConcurrencyTestsForDocumentResource(resourceName, resourcePath, reso
       describe("Properly handles DELETE requests with If-Match", function () {
         let document = helper.buildDocument();
         let originalName = document.name;
-        let correctTag;
+        let correctTag: string;
 
         before("Get the current ETag", async () => {
           await xapiRequests.deleteDocument(resourcePath, resourceParams);

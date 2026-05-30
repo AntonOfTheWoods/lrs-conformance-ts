@@ -421,7 +421,7 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
         .get(helper.getEndpointStatements())
         .headers(helper.addAllHeaders())
         .expect(200)
-        .end((err, res) => {
+        .end((err: unknown, res: any) => {
           if (err) {
             done(err);
           } else {
@@ -456,7 +456,7 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
         .get(helper.getEndpointStatements())
         .headers(helper.addAllHeaders())
         .expect(200)
-        .end((err, res) => {
+        .end((err: unknown, res: any) => {
           if (err) {
             done(err);
           } else {

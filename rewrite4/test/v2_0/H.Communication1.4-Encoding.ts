@@ -36,7 +36,7 @@ describe("Encoding Requirements (Communication 1.4)", () => {
       .headers(helper.addAllHeaders({}))
       .json(unicode)
       .expect(200)
-      .end(function (err, res) {
+      .end(function (err: unknown, res: any) {
         if (err) {
           done(err);
         } else {
@@ -45,7 +45,7 @@ describe("Encoding Requirements (Communication 1.4)", () => {
             .wait(helper.genDelay(stmtTime, "?" + query, null))
             .headers(helper.addAllHeaders({}))
             .expect(200)
-            .end(function (err, res) {
+            .end(function (err: unknown, res: any) {
               if (err) {
                 done(err);
               } else {

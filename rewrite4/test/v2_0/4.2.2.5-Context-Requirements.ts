@@ -63,7 +63,7 @@ describe("Context Property Requirements (Data 2.4.6)", function () {
             .headers(helper.addAllHeaders({}))
             .json(data)
             .expect(200)
-            .end(function (err) {
+            .end(function (err: unknown) {
               if (err) {
                 done(err);
                 return;
@@ -74,7 +74,7 @@ describe("Context Property Requirements (Data 2.4.6)", function () {
                 .wait(helper.genDelay(stmtTime, query, data.id))
                 .headers(helper.addAllHeaders({}))
                 .expect(200)
-                .end(function (getErr, getRes) {
+                .end(function (getErr: unknown, getRes: any) {
                   if (getErr) {
                     done(getErr);
                     return;
@@ -111,7 +111,7 @@ describe("Context Property Requirements (Data 2.4.6)", function () {
             .headers(helper.addAllHeaders({}))
             .json(data)
             .expect(200)
-            .end(function (err) {
+            .end(function (err: unknown) {
               if (err) {
                 done(err);
                 return;
@@ -122,7 +122,7 @@ describe("Context Property Requirements (Data 2.4.6)", function () {
                 .wait(helper.genDelay(stmtTime, query, data.id))
                 .headers(helper.addAllHeaders({}))
                 .expect(200)
-                .end(function (getErr, getRes) {
+                .end(function (getErr: unknown, getRes: any) {
                   if (getErr) {
                     done(getErr);
                     return;

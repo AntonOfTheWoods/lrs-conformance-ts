@@ -40,7 +40,7 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
         .headers(helper.addAllHeaders())
         .json(data)
         .expect(200)
-        .end((err, res) => {
+        .end((err: unknown, res: any) => {
           if (err) {
             done(err);
             return;
@@ -54,7 +54,7 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
             .wait(helper.genDelay(stmtTime, query, postId))
             .headers(helper.addAllHeaders())
             .expect(200)
-            .end((getErr, getRes) => {
+            .end((getErr: unknown, getRes: any) => {
               if (getErr) {
                 done(getErr);
                 return;
@@ -79,7 +79,7 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
         .headers(helper.addAllHeaders())
         .json(data)
         .expect(204)
-        .end((err) => {
+        .end((err: unknown) => {
           if (err) {
             done(err);
             return;
@@ -90,7 +90,7 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
             .wait(helper.genDelay(stmtTime, param, putId))
             .headers(helper.addAllHeaders())
             .expect(200)
-            .end((getErr, getRes) => {
+            .end((getErr: unknown, getRes: any) => {
               if (getErr) {
                 done(getErr);
                 return;
@@ -115,7 +115,7 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
         .get(helper.getEndpointStatements())
         .headers(helper.addAllHeaders())
         .expect(200)
-        .end((err, res) => {
+        .end((err: unknown, res: any) => {
           if (err) {
             done(err);
             return;
