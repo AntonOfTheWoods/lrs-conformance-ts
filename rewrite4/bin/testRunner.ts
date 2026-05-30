@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from "uuid";
 import specRefs from "../test/references.json";
 import { versionNumber } from "../version.ts";
 import rollup from "./rollupRules.ts";
+import type { SuiteLike as RollupSuiteLike, SuiteStatus as RollupSuiteStatus } from "./rollupRules.ts";
 
 import childProcess from "child_process";
 
@@ -79,6 +80,34 @@ type CleanRunRecord = {
   log?: CleanLogRecord;
 };
 
+type SpecReference = {
+  "1.0.3_link"?: string | string[];
+  "1.0.3_ref"?: string | string[];
+};
+
+const specReferenceMap = specRefs as unknown as Record<string, SpecReference>;
+const rollupRuleMap = rollup as Record<string, (suite: RollupSuiteLike) => RollupSuiteStatus>;
+
+function normalizeReferenceLink(value: SpecReference["1.0.3_link"]): string | undefined {
+  if (typeof value === "string") {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return typeof value[0] === "string" ? value[0] : undefined;
+  }
+  return undefined;
+}
+
+function normalizeReferenceId(value: SpecReference["1.0.3_ref"]): string | undefined {
+  if (typeof value === "string") {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return typeof value[0] === "string" ? value[0] : undefined;
+  }
+  return undefined;
+}
+
 export class Suite {
   title: string;
   log = "";
@@ -95,8 +124,12 @@ export class Suite {
     this.title = title;
     if (match) {
       this.name = title.slice(0, match.index).trim();
-      const reference = specRefs[this.name];
-      this.requirement = reference?.["1.0.3_link"] ?? reference?.["1.0.3_ref"] ?? match[1] ?? "";
+      const reference = specReferenceMap[this.name];
+      this.requirement =
+        normalizeReferenceLink(reference?.["1.0.3_link"]) ??
+        normalizeReferenceId(reference?.["1.0.3_ref"]) ??
+        match[1] ??
+        "";
     } else {
       this.name = title;
       this.requirement = "";
@@ -155,7 +188,7 @@ export class TestRunner extends EventEmitter {
     this.flags = flags;
     this.options = options || {};
     this.lrsSettingsUUID = lrsSettingsUUID || null;
-    this.rollupRule = rollupRule && rollup[rollupRule] ? rollupRule : "mustPassAll";
+    this.rollupRule = rollupRule && rollupRuleMap[rollupRule] ? rollupRule : "mustPassAll";
     this.xapiVersion = typeof flags.xapiVersion === "string" ? flags.xapiVersion : versionNumber;
     this.uuid = uuidv4();
   }
@@ -384,7 +417,7 @@ export class TestRunner extends EventEmitter {
   }
 
   private rollupSuite(suite: Suite): SuiteStatus {
-    const rollupFn = rollup[this.rollupRule];
+    const rollupFn = rollupRuleMap[this.rollupRule];
     return typeof rollupFn === "function" ? rollupFn(suite) : "";
   }
 }

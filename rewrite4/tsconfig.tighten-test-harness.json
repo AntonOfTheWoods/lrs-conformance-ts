@@ -1,0 +1,19 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "noPropertyAccessFromIndexSignature": true
+  },
+  "include": [
+    "test/helper.ts",
+    "test/multipartParser.ts",
+    "test/redirect.ts",
+    "test/templatingSelection.ts",
+    "test/Parameters/testing.ts",
+    "test/Multiplicity/testing.ts",
+    "test/Untested/testing.ts",
+    "test/legacy-globals.d.ts",
+    "test/legacy-typing-shims.d.ts"
+  ],
+  "exclude": ["local", "node_modules"]
+}

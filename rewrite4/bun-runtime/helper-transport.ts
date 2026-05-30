@@ -119,10 +119,10 @@ function createHelperTransportSupport(context: HelperTransportContext) {
 
     addBasicAuthenicationHeader: function addBasicAuthenicationHeader(header: HeaderMap = {}) {
       const newHeader = cloneHeader(context, header);
-      if (process.env.BASIC_AUTH_ENABLED === "true") {
-        const userPass = Buffer.from(process.env.BASIC_AUTH_USER + ":" + process.env.BASIC_AUTH_PASSWORD).toString(
-          "base64",
-        );
+      if (process.env["BASIC_AUTH_ENABLED"] === "true") {
+        const userPass = Buffer.from(
+          process.env["BASIC_AUTH_USER"] + ":" + process.env["BASIC_AUTH_PASSWORD"],
+        ).toString("base64");
         newHeader["Authorization"] = "Basic " + userPass;
       }
       return newHeader;
@@ -149,13 +149,13 @@ function createHelperTransportSupport(context: HelperTransportContext) {
       const casePath = testTitle ? suitePath.concat([testTitle]) : null;
       const ownerPath = casePath || suitePath;
       const fallbackSuiteTitle = suitePath.length > 0 ? suitePath[0] : "unmapped";
-      const sourceFilePath = process.env.LRS_CAPTURE_SOURCE_FILE_PATH || null;
-      const sourceSymbol = process.env.LRS_CAPTURE_SOURCE_SYMBOL || null;
+      const sourceFilePath = process.env["LRS_CAPTURE_SOURCE_FILE_PATH"] || null;
+      const sourceSymbol = process.env["LRS_CAPTURE_SOURCE_SYMBOL"] || null;
 
       return encodeURIComponent(
         JSON.stringify({
           casePath: casePath,
-          directory: process.env.LRS_CAPTURE_DIRECTORY || state.DIRECTORY || "",
+          directory: process.env["LRS_CAPTURE_DIRECTORY"] || state.DIRECTORY || "",
           hookTitle: null,
           ownerLabel: ownerPath.join(" > "),
           phase: testTitle ? "case" : "before",
@@ -163,9 +163,9 @@ function createHelperTransportSupport(context: HelperTransportContext) {
           sourceSymbol: sourceSymbol,
           suitePath: suitePath,
           unitKey:
-            process.env.LRS_CAPTURE_UNIT_KEY ||
-            (process.env.LRS_CAPTURE_DIRECTORY || state.DIRECTORY || "unmapped") + ":" + fallbackSuiteTitle,
-          version: process.env.LRS_CAPTURE_VERSION || process.env.XAPI_VERSION || "",
+            process.env["LRS_CAPTURE_UNIT_KEY"] ||
+            (process.env["LRS_CAPTURE_DIRECTORY"] || state.DIRECTORY || "unmapped") + ":" + fallbackSuiteTitle,
+          version: process.env["LRS_CAPTURE_VERSION"] || process.env["XAPI_VERSION"] || "",
         }),
       );
     },
@@ -216,7 +216,7 @@ function createHelperTransportSupport(context: HelperTransportContext) {
               }
 
               const consistentThroughHeader = res.headers["x-experience-api-consistent-through"];
-              const dateHeader = res.headers.date;
+              const dateHeader = res.headers["date"];
 
               try {
                 result = JSON.parse(res.body);
@@ -224,9 +224,9 @@ function createHelperTransportSupport(context: HelperTransportContext) {
                 result = {};
               }
 
-              if (id && result.id && result.id === id) {
+              if (id && result["id"] && result["id"] === id) {
                 p.resolve();
-              } else if (id && Array.isArray(result.statements) && stmtFound(result.statements, id)) {
+              } else if (id && Array.isArray(result["statements"]) && stmtFound(result["statements"], id)) {
                 p.resolve();
               } else if (
                 new Date(consistentThroughHeader ?? Number.NaN).valueOf() + (helper().getTimeMargin() ?? Number.NaN) >=
@@ -360,13 +360,14 @@ function createHelperTransportSupport(context: HelperTransportContext) {
     },
 
     extendRequestWithOauth: function extendRequestWithOauth(pre: RequestChain) {
-      pre.sign = function (oa: AnyRecord, token: string, secret: string) {
+      const preWithSign = pre as AnyRecord;
+      preWithSign["sign"] = function (oa: AnyRecord, token: string, secret: string) {
         let additionalData: AnyRecord = {};
         additionalData = JSON.parse(JSON.stringify(additionalData));
         additionalData["oauth_verifier"] = runtimeGlobal.OAUTH?.verifier;
-        const params = oa._prepareParameters(token, secret, pre.method, pre.url, additionalData);
+        const params = oa["_prepareParameters"](token, secret, pre.method, pre.url, additionalData);
 
-        const signature = oa._buildAuthorizationHeaders(params);
+        const signature = oa["_buildAuthorizationHeaders"](params);
         pre.set("Authorization", signature);
       };
     },
@@ -385,7 +386,7 @@ function createHelperTransportSupport(context: HelperTransportContext) {
       };
       const stmt = statementContainer.statement;
 
-      stmt.id = id;
+      stmt["id"] = id;
       suiteTime = new Date();
 
       if (runtimeGlobal.OAUTH) {
@@ -437,7 +438,7 @@ function createHelperTransportSupport(context: HelperTransportContext) {
     },
 
     getXapiVersion: function getXapiVersion() {
-      return process.env.XAPI_VERSION;
+      return process.env["XAPI_VERSION"];
     },
 
     OAuthRequest: function OAuthRequest(request: RequestFactory) {
@@ -448,8 +449,8 @@ function createHelperTransportSupport(context: HelperTransportContext) {
 
         function wrapPromise(p: RequestChain | undefined) {
           if (!p) return;
-          if (p.__wrapped) return;
-          p.__wrapped = true;
+          if (p["__wrapped"]) return;
+          p["__wrapped"] = true;
           for (const i in p) {
             (function (methodName) {
               if (typeof p[methodName] !== "function") return;
@@ -472,8 +473,8 @@ function createHelperTransportSupport(context: HelperTransportContext) {
 
         function wrapMethods(testRequest: RequestChain | undefined) {
           if (!testRequest) return;
-          if (testRequest.__wrapped) return;
-          testRequest.__wrapped = true;
+          if (testRequest["__wrapped"]) return;
+          testRequest["__wrapped"] = true;
           if (testRequest._options) testRequest._options.oauth = runtimeGlobal.OAUTH;
           for (const i in testRequest) {
             (function (methodName) {

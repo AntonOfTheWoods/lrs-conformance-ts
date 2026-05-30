@@ -42,7 +42,8 @@ describe("Id Property Requirements (Data 2.4.1)", () => {
   describe('An LRS generates the "id" property of a Statement if none is provided (Modify, Data 2.4.1.s2.b1, XAPI-00026)', function () {
     it("should complete an empty id property", (done) => {
       this.timeout(0);
-      let stmtid, query;
+      let stmtid: string;
+      let query: string;
       let templates = [{ statement: "{{statements.default}}" }];
       data = helper.createFromTemplate(templates);
       data = data.statement;
@@ -53,7 +54,7 @@ describe("Id Property Requirements (Data 2.4.1)", () => {
         .headers(helper.addAllHeaders({}))
         .json(data)
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -63,7 +64,7 @@ describe("Id Property Requirements (Data 2.4.1)", () => {
               .get(helper.getEndpointStatements() + query)
               .wait(helper.genDelay(stmtTime, query, stmtid))
               .headers(helper.addAllHeaders({}))
-              .end(function (err, res) {
+              .end(function (err: unknown, res: any) {
                 if (err) {
                   done(err);
                 } else {

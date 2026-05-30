@@ -33,7 +33,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
    */
   describe("A Voided Statement is defined as a Statement that is not a Voiding Statement and is the Target of a Voiding Statement within the LRS (Data 2.3.2.s2.b3, XAPI-00018)", function () {
     let voidedId = helper.generateUUID();
-    let stmtTime;
+    let stmtTime: number;
 
     before("persist voided statement", function (done) {
       let templates = [{ statement: "{{statements.default}}" }];
@@ -70,7 +70,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
         .wait(helper.genDelay(stmtTime, "?" + query, voidedId))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -99,7 +99,8 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
    * Adjust this test accordingly
    */
   describe("A Voiding Statement cannot Target another Voiding Statement (Data 2.3.2.s2.b7, XAPI-00016)", function () {
-    let voidedId, voidingId;
+    let voidedId: string;
+    let voidingId: string;
 
     before("persist voided statement", function (done) {
       let templates = [{ statement: "{{statements.default}}" }];
@@ -111,7 +112,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
         .headers(helper.addAllHeaders({}))
         .json(data)
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -132,7 +133,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
         .headers(helper.addAllHeaders({}))
         .json(data)
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -154,7 +155,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .end(function (err, res) {
+        .end(function (err: unknown, _res: any) {
           if (err) {
             done(err);
           } else {
@@ -179,7 +180,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .end(function (err, res) {
+        .end(function (err: unknown, _res: any) {
           if (err) {
             done(err);
           } else {

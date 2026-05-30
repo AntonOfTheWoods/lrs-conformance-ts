@@ -1,0 +1,27 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "noPropertyAccessFromIndexSignature": true
+  },
+  "include": [
+    "test/v1_0_3/H.Communication2.2-DocumentResources.ts",
+    "test/v1_0_3/Data2.2-FormattingRequirements.ts",
+    "test/v1_0_3/H.Communication1.3-AlternateRequestSyntax.ts",
+    "test/v1_0_3/Data2.4.9-AuthorityProperty.ts",
+    "test/v1_0_3/E.Data2.4.10-VersionProperty.ts",
+    "test/v1_0_3/H.Communication1.4-Encoding.ts",
+    "test/v1_0_3/Data2.4.1-IDProperty.ts",
+    "test/v1_0_3/E.Data4.0-SpecialDataTypesAndRules.ts",
+    "test/v1_0_3/H.Communication1.1-HeadRequestImplementation.ts",
+    "test/v1_0_3/Data2.3-StatementLifecycle.ts",
+    "test/v1_0_3/Data2.4.6-ContextProperty.ts",
+    "test/v1_0_3/Data2.4.8-StoredProperty.ts",
+    "test/v1_0_3/H.Communication2.5-ActivitiesResource.ts",
+    "test/v1_0_3/H.Communication3.2-ErrorCodes.ts",
+    "test/v1_0_3/E.Data2.5-RetrievalofStatements.ts",
+    "test/legacy-globals.d.ts",
+    "test/legacy-typing-shims.d.ts"
+  ],
+  "exclude": ["local", "node_modules"]
+}

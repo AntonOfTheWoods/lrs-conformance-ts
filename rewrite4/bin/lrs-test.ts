@@ -128,7 +128,7 @@ export function shouldUseCommonJsCompatibleTsLoader(sourceText: string): boolean
 
 export function normalizeLegacyRequireResult<T>(value: T): T {
   if (value && typeof value === "object" && "default" in (value as Record<string, unknown>)) {
-    const defaultValue = (value as Record<string, unknown>).default;
+    const defaultValue = (value as Record<string, unknown>)["default"];
     if (typeof defaultValue !== "undefined") {
       return defaultValue as T;
     }

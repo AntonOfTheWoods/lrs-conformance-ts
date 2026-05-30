@@ -69,7 +69,7 @@ describe("Formatting Requirements (Data 2.2)", () => {
         .headers(helper.addAllHeaders({}))
         .json(data)
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, _res: unknown) {
           if (err) {
             done(err);
           } else {
@@ -78,7 +78,7 @@ describe("Formatting Requirements (Data 2.2)", () => {
               .wait(helper.genDelay(stmtTime, query, id))
               .headers(helper.addAllHeaders({}))
               .expect(200)
-              .end((err, res) => {
+              .end((err: unknown, res: any) => {
                 if (err) {
                   done(err);
                 } else {

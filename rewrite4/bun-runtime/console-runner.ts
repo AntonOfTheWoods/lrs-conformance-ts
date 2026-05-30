@@ -285,7 +285,7 @@ export async function runConsoleRunnerArgv(
   const normalizedOptions = normalizeRunnerOptions(parsedOptions);
   const forwardedArgv = buildForwardedConsoleRunnerArgv(parsedOptions, normalizedOptions);
   const runtimeRoot = resolveRuntimeRoot(dependencies.cwd);
-  const runnerMode = resolveRunnerMode(dependencies.runnerMode ?? process.env.LRS_BUN_CONSOLE_RUNNER_MODE);
+  const runnerMode = resolveRunnerMode(dependencies.runnerMode ?? process.env["LRS_BUN_CONSOLE_RUNNER_MODE"]);
   const logger = dependencies.logger ?? console;
   const exitCode =
     runnerMode === "native"

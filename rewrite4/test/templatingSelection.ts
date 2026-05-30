@@ -17,7 +17,7 @@ type TemplateHelper = {
   getSingleTestConfiguration(templateName: string): TemplateConfiguration[];
   convertTemplate(templates: TemplateMapping[]): unknown;
   createTestObject(converted: unknown): Record<string, unknown>;
-  getEndpointAndAuth(): unknown;
+  getEndpointAndAuth(): string;
   getEndpointStatements(): string;
   addAllHeaders(headers: Record<string, string>): Record<string, string>;
 };
@@ -80,7 +80,7 @@ export function createTemplate(templateName: string): void {
               .headers(helper.addAllHeaders({}))
               .json(data);
 
-            promise.expect(...templateTest.expect).end(done);
+            (promise.expect as (...args: unknown[]) => RequestChain)(...templateTest.expect).end(done);
           } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             done(`Invalid test: "${templateTest.name}" with error: ${message}`);

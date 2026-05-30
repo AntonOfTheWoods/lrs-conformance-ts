@@ -54,7 +54,7 @@ describe("Retrieval of Statements (Data 2.5)", function () {
         .wait(helper.genDelay(stmtTime, query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -71,7 +71,9 @@ describe("Retrieval of Statements (Data 2.5)", function () {
    * A "statements" property is an Array of Statements. Make a GET request which will return at least one statement and confirm the “statements” property is a valid Array of Statements.
    */
   describe('A "statements" property is an Array of Statements (Type, Data 2.5.s2.table1.row1, XAPI-00110)', function () {
-    let statement, substatement, stmtTime;
+    let statement: any;
+    let substatement: any;
+    let stmtTime: number;
     this.timeout(0);
 
     before("persist statement", function (done) {
@@ -145,7 +147,7 @@ describe("Retrieval of Statements (Data 2.5)", function () {
         .wait(helper.genDelay(stmtTime, undefined, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -178,7 +180,7 @@ describe("Retrieval of Statements (Data 2.5)", function () {
       .headers(helper.addAllHeaders({}))
       .json([statement1, statement2])
       .expect(200)
-      .end(function (err, res) {
+      .end(function (err: unknown, res: any) {
         if (err) {
           done(err);
         } else {
@@ -187,7 +189,7 @@ describe("Retrieval of Statements (Data 2.5)", function () {
             .wait(helper.genDelay(stmtTime, "?" + query, null))
             .headers(helper.addAllHeaders({}))
             .expect(200)
-            .end(function (err, res) {
+            .end(function (err: unknown, res: any) {
               if (err) {
                 done(err);
               } else {
@@ -211,7 +213,7 @@ describe("Retrieval of Statements (Data 2.5)", function () {
         .get(helper.getEndpointStatements() + "?" + query)
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -236,7 +238,7 @@ describe("Retrieval of Statements (Data 2.5)", function () {
         .get(helper.getEndpointStatements() + "?limit=1")
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -260,7 +262,7 @@ describe("Retrieval of Statements (Data 2.5)", function () {
               .get(liburl.resolve(res.request.href, result.more))
               .headers(helper.addAllHeaders({}))
               .expect(200)
-              .end(function (err, res) {
+              .end(function (err: unknown, res: any) {
                 if (err) {
                   done(err);
                 } else {
@@ -302,7 +304,7 @@ describe("Retrieval of Statements (Data 2.5)", function () {
       .headers(helper.addAllHeaders({}))
       .json([statement1, statement2])
       .expect(200)
-      .end(function (err, res) {
+      .end(function (err: unknown, res: any) {
         if (err) {
           done(err);
         } else {
@@ -311,7 +313,7 @@ describe("Retrieval of Statements (Data 2.5)", function () {
             .wait(helper.genDelay(stmtTime, "?" + query, id2))
             .headers(helper.addAllHeaders({}))
             .expect(200)
-            .end(function (err, res) {
+            .end(function (err: unknown, res: any) {
               if (err) {
                 done(err);
               } else {
@@ -320,7 +322,7 @@ describe("Retrieval of Statements (Data 2.5)", function () {
                   .get(liburl.resolve(res.request.href, results.more))
                   .headers(helper.addAllHeaders({}))
                   .expect(200)
-                  .end(function (err, res) {
+                  .end(function (err: unknown, res: any) {
                     if (err) {
                       done(err);
                     } else {

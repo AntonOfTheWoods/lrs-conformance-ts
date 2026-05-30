@@ -1,0 +1,9 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "noPropertyAccessFromIndexSignature": true
+  },
+  "include": ["bun-runtime/**/*.ts", "test/legacy-typing-shims.d.ts"],
+  "exclude": ["local", "node_modules"]
+}

@@ -165,9 +165,9 @@ function removeNulls(log: CleanLogRecord | undefined): CleanLogRecord | undefine
 }
 
 function start(runnerOptions: Record<string, unknown>): void {
-  delete runnerOptions.request_token_path;
-  delete runnerOptions.auth_token_path;
-  delete runnerOptions.authorization_path;
+  delete runnerOptions["request_token_path"];
+  delete runnerOptions["auth_token_path"];
+  delete runnerOptions["authorization_path"];
 
   testRunner = new TestRunner("console", null, runnerOptions);
   testRunner.start();
@@ -191,7 +191,7 @@ function start(runnerOptions: Record<string, unknown>): void {
       console.log(`Tests completed in ${Number(testRunner.duration ?? 0) / 1000} seconds`);
 
       const cleanLog = testRunner.getCleanRecord();
-      const output = runnerOptions.errors
+      const output = runnerOptions["errors"]
         ? JSON.stringify(
             {
               name: cleanLog.name,
@@ -240,15 +240,16 @@ if (!program.oAuth1) {
   start(options);
 } else {
   const config: OAuthConfig = {
-    consumer_key: typeof options.consumer_key === "string" ? options.consumer_key : undefined,
-    consumer_secret: typeof options.consumer_secret === "string" ? options.consumer_secret : undefined,
-    request_token_path: typeof options.request_token_path === "string" ? options.request_token_path : "/OAuth/initiate",
-    auth_token_path: typeof options.auth_token_path === "string" ? options.auth_token_path : "/OAuth/token",
+    consumer_key: typeof options["consumer_key"] === "string" ? options["consumer_key"] : undefined,
+    consumer_secret: typeof options["consumer_secret"] === "string" ? options["consumer_secret"] : undefined,
+    request_token_path:
+      typeof options["request_token_path"] === "string" ? options["request_token_path"] : "/OAuth/initiate",
+    auth_token_path: typeof options["auth_token_path"] === "string" ? options["auth_token_path"] : "/OAuth/token",
     authorization_path:
-      typeof options.authorization_path === "string"
-        ? options.authorization_path
+      typeof options["authorization_path"] === "string"
+        ? options["authorization_path"]
         : "/../accounts/login?next=/XAPI/OAuth/authorize",
-    endpoint: typeof options.endpoint === "string" ? options.endpoint : undefined,
+    endpoint: typeof options["endpoint"] === "string" ? options["endpoint"] : undefined,
   };
 
   doOAuth1Auth(config, function (error: unknown, oAuth?: OAuthResponse) {
@@ -257,9 +258,9 @@ if (!program.oAuth1) {
       return;
     }
 
-    options.token = oAuth.token;
-    options.token_secret = oAuth.token_secret;
-    options.verifier = oAuth.verifier;
+    options["token"] = oAuth.token;
+    options["token_secret"] = oAuth.token_secret;
+    options["verifier"] = oAuth.verifier;
     start(options);
   });
 }

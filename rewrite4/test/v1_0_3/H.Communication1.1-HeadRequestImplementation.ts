@@ -104,11 +104,11 @@ describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
         activityId: data.statement.object.id,
       };
       return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
-        return helper
-          .sendRequest("head", helper.getEndpointActivities(), parameters, undefined, 200)
-          .then(function (res) {
-            expect(Object.keys(res.body)).to.have.length(0);
-          });
+        return helper.sendRequest("head", helper.getEndpointActivities(), parameters, undefined, 200).then(function (
+          res: any,
+        ) {
+          expect(Object.keys(res.body)).to.have.length(0);
+        });
       });
     });
 
@@ -120,7 +120,7 @@ describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
         .then(function () {
           return helper
             .sendRequest("head", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
-            .then(function (res) {
+            .then(function (res: any) {
               expect(Object.keys(res.body)).to.have.length(0);
             });
         });
@@ -134,40 +134,40 @@ describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
         .then(function () {
           return helper
             .sendRequest("head", helper.getEndpointActivitiesState(), parameters, undefined, 200)
-            .then(function (res) {
+            .then(function (res: any) {
               expect(Object.keys(res.body)).to.have.length(0);
             });
         });
     });
 
     it("should succeed HEAD agents with no body", function () {
-      return helper
-        .sendRequest("head", helper.getEndpointAgents(), helper.buildAgent(), undefined, 200)
-        .then(function (res) {
-          expect(Object.keys(res.body)).to.have.length(0);
-        });
+      return helper.sendRequest("head", helper.getEndpointAgents(), helper.buildAgent(), undefined, 200).then(function (
+        res: any,
+      ) {
+        expect(Object.keys(res.body)).to.have.length(0);
+      });
     });
 
     it("should succeed HEAD agents profile with no body", function () {
       let parameters = helper.buildAgentProfile(),
         document = helper.buildDocument();
       return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(function () {
-        return helper
-          .sendRequest("head", helper.getEndpointAgentsProfile(), parameters, undefined, 200)
-          .then(function (res) {
-            expect(Object.keys(res.body)).to.have.length(0);
-          });
+        return helper.sendRequest("head", helper.getEndpointAgentsProfile(), parameters, undefined, 200).then(function (
+          res: any,
+        ) {
+          expect(Object.keys(res.body)).to.have.length(0);
+        });
       });
     });
 
     it("should succeed HEAD statements with no body", function () {
       let statement = helper.buildStatement();
       return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
-        return helper
-          .sendRequest("head", helper.getEndpointStatements(), undefined, undefined, 200)
-          .then(function (res) {
-            expect(Object.keys(res.body)).to.have.length(0);
-          });
+        return helper.sendRequest("head", helper.getEndpointStatements(), undefined, undefined, 200).then(function (
+          res: any,
+        ) {
+          expect(Object.keys(res.body)).to.have.length(0);
+        });
       });
     });
   });

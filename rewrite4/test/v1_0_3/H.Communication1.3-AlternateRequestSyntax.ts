@@ -28,7 +28,7 @@ describe("Alternate Request Syntax Requirements (Communication 1.3)", function (
         .headers(helper.addAllHeaders({}))
         .form({ limit: 1 })
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {

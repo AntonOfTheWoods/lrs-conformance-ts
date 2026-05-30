@@ -47,7 +47,7 @@ describe("Version Property Requirements (Data 2.4.10)", () => {
       .headers(helper.addAllHeaders({}))
       .json(statement)
       .expect(200)
-      .end(function (err, res) {
+      .end(function (err: unknown, res: any) {
         if (err) {
           done(err);
         } else {
@@ -56,7 +56,7 @@ describe("Version Property Requirements (Data 2.4.10)", () => {
             .wait(helper.genDelay(stmtTime, "?" + query, id))
             .headers(helper.addAllHeaders({}))
             .expect(200)
-            .end(function (err, res) {
+            .end(function (err: unknown, res: any) {
               if (err) {
                 done(err);
               } else {

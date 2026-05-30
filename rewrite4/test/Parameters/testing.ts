@@ -63,7 +63,7 @@ function extendRequestWithOauth(pre: any): void {
   pre.sign = function (oa: any, token: string, secret: string) {
     let additionalData: Record<string, unknown> = {}; //TODO: deal with body params that need to be encoded into the hash (when the data is a form....)
     additionalData = JSON.parse(JSON.stringify(additionalData));
-    additionalData.oauth_verifier = globalWithOauth.OAUTH?.verifier; //Not sure why the lib does not do is, is required. Jam the verifier in
+    additionalData["oauth_verifier"] = globalWithOauth.OAUTH?.verifier; //Not sure why the lib does not do is, is required. Jam the verifier in
     const params = oa._prepareParameters(
       token,
       secret,
@@ -98,7 +98,7 @@ function sendRequest(type: string, url: string, params: unknown, body: unknown, 
     pre.send(body);
   }
   pre.set("X-Experience-API-Version", headers["X-Experience-API-Version"]);
-  if (process.env.BASIC_AUTH_ENABLED === "true") {
+  if (process.env["BASIC_AUTH_ENABLED"] === "true") {
     pre.set("Authorization", headers.Authorization);
   }
   if (headers["x-lrs-conformance-owner"]) {

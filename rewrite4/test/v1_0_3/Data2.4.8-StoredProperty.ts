@@ -32,7 +32,8 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
     let storedTime = new Date("July 15, 2011").toISOString();
     let template = [{ statement: "{{statements.default}}" }, { stored: storedTime }];
     let data = helper.createFromTemplate(template).statement;
-    let postId, putId;
+    let postId: string;
+    let putId: string;
 
     it("using POST", function (done) {
       let stmtTime = Date.now();
@@ -41,7 +42,7 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
         .headers(helper.addAllHeaders())
         .json(data)
         .expect(200)
-        .end((err, res) => {
+        .end((err: unknown, res: any) => {
           if (err) {
             done(err);
           } else {
@@ -53,7 +54,7 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
               .wait(helper.genDelay(stmtTime, query, postId))
               .headers(helper.addAllHeaders())
               .expect(200)
-              .end((err, res) => {
+              .end((err: unknown, res: any) => {
                 if (err) {
                   done(err);
                 } else {
@@ -78,7 +79,7 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
         .headers(helper.addAllHeaders())
         .json(data)
         .expect(204)
-        .end((err, res) => {
+        .end((err: unknown, _res: any) => {
           if (err) {
             done(err);
           } else {
@@ -87,7 +88,7 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
               .wait(helper.genDelay(stmtTime, param, putId))
               .headers(helper.addAllHeaders())
               .expect(200)
-              .end((err, res) => {
+              .end((err: unknown, res: any) => {
                 if (err) {
                   done(err);
                 } else {
@@ -112,13 +113,13 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
         .get(helper.getEndpointStatements())
         .headers(helper.addAllHeaders())
         .expect(200)
-        .end((err, res) => {
+        .end((err: unknown, res: any) => {
           if (err) {
             done(err);
           } else {
             let result = helper.parse(res.body);
             let stmts = result.statements;
-            let milliChecker = (num) => {
+            let milliChecker = (num: number) => {
               expect(stmts[num]).to.have.property("stored");
               //formatted iso 8601
               let chkStored = moment(stmts[num].stored, moment.ISO_8601);

@@ -101,21 +101,21 @@ export function matchesSelectedSuiteFile(selectedFiles: Set<string> | null, rela
 }
 
 function applyRunnerEnvironment(normalizedOptions: NormalizedRunnerOptions): Array<string | undefined> {
-  const previousDirectory = process.env.DIRECTORY;
-  const previousEndpoint = process.env.LRS_ENDPOINT;
-  const previousBasicAuthEnabled = process.env.BASIC_AUTH_ENABLED;
-  const previousBasicAuthUser = process.env.BASIC_AUTH_USER;
-  const previousBasicAuthPassword = process.env.BASIC_AUTH_PASSWORD;
-  const previousOAuthEnabled = process.env.OAUTH1_ENABLED;
-  const previousXapiVersion = process.env.XAPI_VERSION;
+  const previousDirectory = process.env["DIRECTORY"];
+  const previousEndpoint = process.env["LRS_ENDPOINT"];
+  const previousBasicAuthEnabled = process.env["BASIC_AUTH_ENABLED"];
+  const previousBasicAuthUser = process.env["BASIC_AUTH_USER"];
+  const previousBasicAuthPassword = process.env["BASIC_AUTH_PASSWORD"];
+  const previousOAuthEnabled = process.env["OAUTH1_ENABLED"];
+  const previousXapiVersion = process.env["XAPI_VERSION"];
 
-  process.env.DIRECTORY = normalizedOptions.directory[0] ?? "";
-  process.env.LRS_ENDPOINT = normalizedOptions.endpoint;
-  process.env.BASIC_AUTH_ENABLED = String(normalizedOptions.basicAuth);
-  process.env.BASIC_AUTH_USER = normalizedOptions.authUser ?? "";
-  process.env.BASIC_AUTH_PASSWORD = normalizedOptions.authPass ?? "";
-  process.env.OAUTH1_ENABLED = String(normalizedOptions.oAuth1);
-  process.env.XAPI_VERSION = normalizedOptions.xapiVersion;
+  process.env["DIRECTORY"] = normalizedOptions.directory[0] ?? "";
+  process.env["LRS_ENDPOINT"] = normalizedOptions.endpoint;
+  process.env["BASIC_AUTH_ENABLED"] = String(normalizedOptions.basicAuth);
+  process.env["BASIC_AUTH_USER"] = normalizedOptions.authUser ?? "";
+  process.env["BASIC_AUTH_PASSWORD"] = normalizedOptions.authPass ?? "";
+  process.env["OAUTH1_ENABLED"] = String(normalizedOptions.oAuth1);
+  process.env["XAPI_VERSION"] = normalizedOptions.xapiVersion;
 
   if (normalizedOptions.oAuth1) {
     (globalThis as SuiteGlobalShape).OAUTH = {
@@ -316,7 +316,7 @@ function shouldUseCommonJsCompatibleTsLoader(sourceText: string): boolean {
 
 function normalizeLegacyRequireResult<T>(value: T): T {
   if (value && typeof value === "object" && "default" in (value as Record<string, unknown>)) {
-    const defaultValue = (value as Record<string, unknown>).default;
+    const defaultValue = (value as Record<string, unknown>)["default"];
     if (typeof defaultValue !== "undefined") {
       return defaultValue as T;
     }

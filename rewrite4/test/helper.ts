@@ -35,7 +35,7 @@ type HelperState = {
 };
 
 function loadLocalEnvIfNeeded(): void {
-  if (process.env.EB_NODE_COMMAND) {
+  if (process.env["EB_NODE_COMMAND"]) {
     return;
   }
 
@@ -83,14 +83,14 @@ const CAPTURE_OWNER_HEADER = "x-lrs-conformance-owner";
 let helperExports: HelperExports;
 
 function getState(): HelperState {
-  const directory = process.env.DIRECTORY ?? "";
+  const directory = process.env["DIRECTORY"] ?? "";
 
   return {
     CAPTURE_OWNER_HEADER,
     CONFIG_FOLDER: `./test/${directory}/configs`,
     CONFIG_FOLDER_RELATIVE: `./${directory}/configs`,
     DIRECTORY: directory,
-    LRS_ENDPOINT: process.env.LRS_ENDPOINT ?? "",
+    LRS_ENDPOINT: process.env["LRS_ENDPOINT"] ?? "",
     TEMPLATE_FOLDER: `./test/${directory}/templates`,
     TEMPLATE_FOLDER_RELATIVE: `./${directory}/templates`,
     TIME_MARGIN: timeMargin,

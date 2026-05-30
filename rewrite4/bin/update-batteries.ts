@@ -9,8 +9,8 @@ import path from "node:path";
 import specs from "../specConfig.ts";
 
 const cjsRequire = createRequire(import.meta.url);
-const chai = cjsRequire("chai") as typeof import("chai");
-const chaiThings = cjsRequire("chai-things") as (chaiValue: typeof import("chai"), utils: unknown) => void;
+const chai = cjsRequire("chai") as any;
+const chaiThings = cjsRequire("chai-things") as (chaiValue: any, utils: unknown) => void;
 const Mocha = cjsRequire("mocha") as new (options: Record<string, unknown>) => {
   addFile(file: string): void;
   loadFiles(): void;
@@ -67,12 +67,12 @@ function createBattery(version: string): BatteryInfo {
   const rewriteRoot = path.join(__dirname, "..");
   const directory = version === "1.0.3" ? "v1_0_3" : "v2_0";
 
-  process.env.DIRECTORY = directory;
-  process.env.LRS_ENDPOINT = "http://localhost:3001/xapi";
-  process.env.BASIC_AUTH_ENABLED = "true";
-  process.env.BASIC_AUTH_USER = "No:";
-  process.env.BASIC_AUTH_PASSWORD = "User";
-  process.env.XAPI_VERSION = version;
+  process.env["DIRECTORY"] = directory;
+  process.env["LRS_ENDPOINT"] = "http://localhost:3001/xapi";
+  process.env["BASIC_AUTH_ENABLED"] = "true";
+  process.env["BASIC_AUTH_USER"] = "No:";
+  process.env["BASIC_AUTH_PASSWORD"] = "User";
+  process.env["XAPI_VERSION"] = version;
 
   chai.use(chaiThings);
 

@@ -250,11 +250,11 @@ function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
 
     buildFormBody: function buildFormBody(content: unknown, id?: string) {
       const body: Record<string, unknown> = {
-        "X-Experience-API-Version": process.env.XAPI_VERSION,
+        "X-Experience-API-Version": process.env["XAPI_VERSION"],
         content: JSON.stringify(content),
       };
       if (id) {
-        body.statementId = id;
+        body["statementId"] = id;
       }
       return context.FormUrlencode.encode(body);
     },

@@ -423,13 +423,13 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
         .get(helper.getEndpointStatements())
         .headers(helper.addAllHeaders())
         .expect(200)
-        .end((err, res) => {
+        .end((err: unknown, res: any) => {
           if (err) {
             done(err);
           } else {
             let result = helper.parse(res.body);
             let stmts = result.statements;
-            let milliChecker = (num) => {
+            let milliChecker = (num: number) => {
               expect(stmts[num]).to.have.property("timestamp");
               //formatted iso 8601
               let chkStored = moment(stmts[num].timestamp, moment.ISO_8601);
@@ -458,13 +458,13 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
         .get(helper.getEndpointStatements())
         .headers(helper.addAllHeaders())
         .expect(200)
-        .end((err, res) => {
+        .end((err: unknown, res: any) => {
           if (err) {
             done(err);
           } else {
             let result = helper.parse(res.body);
             let stmts = result.statements;
-            let milliChecker = (num) => {
+            let milliChecker = (num: number) => {
               expect(stmts[num]).to.have.property("stored");
               //formatted iso 8601
               let chkStored = moment(stmts[num].stored, moment.ISO_8601);
