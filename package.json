@@ -8,6 +8,8 @@
     "lint": "oxlint --config .oxlintrc.jsonc .",
     "format": "oxfmt --config .oxfmtrc.jsonc --write .",
     "validate:archive-boundary": "bun ./scripts/validate-archive-boundary.ts",
+    "migration:mocha:baseline": "bun ./scripts/mocha-migration-baseline.ts",
+    "migration:mocha:check-boundary": "bun ./scripts/check-mocha-oracle-boundary.ts",
     "rewrite:bootstrap:candidate": "bun ./rewrite/scripts/bootstrap-fresh-candidate.ts",
     "lrsql:up": "podman compose -f compose/lrsql/podman-compose.yml up -d",
     "lrsql:down": "podman compose -f compose/lrsql/podman-compose.yml down",
@@ -31,6 +33,8 @@
     "rewrite:db:attribute": "bun ./rewrite/scripts/attribute-db-divergence.ts",
     "rewrite:report:compare": "bun ./rewrite/scripts/analyze-compare-output.ts",
     "rewrite:diagnose:scope": "bun ./rewrite/scripts/diagnose-scope.ts",
+    "rewrite:migration:phase1:inventory": "bun ./rewrite/scripts/phase1-codemod-inventory.ts",
+    "rewrite:migration:phase1:inject-imports": "bun ./rewrite/scripts/codemod-inject-bun-test-imports.ts",
     "rewrite:compare": "bun ./rewrite/scripts/compare-parity.ts",
     "validate": "bun run validate:archive-boundary && bun run typecheck && bun run lint && bun run test"
   },
