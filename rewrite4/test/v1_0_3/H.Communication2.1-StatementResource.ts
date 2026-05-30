@@ -312,11 +312,11 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
    * An LRS's Statement API accepts GET requests
    */
   describe("LRS's Statement Resource accepts GET requests (Communication 2.1.3.s1, XAPI-00159)", function () {
-    it("should return using GET", function (done) {
-      request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .expect(200, done);
+    it("should return using GET", async function () {
+      await expectAsync(
+        request(helper.getEndpointAndAuth()).get(helper.getEndpointStatements()).headers(helper.addAllHeaders({})),
+        200,
+      );
     });
   });
 
@@ -326,7 +326,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
   describe('An LRS\'s Statement Resource upon processing a successful GET request with a "statementId" parameter, returns code 200 OK and a single Statement with the corresponding "id".  (Communication 2.1.3.s1, XAPI-00156)', function () {
     let id: string, stmtTime: number;
 
-    before("persist statement", function (done) {
+    before("persist statement", async function () {
       let templates = [{ statement: "{{statements.default}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
@@ -334,29 +334,27 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
       id = data.id;
 
       stmtTime = Date.now();
-      request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        .expect(200, done);
+      await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        200,
+      );
     });
 
-    it('should retrieve statement using "statementId"', function (done) {
+    it('should retrieve statement using "statementId"', async function () {
       this.timeout(0);
-      request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?statementId=" + id)
-        .wait(helper.genDelay(stmtTime, "?statementId=" + id, id))
-        .headers(helper.addAllHeaders({}))
-        .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            let statement = helper.parse(res.body, done);
-            expect(statement.id).to.equal(id);
-            done();
-          }
-        });
+      const res = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?statementId=" + id)
+          .wait(helper.genDelay(stmtTime, "?statementId=" + id, id))
+          .headers(helper.addAllHeaders({})),
+        200,
+      );
+
+      const statement = JSON.parse(res.body as string);
+      expect(statement.id).to.equal(id);
     });
   });
 
@@ -368,50 +366,50 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
     let voidedId = helper.generateUUID();
     let stmtTime: number;
 
-    before("persist voided statement", function (done) {
+    before("persist voided statement", async function () {
       let templates = [{ statement: "{{statements.default}}" }];
       let voided = helper.createFromTemplate(templates);
       voided = voided.statement;
       voided.id = voidedId;
 
-      request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(voided)
-        .expect(200, done);
+      await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(voided),
+        200,
+      );
     });
 
-    before("persist voiding statement", function (done) {
+    before("persist voiding statement", async function () {
       let templates = [{ statement: "{{statements.voiding}}" }];
       let voiding = helper.createFromTemplate(templates);
       voiding = voiding.statement;
       voiding.object.id = voidedId;
 
       stmtTime = Date.now();
-      request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(voiding)
-        .expect(200, done);
+      await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(voiding),
+        200,
+      );
     });
 
-    it('should return a voided statement when using GET "voidedStatementId"', function (done) {
+    it('should return a voided statement when using GET "voidedStatementId"', async function () {
       this.timeout(0);
       let query = helper.getUrlEncoding({ voidedStatementId: voidedId });
-      request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .wait(helper.genDelay(stmtTime, "?" + query, voidedId))
-        .headers(helper.addAllHeaders({}))
-        .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            let statement = helper.parse(res.body, done);
-            expect(statement.id).to.equal(voidedId);
-            done();
-          }
-        });
+      const res = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .wait(helper.genDelay(stmtTime, "?" + query, voidedId))
+          .headers(helper.addAllHeaders({})),
+        200,
+      );
+
+      const statement = JSON.parse(res.body as string);
+      expect(statement.id).to.equal(voidedId);
     });
   });
 
