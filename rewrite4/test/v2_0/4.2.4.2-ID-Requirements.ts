@@ -15,7 +15,6 @@
 import { expect } from "chai";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
-import { endAsync } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
 
 const helper: any = helperImport;
@@ -40,39 +39,41 @@ describe("Id Property Requirements (Data 2.4.1)", () => {
    * An LRS generates the "id" property of a Statement if none is provided (Modify, 4.1.1.a)
    */
   describe('An LRS generates the "id" property of a Statement if none is provided (Modify, Data 2.4.1.s2.b1, XAPI-00026)', function () {
-    it("should complete an empty id property", async function () {
-      const context = this;
-      context.timeout(0);
-
+    it("should complete an empty id property", function (done: any) {
+      this.timeout(0);
       let stmtId: string;
+      let query: string;
       const templates = [{ statement: "{{statements.default}}" }];
       data = helper.createFromTemplate(templates);
       data = data.statement;
       const stmtTime = Date.now();
 
-      const res = await endAsync(
-        request(helper.getEndpointAndAuth())
-          .post(helper.getEndpointStatements())
-          .headers(helper.addAllHeaders({}))
-          .json(data)
-          .expect(200),
-      );
-
-      stmtId = (res.body as string[])[0] as string;
-      const query = "?statementId=" + stmtId;
       request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + query)
-        .wait(helper.genDelay(stmtTime, query, stmtId))
+        .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
-        .end(function (getErr: unknown, getRes: any) {
-          if (getErr) {
-            throw getErr;
-            return;
+        .json(data)
+        .expect(200)
+        .end(function (err: unknown, res: any) {
+          if (err) {
+            done(err);
+          } else {
+            stmtId = (res.body as string[])[0] as string;
+            query = "?statementId=" + stmtId;
+            request(helper.getEndpointAndAuth())
+              .get(helper.getEndpointStatements() + query)
+              .wait(helper.genDelay(stmtTime, query, stmtId))
+              .headers(helper.addAllHeaders({}))
+              .end(function (getErr: unknown, getRes: any) {
+                if (getErr) {
+                  done(getErr);
+                } else {
+                  const results = helper.parse(getRes.body, done);
+                  expect(results.id).to.not.be.undefined;
+                  expect(results.id).to.eql(stmtId);
+                  done();
+                }
+              });
           }
-
-          const results = helper.parse(getRes.body);
-          expect(results.id).to.not.be.undefined;
-          expect(results.id).to.eql(stmtId);
         });
     });
   });
