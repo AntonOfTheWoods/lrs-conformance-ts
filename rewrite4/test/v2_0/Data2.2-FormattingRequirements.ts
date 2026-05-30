@@ -79,22 +79,19 @@ describe("Formatting Requirements (Data 2.2)", () => {
           .expect(200),
       );
 
-      request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + query)
-        .wait(helper.genDelay(stmtTime, query, id))
-        .headers(helper.addAllHeaders({}))
-        .expect(200)
-        .end((err: unknown, res: any) => {
-          if (err) {
-            throw err;
-          } else {
-            const score = helper.parse(res.body).result.score;
-            expect(score.min).to.eql(min);
-            expect(score.raw).to.eql(raw);
-            expect(score.max).to.eql(max);
-            expect(score.scaled).to.eql(min);
-          }
-        });
+      const res = await endAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + query)
+          .wait(helper.genDelay(stmtTime, query, id))
+          .headers(helper.addAllHeaders({}))
+          .expect(200),
+      );
+
+      const score = helper.parse(res.body).result.score;
+      expect(score.min).to.eql(min);
+      expect(score.raw).to.eql(raw);
+      expect(score.max).to.eql(max);
+      expect(score.scaled).to.eql(min);
     });
   });
 
