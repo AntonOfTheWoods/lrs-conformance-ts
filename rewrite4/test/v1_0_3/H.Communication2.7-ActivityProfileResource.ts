@@ -375,94 +375,100 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", () => {
    */
   describe("An LRS's Activity Profile Resource, rejects a POST request if the document is found and either document is not a valid JSON Object (Communication 2.7.s3.table1.row3, Communication 2.2.s8.b1, XAPI-00313)", function () {
     // case 1 - bad post
-    it("If the document being posted to the Activity Profile Resource does not have a Content-Type of application/json and the existing document does, the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", async function () {let document = helper.buildActivityProfile();
-let parameters = helper.buildActivityProfile();
+    it("If the document being posted to the Activity Profile Resource does not have a Content-Type of application/json and the existing document does, the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", async function () {
+      let document = helper.buildActivityProfile();
+      let parameters = helper.buildActivityProfile();
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
-        .headers(helper.addAllHeaders({}))
-        .json(document),
-      204,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
+          .headers(helper.addAllHeaders({}))
+          .json(document),
+        204,
       );
 
-let document2 = "abcdefg";
-let header2 = { "content-type": "application/octet-stream" };
-            await expectAsync(
-request(helper.getEndpointAndAuth())
-              .post(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
-              .headers(helper.addAllHeaders(header2))
-              .body(document2),
-            400,
-            );
+      let document2 = "abcdefg";
+      let header2 = { "content-type": "application/octet-stream" };
+      await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
+          .headers(helper.addAllHeaders(header2))
+          .body(document2),
+        400,
+      );
 
-                  const res3 = await expectAsync(
-request(helper.getEndpointAndAuth())
-                    .get(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
-                    .headers(helper.addAllHeaders({})),
-                  200,
-                  );
+      const res3 = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
+          .headers(helper.addAllHeaders({})),
+        200,
+      );
 
-let result = helper.parse(res3.body);
-expect(result).to.eql(document);});
+      let result = helper.parse(res3.body);
+      expect(result).to.eql(document);
+    });
     // case 2 - bad existion
-    it("If the existing document does not have a Content-Type of application/json but the document being posted to the Activity Profile Resource does the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", async function () {let parameters = helper.buildActivityProfile();
-let attachment = "/ asdf / undefined";
-let header = { "content-type": "application/octet-stream", "If-None-Match": "*" };
+    it("If the existing document does not have a Content-Type of application/json but the document being posted to the Activity Profile Resource does the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", async function () {
+      let parameters = helper.buildActivityProfile();
+      let attachment = "/ asdf / undefined";
+      let header = { "content-type": "application/octet-stream", "If-None-Match": "*" };
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
-        .headers(helper.addAllHeaders(header))
-        .body(attachment),
-      204,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
+          .headers(helper.addAllHeaders(header))
+          .body(attachment),
+        204,
       );
 
-let attachment2 = helper.buildDocument();
-            await expectAsync(
-request(helper.getEndpointAndAuth())
-              .post(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
-              .headers(helper.addAllHeaders({}))
-              .json(attachment2),
-            400,
-            );
+      let attachment2 = helper.buildDocument();
+      await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
+          .headers(helper.addAllHeaders({}))
+          .json(attachment2),
+        400,
+      );
 
-                  const res3 = await expectAsync(
-request(helper.getEndpointAndAuth())
-                    .get(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
-                    .headers(helper.addAllHeaders({})),
-                  200,
-                  );
+      const res3 = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
+          .headers(helper.addAllHeaders({})),
+        200,
+      );
 
-expect(res3.body).to.eql(attachment);});
+      expect(res3.body).to.eql(attachment);
+    });
     // case 3 - bad json
-    it("If the document being posted to the Activity Profile Resource has a content type of Content-Type of application/json but cannot be parsed as a JSON Object, the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", async function () {let parameters = helper.buildActivityProfile();
-let document = helper.buildDocument();
+    it("If the document being posted to the Activity Profile Resource has a content type of Content-Type of application/json but cannot be parsed as a JSON Object, the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", async function () {
+      let parameters = helper.buildActivityProfile();
+      let document = helper.buildDocument();
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
-        .headers(helper.addAllHeaders({}))
-        .json(document),
-      204,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
+          .headers(helper.addAllHeaders({}))
+          .json(document),
+        204,
       );
 
-let header = { "content-type": "application/json" };
-let attachment = JSON.stringify(helper.buildActivityProfile()) + "{";
-            await expectAsync(
-request(helper.getEndpointAndAuth())
-              .post(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
-              .headers(helper.addAllHeaders(header))
-              .body(attachment),
-            400,
-            );
+      let header = { "content-type": "application/json" };
+      let attachment = JSON.stringify(helper.buildActivityProfile()) + "{";
+      await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
+          .headers(helper.addAllHeaders(header))
+          .body(attachment),
+        400,
+      );
 
-                  const res3 = await expectAsync(
-request(helper.getEndpointAndAuth())
-                    .get(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
-                    .headers(helper.addAllHeaders({})),
-                  200,
-                  );
+      const res3 = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
+          .headers(helper.addAllHeaders({})),
+        200,
+      );
 
-let result = helper.parse(res3.body);
-expect(result).to.eql(document);});
+      let result = helper.parse(res3.body);
+      expect(result).to.eql(document);
+    });
   });
 
   /**  XAPI-00314, Communication 2.7 Activity Profile Resource

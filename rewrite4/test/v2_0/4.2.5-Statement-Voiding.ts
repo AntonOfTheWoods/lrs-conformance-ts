@@ -198,13 +198,14 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
   describe("An LRS SHALL NOT reject a voided statement because it cannot find the ID of the Object of that statement, nor does the LRS have to try to find it. (4.2.4.1 LRS Rejection Cases, XAPI-00016)", function () {
     const nonExistentStatementID = helper.generateUUID();
 
-    it("Shall not reject a voided statement.", async function () {const context = this;
-context.timeout(0);
-const templates = [{ statement: "{{statements.object_statementref}}" }, { verb: "{{verbs.voided}}" }];
-let data = helper.createFromTemplate(templates);
-data = data.statement;
-data.object.id = nonExistentStatementID;
-request(helper.getEndpointAndAuth())
+    it("Shall not reject a voided statement.", async function () {
+      const context = this;
+      context.timeout(0);
+      const templates = [{ statement: "{{statements.object_statementref}}" }, { verb: "{{verbs.voided}}" }];
+      let data = helper.createFromTemplate(templates);
+      data = data.statement;
+      data.object.id = nonExistentStatementID;
+      request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(data)
@@ -214,8 +215,7 @@ request(helper.getEndpointAndAuth())
             throw err;
             return;
           }
-
-          
-        });});
+        });
+    });
   });
 });

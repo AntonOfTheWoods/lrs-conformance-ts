@@ -2353,8 +2353,9 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
     let statementId: string | null = null;
     let stmtTime: number | null = null;
 
-    before("store statement", async function () {let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
-let templates = [
+    before("store statement", async function () {
+      let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
+      let templates = [
         { statement: "{{statements.attachment}}" },
         {
           attachments: [
@@ -2370,37 +2371,38 @@ let templates = [
           ],
         },
       ];
-data = helper.createFromTemplate(templates);
-data = data.statement;
-txtAtt1 = fs.readFileSync("test/v1_0_3/templates/attachments/simple_text1.txt");
-let t1stats = fs.statSync("test/v1_0_3/templates/attachments/simple_text1.txt");
-t1attSize = t1stats.size;
-t1attHash = crypto.createHash("SHA256").update(txtAtt1).digest("hex");
-data.attachments[0].length = t1attSize;
-data.attachments[0].sha2 = t1attHash;
-let dashes = "--";
-let crlf = "\r\n";
-let boundary = "-------314159265358979323846";
-let msg = dashes + boundary + crlf;
-msg += "Content-Type: application/json" + crlf + crlf;
-msg += JSON.stringify(data) + crlf;
-msg += dashes + boundary + crlf;
-msg += "Content-Type: text/plain" + crlf;
-msg += "Content-Transfer-Encoding: binary" + crlf;
-msg += "X-Experience-API-Hash: " + data.attachments[0].sha2 + crlf + crlf;
-msg += txtAtt1 + crlf;
-msg += dashes + boundary + dashes + crlf;
-stmtTime = Date.now();
+      data = helper.createFromTemplate(templates);
+      data = data.statement;
+      txtAtt1 = fs.readFileSync("test/v1_0_3/templates/attachments/simple_text1.txt");
+      let t1stats = fs.statSync("test/v1_0_3/templates/attachments/simple_text1.txt");
+      t1attSize = t1stats.size;
+      t1attHash = crypto.createHash("SHA256").update(txtAtt1).digest("hex");
+      data.attachments[0].length = t1attSize;
+      data.attachments[0].sha2 = t1attHash;
+      let dashes = "--";
+      let crlf = "\r\n";
+      let boundary = "-------314159265358979323846";
+      let msg = dashes + boundary + crlf;
+      msg += "Content-Type: application/json" + crlf + crlf;
+      msg += JSON.stringify(data) + crlf;
+      msg += dashes + boundary + crlf;
+      msg += "Content-Type: text/plain" + crlf;
+      msg += "Content-Transfer-Encoding: binary" + crlf;
+      msg += "X-Experience-API-Hash: " + data.attachments[0].sha2 + crlf + crlf;
+      msg += txtAtt1 + crlf;
+      msg += dashes + boundary + dashes + crlf;
+      stmtTime = Date.now();
       const res = await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders(header))
-        .body(msg),
-      200,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders(header))
+          .body(msg),
+        200,
       );
 
-let body = JSON.parse(res.body as string);
-statementId = body[0];});
+      let body = JSON.parse(res.body as string);
+      statementId = body[0];
+    });
 
     it('should NOT return the attachment if "attachments" is missing', async function () {
       let query = "?statementId=" + statementId;
@@ -3066,19 +3068,19 @@ statementId = body[0];});
    * An LRS's Statement API rejects a GET request with additional properties other than extensions in the locations where extensions are allowed.
    */
   describe("An LRS's Statement Resource rejects with error code 400 a GET request with additional properties than extensions in the locations where extensions are allowed", function () {
-    it("should fail when using property not defined in specification", async function () {let statement = helper.buildStatement();
-statement.dummy = "dummy";
-xapiRequests
+    it("should fail when using property not defined in specification", async function () {
+      let statement = helper.buildStatement();
+      statement.dummy = "dummy";
+      xapiRequests
         .sendStatementPromise(statement)
         .then((res: any) => {
           expect(res.status).to.eql(400);
-
         })
         .catch((err: any) => {
           expect(err.response).to.not.be.undefined;
           expect(err.response.status).to.eql(400);
-
-        });});
+        });
+    });
   });
 
   /**  XAPI-00???, Communication/timestamps 2.4.7 GET Statements

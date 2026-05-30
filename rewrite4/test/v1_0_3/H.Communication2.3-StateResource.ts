@@ -300,94 +300,100 @@ describe("State Resource Requirements (Communication 2.3)", function () {
    */
   describe("An LRSs State Resource, rejects a POST request if the document is found and either document is not a valid JSON Object (multiplicity, Communication 2.3.s3.table1.row3, Communication 2.2.s8.b1, XAPI-00229)", function () {
     // case 1 - bad post
-    it("If the document being posted to the State Resource does not have a Content-Type of application/json and the existing document does, the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", async function () {let parameters = helper.buildState();
-let document = helper.buildDocument();
+    it("If the document being posted to the State Resource does not have a Content-Type of application/json and the existing document does, the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", async function () {
+      let parameters = helper.buildState();
+      let document = helper.buildDocument();
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
-        .headers(helper.addAllHeaders({}))
-        .json(document),
-      204,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
+          .headers(helper.addAllHeaders({}))
+          .json(document),
+        204,
       );
 
-let document2 = "abcdefg";
-let header2 = { "content-type": "not/json" };
-            await expectAsync(
-request(helper.getEndpointAndAuth())
-              .post(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
-              .headers(helper.addAllHeaders(header2))
-              .body(document2),
-            400,
-            );
+      let document2 = "abcdefg";
+      let header2 = { "content-type": "not/json" };
+      await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
+          .headers(helper.addAllHeaders(header2))
+          .body(document2),
+        400,
+      );
 
-                  const res3 = await expectAsync(
-request(helper.getEndpointAndAuth())
-                    .get(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
-                    .headers(helper.addAllHeaders({})),
-                  200,
-                  );
+      const res3 = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
+          .headers(helper.addAllHeaders({})),
+        200,
+      );
 
-let result = helper.parse(res3.body);
-expect(result).to.eql(document);});
+      let result = helper.parse(res3.body);
+      expect(result).to.eql(document);
+    });
     // case 2 - bad existing
-    it("If the existing document does not have a Content-Type of application/json but the document being posted to the State Resource does the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", async function () {let parameters = helper.buildState();
-let attachment = "/ asdf / undefined";
-let header = { "content-type": "application/octet-stream" };
+    it("If the existing document does not have a Content-Type of application/json but the document being posted to the State Resource does the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", async function () {
+      let parameters = helper.buildState();
+      let attachment = "/ asdf / undefined";
+      let header = { "content-type": "application/octet-stream" };
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
-        .headers(helper.addAllHeaders(header))
-        .body(attachment),
-      204,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
+          .headers(helper.addAllHeaders(header))
+          .body(attachment),
+        204,
       );
 
-let attachment2 = helper.buildDocument();
-            await expectAsync(
-request(helper.getEndpointAndAuth())
-              .post(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
-              .headers(helper.addAllHeaders({}))
-              .json(attachment2),
-            400,
-            );
+      let attachment2 = helper.buildDocument();
+      await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
+          .headers(helper.addAllHeaders({}))
+          .json(attachment2),
+        400,
+      );
 
-                  const res3 = await expectAsync(
-request(helper.getEndpointAndAuth())
-                    .get(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
-                    .headers(helper.addAllHeaders({})),
-                  200,
-                  );
+      const res3 = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
+          .headers(helper.addAllHeaders({})),
+        200,
+      );
 
-expect(res3.body).to.eql(attachment);});
+      expect(res3.body).to.eql(attachment);
+    });
     // case 3 - bad json
-    it("If the document being posted to the State Resource has a content type of Content-Type of application/json but cannot be parsed as a JSON Object, the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", async function () {let parameters = helper.buildState();
-let document = helper.buildDocument();
+    it("If the document being posted to the State Resource has a content type of Content-Type of application/json but cannot be parsed as a JSON Object, the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", async function () {
+      let parameters = helper.buildState();
+      let document = helper.buildDocument();
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
-        .headers(helper.addAllHeaders({}))
-        .json(document),
-      204,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
+          .headers(helper.addAllHeaders({}))
+          .json(document),
+        204,
       );
 
-let header = { "content-type": "application/json" };
-let attachment = JSON.stringify(helper.buildState()) + "{";
-            await expectAsync(
-request(helper.getEndpointAndAuth())
-              .post(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
-              .headers(helper.addAllHeaders(header))
-              .body(attachment),
-            400,
-            );
+      let header = { "content-type": "application/json" };
+      let attachment = JSON.stringify(helper.buildState()) + "{";
+      await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
+          .headers(helper.addAllHeaders(header))
+          .body(attachment),
+        400,
+      );
 
-                  const res3 = await expectAsync(
-request(helper.getEndpointAndAuth())
-                    .get(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
-                    .headers(helper.addAllHeaders({})),
-                  200,
-                  );
+      const res3 = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
+          .headers(helper.addAllHeaders({})),
+        200,
+      );
 
-let result = helper.parse(res3.body);
-expect(result).to.eql(document);});
+      let result = helper.parse(res3.body);
+      expect(result).to.eql(document);
+    });
   });
 
   /**  XAPI-00232, Communication 2.3 State Resource
@@ -468,10 +474,9 @@ expect(result).to.eql(document);});
     let header = { "content-type": "application/json" };
     await expectAsync(
       request(helper.getEndpointAndAuth())
-      .post(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters) + "&agent=" + agent)
-      .headers(helper.addAllHeaders(header))
-      .body(attachment)
-      ,
+        .post(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters) + "&agent=" + agent)
+        .headers(helper.addAllHeaders(header))
+        .body(attachment),
       400,
     );
   });
