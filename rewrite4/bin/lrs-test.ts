@@ -74,6 +74,121 @@ function hasExplicitSuiteSelection(options: RawOptions): boolean {
   return typeof options.xapiVersion === "string" || (Array.isArray(options.directory) && options.directory.length > 0);
 }
 
+const ALLOWED_RAW_OPTION_KEYS = new Set<string>([
+  "xapiVersion",
+  "directory",
+  "endpoint",
+  "grep",
+  "optional",
+  "file",
+  "basicAuth",
+  "oAuth1",
+  "authUser",
+  "authPass",
+  "consumer_key",
+  "consumer_secret",
+  "token",
+  "token_secret",
+  "verifier",
+  "reporter",
+  "bail",
+  "errors",
+]);
+
+const ALLOWED_REPORTERS = new Set<string>(["dot", "spec", "nyan", "tap", "List", "progress", "min", "doc"]);
+
+function isStringArray(value: unknown): value is string[] {
+  return (
+    Array.isArray(value) &&
+    value.every(function (entry) {
+      return typeof entry === "string";
+    })
+  );
+}
+
+function isBooleanLike(value: unknown): boolean {
+  return value === true || value === false || value === "true" || value === "false";
+}
+
+function validateRawOptions(raw: RawOptions): string | null {
+  const unknownKeys = Object.keys(raw).filter(function (key) {
+    return !ALLOWED_RAW_OPTION_KEYS.has(key);
+  });
+
+  if (unknownKeys.length > 0) {
+    return `Unknown option(s): ${unknownKeys.join(", ")}`;
+  }
+
+  if (typeof raw.endpoint !== "string" || !/^[a-zA-Z][a-zA-Z0-9+\.-]*:.+/.test(raw.endpoint)) {
+    return "endpoint must be a URI";
+  }
+
+  if (typeof raw.xapiVersion !== "undefined" && typeof raw.xapiVersion !== "string") {
+    return "xapiVersion must be a string";
+  }
+
+  if (typeof raw.grep !== "undefined" && typeof raw.grep !== "string") {
+    return "grep must be a string";
+  }
+
+  if (typeof raw.directory !== "undefined" && !isStringArray(raw.directory)) {
+    return "directory must be an array of strings";
+  }
+
+  if (typeof raw.optional !== "undefined" && !isStringArray(raw.optional)) {
+    return "optional must be an array of strings";
+  }
+
+  if (typeof raw.file !== "undefined" && !isStringArray(raw.file)) {
+    return "file must be an array of strings";
+  }
+
+  if (typeof raw.reporter !== "undefined") {
+    if (typeof raw.reporter !== "string") {
+      return "reporter must be a string";
+    }
+    if (!ALLOWED_REPORTERS.has(raw.reporter)) {
+      return `reporter must be one of: ${Array.from(ALLOWED_REPORTERS).join(", ")}`;
+    }
+  }
+
+  if (typeof raw.bail !== "undefined" && typeof raw.bail !== "boolean") {
+    return "bail must be a boolean";
+  }
+
+  if (typeof raw.errors !== "undefined" && typeof raw.errors !== "boolean") {
+    return "errors must be a boolean";
+  }
+
+  if (typeof raw.basicAuth !== "undefined" && !isBooleanLike(raw.basicAuth)) {
+    return "basicAuth must be boolean-like";
+  }
+
+  if (typeof raw.oAuth1 !== "undefined" && !isBooleanLike(raw.oAuth1)) {
+    return "oAuth1 must be boolean-like";
+  }
+
+  const basicAuthEnabled = raw.basicAuth === true || raw.basicAuth === "true";
+  if (basicAuthEnabled && (typeof raw.authUser !== "string" || typeof raw.authPass !== "string")) {
+    return "authUser and authPass are required when basicAuth is true";
+  }
+
+  const oauthEnabled = raw.oAuth1 === true || raw.oAuth1 === "true";
+  if (oauthEnabled) {
+    if (
+      typeof raw.consumer_key !== "string" ||
+      typeof raw.consumer_secret !== "string" ||
+      typeof raw.token !== "string" ||
+      typeof raw.token_secret !== "string" ||
+      typeof raw.verifier !== "string"
+    ) {
+      return "consumer_key, consumer_secret, token, token_secret, and verifier are required when oAuth1 is true";
+    }
+  }
+
+  return null;
+}
+
 export function normalizeLrsTestOptions(options: RawOptions): NormalizedRunnerOptions {
   const runnerInputOptions: RunnerInputOptions = {
     xapiVersion: options.xapiVersion,
@@ -282,60 +397,13 @@ function processMessageReporter(processHandle: ChildProcessShape) {
 }
 
 async function runTests(_options: RawOptions): Promise<void> {
-  const Joi = runtimeRequire("joi") as any;
   const Mocha = runtimeRequire("mocha") as any;
   const childProcessHandle = process as ChildProcessShape;
 
-  const optionsValidator = Joi.object({
-    xapiVersion: Joi.string(),
-    directory: Joi.array().items(Joi.string()),
-    endpoint: Joi.string()
-      .regex(/^[a-zA-Z][a-zA-Z0-9+\.-]*:.+/, "URI")
-      .required(),
-    grep: Joi.string(),
-    optional: Joi.array().items(Joi.string().required()),
-    file: Joi.array().items(Joi.string().required()),
-    basicAuth: Joi.any(true, false),
-    oAuth1: Joi.any(true, false),
-    authUser: Joi.string().when("basicAuth", {
-      is: "true",
-      then: Joi.required(),
-    }),
-    authPass: Joi.string().when("basicAuth", {
-      is: "true",
-      then: Joi.required(),
-    }),
-    consumer_key: Joi.string().when("oAuth1", {
-      is: "true",
-      then: Joi.required(),
-    }),
-    consumer_secret: Joi.string().when("oAuth1", {
-      is: "true",
-      then: Joi.required(),
-    }),
-    token: Joi.string().when("oAuth1", {
-      is: "true",
-      then: Joi.required(),
-    }),
-    token_secret: Joi.string().when("oAuth1", {
-      is: "true",
-      then: Joi.required(),
-    }),
-    verifier: Joi.string().when("oAuth1", {
-      is: "true",
-      then: Joi.required(),
-    }),
-    reporter: Joi.string()
-      .regex(/^((dot)|(spec)|(nyan)|(tap)|(List)|(progress)|(min)|(doc))$/)
-      .default("nyan"),
-    bail: Joi.boolean(),
-    errors: Joi.boolean(),
-  }).unknown(false);
-
-  const validOptions = Joi.validate(_options, optionsValidator);
-  if (validOptions.error) {
-    childProcessHandle.postMessage?.("log", "Options not valid " + validOptions.error);
-    process.exit();
+  const validationError = validateRawOptions(_options);
+  if (validationError) {
+    childProcessHandle.postMessage?.("log", "Options not valid " + validationError);
+    process.exit(1);
   }
   const shouldWarnAboutDefaultVersion = !hasExplicitSuiteSelection(_options);
 
