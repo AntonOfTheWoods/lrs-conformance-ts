@@ -33,10 +33,11 @@ type RequestChain = {
 type DescribeFn = (name: string, callback: () => void) => void;
 type ItFn = (name: string, callback: (done: (error?: unknown) => void) => void) => void;
 
-const helperModule = require("./helper.ts") as { default?: TemplateHelper } & TemplateHelper;
-const helper = helperModule.default ?? helperModule;
-const requestModule = require("super-request") as (target: unknown) => RequestChain;
-require("should");
+import helperImport from "./helper.ts";
+import requestModule from "super-request";
+import "should";
+
+const helper = helperImport as TemplateHelper;
 
 const globalWithOauth = globalThis as typeof globalThis & {
   OAUTH?: boolean;

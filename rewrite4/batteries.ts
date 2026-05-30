@@ -13841,7 +13841,3 @@ const batteries = {
 } as Record<string, BatteryInfo>;
 
 export default batteries;
-
-if (typeof module !== "undefined") {
-  module.exports = batteries;
-}

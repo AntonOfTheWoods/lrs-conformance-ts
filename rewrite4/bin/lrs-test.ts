@@ -19,7 +19,12 @@ import {
   normalizeSelectedFiles,
   toPosixPath,
 } from "../bun-runtime/suite-loader.ts";
+import fs from "node:fs";
+import { createRequire } from "node:module";
+import path from "node:path";
 import { pathToFileURL } from "node:url";
+
+const runtimeRequire = createRequire(import.meta.url);
 
 type CaptureExecutionState = {
   suitePath: string[];
@@ -139,12 +144,10 @@ function normalizeCommonJsCompatibleModuleSource(sourceText: string): string {
 }
 
 function loadCommonJsCompatibleTsModule(absoluteFilePath: string): unknown {
-  const sourceText = normalizeCommonJsCompatibleModuleSource(
-    require("fs").readFileSync(absoluteFilePath, "utf8") as string,
-  );
+  const sourceText = normalizeCommonJsCompatibleModuleSource(fs.readFileSync(absoluteFilePath, "utf8") as string);
   const transpiledSource = legacyTsTranspiler.transformSync(sourceText);
   const moduleRecord = { exports: {} as unknown };
-  const moduleRequire = require("module").createRequire(absoluteFilePath) as NodeJS.Require;
+  const moduleRequire = createRequire(absoluteFilePath) as NodeJS.Require;
 
   const executeModule = new Function(
     "module",
@@ -161,13 +164,7 @@ function loadCommonJsCompatibleTsModule(absoluteFilePath: string): unknown {
     dirnameValue: string,
   ) => void;
 
-  executeModule(
-    moduleRecord,
-    moduleRecord.exports,
-    moduleRequire,
-    absoluteFilePath,
-    require("path").dirname(absoluteFilePath),
-  );
+  executeModule(moduleRecord, moduleRecord.exports, moduleRequire, absoluteFilePath, path.dirname(absoluteFilePath));
   return moduleRecord.exports;
 }
 
@@ -175,11 +172,11 @@ function loadLegacySuiteFile(absoluteFilePath: string, sourceText: string): void
   const transpiler = absoluteFilePath.endsWith(".ts") ? legacyTsTranspiler : legacyJsTranspiler;
   const transpiledSource = transpiler.transformSync(sourceText);
   const suiteModule = { exports: {} as unknown };
-  const suiteRequire = require("module").createRequire(absoluteFilePath) as NodeJS.Require;
+  const suiteRequire = createRequire(absoluteFilePath) as NodeJS.Require;
   const legacyRequire = ((specifier: string) => {
     const resolvedPath = suiteRequire.resolve(specifier);
     if (resolvedPath.endsWith(".ts")) {
-      const requiredSource = require("fs").readFileSync(resolvedPath, "utf8") as string;
+      const requiredSource = fs.readFileSync(resolvedPath, "utf8") as string;
       if (shouldUseCommonJsCompatibleTsLoader(requiredSource)) {
         return normalizeLegacyRequireResult(loadCommonJsCompatibleTsModule(resolvedPath));
       }
@@ -211,7 +208,7 @@ function loadLegacySuiteFile(absoluteFilePath: string, sourceText: string): void
       suiteModule.exports,
       legacyRequire,
       absoluteFilePath,
-      require("path").dirname(absoluteFilePath),
+      path.dirname(absoluteFilePath),
     );
   } catch (error) {
     const message = error instanceof Error ? (error.stack ?? error.message) : String(error);
@@ -287,10 +284,8 @@ function processMessageReporter(processHandle: ChildProcessShape) {
 }
 
 async function runTests(_options: RawOptions): Promise<void> {
-  const Joi = require("joi") as any;
-  const fs = require("fs") as typeof import("fs");
-  const path = require("path") as typeof import("path");
-  const Mocha = require("mocha") as any;
+  const Joi = runtimeRequire("joi") as any;
+  const Mocha = runtimeRequire("mocha") as any;
   const childProcessHandle = process as ChildProcessShape;
 
   var optionsValidator = Joi.object({
@@ -408,12 +403,12 @@ async function runTests(_options: RawOptions): Promise<void> {
   const restoreRunnerEnvironment = installRunnerEnvironment(normalizedOptions);
   const loadPlan = buildLrsTestLoadPlan(normalizedOptions);
   try {
-    installAssertionPlugins(require as NodeJS.Require);
+    installAssertionPlugins(runtimeRequire as NodeJS.Require);
     if (loadPlan.needsTimeMarginBootstrap) {
       mocha.suite.beforeAll(
         "Accounting for time differential between test suite and lrs",
         function (done: (error?: unknown, ...ignored: unknown[]) => void) {
-          const helperModule = require(path.join(__dirname, "..", "test", "helper.ts")) as {
+          const helperModule = runtimeRequire(path.join(__dirname, "..", "test", "helper.ts")) as {
             default?: { setTimeMargin?: (callback?: (error?: unknown) => void) => unknown };
             setTimeMargin?: (callback?: (error?: unknown) => void) => unknown;
           };

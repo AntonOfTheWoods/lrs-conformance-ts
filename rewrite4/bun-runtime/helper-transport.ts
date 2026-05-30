@@ -1,5 +1,8 @@
 "use strict";
 
+import combImport from "comb";
+import requestFactoryImport from "super-request";
+
 type AnyRecord = Record<string, any>;
 type HeaderMap = Record<string, string | undefined>;
 
@@ -177,8 +180,8 @@ function createHelperTransportSupport(context: HelperTransportContext) {
     },
 
     genDelay: function genDelay(time: number, query?: string, id?: string) {
-      var comb = require("comb") as CombModule;
-      var requestFactory = require("super-request") as RequestFactory;
+      var comb = combImport as unknown as CombModule;
+      var requestFactory = requestFactoryImport as unknown as RequestFactory;
 
       var delay = function () {
         var p = new comb.Promise();
@@ -306,7 +309,7 @@ function createHelperTransportSupport(context: HelperTransportContext) {
       expectedStatus: number,
       extraHeaders?: HeaderMap,
     ) {
-      var requestFactory = require("super-request") as RequestFactory;
+      var requestFactory = requestFactoryImport as unknown as RequestFactory;
       var methodName = type === "delete" ? "del" : type;
       if (runtimeGlobal.OAUTH) {
         requestFactory = helper().OAuthRequest(requestFactory);
@@ -369,7 +372,7 @@ function createHelperTransportSupport(context: HelperTransportContext) {
     },
 
     setTimeMargin: function setTimeMargin(done: (error?: unknown, ...ignored: unknown[]) => void) {
-      var requestFactory = require("super-request") as RequestFactory;
+      var requestFactory = requestFactoryImport as unknown as RequestFactory;
       var temp: Array<Record<string, string>> = [{ statement: "{{statements.default}}" }];
       var id = helper().generateUUID();
       var query = helper().getUrlEncoding({
@@ -504,6 +507,8 @@ function createHelperTransportSupport(context: HelperTransportContext) {
   };
 }
 
-module.exports = {
-  createHelperTransportSupport: createHelperTransportSupport,
+export { createHelperTransportSupport };
+
+export default {
+  createHelperTransportSupport,
 };

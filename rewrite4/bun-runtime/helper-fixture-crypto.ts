@@ -447,6 +447,8 @@ function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
   };
 }
 
-module.exports = {
-  createHelperFixtureCryptoSupport: createHelperFixtureCryptoSupport,
+export { createHelperFixtureCryptoSupport };
+
+export default {
+  createHelperFixtureCryptoSupport,
 };

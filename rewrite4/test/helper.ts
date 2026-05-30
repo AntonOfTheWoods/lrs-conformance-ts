@@ -137,6 +137,3 @@ helperExports = {
 };
 
 export default helperExports;
-if (typeof module !== "undefined") {
-  module.exports = helperExports;
-}

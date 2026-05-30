@@ -123,10 +123,6 @@ function serializeBatteriesModule(batteryOutput: Record<string, BatteryInfo>): s
     "",
     "export default batteries;",
     "",
-    'if (typeof module !== "undefined") {',
-    "  module.exports = batteries;",
-    "}",
-    "",
   ].join("\n");
 }
 
