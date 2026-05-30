@@ -3,7 +3,8 @@
 import crypto from "node:crypto";
 import childProcess from "child_process";
 import { EventEmitter } from "events";
-import express from "express";
+import { Hono } from "hono";
+import { serve } from "@hono/node-server";
 
 type OAuthConfig = {
   auth_token_path: string;
@@ -25,19 +26,6 @@ type OAuthCallback = (error: unknown, token?: OAuthToken) => void;
 type SpawnedHandle = {
   on(event: "error", listener: (error: Error) => void): void;
   unref(): void;
-};
-
-type ExpressRequest = {
-  query: {
-    oauth_token?: string;
-    oauth_verifier?: string;
-  };
-};
-
-type ExpressResponse = {
-  status(code: number): {
-    send(body: string): void;
-  };
 };
 
 type SocketLike = {
@@ -166,18 +154,25 @@ export function openAuthorizationUrl(
 }
 
 export function auth(config: OAuthConfig, callback: OAuthCallback): void {
-  const app = express();
+  const app = new Hono();
   const authorizationEvents = new EventEmitter();
   const callbackUrl = "http://localhost:3000/authback";
 
-  app.get("/authback", function (req: ExpressRequest, res: ExpressResponse) {
-    res.status(200).send("OK - you can close this tab");
+  app.get("/authback", function (context) {
+    const oauthVerifier = context.req.query("oauth_verifier");
+    const oauthToken = context.req.query("oauth_token");
+
     setTimeout(function () {
-      authorizationEvents.emit("authorized", req.query.oauth_verifier, req.query.oauth_token);
+      authorizationEvents.emit("authorized", oauthVerifier, oauthToken);
     }, 500);
+
+    return context.text("OK - you can close this tab", 200);
   });
 
-  const server: HttpServer = app.listen(3000);
+  const server: HttpServer = serve({
+    fetch: app.fetch,
+    port: 3000,
+  });
   const sockets: Record<number, SocketLike> = {};
   let nextSocketId = 0;
 
