@@ -34,10 +34,10 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
 
       return helper
         .sendRequest("put", helper.getEndpointAgentsProfile(), parameters, document, 204, { "If-None-Match": "*" })
-        .then(function (res) {
+        .then(function (res: any) {
           return helper
             .sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200)
-            .then(function (res) {
+            .then(function (res: any) {
               expect(res.headers).to.have.property("etag");
             });
         });
@@ -51,10 +51,10 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
         .sendRequest("put", helper.getEndpointActivitiesProfile(), parameters, document, 204, {
           "If-None-Match": "*",
         })
-        .then(function (res) {
+        .then(function (res: any) {
           return helper
             .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
-            .then(function (res) {
+            .then(function (res: any) {
               expect(res.headers).to.have.property("etag");
             });
         });
@@ -67,7 +67,7 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
       return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(function () {
         return helper
           .sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200)
-          .then(function (res) {
+          .then(function (res: any) {
             expect(res.headers.etag).to.be.ok;
             expect(res.headers.etag).to.match(/\b[0-9a-fA-F]{40}\b/);
           });
@@ -81,7 +81,7 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
       return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(function () {
         return helper
           .sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200)
-          .then(function (res) {
+          .then(function (res: any) {
             expect(res.headers.etag).to.be.ok;
             let str = res.headers.etag;
             //test for weak etags
@@ -97,7 +97,7 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
     });
 
     describe("With a valid etag", function () {
-      let parameters, document;
+      let parameters: any, document: any;
       before("before", function () {
         parameters = helper.buildAgentProfile();
         document = helper.buildDocument();
@@ -106,7 +106,7 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
 
       it("When responding to a PUT request, must handle the If-Match header as described in RFC 2616, HTTP/1.1 if it contains an ETag", function () {
         document = helper.buildDocument();
-        return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, null, 200).then(function (res) {
+        return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, null, 200).then(function (res: any) {
           let goodTag = res.headers.etag;
 
           let document = helper.buildDocument();
@@ -142,10 +142,10 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
       before("post the document and get the etag", function () {
         return helper
           .sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204)
-          .then(function (res) {
+          .then(function (res: any) {
             return helper
               .sendRequest("get", helper.getEndpointAgentsProfile(), parameters, null, 200)
-              .then(function (res) {
+              .then(function (res: any) {
                 void res.headers.etag;
               });
           });
@@ -160,7 +160,7 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
       });
 
       it("Do not modify the resource", function () {
-        return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, null, 200).then(function (res) {
+        return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, null, 200).then(function (res: any) {
           let result = res.body;
           expect(result).to.eql(document);
         });
@@ -175,10 +175,10 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
       before("post the document and get the etag", function () {
         return helper
           .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204)
-          .then(function (res) {
+          .then(function (res: any) {
             return helper
               .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, null, 200)
-              .then(function (res) {
+              .then(function (res: any) {
                 void res.headers.etag;
               });
           });
@@ -191,7 +191,7 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
       it("Return error message explaining the situation", function () {
         return helper
           .sendRequest("put", helper.getEndpointActivitiesProfile(), parameters, document2, 409)
-          .then(function (res) {
+          .then(function (res: any) {
             expect(res).to.have.property("text");
             expect(res.text).to.have.length.above(0);
           });
@@ -200,10 +200,10 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
       it("Do not modify the resource", function () {
         return helper
           .sendRequest("put", helper.getEndpointActivitiesProfile(), parameters, document2, 409)
-          .then(function (res) {
+          .then(function (res: any) {
             return helper
               .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, null, 200)
-              .then(function (res) {
+              .then(function (res: any) {
                 expect(res.body).to.eql(document);
               });
           });

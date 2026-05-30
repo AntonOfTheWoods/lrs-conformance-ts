@@ -43,7 +43,7 @@ describe("Versioning Requirements (Communication 3.3)", () => {
       .headers(helper.addAllHeaders({}))
       .json(statement)
       .expect(200)
-      .end(function (err, res) {
+      .end(function (err: unknown, res: any) {
         if (err) {
           done(err);
         } else {
@@ -52,7 +52,7 @@ describe("Versioning Requirements (Communication 3.3)", () => {
             .wait(helper.genDelay(stmtTime, "?" + query, id))
             .headers(helper.addAllHeaders({}))
             .expect(200)
-            .end(function (err, res) {
+            .end(function (err: unknown, res: any) {
               if (err) {
                 done(err);
               } else {
@@ -83,7 +83,7 @@ describe("Versioning Requirements (Communication 3.3)", () => {
         .headers(helper.addAllHeaders({}))
         .json(data)
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -92,7 +92,7 @@ describe("Versioning Requirements (Communication 3.3)", () => {
               .wait(helper.genDelay(stmtTime, query, data.id))
               .headers(helper.addAllHeaders({}))
               .expect(200)
-              .end(function (err, res) {
+              .end(function (err: unknown, res: any) {
                 if (err) {
                   done(err);
                 } else {
@@ -132,7 +132,7 @@ describe("Versioning Requirements (Communication 3.3)", () => {
       request(helper.getEndpointAndAuth())
         .get(helper.getEndpointStatements() + "?statementId=" + stmtId)
         .headers(helper.addBasicAuthenicationHeader({}))
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else if (res.statusCode === 400) {
@@ -159,7 +159,7 @@ describe("Versioning Requirements (Communication 3.3)", () => {
         .post(helper.getEndpointStatements())
         .headers(helper.addBasicAuthenicationHeader({}))
         .json(data)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else if (res.statusCode === 400) {
@@ -186,7 +186,7 @@ describe("Versioning Requirements (Communication 3.3)", () => {
         .put(helper.getEndpointStatements() + "?statementId=" + helper.generateUUID())
         .headers(helper.addBasicAuthenicationHeader({}))
         .json(data)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else if (res.statusCode === 400) {

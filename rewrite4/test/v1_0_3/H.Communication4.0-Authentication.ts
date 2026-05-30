@@ -53,7 +53,7 @@ describe("Authentication Requirements (Communication 4.0)", function () {
         request(helper.getEndpointAndAuth())
           .get(helper.getEndpointStatements())
           .headers(headers)
-          .end(function (err, res) {
+          .end(function (err: unknown, res: any) {
             if (res.statusCode === 400 || res.statusCode === 401) {
               done();
             } else {
@@ -92,7 +92,7 @@ describe("Authentication Requirements (Communication 4.0)", function () {
         request(helper.getEndpointAndAuth())
           .get(helper.getEndpointStatements())
           .headers(headers)
-          .end(function (err, res) {
+          .end(function (err: unknown, res: any) {
             if (res.statusCode === 400 || res.statusCode === 401) {
               done();
             } else {

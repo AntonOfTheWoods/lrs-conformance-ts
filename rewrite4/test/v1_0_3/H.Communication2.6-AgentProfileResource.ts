@@ -127,7 +127,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", () => {
     return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(function () {
       return helper
         .sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200)
-        .then(function (res) {
+        .then(function (res: any) {
           let body = res.body;
           expect(body).to.eql(document);
         });
@@ -264,7 +264,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", () => {
       delete parameters.profileId;
       return helper
         .sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200)
-        .then(function (res) {
+        .then(function (res: any) {
           let body = res.body;
           expect(body).to.have.length.above(0);
         });
@@ -319,7 +319,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", () => {
       delete parameters.profileId;
       return helper
         .sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200)
-        .then(function (res) {
+        .then(function (res: any) {
           let body = res.body;
           expect(body).to.be.an("array");
           expect(body).to.have.length.above(0);
@@ -346,7 +346,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", () => {
         .then(function () {
           return helper
             .sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200)
-            .then(function (res) {
+            .then(function (res: any) {
               let body = res.body;
               expect(body).to.eql({
                 car: "Honda",
@@ -366,7 +366,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", () => {
     return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(function () {
       return helper
         .sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200)
-        .then(function (res) {
+        .then(function (res: any) {
           let body = res.body;
           expect(body).to.eql(document);
         });
@@ -386,7 +386,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", () => {
         .post(helper.getEndpointAgentsProfile() + "?" + helper.getUrlEncoding(parameters))
         .headers(helper.addAllHeaders({}))
         .json(document)
-        .expect(204, function (err, res) {
+        .expect(204, function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -397,14 +397,14 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", () => {
               .post(helper.getEndpointAgentsProfile() + "?" + helper.getUrlEncoding(parameters))
               .headers(helper.addAllHeaders(header2))
               .body(document2)
-              .expect(400, function (err, res) {
+              .expect(400, function (err: unknown, res: any) {
                 if (err) {
                   done(err);
                 } else {
                   request(helper.getEndpointAndAuth())
                     .get(helper.getEndpointAgentsProfile() + "?" + helper.getUrlEncoding(parameters))
                     .headers(helper.addAllHeaders({}))
-                    .expect(200, function (err, res) {
+                    .expect(200, function (err: unknown, res: any) {
                       if (err) {
                         done(err);
                       } else {
@@ -428,7 +428,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", () => {
         .put(helper.getEndpointAgentsProfile() + "?" + helper.getUrlEncoding(parameters))
         .headers(helper.addAllHeaders(header))
         .body(attachment)
-        .expect(204, function (err, res) {
+        .expect(204, function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -438,14 +438,14 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", () => {
               .post(helper.getEndpointAgentsProfile() + "?" + helper.getUrlEncoding(parameters))
               .headers(helper.addAllHeaders({}))
               .json(attachment2)
-              .expect(400, function (err, res) {
+              .expect(400, function (err: unknown, res: any) {
                 if (err) {
                   done(err);
                 } else {
                   request(helper.getEndpointAndAuth())
                     .get(helper.getEndpointAgentsProfile() + "?" + helper.getUrlEncoding(parameters))
                     .headers(helper.addAllHeaders({}))
-                    .expect(200, function (err, res) {
+                    .expect(200, function (err: unknown, res: any) {
                       if (err) {
                         done(err);
                       } else {
@@ -467,7 +467,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", () => {
         .post(helper.getEndpointAgentsProfile() + "?" + helper.getUrlEncoding(parameters))
         .headers(helper.addAllHeaders({}))
         .json(document)
-        .expect(204, function (err, res) {
+        .expect(204, function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -478,14 +478,14 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", () => {
               .post(helper.getEndpointAgentsProfile() + "?" + helper.getUrlEncoding(parameters))
               .headers(helper.addAllHeaders(header))
               .body(attachment)
-              .expect(400, function (err, res) {
+              .expect(400, function (err: unknown, res: any) {
                 if (err) {
                   done(err);
                 } else {
                   request(helper.getEndpointAndAuth())
                     .get(helper.getEndpointAgentsProfile() + "?" + helper.getUrlEncoding(parameters))
                     .headers(helper.addAllHeaders({}))
-                    .expect(200, function (err, res) {
+                    .expect(200, function (err: unknown, res: any) {
                       if (err) {
                         done(err);
                       } else {
@@ -512,7 +512,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", () => {
       .post(helper.getEndpointAgentsProfile() + "?" + helper.getUrlEncoding(parameters))
       .headers(helper.addAllHeaders({}))
       .json(document)
-      .expect(204, function (err, res) {
+      .expect(204, function (err: unknown, res: any) {
         if (err) {
           done(err);
         } else {
@@ -523,14 +523,14 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", () => {
             .post(helper.getEndpointAgentsProfile() + "?" + helper.getUrlEncoding(parameters))
             .headers(helper.addAllHeaders(header2))
             .body(document2)
-            .expect(400, function (err, res) {
+            .expect(400, function (err: unknown, res: any) {
               if (err) {
                 done(err);
               } else {
                 request(helper.getEndpointAndAuth())
                   .get(helper.getEndpointAgentsProfile() + "?" + helper.getUrlEncoding(parameters))
                   .headers(helper.addAllHeaders({}))
-                  .expect(200, function (err, res) {
+                  .expect(200, function (err: unknown, res: any) {
                     if (err) {
                       done(err);
                     } else {
