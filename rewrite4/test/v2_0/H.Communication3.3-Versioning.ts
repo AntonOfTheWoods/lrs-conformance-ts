@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "chai";
+import { expect } from "bun:test";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { expectAsync, endAsync } from "../super-request.ts";
@@ -44,16 +44,16 @@ describe("Versioning Requirements (Communication 3.3)", () => {
         .expect(200),
     );
 
-        const res = await endAsync(
-request(helper.getEndpointAndAuth())
-      .get(helper.getEndpointStatements() + "?" + query)
-      .wait(helper.genDelay(stmtTime, "?" + query, id))
-      .headers(helper.addAllHeaders({}))
-      .expect(200)
+    const res = await endAsync(
+      request(helper.getEndpointAndAuth())
+        .get(helper.getEndpointStatements() + "?" + query)
+        .wait(helper.genDelay(stmtTime, "?" + query, id))
+        .headers(helper.addAllHeaders({}))
+        .expect(200),
     );
 
-expect(res.headers).to.have.property("x-experience-api-version");
-expect(res.headers["x-experience-api-version"]).to.match(REG_ALLOWED_VERSIONS);
+    expect(res.headers).toHaveProperty("x-experience-api-version");
+    expect(res.headers["x-experience-api-version"]).toMatch(REG_ALLOWED_VERSIONS);
   });
 
   /**  XAPI-00330, Communication 3.3 Versioning
@@ -76,18 +76,18 @@ expect(res.headers["x-experience-api-version"]).to.match(REG_ALLOWED_VERSIONS);
           .expect(200),
       );
 
-            const res = await endAsync(
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?statementId=" + data.id)
-        .wait(helper.genDelay(stmtTime, query, data.id))
-        .headers(helper.addAllHeaders({}))
-        .expect(200)
+      const res = await endAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .wait(helper.genDelay(stmtTime, query, data.id))
+          .headers(helper.addAllHeaders({}))
+          .expect(200),
       );
 
-const statement = helper.parse(res.body);
-expect(helper.isEqual(data.actor, statement.actor)).to.be.true;
-expect(helper.isEqual(data.object, statement.object)).to.be.true;
-expect(helper.isEqual(data.verb, statement.verb)).to.be.true;
+      const statement = helper.parse(res.body);
+      expect(helper.isEqual(data.actor, statement.actor)).toBe(true);
+      expect(helper.isEqual(data.object, statement.object)).toBe(true);
+      expect(helper.isEqual(data.verb, statement.verb)).toBe(true);
     });
   });
 
@@ -122,9 +122,9 @@ expect(helper.isEqual(data.verb, statement.verb)).to.be.true;
       );
 
       if (res.statusCode === 400) {
-        expect(res.headers["x-experience-api-version"]).to.match(REG_ALLOWED_VERSIONS);
+        expect(res.headers["x-experience-api-version"]).toMatch(REG_ALLOWED_VERSIONS);
       } else if (res.statusCode === 404) {
-        expect(res.headers["x-experience-api-version"]).to.match(/^0\.95?$/);
+        expect(res.headers["x-experience-api-version"]).toMatch(/^0\.95?$/);
       } else {
         throw new Error(
           `Version header (${res.headers["x-experience-api-version"]}) and Status Code (${res.statusCode}) do not match specification.  Expected version header 2.0.0 with status code 400 or version header 0.9 or 0.95 with status code either 400 or 404.`,
@@ -144,9 +144,9 @@ expect(helper.isEqual(data.verb, statement.verb)).to.be.true;
       );
 
       if (res.statusCode === 400) {
-        expect(res.headers["x-experience-api-version"]).to.match(REG_ALLOWED_VERSIONS);
+        expect(res.headers["x-experience-api-version"]).toMatch(REG_ALLOWED_VERSIONS);
       } else if (res.statusCode === 404) {
-        expect(res.headers["x-experience-api-version"]).to.match(/^0\.95?$/);
+        expect(res.headers["x-experience-api-version"]).toMatch(/^0\.95?$/);
       } else {
         throw new Error(
           `Version header (${res.headers["x-experience-api-version"]}) and Status Code (${res.statusCode}) do not match specification.  Expected version header 2.0.0 with status code 400 or version header 0.9 or 0.95 with status code either 400 or 404.`,
@@ -166,9 +166,9 @@ expect(helper.isEqual(data.verb, statement.verb)).to.be.true;
       );
 
       if (res.statusCode === 400) {
-        expect(res.headers["x-experience-api-version"]).to.match(REG_ALLOWED_VERSIONS);
+        expect(res.headers["x-experience-api-version"]).toMatch(REG_ALLOWED_VERSIONS);
       } else if (res.statusCode === 404) {
-        expect(res.headers["x-experience-api-version"]).to.match(/^0\.95?$/);
+        expect(res.headers["x-experience-api-version"]).toMatch(/^0\.95?$/);
       } else {
         throw new Error(
           `Version header (${res.headers["x-experience-api-version"]}) and Status Code (${res.statusCode}) do not match specification.  Expected version header 2.0.0 or 1.0.X with status code 400, or version header 0.9 or 0.95 with status code either 400 or 404.`,

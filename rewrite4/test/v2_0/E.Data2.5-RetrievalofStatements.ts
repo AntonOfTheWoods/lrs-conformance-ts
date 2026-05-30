@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "chai";
+import { expect } from "bun:test";
 import requestBase from "../super-request.ts";
 import { expectAsync, endAsync } from "../super-request.ts";
 import helperImport from "../helper.ts";
@@ -69,8 +69,8 @@ describe("Retrieval of Statements (Data 2.5)", function () {
       );
 
       const result = helper.parse(res.body);
-      expect(result).to.have.property("statements");
-      expect(result).to.have.property("more");
+      expect(result).toHaveProperty("statements");
+      expect(result).toHaveProperty("more");
     });
   });
 
@@ -162,7 +162,8 @@ describe("Retrieval of Statements (Data 2.5)", function () {
       );
 
       const result = helper.parse(res.body);
-      expect(result).to.have.property("statements").to.be.an("array");
+      expect(result).toHaveProperty("statements");
+      expect(Array.isArray(result.statements)).toBe(true);
     });
   });
 
@@ -197,8 +198,8 @@ describe("Retrieval of Statements (Data 2.5)", function () {
     );
 
     const results = helper.parse(res.body);
-    expect(results.statements).to.exist;
-    expect(results.more).to.exist;
+    expect(results.statements).toBeTruthy();
+    expect(results.more).toBeTruthy();
   });
 
   /**  XAPI-00109, Data 2.5 Retrieval of Statements
@@ -219,7 +220,7 @@ describe("Retrieval of Statements (Data 2.5)", function () {
 
       if (result.more === "" || !result.more) passed = true;
 
-      expect(passed).to.be.true;
+      expect(passed).toBe(true);
     });
   });
 
@@ -236,15 +237,15 @@ describe("Retrieval of Statements (Data 2.5)", function () {
       );
 
       const result = helper.parse(res.body);
-      expect(result).to.have.property("more");
-      expect(isValidRelativeUrl(result.more)).to.be.true;
+      expect(result).toHaveProperty("more");
+      expect(isValidRelativeUrl(result.more)).toBe(true);
       const res2 = await endAsync(
         request("").get(resolve(res.request.href, result.more)).headers(helper.addAllHeaders({})).expect(200),
       );
 
       const results2 = helper.parse(res2.body);
-      expect(results2.statements).to.exist;
-      expect(results2.more).to.exist;
+      expect(results2.statements).toBeTruthy();
+      expect(results2.more).toBeTruthy();
     });
   });
 
@@ -290,6 +291,6 @@ describe("Retrieval of Statements (Data 2.5)", function () {
     );
 
     const results2 = helper.parse(res2.body);
-    expect(results2.statements).to.exist;
+    expect(results2.statements).toBeTruthy();
   });
 });
