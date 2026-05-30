@@ -35,12 +35,3 @@ declare module "comb" {
   const value: any;
   export default value;
 }
-
-declare module "form-urlencoded" {
-  const value: any;
-  export default value;
-}
-declare module "oauth" {
-  const value: any;
-  export = value;
-}

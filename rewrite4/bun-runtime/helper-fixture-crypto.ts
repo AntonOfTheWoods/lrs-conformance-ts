@@ -25,9 +25,6 @@ type HelperExports = {
 };
 
 type FixtureCryptoContext = {
-  FormUrlencode: {
-    encode(value: Record<string, unknown>): string;
-  };
   crypto: typeof import("crypto");
   extend(deep: boolean, target: AnyRecord, source: AnyRecord): AnyRecord;
   fs: typeof import("fs");
@@ -256,7 +253,15 @@ function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
       if (id) {
         body["statementId"] = id;
       }
-      return context.FormUrlencode.encode(body);
+
+      const searchParams = new URLSearchParams();
+      Object.entries(body).forEach(function ([key, value]) {
+        if (typeof value === "undefined" || value === null) {
+          return;
+        }
+        searchParams.set(key, String(value));
+      });
+      return searchParams.toString();
     },
 
     buildActivity: function buildActivity() {

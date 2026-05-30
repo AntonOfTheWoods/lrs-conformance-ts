@@ -4,7 +4,6 @@ import fs from "node:fs";
 import path from "node:path";
 
 import extend from "extend";
-import FormUrlencode from "form-urlencoded";
 import jws from "jws";
 import lodashIsEqual from "lodash.isequal";
 
@@ -104,7 +103,6 @@ function getState(): HelperState {
 }
 
 const helperContext = {
-  FormUrlencode,
   crypto,
   extend,
   fs,

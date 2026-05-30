@@ -1,9 +1,9 @@
 "use strict";
 
+import crypto from "node:crypto";
 import childProcess from "child_process";
 import { EventEmitter } from "events";
 import express from "express";
-import oauthModule from "oauth";
 
 type OAuthConfig = {
   auth_token_path: string;
@@ -51,25 +51,66 @@ type HttpServer = {
   on(event: "connection", listener: (socket: SocketLike) => void): void;
 };
 
-type OAuthConsumer = {
-  getOAuthAccessToken(
-    requestToken: string,
-    requestTokenSecret: string,
-    verifier: string,
-    callback: (error: unknown, authToken?: string, authTokenSecret?: string, results?: unknown) => void,
-  ): void;
-  getOAuthRequestToken(
-    callback: (error: unknown, requestToken?: string, requestTokenSecret?: string, results?: unknown) => void,
-  ): void;
-};
-
 type AuthorizationLaunchCommand = {
   args: string[];
   command: string;
 };
 
+type OAuthTokenResponse = {
+  oauth_token?: string;
+  oauth_token_secret?: string;
+  oauth_verifier?: string;
+};
+
 function formatErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function percentEncode(value: string): string {
+  return encodeURIComponent(value).replace(/[!'()*]/g, function (character) {
+    return "%" + character.charCodeAt(0).toString(16).toUpperCase();
+  });
+}
+
+function buildOAuthAuthorizationHeader(parameters: Record<string, string | undefined>): string {
+  return (
+    "OAuth " +
+    Object.keys(parameters)
+      .sort()
+      .map(function (key) {
+        return `${percentEncode(key)}="${percentEncode(parameters[key] ?? "")}"`;
+      })
+      .join(", ")
+  );
+}
+
+function createPlaintextSignature(consumerSecret: string, tokenSecret?: string): string {
+  return `${percentEncode(consumerSecret)}&${percentEncode(tokenSecret ?? "")}`;
+}
+
+function createOAuthNonce(): string {
+  return crypto.randomBytes(16).toString("hex");
+}
+
+function createOAuthTimestamp(): string {
+  return Math.floor(Date.now() / 1000).toString();
+}
+
+async function postOAuthToken(url: string, authorizationHeader: string): Promise<OAuthTokenResponse> {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: authorizationHeader,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+  });
+
+  const responseBody = await response.text();
+  if (!response.ok) {
+    throw new Error(responseBody || `OAuth request failed with status ${response.status}`);
+  }
+
+  return Object.fromEntries(new URLSearchParams(responseBody)) as OAuthTokenResponse;
 }
 
 export function resolveAuthorizationLaunchCommand(platform: string, url: string): AuthorizationLaunchCommand {
@@ -125,18 +166,9 @@ export function openAuthorizationUrl(
 }
 
 export function auth(config: OAuthConfig, callback: OAuthCallback): void {
-  const OAuthConstructor = (oauthModule as unknown as { OAuth: new (...args: unknown[]) => OAuthConsumer }).OAuth;
-  const consumer: OAuthConsumer = new OAuthConstructor(
-    `${config.endpoint}${config.request_token_path}?scope=all`,
-    `${config.endpoint}${config.auth_token_path}`,
-    config.consumer_key,
-    config.consumer_secret,
-    "1.0",
-    "http://localhost:3000/authback",
-    "PLAINTEXT",
-  );
   const app = express();
   const authorizationEvents = new EventEmitter();
+  const callbackUrl = "http://localhost:3000/authback";
 
   app.get("/authback", function (req: ExpressRequest, res: ExpressResponse) {
     res.status(200).send("OK - you can close this tab");
@@ -173,45 +205,71 @@ export function auth(config: OAuthConfig, callback: OAuthCallback): void {
     }
   }
 
-  consumer.getOAuthRequestToken(function (error, requestToken, requestTokenSecret) {
-    if (error) {
-      callback(error);
-      return;
-    }
+  (async function () {
+    try {
+      const requestTokenAuthorization = buildOAuthAuthorizationHeader({
+        oauth_callback: callbackUrl,
+        oauth_consumer_key: config.consumer_key ?? "",
+        oauth_nonce: createOAuthNonce(),
+        oauth_signature: createPlaintextSignature(config.consumer_secret ?? ""),
+        oauth_signature_method: "PLAINTEXT",
+        oauth_timestamp: createOAuthTimestamp(),
+        oauth_version: "1.0",
+      });
 
-    const resolvedRequestToken = requestToken ?? "";
-    const resolvedRequestTokenSecret = requestTokenSecret ?? "";
-    openAuthorizationUrl(`${config.endpoint}${config.authorization_path}?oauth_token=${resolvedRequestToken}`);
-
-    authorizationEvents.on("authorized", function (verifier: string) {
-      consumer.getOAuthAccessToken(
-        resolvedRequestToken,
-        resolvedRequestTokenSecret,
-        verifier,
-        function (accessError, authToken, authTokenSecret) {
-          killServer();
-          if (accessError) {
-            callback(accessError);
-            return;
-          }
-
-          console.log("Request Token", resolvedRequestToken);
-          console.log("Request Token Secret", resolvedRequestTokenSecret);
-          console.log("Auth Token", authToken);
-          console.log("Auth Token Secret", authTokenSecret);
-          console.log("Verifier", verifier);
-
-          process.nextTick(function () {
-            callback(null, {
-              token: authToken ?? "",
-              token_secret: authTokenSecret ?? "",
-              verifier,
-            });
-          });
-        },
+      const requestTokenResponse = await postOAuthToken(
+        `${config.endpoint}${config.request_token_path}?scope=all`,
+        requestTokenAuthorization,
       );
-    });
-  });
+
+      const resolvedRequestToken = requestTokenResponse.oauth_token ?? "";
+      const resolvedRequestTokenSecret = requestTokenResponse.oauth_token_secret ?? "";
+      openAuthorizationUrl(`${config.endpoint}${config.authorization_path}?oauth_token=${resolvedRequestToken}`);
+
+      authorizationEvents.on("authorized", function (verifier: string) {
+        void (async function () {
+          try {
+            const accessTokenAuthorization = buildOAuthAuthorizationHeader({
+              oauth_consumer_key: config.consumer_key ?? "",
+              oauth_nonce: createOAuthNonce(),
+              oauth_signature: createPlaintextSignature(config.consumer_secret ?? "", resolvedRequestTokenSecret),
+              oauth_signature_method: "PLAINTEXT",
+              oauth_timestamp: createOAuthTimestamp(),
+              oauth_token: resolvedRequestToken,
+              oauth_verifier: verifier,
+              oauth_version: "1.0",
+            });
+
+            const accessTokenResponse = await postOAuthToken(
+              `${config.endpoint}${config.auth_token_path}`,
+              accessTokenAuthorization,
+            );
+
+            killServer();
+            console.log("Request Token", resolvedRequestToken);
+            console.log("Request Token Secret", resolvedRequestTokenSecret);
+            console.log("Auth Token", accessTokenResponse.oauth_token);
+            console.log("Auth Token Secret", accessTokenResponse.oauth_token_secret);
+            console.log("Verifier", verifier);
+
+            process.nextTick(function () {
+              callback(null, {
+                token: accessTokenResponse.oauth_token ?? "",
+                token_secret: accessTokenResponse.oauth_token_secret ?? "",
+                verifier,
+              });
+            });
+          } catch (error) {
+            killServer();
+            callback(error);
+          }
+        })();
+      });
+    } catch (error) {
+      killServer();
+      callback(error);
+    }
+  })();
 }
 
 export const doOAuth1 = auth;
