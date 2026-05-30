@@ -6,6 +6,7 @@
 import { expect } from "chai";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
+import { expectAsync } from "../super-request.ts";
 import xapiRequestsImport from "./util/requests.ts";
 
 const helper: any = helperImport;
@@ -301,127 +302,94 @@ describe("State Resource Requirements (Communication 2.3)", function () {
    */
   describe("An LRSs State Resource, rejects a POST request if the document is found and either document is not a valid JSON Object (multiplicity, Communication 2.3.s3.table1.row3, Communication 2.2.s8.b1, XAPI-00229)", function () {
     // case 1 - bad post
-    it("If the document being posted to the State Resource does not have a Content-Type of application/json and the existing document does, the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", function (done) {
-      let parameters = helper.buildState();
-      let document = helper.buildDocument();
-
-      request(helper.getEndpointAndAuth())
+    it("If the document being posted to the State Resource does not have a Content-Type of application/json and the existing document does, the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", async function () {let parameters = helper.buildState();
+let document = helper.buildDocument();
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
         .headers(helper.addAllHeaders({}))
-        .json(document)
-        .expect(204, function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            let document2 = "abcdefg";
-            let header2 = { "content-type": "not/json" };
+        .json(document),
+      204,
+      );
 
-            request(helper.getEndpointAndAuth())
+let document2 = "abcdefg";
+let header2 = { "content-type": "not/json" };
+            await expectAsync(
+request(helper.getEndpointAndAuth())
               .post(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
               .headers(helper.addAllHeaders(header2))
-              .body(document2)
-              .expect(400, function (err: unknown, res: any) {
-                if (err) {
-                  done(err);
-                } else {
-                  request(helper.getEndpointAndAuth())
-                    .get(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
-                    .headers(helper.addAllHeaders({}))
-                    .expect(200, function (err: unknown, res: any) {
-                      if (err) {
-                        done(err);
-                      } else {
-                        let result = helper.parse(res.body);
-                        expect(result).to.eql(document);
-                        done();
-                      }
-                    });
-                }
-              });
-          }
-        });
-    });
-    // case 2 - bad existing
-    it("If the existing document does not have a Content-Type of application/json but the document being posted to the State Resource does the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", function (done) {
-      let parameters = helper.buildState();
-      let attachment = "/ asdf / undefined";
-      let header = { "content-type": "application/octet-stream" };
+              .body(document2),
+            400,
+            );
 
-      request(helper.getEndpointAndAuth())
+                  const res3 = await expectAsync(
+request(helper.getEndpointAndAuth())
+                    .get(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
+                    .headers(helper.addAllHeaders({})),
+                  200,
+                  );
+
+let result = helper.parse(res3.body);
+expect(result).to.eql(document);});
+    // case 2 - bad existing
+    it("If the existing document does not have a Content-Type of application/json but the document being posted to the State Resource does the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", async function () {let parameters = helper.buildState();
+let attachment = "/ asdf / undefined";
+let header = { "content-type": "application/octet-stream" };
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .put(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
         .headers(helper.addAllHeaders(header))
-        .body(attachment)
-        .expect(204, function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            let attachment2 = helper.buildDocument();
+        .body(attachment),
+      204,
+      );
 
-            request(helper.getEndpointAndAuth())
+let attachment2 = helper.buildDocument();
+            await expectAsync(
+request(helper.getEndpointAndAuth())
               .post(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
               .headers(helper.addAllHeaders({}))
-              .json(attachment2)
-              .expect(400, function (err: unknown, res: any) {
-                if (err) {
-                  done(err);
-                } else {
-                  request(helper.getEndpointAndAuth())
-                    .get(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
-                    .headers(helper.addAllHeaders({}))
-                    .expect(200, function (err: unknown, res: any) {
-                      if (err) {
-                        done(err);
-                      } else {
-                        expect(res.body).to.eql(attachment);
-                        done();
-                      }
-                    });
-                }
-              });
-          }
-        });
-    });
-    // case 3 - bad json
-    it("If the document being posted to the State Resource has a content type of Content-Type of application/json but cannot be parsed as a JSON Object, the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", function (done) {
-      let parameters = helper.buildState();
-      let document = helper.buildDocument();
+              .json(attachment2),
+            400,
+            );
 
-      request(helper.getEndpointAndAuth())
+                  const res3 = await expectAsync(
+request(helper.getEndpointAndAuth())
+                    .get(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
+                    .headers(helper.addAllHeaders({})),
+                  200,
+                  );
+
+expect(res3.body).to.eql(attachment);});
+    // case 3 - bad json
+    it("If the document being posted to the State Resource has a content type of Content-Type of application/json but cannot be parsed as a JSON Object, the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", async function () {let parameters = helper.buildState();
+let document = helper.buildDocument();
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
         .headers(helper.addAllHeaders({}))
-        .json(document)
-        .expect(204, function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            let header = { "content-type": "application/json" };
-            let attachment = JSON.stringify(helper.buildState()) + "{";
+        .json(document),
+      204,
+      );
 
-            request(helper.getEndpointAndAuth())
+let header = { "content-type": "application/json" };
+let attachment = JSON.stringify(helper.buildState()) + "{";
+            await expectAsync(
+request(helper.getEndpointAndAuth())
               .post(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
               .headers(helper.addAllHeaders(header))
-              .body(attachment)
-              .expect(400, function (err: unknown, res: any) {
-                if (err) {
-                  done(err);
-                } else {
-                  request(helper.getEndpointAndAuth())
+              .body(attachment),
+            400,
+            );
+
+                  const res3 = await expectAsync(
+request(helper.getEndpointAndAuth())
                     .get(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters))
-                    .headers(helper.addAllHeaders({}))
-                    .expect(200, function (err: unknown, res: any) {
-                      if (err) {
-                        done(err);
-                      } else {
-                        let result = helper.parse(res.body);
-                        expect(result).to.eql(document);
-                        done();
-                      }
-                    });
-                }
-              });
-          }
-        });
-    });
+                    .headers(helper.addAllHeaders({})),
+                  200,
+                  );
+
+let result = helper.parse(res3.body);
+expect(result).to.eql(document);});
   });
 
   /**  XAPI-00232, Communication 2.3 State Resource
@@ -483,13 +451,11 @@ describe("State Resource Requirements (Communication 2.3)", function () {
   /**  XAPI-00235, Communication 2.3 State Resource
    * An LRS must reject with 400 Bad Request a POST request to the State API which contains name/value pairs with invalid JSON and the Content-Type header is "application/json"
    */
-  it("An LRS must reject with 400 Bad Request a POST request to the State Resource which contains name/value pairs with invalid JSON and the Content-Type header is 'application/json' (Communication 2.3, XAPI-00235)", function (done) {
-    let parameters: any = {
+  it("An LRS must reject with 400 Bad Request a POST request to the State Resource which contains name/value pairs with invalid JSON and the Content-Type header is 'application/json' (Communication 2.3, XAPI-00235)", async function () {let parameters: any = {
       activityId: "http://www.example.com/activityId/hashset",
       stateId: helper.generateUUID(),
     };
-
-    let agent = encodeURIComponent(
+let agent = encodeURIComponent(
       JSON.stringify({
         objectType: "Agent",
         account: {
@@ -497,20 +463,17 @@ describe("State Resource Requirements (Communication 2.3)", function () {
           name: "Rick James",
         },
       }),
-    ).replace("%3A", "%22"); //break the encoding here.
-
-    parameters.registration = helper.generateUUID();
-    let attachment = JSON.stringify(helper.buildDocument());
-    let header = { "content-type": "application/json" };
-
-    request(helper.getEndpointAndAuth())
+    ).replace("%3A", "%22");
+parameters.registration = helper.generateUUID();
+let attachment = JSON.stringify(helper.buildDocument());
+let header = { "content-type": "application/json" };
+request(helper.getEndpointAndAuth())
       .post(helper.getEndpointActivitiesState() + "?" + helper.getUrlEncoding(parameters) + "&agent=" + agent)
       .headers(helper.addAllHeaders(header))
       .body(attachment)
       .expect(400, function (err: unknown, res: any) {
-        done(err);
-      });
-  });
+        throw err;
+      });});
 
   /**  XAPI-00227, Communication 2.3 State Resource
    * An LRS's State API can process a POST request with "registration" as a parameter

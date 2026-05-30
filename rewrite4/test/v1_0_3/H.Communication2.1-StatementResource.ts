@@ -980,8 +980,7 @@ StatementResult Object.
   describe('If the "Accept-Language" header is present as part of the GET request to the Statement API and the "format" parameter is set to "canonical", the LRS MUST apply this data to choose the matching language in the response. (Communication 2.1.3.s1.table1.row11, XAPI-00172)', function () {
     let statement: any;
     let statementID: string;
-    before("persist statement", function (done) {
-      let templates = [
+    before("persist statement", async function () {let templates = [
         { statement: "{{statements.context}}" },
         { context: "{{contexts.category}}" },
         {
@@ -992,28 +991,24 @@ StatementResult Object.
           },
         },
       ];
-      let data = helper.createFromTemplate(templates);
-      statement = data.statement;
-      statement.context.contextActivities.category.id = "http://www.example.com/test/array/statements/pri";
-
-      request(helper.getEndpointAndAuth())
+let data = helper.createFromTemplate(templates);
+statement = data.statement;
+statement.context.contextActivities.category.id = "http://www.example.com/test/array/statements/pri";
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(statement)
         .expect(200, function (err: unknown, res: any) {
           statementID = (res.body as string[])[0] as string;
-          done(err);
-        });
-    });
+          throw err;
+        });});
 
-    it("should apply this data to choose the matching language in the response", function (done) {
-      this.timeout(0);
-      let query = helper.getUrlEncoding({
+    it("should apply this data to choose the matching language in the response", async function () {this.timeout(0);
+let query = helper.getUrlEncoding({
         statementId: statementID,
         format: "canonical",
       });
-
-      request(helper.getEndpointAndAuth())
+request(helper.getEndpointAndAuth())
         .get(helper.getEndpointStatements() + "?" + query)
         .wait(helper.genDelay(null, null, statementID))
         .headers(helper.addAllHeaders({ "Accept-Language": "en-GB" }))
@@ -1025,17 +1020,14 @@ StatementResult Object.
           expect(statement.verb.display).not.to.have.property("en-US");
           expect(statement.context.contextActivities.category[0].definition.description).not.to.have.property("en-US");
           expect(statement.context.contextActivities.category[0].definition.name).not.to.have.property("en-US");
-          done(err);
-        });
-    });
+          throw err;
+        });});
 
-    it("should NOT apply this data to choose the matching language in the response when format is not set ", function (done) {
-      this.timeout(0);
-      let query = helper.getUrlEncoding({
+    it("should NOT apply this data to choose the matching language in the response when format is not set ", async function () {this.timeout(0);
+let query = helper.getUrlEncoding({
         statementId: statementID,
       });
-
-      request(helper.getEndpointAndAuth())
+request(helper.getEndpointAndAuth())
         .get(helper.getEndpointStatements() + "?" + query)
         .wait(helper.genDelay(null, null, statementID))
         .headers(helper.addAllHeaders({ "Accept-Language": "en-GB" }))
@@ -1051,9 +1043,8 @@ StatementResult Object.
           expect(statement.verb.display).to.have.property("en-GB");
           expect(statement.context.contextActivities.category[0].definition.description).to.have.property("en-GB");
           expect(statement.context.contextActivities.category[0].definition.name).to.have.property("en-GB");
-          done(err);
-        });
-    });
+          throw err;
+        });});
   });
 
   /**  XAPI-00168, Communication 2.1.3 GET Statements
@@ -1376,16 +1367,14 @@ StatementResult Object.
 MUST have a "Content-Type" header
  */
   describe('An LRSs Statement Resource, upon receiving a GET request, MUST have a "Content-Type" header(**Implicit**, Communication 2.1.3.s1.table1.row14, XAPI-00165)', function () {
-    it("should contain the content-type header", function (done) {
-      let query = helper.getUrlEncoding({ ascending: true });
-      request(helper.getEndpointAndAuth())
+    it("should contain the content-type header", async function () {let query = helper.getUrlEncoding({ ascending: true });
+request(helper.getEndpointAndAuth())
         .get(helper.getEndpointStatements() + "?" + query)
         .headers(helper.addAllHeaders({}))
         .expect(200, function (err: unknown, res: any) {
           expect(res.headers).to.have.property("content-type");
-          done();
-        });
-    });
+          
+        });});
   });
 
   /**  XAPI-00166, Communication 2.1.3 GET Statements
@@ -2300,9 +2289,8 @@ MUST have a "Content-Type" header
     let statementId: string | null = null;
     let stmtTime: number | null = null;
 
-    before("store statement", function (done) {
-      let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
-      let templates = [
+    before("store statement", async function () {let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
+let templates = [
         { statement: "{{statements.attachment}}" },
         {
           attachments: [
@@ -2318,46 +2306,37 @@ MUST have a "Content-Type" header
           ],
         },
       ];
-      data = helper.createFromTemplate(templates);
-      data = data.statement;
-
-      txtAtt1 = fs.readFileSync("test/v1_0_3/templates/attachments/simple_text1.txt");
-      let t1stats = fs.statSync("test/v1_0_3/templates/attachments/simple_text1.txt");
-      t1attSize = t1stats.size;
-      t1attHash = crypto.createHash("SHA256").update(txtAtt1).digest("hex");
-
-      data.attachments[0].length = t1attSize;
-      data.attachments[0].sha2 = t1attHash;
-
-      let dashes = "--";
-      let crlf = "\r\n";
-      let boundary = "-------314159265358979323846";
-
-      let msg = dashes + boundary + crlf;
-      msg += "Content-Type: application/json" + crlf + crlf;
-      msg += JSON.stringify(data) + crlf;
-      msg += dashes + boundary + crlf;
-      msg += "Content-Type: text/plain" + crlf;
-      msg += "Content-Transfer-Encoding: binary" + crlf;
-      msg += "X-Experience-API-Hash: " + data.attachments[0].sha2 + crlf + crlf;
-      msg += txtAtt1 + crlf;
-      msg += dashes + boundary + dashes + crlf;
-      stmtTime = Date.now();
-      request(helper.getEndpointAndAuth())
+data = helper.createFromTemplate(templates);
+data = data.statement;
+txtAtt1 = fs.readFileSync("test/v1_0_3/templates/attachments/simple_text1.txt");
+let t1stats = fs.statSync("test/v1_0_3/templates/attachments/simple_text1.txt");
+t1attSize = t1stats.size;
+t1attHash = crypto.createHash("SHA256").update(txtAtt1).digest("hex");
+data.attachments[0].length = t1attSize;
+data.attachments[0].sha2 = t1attHash;
+let dashes = "--";
+let crlf = "\r\n";
+let boundary = "-------314159265358979323846";
+let msg = dashes + boundary + crlf;
+msg += "Content-Type: application/json" + crlf + crlf;
+msg += JSON.stringify(data) + crlf;
+msg += dashes + boundary + crlf;
+msg += "Content-Type: text/plain" + crlf;
+msg += "Content-Transfer-Encoding: binary" + crlf;
+msg += "X-Experience-API-Hash: " + data.attachments[0].sha2 + crlf + crlf;
+msg += txtAtt1 + crlf;
+msg += dashes + boundary + dashes + crlf;
+stmtTime = Date.now();
+      const res = await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders(header))
-        .body(msg)
-        .expect(200, function (err: unknown, res: any) {
-          if (err) done(err);
-          else {
-            let body = JSON.parse(res.body);
+        .body(msg),
+      200,
+      );
 
-            statementId = body[0];
-            // console.log("Statement ID is", statementId)
-            done();
-          }
-        });
-    });
+let body = JSON.parse(res.body as string);
+statementId = body[0];});
 
     it('should NOT return the attachment if "attachments" is missing', async function () {
       let query = "?statementId=" + statementId;
