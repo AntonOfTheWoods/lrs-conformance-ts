@@ -7,6 +7,7 @@ import { expect } from "chai";
 import extend from "../../bun-runtime/extend-compat.ts";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
+import { expectAsync } from "../super-request.ts";
 
 const helper: any = helperImport;
 let request: any = requestBase;
@@ -25,7 +26,7 @@ describe("Document Resource Requirements (Communication 2.2)", function () {
   /**  XAPI-00182, Communication 2.2 Documents Resources
    * An LRS makes no modifications to stored data for any rejected request.
    */
-  it("An LRS makes no modifications to stored data for any rejected request (Multiple, including Communication 2.1.2.s2.b4, XAPI-00182)", function (done) {
+  it("An LRS makes no modifications to stored data for any rejected request (Multiple, including Communication 2.1.2.s2.b4, XAPI-00182)", async function () {
     this.timeout(0);
     const templates = [{ statement: "{{statements.default}}" }];
     const correct = helper.createFromTemplate(templates).statement;
@@ -37,22 +38,21 @@ describe("Document Resource Requirements (Communication 2.2)", function () {
     incorrect.verb.id = "should fail";
     const stmtTime = Date.now();
 
-    request(helper.getEndpointAndAuth())
-      .post(helper.getEndpointStatements())
-      .headers(helper.addAllHeaders({}))
-      .json([correct, incorrect])
-      .expect(400)
-      .end(function (err: unknown, res: any) {
-        if (err) {
-          done(err);
-        } else {
-          request(helper.getEndpointAndAuth())
-            .get(helper.getEndpointStatements() + "?statementId=" + correct.id)
-            .wait(helper.genDelay(stmtTime, "?statementId=" + correct.id, correct.id))
-            .headers(helper.addAllHeaders({}))
-            .expect(404, done);
-        }
-      });
+    await expectAsync(
+      request(helper.getEndpointAndAuth())
+        .post(helper.getEndpointStatements())
+        .headers(helper.addAllHeaders({}))
+        .json([correct, incorrect]),
+      400,
+    );
+
+    await expectAsync(
+      request(helper.getEndpointAndAuth())
+        .get(helper.getEndpointStatements() + "?statementId=" + correct.id)
+        .wait(helper.genDelay(stmtTime, "?statementId=" + correct.id, correct.id))
+        .headers(helper.addAllHeaders({})),
+      404,
+    );
   });
 
   /**  XAPI-00184, Communication 2.2 Documents Resources
