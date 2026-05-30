@@ -28,7 +28,9 @@ describe("Version Property Requirements (Data 2.4.10)", () => {
   /**  XAPI-00332, Communication 3.3 Versioning which should be moved to Data 2.4.10 Version Property
    * Statements returned by an LRS MUST retain the version property they are accepted with.
    */
-  it("Statements returned by an LRS MUST retain the version property they are accepted with (Format, Data 2.4.10, XAPI-00332)", async function () {
+  it("Statements returned by an LRS MUST retain the version property they are accepted with (Format, Data 2.4.10, XAPI-00332)", async function (this: {
+    timeout(ms: number): void;
+  }) {
     this.timeout(0);
     let stmtTime = Date.now();
 
@@ -51,15 +53,15 @@ describe("Version Property Requirements (Data 2.4.10)", () => {
         .expect(200),
     );
 
-        const res = await endAsync(
-request(helper.getEndpointAndAuth())
-      .get(helper.getEndpointStatements() + "?" + query)
-      .wait(helper.genDelay(stmtTime, "?" + query, id))
-      .headers(helper.addAllHeaders({}))
-      .expect(200)
+    const res = await endAsync(
+      request(helper.getEndpointAndAuth())
+        .get(helper.getEndpointStatements() + "?" + query)
+        .wait(helper.genDelay(stmtTime, "?" + query, id))
+        .headers(helper.addAllHeaders({}))
+        .expect(200),
     );
 
-let results = helper.parse(res.body);
-expect(results.version).toMatch(REG_ALLOWED_VERSIONS);
+    let results = helper.parse(res.body);
+    expect(results.version).toMatch(REG_ALLOWED_VERSIONS);
   });
 });

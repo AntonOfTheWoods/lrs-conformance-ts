@@ -35,8 +35,10 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
   /**  XAPI-00139, Communication 2.0 Resources
    * An LRS has a Statement API with endpoint "base IRI"+"/statements"
    */
-  describe('An LRS has a Statement Resource with endpoint "base IRI"+"/statements" (Communication 2.1, XAPI-00139)', function () {
-    it('should allow "/statements" POST', async function () {
+  describe('An LRS has a Statement Resource with endpoint "base IRI"+"/statements" (Communication 2.1, XAPI-00139)', function (this: {
+    timeout(ms: number): void;
+  }) {
+    it('should allow "/statements" POST', async function (this: { timeout(ms: number): void }) {
       let templates = [{ statement: "{{statements.default}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
@@ -50,7 +52,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
       );
     });
 
-    it('should allow "/statements" PUT', async function () {
+    it('should allow "/statements" PUT', async function (this: { timeout(ms: number): void }) {
       let templates = [{ statement: "{{statements.default}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
@@ -65,7 +67,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
       );
     });
 
-    it('should allow "/statements" GET', async function () {
+    it('should allow "/statements" GET', async function (this: { timeout(ms: number): void }) {
       let query = helper.getUrlEncoding({ verb: "http://adlnet.gov/expapi/non/existent" });
       await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -87,8 +89,10 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
   /**  XAPI-00143, Communication 2.1.1 PUT Statements
    * An LRS's Statement API upon processing a valid PUT request successfully returns code 204 No Content
    */
-  describe("An LRS's Statement Resource upon processing a successful PUT request returns code 204 No Content (Communication 2.1.1.s1, XAPI-00143)", function () {
-    it("should persist statement and return status 204", async function () {
+  describe("An LRS's Statement Resource upon processing a successful PUT request returns code 204 No Content (Communication 2.1.1.s1, XAPI-00143)", function (this: {
+    timeout(ms: number): void;
+  }) {
+    it("should persist statement and return status 204", async function (this: { timeout(ms: number): void }) {
       let templates = [{ statement: "{{statements.default}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
@@ -110,8 +114,10 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
   /**  XAPI-00145, Communication 2.1.1 PUT Statements
    * An LRS's Statement API rejects a PUT request which does not have a "statementId" parameter, returning 400 Bad Request
    */
-  describe('An LRS\'s Statement Resource accepts PUT requests only if it contains a "statementId" parameter (Multiplicity, Communication 2.1.1.s1.table1.row1, XAPI-00144, XAPI-00145)', function () {
-    it('should persist statement using "statementId" parameter', async function () {
+  describe('An LRS\'s Statement Resource accepts PUT requests only if it contains a "statementId" parameter (Multiplicity, Communication 2.1.1.s1.table1.row1, XAPI-00144, XAPI-00145)', function (this: {
+    timeout(ms: number): void;
+  }) {
+    it('should persist statement using "statementId" parameter', async function (this: { timeout(ms: number): void }) {
       let templates = [{ statement: "{{statements.default}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
@@ -126,7 +132,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
       );
     });
 
-    it('should fail without using "statementId" parameter', async function () {
+    it('should fail without using "statementId" parameter', async function (this: { timeout(ms: number): void }) {
       let templates = [{ statement: "{{statements.default}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
@@ -145,9 +151,13 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
   /**  XAPI-00142, Communication 2.1.1 PUT Statements
    * An LRS cannot modify a Statement in the event it receives a Statement with statementID equal to a Statement in the LRS already.  To test: Send one statement with a particular statement ID. Send a second statement with the same statement ID but everything else different. Retrieve the statement before the second statement and after and both retrieved statements MUST match.
    */
-  describe("An LRS cannot modify a Statement, state, or Object in the event it receives a Statement with statementID equal to a Statement in the LRS already. (Communication 2.1.1.s2.b2, XAPI-00142)", function () {
+  describe("An LRS cannot modify a Statement, state, or Object in the event it receives a Statement with statementID equal to a Statement in the LRS already. (Communication 2.1.1.s2.b2, XAPI-00142)", function (this: {
+    timeout(ms: number): void;
+  }) {
     this.timeout(0);
-    it('should not update statement with matching "statementId" on PUT', async function () {
+    it('should not update statement with matching "statementId" on PUT', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let templates = [{ statement: "{{statements.default}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
@@ -185,7 +195,9 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
       expect(statement.verb.id).toEqual(data.verb.id);
     });
 
-    it('should not update statement with matching "statementId" on POST', async function () {
+    it('should not update statement with matching "statementId" on POST', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let templates = [{ statement: "{{statements.default}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
@@ -233,8 +245,10 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
   /**  XAPI-00147, Communication 2.1.2 POST Statements
    * An LRS's Statement API accepts POST requests
    */
-  describe("An LRS's Statement Resource accepts POST requests (Communication 2.1.2.s1, XAPI-00147)", function () {
-    it('should persist statement using "POST"', async function () {
+  describe("An LRS's Statement Resource accepts POST requests (Communication 2.1.2.s1, XAPI-00147)", function (this: {
+    timeout(ms: number): void;
+  }) {
+    it('should persist statement using "POST"', async function (this: { timeout(ms: number): void }) {
       let templates = [{ statement: "{{statements.default}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
@@ -252,8 +266,12 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
   /**  XAPI-00146, Communication 2.1.2 POST Statements
    * An LRS's Statement API upon processing a successful POST request returns code 200 OK and all Statement UUIDs within the POST
    */
-  describe("An LRS's Statement Resource upon processing a successful POST request returns code 200 OK and all Statement UUIDs within the POST **Implicit** (Communication 2.1.2.s1, XAPI-00146)", function () {
-    it('should persist statement using "POST" and return array of IDs', async function () {
+  describe("An LRS's Statement Resource upon processing a successful POST request returns code 200 OK and all Statement UUIDs within the POST **Implicit** (Communication 2.1.2.s1, XAPI-00146)", function (this: {
+    timeout(ms: number): void;
+  }) {
+    it('should persist statement using "POST" and return array of IDs', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let templates = [{ statement: "{{statements.default}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
@@ -313,8 +331,10 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
   /**  XAPI-00159, Communication 2.1.3 GET Statements
    * An LRS's Statement API accepts GET requests
    */
-  describe("LRS's Statement Resource accepts GET requests (Communication 2.1.3.s1, XAPI-00159)", function () {
-    it("should return using GET", async function () {
+  describe("LRS's Statement Resource accepts GET requests (Communication 2.1.3.s1, XAPI-00159)", function (this: {
+    timeout(ms: number): void;
+  }) {
+    it("should return using GET", async function (this: { timeout(ms: number): void }) {
       await expectAsync(
         request(helper.getEndpointAndAuth()).get(helper.getEndpointStatements()).headers(helper.addAllHeaders({})),
         200,
@@ -325,10 +345,12 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
   /**  XAPI-00156, Communication 2.1.3 GET Statements
    * An LRS's Statement API upon processing a successful GET request with a "statementId" parameter, returns code 200 OK and a single Statement with the corresponding "id".
    */
-  describe('An LRS\'s Statement Resource upon processing a successful GET request with a "statementId" parameter, returns code 200 OK and a single Statement with the corresponding "id".  (Communication 2.1.3.s1, XAPI-00156)', function () {
+  describe('An LRS\'s Statement Resource upon processing a successful GET request with a "statementId" parameter, returns code 200 OK and a single Statement with the corresponding "id".  (Communication 2.1.3.s1, XAPI-00156)', function (this: {
+    timeout(ms: number): void;
+  }) {
     let id: string, stmtTime: number;
 
-    before("persist statement", async function () {
+    before("persist statement", async function (this: { timeout(ms: number): void }) {
       let templates = [{ statement: "{{statements.default}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
@@ -345,7 +367,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
       );
     });
 
-    it('should retrieve statement using "statementId"', async function () {
+    it('should retrieve statement using "statementId"', async function (this: { timeout(ms: number): void }) {
       this.timeout(0);
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -364,11 +386,13 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
  * An LRS's Statement API upon processing a successful GET request with a
 "voidedStatementId" parameter, returns code 200 OK and a single Statement with the corresponding "id".
  */
-  describe('An LRS\'s Statement Resource upon processing a successful GET request with a "voidedStatementId" parameter, returns code 200 OK and a single Statement with the corresponding "id".  (Communication 2.1.3.s1, XAPI-00155)', function () {
+  describe('An LRS\'s Statement Resource upon processing a successful GET request with a "voidedStatementId" parameter, returns code 200 OK and a single Statement with the corresponding "id".  (Communication 2.1.3.s1, XAPI-00155)', function (this: {
+    timeout(ms: number): void;
+  }) {
     let voidedId = helper.generateUUID();
     let stmtTime: number;
 
-    before("persist voided statement", async function () {
+    before("persist voided statement", async function (this: { timeout(ms: number): void }) {
       let templates = [{ statement: "{{statements.default}}" }];
       let voided = helper.createFromTemplate(templates);
       voided = voided.statement;
@@ -383,7 +407,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
       );
     });
 
-    before("persist voiding statement", async function () {
+    before("persist voiding statement", async function (this: { timeout(ms: number): void }) {
       let templates = [{ statement: "{{statements.voiding}}" }];
       let voiding = helper.createFromTemplate(templates);
       voiding = voiding.statement;
@@ -399,7 +423,9 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
       );
     });
 
-    it('should return a voided statement when using GET "voidedStatementId"', async function () {
+    it('should return a voided statement when using GET "voidedStatementId"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       this.timeout(0);
       let query = helper.getUrlEncoding({ voidedStatementId: voidedId });
       const res = await expectAsync(
@@ -419,11 +445,13 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
  * An LRS's Statement API upon processing a successful GET request with neither a "statementId" nor a "voidedStatementId" parameter, returns code 200 OK and a
 StatementResult Object.
  */
-  describe('An LRS\'s Statement Resource upon processing a successful GET request with neither a "statementId" nor a "voidedStatementId" parameter, returns code 200 OK and a StatementResult Object.  (Communication 2.1.3.s1, XAPI-00154)', function () {
+  describe('An LRS\'s Statement Resource upon processing a successful GET request with neither a "statementId" nor a "voidedStatementId" parameter, returns code 200 OK and a StatementResult Object.  (Communication 2.1.3.s1, XAPI-00154)', function (this: {
+    timeout(ms: number): void;
+  }) {
     let statement: any, substatement: any, stmtTime: number;
     this.timeout(0);
 
-    before("persist statement", async function () {
+    before("persist statement", async function (this: { timeout(ms: number): void }) {
       let templates = [
         { statement: "{{statements.context}}" },
         { context: "{{contexts.category}}" },
@@ -448,7 +476,7 @@ StatementResult Object.
       );
     });
 
-    before("persist substatement", async function () {
+    before("persist substatement", async function (this: { timeout(ms: number): void }) {
       let templates = [
         { statement: "{{statements.object_substatement}}" },
         { object: "{{substatements.context}}" },
@@ -474,7 +502,9 @@ StatementResult Object.
       );
     });
 
-    it('should return StatementResult using GET without "statementId" or "voidedStatementId"', async function () {
+    it('should return StatementResult using GET without "statementId" or "voidedStatementId"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
           .get(helper.getEndpointStatements())
@@ -488,7 +518,7 @@ StatementResult Object.
       expect(result.statements).toSatisfy((v: any) => Array.isArray(v));
     });
 
-    it('should return StatementResult using GET with "agent"', async function () {
+    it('should return StatementResult using GET with "agent"', async function (this: { timeout(ms: number): void }) {
       let templates = [{ agent: "{{agents.default}}" }];
       let data = helper.createFromTemplate(templates);
 
@@ -506,7 +536,7 @@ StatementResult Object.
       expect(result.statements).toSatisfy((v: any) => Array.isArray(v));
     });
 
-    it('should return StatementResult using GET with "verb"', async function () {
+    it('should return StatementResult using GET with "verb"', async function (this: { timeout(ms: number): void }) {
       let query = helper.getUrlEncoding({ verb: statement.verb.id });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -521,7 +551,7 @@ StatementResult Object.
       expect(result.statements).toSatisfy((v: any) => Array.isArray(v));
     });
 
-    it('should return StatementResult using GET with "activity"', async function () {
+    it('should return StatementResult using GET with "activity"', async function (this: { timeout(ms: number): void }) {
       let query = helper.getUrlEncoding({ activity: statement.object.id });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -536,7 +566,9 @@ StatementResult Object.
       expect(result.statements).toSatisfy((v: any) => Array.isArray(v));
     });
 
-    it('should return StatementResult using GET with "registration"', async function () {
+    it('should return StatementResult using GET with "registration"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ registration: statement.context.registration });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -551,7 +583,9 @@ StatementResult Object.
       expect(result.statements).toSatisfy((v: any) => Array.isArray(v));
     });
 
-    it('should return StatementResult using GET with "related_activities"', async function () {
+    it('should return StatementResult using GET with "related_activities"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({
         activity: statement.context.contextActivities.category.id,
         related_activities: true,
@@ -569,7 +603,9 @@ StatementResult Object.
       expect(result.statements).toSatisfy((v: any) => Array.isArray(v));
     });
 
-    it('should return StatementResult using GET with "related_agents"', async function () {
+    it('should return StatementResult using GET with "related_agents"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({
         agent: statement.context.instructor,
         related_agents: true,
@@ -587,7 +623,7 @@ StatementResult Object.
       expect(result.statements).toSatisfy((v: any) => Array.isArray(v));
     });
 
-    it('should return StatementResult using GET with "since"', async function () {
+    it('should return StatementResult using GET with "since"', async function (this: { timeout(ms: number): void }) {
       let query = helper.getUrlEncoding({ since: "2012-06-01T19:09:13.245Z" });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -602,7 +638,7 @@ StatementResult Object.
       expect(result.statements).toSatisfy((v: any) => Array.isArray(v));
     });
 
-    it('should return StatementResult using GET with "until"', async function () {
+    it('should return StatementResult using GET with "until"', async function (this: { timeout(ms: number): void }) {
       let query = helper.getUrlEncoding({ until: "2012-06-01T19:09:13.245Z" });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -617,7 +653,7 @@ StatementResult Object.
       expect(result.statements).toSatisfy((v: any) => Array.isArray(v));
     });
 
-    it('should return StatementResult using GET with "limit"', async function () {
+    it('should return StatementResult using GET with "limit"', async function (this: { timeout(ms: number): void }) {
       let query = helper.getUrlEncoding({ limit: 1 });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -632,7 +668,9 @@ StatementResult Object.
       expect(result.statements).toSatisfy((v: any) => Array.isArray(v));
     });
 
-    it('should return StatementResult using GET with "ascending"', async function () {
+    it('should return StatementResult using GET with "ascending"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ ascending: true });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -647,7 +685,7 @@ StatementResult Object.
       expect(result.statements).toSatisfy((v: any) => Array.isArray(v));
     });
 
-    it('should return StatementResult using GET with "format"', async function () {
+    it('should return StatementResult using GET with "format"', async function (this: { timeout(ms: number): void }) {
       let query = helper.getUrlEncoding({ format: "ids" });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -661,7 +699,9 @@ StatementResult Object.
       expect(results).toHaveProperty("statements");
     });
 
-    it('should return multipart response format StatementResult using GET with "attachments" parameter as true', async function () {
+    it('should return multipart response format StatementResult using GET with "attachments" parameter as true', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ attachments: true });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -685,7 +725,9 @@ StatementResult Object.
       expect(results).toHaveProperty("statements");
     });
 
-    it('should not return multipart response format using GET with "attachments" parameter as false', async function () {
+    it('should not return multipart response format using GET with "attachments" parameter as false', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ attachments: false });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -703,8 +745,10 @@ StatementResult Object.
   /**  XAPI-00158, Communication 2.1.3 GET Statements
    * An LRS's Statement API can process a GET request with "statementId" as a parameter
    */
-  describe('An LRS\'s Statement Resource can process a GET request with "statementId" as a parameter (Communication 2.1.3.s1.table1.row1, XAPI-00158)', function () {
-    it('should process using GET with "statementId"', async function () {
+  describe('An LRS\'s Statement Resource can process a GET request with "statementId" as a parameter (Communication 2.1.3.s1.table1.row1, XAPI-00158)', function (this: {
+    timeout(ms: number): void;
+  }) {
+    it('should process using GET with "statementId"', async function (this: { timeout(ms: number): void }) {
       this.timeout(0);
       let templates = [{ statement: "{{statements.default}}" }];
       let data = helper.createFromTemplate(templates);
@@ -734,11 +778,13 @@ StatementResult Object.
   /**  XAPI-00157, Communication 2.1.3 GET Statements
    * An LRS's Statement API can process a GET request with "voidedStatementId" as a parameter
    */
-  describe('An LRS\'s Statement Resource can process a GET request with "voidedStatementId" as a parameter  (Communication 2.1.3.s1.table1.row2, XAPI-00157)', function () {
+  describe('An LRS\'s Statement Resource can process a GET request with "voidedStatementId" as a parameter  (Communication 2.1.3.s1.table1.row2, XAPI-00157)', function (this: {
+    timeout(ms: number): void;
+  }) {
     let voidedId = helper.generateUUID();
     let stmtTime: number;
 
-    before("persist voided statement", async function () {
+    before("persist voided statement", async function (this: { timeout(ms: number): void }) {
       let templates = [{ statement: "{{statements.default}}" }];
       let voided = helper.createFromTemplate(templates);
       voided = voided.statement;
@@ -753,7 +799,7 @@ StatementResult Object.
       );
     });
 
-    before("persist voiding statement", async function () {
+    before("persist voiding statement", async function (this: { timeout(ms: number): void }) {
       let templates = [{ statement: "{{statements.voiding}}" }];
       let voiding = helper.createFromTemplate(templates);
       voiding = voiding.statement;
@@ -769,7 +815,7 @@ StatementResult Object.
       );
     });
 
-    it('should process using GET with "voidedStatementId"', async function () {
+    it('should process using GET with "voidedStatementId"', async function (this: { timeout(ms: number): void }) {
       this.timeout(0);
       let query = helper.getUrlEncoding({ voidedStatementId: voidedId });
       await expectAsync(
@@ -785,8 +831,10 @@ StatementResult Object.
   /**  XAPI-00181, Communication 2.1.3 GET Statements
    * An LRS's Statement API can process a GET request with "agent" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with exact match agent result if the agent parameter is set with a valid Agent IFI
    */
-  describe('An LRS\'s Statement Resource can process a GET request with "agent" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row3, XAPI-00181)', function () {
-    it('should process using GET with "agent"', async function () {
+  describe('An LRS\'s Statement Resource can process a GET request with "agent" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row3, XAPI-00181)', function (this: {
+    timeout(ms: number): void;
+  }) {
+    it('should process using GET with "agent"', async function (this: { timeout(ms: number): void }) {
       let templates = [{ agent: "{{agents.default}}" }];
       let data = helper.createFromTemplate(templates);
 
@@ -803,8 +851,10 @@ StatementResult Object.
   /**  XAPI-00180, Communication 2.1.3 GET Statements
    * An LRS's Statement API can process a GET request with "verb" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with exact match verb results if the verb parameter is set with a valid Verb IRI
    */
-  describe('An LRS\'s Statement Resource can process a GET request with "verb" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row4, XAPI-00180)', function () {
-    it('should process using GET with "verb"', async function () {
+  describe('An LRS\'s Statement Resource can process a GET request with "verb" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row4, XAPI-00180)', function (this: {
+    timeout(ms: number): void;
+  }) {
+    it('should process using GET with "verb"', async function (this: { timeout(ms: number): void }) {
       let query = helper.getUrlEncoding({ verb: "http://adlnet.gov/expapi/non/existent" });
       await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -818,8 +868,10 @@ StatementResult Object.
   /**  XAPI-00179, Communication 2.1.3 GET Statements
    * An LRS's Statement API can process a GET request with "activity" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with exact match activity results if the activity parameter is set with a valid activity IRI
    */
-  describe('An LRS\'s Statement Resource can process a GET request with "activity" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row5, XAPI-00179)', function () {
-    it('should process using GET with "activity"', async function () {
+  describe('An LRS\'s Statement Resource can process a GET request with "activity" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row5, XAPI-00179)', function (this: {
+    timeout(ms: number): void;
+  }) {
+    it('should process using GET with "activity"', async function (this: { timeout(ms: number): void }) {
       let query = helper.getUrlEncoding({ activity: "http://www.example.com/meetings/occurances/12345" });
       await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -833,8 +885,10 @@ StatementResult Object.
   /**  XAPI-00178, Communication 2.1.3 GET Statements
    * An LRS's Statement API can process a GET request with "registration" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with exact match registration results if the registration parameter is set with a valid registration UUID
    */
-  describe('An LRS\'s Statement Resource can process a GET request with "registration" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row6, XAPI-00178)', function () {
-    it('should process using GET with "registration"', async function () {
+  describe('An LRS\'s Statement Resource can process a GET request with "registration" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row6, XAPI-00178)', function (this: {
+    timeout(ms: number): void;
+  }) {
+    it('should process using GET with "registration"', async function (this: { timeout(ms: number): void }) {
       let query = helper.getUrlEncoding({ registration: helper.generateUUID() });
       await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -848,10 +902,12 @@ StatementResult Object.
   /**  XAPI-00177, Communication 2.1.3 GET Statements
    * An LRS's Statement API can process a GET request with "related_activities" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with exact match activity results if the activity parameter is set with a valid Verb IRI unless the related_activities parameter is set to true. If set to true it MUST return 200 OK, StatementResult Object with activity ID matches in the Statement Object, and Context Objects and SubStatement Objects.
    */
-  describe('An LRS\'s Statement Resource can process a GET request with "related_activities" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row7)', function () {
+  describe('An LRS\'s Statement Resource can process a GET request with "related_activities" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row7)', function (this: {
+    timeout(ms: number): void;
+  }) {
     let statement: any, stmtTime: number;
 
-    before("persist statement", async function () {
+    before("persist statement", async function (this: { timeout(ms: number): void }) {
       let templates = [
         { statement: "{{statements.context}}" },
         { context: "{{contexts.category}}" },
@@ -877,7 +933,7 @@ StatementResult Object.
       );
     });
 
-    it('should process using GET with "related_activities"', async function () {
+    it('should process using GET with "related_activities"', async function (this: { timeout(ms: number): void }) {
       this.timeout(0);
       let query = helper.getUrlEncoding({
         activity: statement.context.contextActivities.category.id,
@@ -896,10 +952,12 @@ StatementResult Object.
   /**  XAPI-00176. Communication 2.1.3 GET Statements
    * An LRS's Statement API can process a GET request with "related_agents" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with exact match agent results if the agent parameter is set with a valid Agent or Identified Group JSON Object unless the related_agents parameter is set to true. If set to true it MUST return 200 OK, StatementResult Object with agent matches in the Actor, Object, authority, instructor, team, or any of these properties in a contained SubStatement
    */
-  describe('An LRS\'s Statement Resource can process a GET request with "related_agents" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row8, XAPI-00176)', function () {
+  describe('An LRS\'s Statement Resource can process a GET request with "related_agents" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row8, XAPI-00176)', function (this: {
+    timeout(ms: number): void;
+  }) {
     let statement: any, stmtTime: number;
 
-    before("persist statement", async function () {
+    before("persist statement", async function (this: { timeout(ms: number): void }) {
       let templates = [
         { statement: "{{statements.context}}" },
         { context: "{{contexts.category}}" },
@@ -925,7 +983,7 @@ StatementResult Object.
       );
     });
 
-    it('should process using GET with "related_agents"', async function () {
+    it('should process using GET with "related_agents"', async function (this: { timeout(ms: number): void }) {
       this.timeout(0);
 
       let query = helper.getUrlEncoding({
@@ -945,8 +1003,10 @@ StatementResult Object.
   /**  XAPI-00175, Communication 2.1.3 GET Statements
    * An LRS's Statement API can process a GET request with "since" as a parameter. The Statement API MUST return 200 OK, StatementResult Object containing all statements which have a stored timestamp after the since parameter timestamp in the query.
    */
-  describe('An LRS\'s Statement Resource can process a GET request with "since" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row9, XAPI-00175)', function () {
-    it('should process using GET with "since"', async function () {
+  describe('An LRS\'s Statement Resource can process a GET request with "since" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row9, XAPI-00175)', function (this: {
+    timeout(ms: number): void;
+  }) {
+    it('should process using GET with "since"', async function (this: { timeout(ms: number): void }) {
       let query = helper.getUrlEncoding({ since: "2012-06-01T19:09:13.245Z" });
       await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -960,8 +1020,10 @@ StatementResult Object.
   /**  XAPI-00174, Communication 2.1.3 GET Statements
    * An LRS's Statement API can process a GET request with "until" as a parameter. The Statement API MUST return 200 OK, StatementResult Object containing all statements which have a stored timestamp at or before the specified until parameter timestamp.
    */
-  describe('An LRS\'s Statement Resource can process a GET request with "until" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row10, XAPI-00174)', function () {
-    it('should process using GET with "until"', async function () {
+  describe('An LRS\'s Statement Resource can process a GET request with "until" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row10, XAPI-00174)', function (this: {
+    timeout(ms: number): void;
+  }) {
+    it('should process using GET with "until"', async function (this: { timeout(ms: number): void }) {
       let query = helper.getUrlEncoding({ until: "2012-06-01T19:09:13.245Z" });
       await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -975,8 +1037,10 @@ StatementResult Object.
   /**  XAPI-00173, Communication 2.1.3 GET Statements
    * An LRS's Statement API can process a GET request with "limit" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with only the number of results set by the integer in the limit parameter. If the limit parameter is not present, the limit is defaulted to 0 which returns all results up to the server limit.
    */
-  describe('An LRS\'s Statement Resource can process a GET request with "limit" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row11, XAPI-00173)', function () {
-    it('should process using GET with "limit"', async function () {
+  describe('An LRS\'s Statement Resource can process a GET request with "limit" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row11, XAPI-00173)', function (this: {
+    timeout(ms: number): void;
+  }) {
+    it('should process using GET with "limit"', async function (this: { timeout(ms: number): void }) {
       let query = helper.getUrlEncoding({ limit: 1 });
       await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -990,10 +1054,12 @@ StatementResult Object.
   /**  XAPI-00172, Communication 2.1.3 GET Statements
    * If the "Accept-Language" header is present as part of the GET request to the Statement API and the "format" parameter is set to "canonical", the LRS MUST apply this data to choose the matching language in the response.
    */
-  describe('If the "Accept-Language" header is present as part of the GET request to the Statement API and the "format" parameter is set to "canonical", the LRS MUST apply this data to choose the matching language in the response. (Communication 2.1.3.s1.table1.row11, XAPI-00172)', function () {
+  describe('If the "Accept-Language" header is present as part of the GET request to the Statement API and the "format" parameter is set to "canonical", the LRS MUST apply this data to choose the matching language in the response. (Communication 2.1.3.s1.table1.row11, XAPI-00172)', function (this: {
+    timeout(ms: number): void;
+  }) {
     let statement: any;
     let statementID: string;
-    before("persist statement", async function () {
+    before("persist statement", async function (this: { timeout(ms: number): void }) {
       let templates = [
         { statement: "{{statements.context}}" },
         { context: "{{contexts.category}}" },
@@ -1019,7 +1085,9 @@ StatementResult Object.
       statementID = (res.body as string[])[0] as string;
     });
 
-    it("should apply this data to choose the matching language in the response", async function () {
+    it("should apply this data to choose the matching language in the response", async function (this: {
+      timeout(ms: number): void;
+    }) {
       this.timeout(0);
       let query = helper.getUrlEncoding({
         statementId: statementID,
@@ -1039,7 +1107,9 @@ StatementResult Object.
       expect(statement.context.contextActivities.category[0].definition.name).not.toHaveProperty("en-US");
     });
 
-    it("should NOT apply this data to choose the matching language in the response when format is not set ", async function () {
+    it("should NOT apply this data to choose the matching language in the response when format is not set ", async function (this: {
+      timeout(ms: number): void;
+    }) {
       this.timeout(0);
       let query = helper.getUrlEncoding({
         statementId: statementID,
@@ -1074,10 +1144,12 @@ StatementResult Object.
   /**  XAPI-00171, Communication 2.1.3 GET Statements
    * An LRS's Statement API can process a GET request with "format" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with results in the requested format. If “ids”, only include identifiers for Agent, Activity, Verb, Group Objects, and members of Anonymous groups.
    */
-  describe('An LRS\'s Statement Resource can process a GET request with "format" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row12)', function () {
+  describe('An LRS\'s Statement Resource can process a GET request with "format" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row12)', function (this: {
+    timeout(ms: number): void;
+  }) {
     this.timeout(0);
     let agent: any, activity: any, group: any, verb1: any, verb2: any, id: string, stmtTime: number;
-    before("setting up the statement to test against", async function () {
+    before("setting up the statement to test against", async function (this: { timeout(ms: number): void }) {
       let templates = [
         { statement: "{{statements.object_substatement}}" },
         { object: "{{statements.unicode}}" },
@@ -1104,7 +1176,9 @@ StatementResult Object.
       id = (res.body as string[])[0] as string;
     });
     // XAPI-00168
-    it('should process using GET with "format" absent (XAPI-00168)', async function () {
+    it('should process using GET with "format" absent (XAPI-00168)', async function (this: {
+      timeout(ms: number): void;
+    }) {
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
           .get(helper.getEndpointStatements())
@@ -1127,7 +1201,9 @@ StatementResult Object.
       });
     });
     // XAPI-00169
-    it('should process using GET with "format" canonical (XAPI-00169)', async function () {
+    it('should process using GET with "format" canonical (XAPI-00169)', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ format: "canonical" });
 
       // Build a better actor
@@ -1191,7 +1267,9 @@ StatementResult Object.
       });
     });
     // XAPI-00170
-    it('should process using GET with "format" exact (XAPI-00170)', async function () {
+    it('should process using GET with "format" exact (XAPI-00170)', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ format: "exact" });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -1215,7 +1293,7 @@ StatementResult Object.
       });
     });
     // XAPI-00171
-    it('should process using GET with "format" ids (XAPI-00171)', async function () {
+    it('should process using GET with "format" ids (XAPI-00171)', async function (this: { timeout(ms: number): void }) {
       let query = helper.getUrlEncoding({ format: "ids" });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -1255,10 +1333,12 @@ StatementResult Object.
   /**  XAPI-00167, Communication 2.1.3 GET Statements
    * An LRS's Statement API can process a GET request with "attachments" as a parameter. The Statement API MUST return 200 OK, StatementResult Object and use the multipart response format and include all attachments if the attachment parameter is set to true
    */
-  describe('An LRS\'s Statement Resource can process a GET request with "attachments" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row13, XAPI-00167)', function () {
+  describe('An LRS\'s Statement Resource can process a GET request with "attachments" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row13, XAPI-00167)', function (this: {
+    timeout(ms: number): void;
+  }) {
     let stmtTime: number, stmtId: string;
 
-    before("set up statement with two attachments for test", async function () {
+    before("set up statement with two attachments for test", async function (this: { timeout(ms: number): void }) {
       let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
       let templates = [
         { statement: "{{statements.attachment}}" },
@@ -1331,7 +1411,7 @@ StatementResult Object.
       stmtId = helper.parse(res.body)[0];
     });
 
-    it('should process using GET with "attachments"', async function () {
+    it('should process using GET with "attachments"', async function (this: { timeout(ms: number): void }) {
       this.timeout(0);
       let query = helper.getUrlEncoding({ attachments: true, statementId: stmtId });
       const res = await expectAsync(
@@ -1391,8 +1471,10 @@ StatementResult Object.
  * An LRS's Statement API, upon receiving a GET request,
 MUST have a "Content-Type" header
  */
-  describe('An LRSs Statement Resource, upon receiving a GET request, MUST have a "Content-Type" header(**Implicit**, Communication 2.1.3.s1.table1.row14, XAPI-00165)', function () {
-    it("should contain the content-type header", async function () {
+  describe('An LRSs Statement Resource, upon receiving a GET request, MUST have a "Content-Type" header(**Implicit**, Communication 2.1.3.s1.table1.row14, XAPI-00165)', function (this: {
+    timeout(ms: number): void;
+  }) {
+    it("should contain the content-type header", async function (this: { timeout(ms: number): void }) {
       let query = helper.getUrlEncoding({ ascending: true });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -1408,8 +1490,10 @@ MUST have a "Content-Type" header
   /**  XAPI-00166, Communication 2.1.3 GET Statements
    * An LRS's Statement API can process a GET request with "ascending" as a parameter The Statement API MUST return 200 OK, StatementResult Object with results in ascending order of stored time if the ascending parameter is set to true.
    */
-  describe('An LRS\'s Statement Resource can process a GET request with "ascending" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row14, XAPI-00166)', function () {
-    it('should process using GET with "ascending"', async function () {
+  describe('An LRS\'s Statement Resource can process a GET request with "ascending" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row14, XAPI-00166)', function (this: {
+    timeout(ms: number): void;
+  }) {
+    it('should process using GET with "ascending"', async function (this: { timeout(ms: number): void }) {
       let query = helper.getUrlEncoding({ ascending: true });
       await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -1423,12 +1507,14 @@ MUST have a "Content-Type" header
   /**  XAPI-00151, Communication 2.1.3 GET Statements
    * An LRS's Statement API rejects a GET request with both "statementId" and anything other than "attachments" or "format" as parameters with error code 400 Bad Request.
    */
-  describe('An LRS\'s Statement Resource rejects with error code 400 a GET request with both "statementId" and anything other than "attachments" or "format" as parameters (Communication 2.1.3.s2.b2, XAPI-00151)', function () {
+  describe('An LRS\'s Statement Resource rejects with error code 400 a GET request with both "statementId" and anything other than "attachments" or "format" as parameters (Communication 2.1.3.s2.b2, XAPI-00151)', function (this: {
+    timeout(ms: number): void;
+  }) {
     let id: string;
     let stmtTime: number;
     this.timeout(0);
 
-    before("persist statement", async function () {
+    before("persist statement", async function (this: { timeout(ms: number): void }) {
       let templates = [{ statement: "{{statements.default}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
@@ -1445,7 +1531,7 @@ MUST have a "Content-Type" header
       );
     });
 
-    it('should fail when using "statementId" with "agent"', async function () {
+    it('should fail when using "statementId" with "agent"', async function (this: { timeout(ms: number): void }) {
       let templates = [{ agent: "{{agents.default}}" }];
       let data = helper.createFromTemplate(templates);
       data.statementId = id;
@@ -1460,7 +1546,7 @@ MUST have a "Content-Type" header
       );
     });
 
-    it('should fail when using "statementId" with "verb"', async function () {
+    it('should fail when using "statementId" with "verb"', async function (this: { timeout(ms: number): void }) {
       let data = {
         statementId: id,
         verb: "http://adlnet.gov/expapi/non/existent",
@@ -1476,7 +1562,7 @@ MUST have a "Content-Type" header
       );
     });
 
-    it('should fail when using "statementId" with "activity"', async function () {
+    it('should fail when using "statementId" with "activity"', async function (this: { timeout(ms: number): void }) {
       let data = {
         statementId: id,
         activity: "http://www.example.com/meetings/occurances/12345",
@@ -1492,7 +1578,9 @@ MUST have a "Content-Type" header
       );
     });
 
-    it('should fail when using "statementId" with "registration"', async function () {
+    it('should fail when using "statementId" with "registration"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let data = {
         statementId: id,
         registration: helper.generateUUID(),
@@ -1508,7 +1596,9 @@ MUST have a "Content-Type" header
       );
     });
 
-    it('should fail when using "statementId" with "related_activities"', async function () {
+    it('should fail when using "statementId" with "related_activities"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let data = {
         statementId: id,
         related_activities: true,
@@ -1524,7 +1614,9 @@ MUST have a "Content-Type" header
       );
     });
 
-    it('should fail when using "statementId" with "related_agents"', async function () {
+    it('should fail when using "statementId" with "related_agents"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let data = {
         statementId: id,
         related_agents: true,
@@ -1540,7 +1632,7 @@ MUST have a "Content-Type" header
       );
     });
 
-    it('should fail when using "statementId" with "since"', async function () {
+    it('should fail when using "statementId" with "since"', async function (this: { timeout(ms: number): void }) {
       let data = {
         statementId: id,
         since: "2012-06-01T19:09:13.245Z",
@@ -1556,7 +1648,7 @@ MUST have a "Content-Type" header
       );
     });
 
-    it('should fail when using "statementId" with "until"', async function () {
+    it('should fail when using "statementId" with "until"', async function (this: { timeout(ms: number): void }) {
       let data = {
         statementId: id,
         until: "2012-06-01T19:09:13.245Z",
@@ -1572,7 +1664,7 @@ MUST have a "Content-Type" header
       );
     });
 
-    it('should fail when using "statementId" with "limit"', async function () {
+    it('should fail when using "statementId" with "limit"', async function (this: { timeout(ms: number): void }) {
       let data = {
         statementId: id,
         limit: 1,
@@ -1588,7 +1680,7 @@ MUST have a "Content-Type" header
       );
     });
 
-    it('should fail when using "statementId" with "ascending"', async function () {
+    it('should fail when using "statementId" with "ascending"', async function (this: { timeout(ms: number): void }) {
       let data = {
         statementId: id,
         ascending: true,
@@ -1604,7 +1696,7 @@ MUST have a "Content-Type" header
       );
     });
 
-    it('should pass when using "statementId" with "format"', async function () {
+    it('should pass when using "statementId" with "format"', async function (this: { timeout(ms: number): void }) {
       let data = {
         statementId: id,
         format: "ids",
@@ -1620,7 +1712,7 @@ MUST have a "Content-Type" header
       );
     });
 
-    it('should pass when using "statementId" with "attachments"', async function () {
+    it('should pass when using "statementId" with "attachments"', async function (this: { timeout(ms: number): void }) {
       let data = {
         statementId: id,
         attachments: true,
@@ -1640,12 +1732,14 @@ MUST have a "Content-Type" header
   /**  XAPI-00150, Communication 2.1.3 GET Statements
    * An LRS's Statement API rejects a GET request with both "voidedStatementId" and anything other than "attachments" or "format" as parameters with error code 400 Bad Request.
    */
-  describe('An LRS\'s Statement Resource rejects with error code 400 a GET request with both "voidedStatementId" and anything other than "attachments" or "format" as parameters (Communication 2.1.3.s2.b2, XAPI-00150)', function () {
+  describe('An LRS\'s Statement Resource rejects with error code 400 a GET request with both "voidedStatementId" and anything other than "attachments" or "format" as parameters (Communication 2.1.3.s2.b2, XAPI-00150)', function (this: {
+    timeout(ms: number): void;
+  }) {
     let voidedId = helper.generateUUID();
     let stmtTime: number;
     this.timeout(0);
 
-    before("persist voided statement", async function () {
+    before("persist voided statement", async function (this: { timeout(ms: number): void }) {
       let templates = [{ statement: "{{statements.default}}" }];
       let voided = helper.createFromTemplate(templates);
       voided = voided.statement;
@@ -1660,7 +1754,7 @@ MUST have a "Content-Type" header
       );
     });
 
-    before("persist voiding statement", async function () {
+    before("persist voiding statement", async function (this: { timeout(ms: number): void }) {
       let templates = [{ statement: "{{statements.voiding}}" }];
       let voiding = helper.createFromTemplate(templates);
       voiding = voiding.statement;
@@ -1676,7 +1770,7 @@ MUST have a "Content-Type" header
       );
     });
 
-    it('should fail when using "voidedStatementId" with "agent"', async function () {
+    it('should fail when using "voidedStatementId" with "agent"', async function (this: { timeout(ms: number): void }) {
       let templates = [{ agent: "{{agents.default}}" }];
       let data = helper.createFromTemplate(templates);
       data.statementId = voidedId;
@@ -1691,7 +1785,7 @@ MUST have a "Content-Type" header
       );
     });
 
-    it('should fail when using "voidedStatementId" with "verb"', async function () {
+    it('should fail when using "voidedStatementId" with "verb"', async function (this: { timeout(ms: number): void }) {
       let data = {
         statementId: voidedId,
         verb: "http://adlnet.gov/expapi/non/existent",
@@ -1707,7 +1801,9 @@ MUST have a "Content-Type" header
       );
     });
 
-    it('should fail when using "voidedStatementId" with "activity"', async function () {
+    it('should fail when using "voidedStatementId" with "activity"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let data = {
         statementId: voidedId,
         activity: "http://www.example.com/meetings/occurances/12345",
@@ -1723,7 +1819,9 @@ MUST have a "Content-Type" header
       );
     });
 
-    it('should fail when using "voidedStatementId" with "registration"', async function () {
+    it('should fail when using "voidedStatementId" with "registration"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let data = {
         statementId: voidedId,
         registration: helper.generateUUID(),
@@ -1739,7 +1837,9 @@ MUST have a "Content-Type" header
       );
     });
 
-    it('should fail when using "voidedStatementId" with "related_activities"', async function () {
+    it('should fail when using "voidedStatementId" with "related_activities"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let data = {
         statementId: voidedId,
         related_activities: true,
@@ -1755,7 +1855,9 @@ MUST have a "Content-Type" header
       );
     });
 
-    it('should fail when using "voidedStatementId" with "related_agents"', async function () {
+    it('should fail when using "voidedStatementId" with "related_agents"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let data = {
         statementId: voidedId,
         related_agents: true,
@@ -1771,7 +1873,7 @@ MUST have a "Content-Type" header
       );
     });
 
-    it('should fail when using "voidedStatementId" with "since"', async function () {
+    it('should fail when using "voidedStatementId" with "since"', async function (this: { timeout(ms: number): void }) {
       let data = {
         statementId: voidedId,
         since: "2012-06-01T19:09:13.245Z",
@@ -1787,7 +1889,7 @@ MUST have a "Content-Type" header
       );
     });
 
-    it('should fail when using "voidedStatementId" with "until"', async function () {
+    it('should fail when using "voidedStatementId" with "until"', async function (this: { timeout(ms: number): void }) {
       let data = {
         statementId: voidedId,
         until: "2012-06-01T19:09:13.245Z",
@@ -1803,7 +1905,7 @@ MUST have a "Content-Type" header
       );
     });
 
-    it('should fail when using "voidedStatementId" with "limit"', async function () {
+    it('should fail when using "voidedStatementId" with "limit"', async function (this: { timeout(ms: number): void }) {
       let data = {
         statementId: voidedId,
         limit: 1,
@@ -1819,7 +1921,9 @@ MUST have a "Content-Type" header
       );
     });
 
-    it('should fail when using "voidedStatementId" with "ascending"', async function () {
+    it('should fail when using "voidedStatementId" with "ascending"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let data = {
         statementId: voidedId,
         ascending: true,
@@ -1835,7 +1939,9 @@ MUST have a "Content-Type" header
       );
     });
 
-    it('should pass when using "voidedStatementId" with "format"', async function () {
+    it('should pass when using "voidedStatementId" with "format"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let data = {
         voidedStatementId: voidedId,
         format: "ids",
@@ -1851,7 +1957,9 @@ MUST have a "Content-Type" header
       );
     });
 
-    it('should pass when using "voidedStatementId" with "attachments"', async function () {
+    it('should pass when using "voidedStatementId" with "attachments"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let data = {
         voidedStatementId: voidedId,
         attachments: true,
@@ -1871,8 +1979,10 @@ MUST have a "Content-Type" header
   /**  XAPI-00149, Communication 2.1.3 GET Statements
    * The LRS will NOT reject a GET request which returns an empty "statements" property. Send a GET request which will not return any results and check that a 200 Ok and an empty StatementResult Object is returned.
    */
-  describe('The LRS will NOT reject a GET request which returns an empty "statements" property (**Implicit**, Communication 2.1.3.s2.b4, XAPI-00149)', function () {
-    it("should return empty array list", async function () {
+  describe('The LRS will NOT reject a GET request which returns an empty "statements" property (**Implicit**, Communication 2.1.3.s2.b4, XAPI-00149)', function (this: {
+    timeout(ms: number): void;
+  }) {
+    it("should return empty array list", async function (this: { timeout(ms: number): void }) {
       let query = helper.getUrlEncoding({ verb: "http://adlnet.gov/expapi/non/existent" });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -1891,8 +2001,12 @@ MUST have a "Content-Type" header
   /**  XAPI-00153, Communication 2.1.3 GET Statements
    * An LRS's Statement API upon processing a GET request, returns a header with name "X-Experience-API-Consistent-Through" regardless of the code returned.
    */
-  describe('An LRS\'s Statement Resource upon processing a GET request, returns a header with name "X-Experience-API-Consistent-Through" regardless of the code returned. (Communication 2.1.3.s2.b5, XAPI-00153)', function () {
-    it('should return "X-Experience-API-Consistent-Through" using GET', async function () {
+  describe('An LRS\'s Statement Resource upon processing a GET request, returns a header with name "X-Experience-API-Consistent-Through" regardless of the code returned. (Communication 2.1.3.s2.b5, XAPI-00153)', function (this: {
+    timeout(ms: number): void;
+  }) {
+    it('should return "X-Experience-API-Consistent-Through" using GET', async function (this: {
+      timeout(ms: number): void;
+    }) {
       const res = await expectAsync(
         request(helper.getEndpointAndAuth()).get(helper.getEndpointStatements()).headers(helper.addAllHeaders({})),
         200,
@@ -1902,7 +2016,9 @@ MUST have a "Content-Type" header
       expect(through).toBeTruthy();
     });
 
-    it('should return "X-Experience-API-Consistent-Through" misusing GET (status code 400)', async function () {
+    it('should return "X-Experience-API-Consistent-Through" misusing GET (status code 400)', async function (this: {
+      timeout(ms: number): void;
+    }) {
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
           .get(helper.getEndpointStatements() + "?LIMIT=1")
@@ -1914,7 +2030,9 @@ MUST have a "Content-Type" header
       expect(through).toBeTruthy();
     });
 
-    it('should return "X-Experience-API-Consistent-Through" using GET with "agent"', async function () {
+    it('should return "X-Experience-API-Consistent-Through" using GET with "agent"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let templates = [{ agent: "{{agents.default}}" }];
       let data = helper.createFromTemplate(templates);
 
@@ -1930,7 +2048,9 @@ MUST have a "Content-Type" header
       expect(through).toBeTruthy();
     });
 
-    it('should return "X-Experience-API-Consistent-Through" using GET with "verb"', async function () {
+    it('should return "X-Experience-API-Consistent-Through" using GET with "verb"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ verb: "http://adlnet.gov/expapi/non/existent" });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -1943,7 +2063,9 @@ MUST have a "Content-Type" header
       expect(through).toBeTruthy();
     });
 
-    it('should return "X-Experience-API-Consistent-Through" using GET with "activity"', async function () {
+    it('should return "X-Experience-API-Consistent-Through" using GET with "activity"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ activity: "http://www.example.com/meetings/occurances/12345" });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -1956,7 +2078,9 @@ MUST have a "Content-Type" header
       expect(through).toBeTruthy();
     });
 
-    it('should return "X-Experience-API-Consistent-Through" using GET with "registration"', async function () {
+    it('should return "X-Experience-API-Consistent-Through" using GET with "registration"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ registration: helper.generateUUID() });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -1969,7 +2093,9 @@ MUST have a "Content-Type" header
       expect(through).toBeTruthy();
     });
 
-    it('should return "X-Experience-API-Consistent-Through" using GET with "related_activities"', async function () {
+    it('should return "X-Experience-API-Consistent-Through" using GET with "related_activities"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ related_activities: true });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -1982,7 +2108,9 @@ MUST have a "Content-Type" header
       expect(through).toBeTruthy();
     });
 
-    it('should return "X-Experience-API-Consistent-Through" using GET with "related_agents"', async function () {
+    it('should return "X-Experience-API-Consistent-Through" using GET with "related_agents"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ related_agents: true });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -1995,7 +2123,9 @@ MUST have a "Content-Type" header
       expect(through).toBeTruthy();
     });
 
-    it('should return "X-Experience-API-Consistent-Through" using GET with "since"', async function () {
+    it('should return "X-Experience-API-Consistent-Through" using GET with "since"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ since: "2012-06-01T19:09:13.245Z" });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -2008,7 +2138,9 @@ MUST have a "Content-Type" header
       expect(through).toBeTruthy();
     });
 
-    it('should return "X-Experience-API-Consistent-Through" using GET with "until"', async function () {
+    it('should return "X-Experience-API-Consistent-Through" using GET with "until"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ until: "2012-06-01T19:09:13.245Z" });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -2021,7 +2153,9 @@ MUST have a "Content-Type" header
       expect(through).toBeTruthy();
     });
 
-    it('should return "X-Experience-API-Consistent-Through" using GET with "limit"', async function () {
+    it('should return "X-Experience-API-Consistent-Through" using GET with "limit"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ limit: 1 });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -2034,7 +2168,9 @@ MUST have a "Content-Type" header
       expect(through).toBeTruthy();
     });
 
-    it('should return "X-Experience-API-Consistent-Through" using GET with "ascending"', async function () {
+    it('should return "X-Experience-API-Consistent-Through" using GET with "ascending"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ ascending: true });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -2047,7 +2183,9 @@ MUST have a "Content-Type" header
       expect(through).toBeTruthy();
     });
 
-    it('should return "X-Experience-API-Consistent-Through" using GET with "format"', async function () {
+    it('should return "X-Experience-API-Consistent-Through" using GET with "format"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ format: "ids" });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -2060,7 +2198,9 @@ MUST have a "Content-Type" header
       expect(through).toBeTruthy();
     });
 
-    it('should return "X-Experience-API-Consistent-Through" using GET with "attachments"', async function () {
+    it('should return "X-Experience-API-Consistent-Through" using GET with "attachments"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ attachments: true });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -2077,11 +2217,13 @@ MUST have a "Content-Type" header
   /**  XAPI-00160, Communication 2.1.3 GET Statements
    * An LRS's "X-Experience-API-Consistent-Through" header is an ISO 8601 combined date and time
    */
-  describe('An LRS\'s "X-Experience-API-Consistent-Through" header is an ISO 8601 combined date and time (Type, Communication 2.1.3.s2.b5).', function () {
+  describe('An LRS\'s "X-Experience-API-Consistent-Through" header is an ISO 8601 combined date and time (Type, Communication 2.1.3.s2.b5).', function (this: {
+    timeout(ms: number): void;
+  }) {
     let statement: any, stmtTime: number;
     this.timeout(0);
 
-    before("persist statement", async function () {
+    before("persist statement", async function (this: { timeout(ms: number): void }) {
       let templates = [
         { statement: "{{statements.context}}" },
         { context: "{{contexts.category}}" },
@@ -2107,7 +2249,9 @@ MUST have a "Content-Type" header
       );
     });
 
-    it('should return valid "X-Experience-API-Consistent-Through" using GET', async function () {
+    it('should return valid "X-Experience-API-Consistent-Through" using GET', async function (this: {
+      timeout(ms: number): void;
+    }) {
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
           .get(helper.getEndpointStatements())
@@ -2121,7 +2265,9 @@ MUST have a "Content-Type" header
       expect(isValidIsoTimestamp(value)).toBe(true);
     });
 
-    it('should return "X-Experience-API-Consistent-Through" using GET with "agent"', async function () {
+    it('should return "X-Experience-API-Consistent-Through" using GET with "agent"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let templates = [{ agent: "{{agents.default}}" }];
       let data = helper.createFromTemplate(templates);
 
@@ -2139,7 +2285,9 @@ MUST have a "Content-Type" header
       expect(isValidIsoTimestamp(value)).toBe(true);
     });
 
-    it('should return "X-Experience-API-Consistent-Through" using GET with "verb"', async function () {
+    it('should return "X-Experience-API-Consistent-Through" using GET with "verb"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ verb: "http://adlnet.gov/expapi/non/existent" });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -2154,7 +2302,9 @@ MUST have a "Content-Type" header
       expect(isValidIsoTimestamp(value)).toBe(true);
     });
 
-    it('should return "X-Experience-API-Consistent-Through" using GET with "activity"', async function () {
+    it('should return "X-Experience-API-Consistent-Through" using GET with "activity"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ activity: "http://www.example.com/meetings/occurances/12345" });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -2169,7 +2319,9 @@ MUST have a "Content-Type" header
       expect(isValidIsoTimestamp(value)).toBe(true);
     });
 
-    it('should return "X-Experience-API-Consistent-Through" using GET with "registration"', async function () {
+    it('should return "X-Experience-API-Consistent-Through" using GET with "registration"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ registration: helper.generateUUID() });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -2184,7 +2336,9 @@ MUST have a "Content-Type" header
       expect(isValidIsoTimestamp(value)).toBe(true);
     });
 
-    it('should return "X-Experience-API-Consistent-Through" using GET with "related_activities"', async function () {
+    it('should return "X-Experience-API-Consistent-Through" using GET with "related_activities"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({
         activity: statement.context.contextActivities.category.id,
         related_activities: true,
@@ -2202,7 +2356,9 @@ MUST have a "Content-Type" header
       expect(isValidIsoTimestamp(value)).toBe(true);
     });
 
-    it('should return "X-Experience-API-Consistent-Through" using GET with "related_agents"', async function () {
+    it('should return "X-Experience-API-Consistent-Through" using GET with "related_agents"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({
         agent: statement.context.instructor,
         related_agents: true,
@@ -2220,7 +2376,9 @@ MUST have a "Content-Type" header
       expect(isValidIsoTimestamp(value)).toBe(true);
     });
 
-    it('should return "X-Experience-API-Consistent-Through" using GET with "since"', async function () {
+    it('should return "X-Experience-API-Consistent-Through" using GET with "since"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ since: "2012-06-01T19:09:13.245Z" });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -2235,7 +2393,9 @@ MUST have a "Content-Type" header
       expect(isValidIsoTimestamp(value)).toBe(true);
     });
 
-    it('should return "X-Experience-API-Consistent-Through" using GET with "until"', async function () {
+    it('should return "X-Experience-API-Consistent-Through" using GET with "until"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ until: "2012-06-01T19:09:13.245Z" });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -2250,7 +2410,9 @@ MUST have a "Content-Type" header
       expect(isValidIsoTimestamp(value)).toBe(true);
     });
 
-    it('should return "X-Experience-API-Consistent-Through" using GET with "limit"', async function () {
+    it('should return "X-Experience-API-Consistent-Through" using GET with "limit"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ limit: 1 });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -2265,7 +2427,9 @@ MUST have a "Content-Type" header
       expect(isValidIsoTimestamp(value)).toBe(true);
     });
 
-    it('should return "X-Experience-API-Consistent-Through" using GET with "ascending"', async function () {
+    it('should return "X-Experience-API-Consistent-Through" using GET with "ascending"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ ascending: true });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -2280,7 +2444,9 @@ MUST have a "Content-Type" header
       expect(isValidIsoTimestamp(value)).toBe(true);
     });
 
-    it('should return "X-Experience-API-Consistent-Through" using GET with "format"', async function () {
+    it('should return "X-Experience-API-Consistent-Through" using GET with "format"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ format: "ids" });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -2295,7 +2461,9 @@ MUST have a "Content-Type" header
       expect(isValidIsoTimestamp(value)).toBe(true);
     });
 
-    it('should return "X-Experience-API-Consistent-Through" using GET with "attachments"', async function () {
+    it('should return "X-Experience-API-Consistent-Through" using GET with "attachments"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ attachments: true });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -2314,12 +2482,14 @@ MUST have a "Content-Type" header
   /**  XAPI-00161, Communication 2.1.3 GET Statements
    * An LRS's Statement API not return attachment data and only return application/json if the "attachment" parameter set to "false"
    */
-  describe('An LRSs Statement Resource does not return attachment data and only returns application/json if the "attachment" parameter set to "false" (Communication 2.1.3.s1.b1, XAPI-00161)', function () {
+  describe('An LRSs Statement Resource does not return attachment data and only returns application/json if the "attachment" parameter set to "false" (Communication 2.1.3.s1.b1, XAPI-00161)', function (this: {
+    timeout(ms: number): void;
+  }) {
     this.timeout(0);
     let statementId: string | null = null;
     let stmtTime: number | null = null;
 
-    before("store statement", async function () {
+    before("store statement", async function (this: { timeout(ms: number): void }) {
       let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
       let templates = [
         { statement: "{{statements.attachment}}" },
@@ -2370,7 +2540,9 @@ MUST have a "Content-Type" header
       statementId = body[0];
     });
 
-    it('should NOT return the attachment if "attachments" is missing', async function () {
+    it('should NOT return the attachment if "attachments" is missing', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = "?statementId=" + statementId;
       const res = await endAsync(
         request(helper.getEndpointAndAuth())
@@ -2383,7 +2555,9 @@ MUST have a "Content-Type" header
       expect(res.headers["content-type"]).toMatch(/^application\/json/);
     });
 
-    it('should NOT return the attachment if "attachments" is false', async function () {
+    it('should NOT return the attachment if "attachments" is false', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = "?statementId=" + statementId + "&attachments=false";
 
       const res = await expectAsync(
@@ -2397,7 +2571,7 @@ MUST have a "Content-Type" header
       expect(res.headers["content-type"]).toMatch(/^application\/json/);
     });
 
-    it('should return the attachment when "attachment" is true', async function () {
+    it('should return the attachment when "attachment" is true', async function (this: { timeout(ms: number): void }) {
       let query = "?statementId=" + statementId + "&attachments=true";
       const res = await endAsync(
         request(helper.getEndpointAndAuth())
@@ -2423,11 +2597,13 @@ MUST have a "Content-Type" header
   /**  XAPI-00163, Communication 2.1.3 GET Statements
    * An LRS's Statement API, upon processing a successful GET request, can only return a Voided Statement if that Statement is specified in the voidedStatementId parameter of that request
    */
-  describe("An LRS's Statement Resource, upon processing a successful GET request, can only return a Voided Statement if that Statement is specified in the voidedStatementId parameter of that request (Communication 2.1.4.s1.b1, XAPI-00163)", function () {
+  describe("An LRS's Statement Resource, upon processing a successful GET request, can only return a Voided Statement if that Statement is specified in the voidedStatementId parameter of that request (Communication 2.1.4.s1.b1, XAPI-00163)", function (this: {
+    timeout(ms: number): void;
+  }) {
     let voidedId = helper.generateUUID();
     let stmtTime: number;
 
-    before("persist voided statement", async function () {
+    before("persist voided statement", async function (this: { timeout(ms: number): void }) {
       let templates = [{ statement: "{{statements.default}}" }];
       let voided = helper.createFromTemplate(templates);
       voided = voided.statement;
@@ -2442,7 +2618,7 @@ MUST have a "Content-Type" header
       );
     });
 
-    before("persist voiding statement", async function () {
+    before("persist voiding statement", async function (this: { timeout(ms: number): void }) {
       let templates = [{ statement: "{{statements.voiding}}" }];
       let voiding = helper.createFromTemplate(templates);
       voiding = voiding.statement;
@@ -2458,7 +2634,9 @@ MUST have a "Content-Type" header
       );
     });
 
-    it('should not return a voided statement if using GET "statementId"', async function () {
+    it('should not return a voided statement if using GET "statementId"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       this.timeout(0);
       let query = helper.getUrlEncoding({ statementId: voidedId });
       await expectAsync(
@@ -2474,7 +2652,9 @@ MUST have a "Content-Type" header
   /**  XAPI-00162, Communication 2.1.3 GET Statements
    * An LRS's Statement API processes a successful GET request using a parameter (such as stored time) which includes a voided statement and unvoided statements targeting the voided statement. The API must return 200 Ok and the statement result object, containing statements which target a voided statement, but not the voided statement itself.
    */
-  describe("An LRS's Statement Resource, upon processing a successful GET request wishing to return a Voided Statement still returns Statements which target it (Communication 2.1.4.s1.b2, XAPI-00162)", function () {
+  describe("An LRS's Statement Resource, upon processing a successful GET request wishing to return a Voided Statement still returns Statements which target it (Communication 2.1.4.s1.b2, XAPI-00162)", function (this: {
+    timeout(ms: number): void;
+  }) {
     this.timeout(0);
     let verbTemplate = "http://adlnet.gov/expapi/test/voided/target/";
     let verb = verbTemplate + helper.generateUUID();
@@ -2484,7 +2664,7 @@ MUST have a "Content-Type" header
     let sinceVoidingTime: string, untilVoidingTime: string;
     let stmtTime: number, prevStmtTime: number;
 
-    before("persist voided statement", async function () {
+    before("persist voided statement", async function (this: { timeout(ms: number): void }) {
       // console.log(new Date(Date.now() - helper.getTimeMargin()).toISOString() + ' Ed Before');
       sinceVoidingTime = new Date(Date.now() - helper.getTimeMargin() - 4000).toISOString();
       let voidedTemplates = [{ statement: "{{statements.default}}" }];
@@ -2502,7 +2682,7 @@ MUST have a "Content-Type" header
       );
     });
 
-    before("persist voiding statement", async function () {
+    before("persist voiding statement", async function (this: { timeout(ms: number): void }) {
       // console.log(new Date(Date.now() - helper.getTimeMargin()).toISOString() + ' Ing Before');
       let voidingTemplates = [{ statement: "{{statements.voiding}}" }];
       let voiding = helper.createFromTemplate(voidingTemplates);
@@ -2521,7 +2701,7 @@ MUST have a "Content-Type" header
       );
     });
 
-    before("persist object with statement references", async function () {
+    before("persist object with statement references", async function (this: { timeout(ms: number): void }) {
       // console.log(new Date(Date.now() - helper.getTimeMargin()).toISOString() + ' Ref Before');
       let statementRefTemplates = [{ statement: "{{statements.object_statementref}}" }];
       let statementRef = helper.createFromTemplate(statementRefTemplates);
@@ -2541,7 +2721,7 @@ MUST have a "Content-Type" header
       );
     });
 
-    before("ensure all stmts are recorded in the lrs", async function () {
+    before("ensure all stmts are recorded in the lrs", async function (this: { timeout(ms: number): void }) {
       // console.log(new Date(Date.now() - helper.getTimeMargin()).toISOString() + ' Final Before');
       await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -2555,7 +2735,9 @@ MUST have a "Content-Type" header
     });
 
     // reworded the test to be more generic, shouldn't have to stay in here
-    it('should only return statements stored after designated "since" timestamp when using "since" parameter', async function () {
+    it('should only return statements stored after designated "since" timestamp when using "since" parameter', async function (this: {
+      timeout(ms: number): void;
+    }) {
       // Need to use statementRefId verb b/c initial voided statement comes before voidingTime
       // console.log(new Date(Date.now() - helper.getTimeMargin()).toISOString() + ' Since');
       let query = helper.getUrlEncoding({
@@ -2584,7 +2766,9 @@ MUST have a "Content-Type" header
     });
 
     // reworded the test to be more generic, shouldn't have to stay in here
-    it('should only return statements stored at or before designated "before" timestamp when using "until" parameter', async function () {
+    it('should only return statements stored at or before designated "before" timestamp when using "until" parameter', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({
         verb: verb,
         until: untilVoidingTime,
@@ -2619,7 +2803,9 @@ MUST have a "Content-Type" header
     });
 
     // reworded the test to be more generic, shouldn't have to stay in here
-    it('should return the number of statements listed in "limit" parameter', async function () {
+    it('should return the number of statements listed in "limit" parameter', async function (this: {
+      timeout(ms: number): void;
+    }) {
       // console.log(new Date(Date.now() - helper.getTimeMargin()).toISOString() + ' Limit');
       let query = helper.getUrlEncoding({
         verb: verb,
@@ -2641,7 +2827,9 @@ MUST have a "Content-Type" header
     });
 
     // i think this can be removed
-    it('should return StatementRef and voiding statement when not using "since", "until", "limit"', async function () {
+    it('should return StatementRef and voiding statement when not using "since", "until", "limit"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       // console.log(new Date(Date.now() - helper.getTimeMargin()).toISOString() + ' None');
       let query = helper.getUrlEncoding({
         verb: verb,
@@ -2670,11 +2858,13 @@ MUST have a "Content-Type" header
   /**  XAPI-00164, Communication 2.1.3 GET Statements
    * The Statements within the "statements" property will correspond to the filtering criterion sent in with the GET request
    */
-  describe('The Statements within the "statements" property will correspond to the filtering criterion sent in with the GET request (Communication 2.1.3.s1, XAPI-00164)', function () {
+  describe('The Statements within the "statements" property will correspond to the filtering criterion sent in with the GET request (Communication 2.1.3.s1, XAPI-00164)', function (this: {
+    timeout(ms: number): void;
+  }) {
     let statement: any, substatement: any, stmtTime: number;
     this.timeout(0);
 
-    before("persist statement", async function () {
+    before("persist statement", async function (this: { timeout(ms: number): void }) {
       let templates = [
         { statement: "{{statements.context}}" },
         { context: "{{contexts.category}}" },
@@ -2708,7 +2898,7 @@ MUST have a "Content-Type" header
       );
     });
 
-    before("persist substatement", async function () {
+    before("persist substatement", async function (this: { timeout(ms: number): void }) {
       let templates = [
         { statement: "{{statements.object_substatement}}" },
         { object: "{{substatements.context}}" },
@@ -2743,7 +2933,9 @@ MUST have a "Content-Type" header
       );
     });
 
-    it('should return StatementResult with statements as array using GET with "agent"', async function () {
+    it('should return StatementResult with statements as array using GET with "agent"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let templates = [{ agent: statement.actor }];
       let data = helper.createFromTemplate(templates);
 
@@ -2761,7 +2953,9 @@ MUST have a "Content-Type" header
       expect(statements.every((statementItem) => statementItem.actor?.mbox === statement.actor.mbox)).toBe(true);
     });
 
-    it('should return StatementResult with statements as array using GET with "verb"', async function () {
+    it('should return StatementResult with statements as array using GET with "verb"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ verb: statement.verb.id });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -2776,7 +2970,9 @@ MUST have a "Content-Type" header
       expect(statements.every((statementItem) => statementItem.verb?.id === statement.verb.id)).toBe(true);
     });
 
-    it('should return StatementResult with statements as array using GET with "activity"', async function () {
+    it('should return StatementResult with statements as array using GET with "activity"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ activity: statement.object.id });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -2791,7 +2987,9 @@ MUST have a "Content-Type" header
       expect(statements.every((statementItem) => statementItem.object?.id === statement.object.id)).toBe(true);
     });
 
-    it('should return StatementResult with statements as array using GET with "registration"', async function () {
+    it('should return StatementResult with statements as array using GET with "registration"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ registration: statement.context.registration });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -2808,7 +3006,9 @@ MUST have a "Content-Type" header
       ).toBe(true);
     });
 
-    it('should return StatementResult with statements as array using GET with "related_activities"', async function () {
+    it('should return StatementResult with statements as array using GET with "related_activities"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({
         activity: statement.context.contextActivities.category.id,
         related_activities: true,
@@ -2831,7 +3031,9 @@ MUST have a "Content-Type" header
       ).toBe(true);
     });
 
-    it('should return StatementResult with statements as array using GET with "related_agents"', async function () {
+    it('should return StatementResult with statements as array using GET with "related_agents"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({
         agent: statement.context.instructor,
         related_agents: true,
@@ -2852,7 +3054,9 @@ MUST have a "Content-Type" header
       );
     });
 
-    it('should return StatementResult with statements as array using GET with "since"', async function () {
+    it('should return StatementResult with statements as array using GET with "since"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ since: "2012-06-01T19:09:13.245Z" });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -2870,7 +3074,9 @@ MUST have a "Content-Type" header
       );
     });
 
-    it('should return StatementResult with statements as array using GET with "until"', async function () {
+    it('should return StatementResult with statements as array using GET with "until"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ until: "2012-06-01T19:09:13.245Z" });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -2888,7 +3094,9 @@ MUST have a "Content-Type" header
       );
     });
 
-    it('should return StatementResult with statements as array using GET with "limit"', async function () {
+    it('should return StatementResult with statements as array using GET with "limit"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ limit: 1 });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -2904,7 +3112,9 @@ MUST have a "Content-Type" header
       expect(result.statements).toHaveLength(1);
     });
 
-    it('should return StatementResult with statements as array using GET with "ascending"', async function () {
+    it('should return StatementResult with statements as array using GET with "ascending"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ ascending: true });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -2925,7 +3135,9 @@ MUST have a "Content-Type" header
     });
 
     //I think there is another test that covers the formatting requirements
-    it('should return StatementResult with statements as array using GET with "format"', async function () {
+    it('should return StatementResult with statements as array using GET with "format"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let query = helper.getUrlEncoding({ format: "ids" });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -2940,7 +3152,9 @@ MUST have a "Content-Type" header
       expect(result.statements).toSatisfy((v: any) => Array.isArray(v));
     });
 
-    it('should return StatementResult with statements as array using GET with "attachments"', async function () {
+    it('should return StatementResult with statements as array using GET with "attachments"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
       let templates = [
         { statement: "{{statements.attachment}}" },

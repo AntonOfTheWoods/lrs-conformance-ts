@@ -59,7 +59,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", () => {
     it("An LRS's Agent Profile Resource accepts GET requests (Communication 2.6.s2, XAPI-00274)", function () {
       let parameters = helper.buildAgentProfile(),
         document = helper.buildDocument();
-      return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(function () {
+      return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(() => {
         return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200);
       });
     });
@@ -112,7 +112,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", () => {
     it("An LRS's Agent Profile Resource upon processing a successful DELETE request deletes the associated profile and returns code 204 No Content (Communication 2.6.s3, XAPI-00271)", function () {
       let parameters = helper.buildAgentProfile(),
         document = helper.buildDocument();
-      return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(function () {
+      return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(() => {
         return helper.sendRequest("delete", helper.getEndpointAgentsProfile(), parameters, undefined, 204);
       });
     });
@@ -127,10 +127,10 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", () => {
   it('An LRS\'s Agent Profile Resource upon processing a successful GET request with a valid "profileId" as a parameter returns the document satisfying the requirements of the GET and code 200 OK (Communication 2.6.s3, XAPI-00259, XAPI-00269)', function () {
     let parameters = helper.buildAgentProfile(),
       document = helper.buildDocument();
-    return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(function () {
-      return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200).then(function (
+    return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(() => {
+      return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200).then((
         res: any,
-      ) {
+      ) => {
         let body = res.body;
         expect(body).toEqual(document);
       });
@@ -269,11 +269,11 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", () => {
   it('An LRS\'s Agent Profile Resource upon processing a successful GET request without "profileId" as a parameter returns an array of ids of agent profile documents satisfying the requirements of the GET and code 200 OK (Communication 2.6.s4, XAPI-00270)', function () {
     let parameters = helper.buildAgentProfile(),
       document = helper.buildDocument();
-    return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(function () {
+    return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(() => {
       delete parameters.profileId;
-      return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200).then(function (
+      return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200).then((
         res: any,
-      ) {
+      ) => {
         let body = res.body;
         expect(body.length).toBeGreaterThan(0);
       });
@@ -295,7 +295,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", () => {
   it('An LRS\'s Agent Profile Resource can process a GET request with "since" as a parameter (Multiplicity, Communication 2.6.s4.table1.row2, XAPI-00268)', function () {
     let parameters = helper.buildAgentProfile(),
       document = helper.buildDocument();
-    return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(function () {
+    return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(() => {
       parameters.since = new Date(Date.now() - 60 * 1000 - helper.getTimeMargin()).toISOString(); //Date one minute ago
       delete parameters.profileId;
       return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200);
@@ -323,12 +323,12 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", () => {
     document = helper.buildDocument();
     let since = new Date(Date.now() - 60 * 1000 - helper.getTimeMargin()).toISOString(); //Date one minute ago
 
-    return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(function () {
+    return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(() => {
       parameters.since = since;
       delete parameters.profileId;
-      return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200).then(function (
+      return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200).then((
         res: any,
-      ) {
+      ) => {
         let body = res.body;
         expect(body).toSatisfy((v: any) => Array.isArray(v));
         expect(body.length).toBeGreaterThan(0);
@@ -349,13 +349,13 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", () => {
       anotherDocument = {
         type: "Civic",
       };
-    return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(function () {
+    return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(() => {
       return helper
         .sendRequest("post", helper.getEndpointAgentsProfile(), parameters, anotherDocument, 204)
-        .then(function () {
+        .then(() => {
           return helper
             .sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200)
-            .then(function (res: any) {
+            .then((res: any) => {
               let body = res.body;
               expect(body).toEqual({
                 car: "Honda",
@@ -372,10 +372,10 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", () => {
   it("An LRS's Agent Profile Resource, upon receiving a POST request for a document not currently in the LRS, treats it as a PUT request and store a new document (Communication 2.2.s7, XAPI-00280)", function () {
     let parameters = helper.buildAgentProfile(),
       document = helper.buildDocument();
-    return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(function () {
-      return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200).then(function (
+    return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(() => {
+      return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200).then((
         res: any,
-      ) {
+      ) => {
         let body = res.body;
         expect(body).toEqual(document);
       });

@@ -34,7 +34,7 @@ describe("Activities Resource Requirements (Communication 2.5)", function () {
     let parameters = {
       activityId: data.statement.object.id,
     };
-    return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
+    return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(() => {
       return helper.sendRequest("get", helper.getEndpointActivities(), parameters, undefined, 200);
     });
   });
@@ -49,7 +49,7 @@ describe("Activities Resource Requirements (Communication 2.5)", function () {
     let parameters = {
       activityId: data.statement.object.id,
     };
-    return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
+    return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(() => {
       return helper.sendRequest("get", helper.getEndpointActivities(), parameters, undefined, 200);
     });
   });
@@ -63,13 +63,13 @@ describe("Activities Resource Requirements (Communication 2.5)", function () {
     let statement = data.statement;
     statement.object.id = "http://www.example.com/verify/complete/34534";
 
-    return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
+    return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(() => {
       let parameters = {
         activityId: statement.object.id,
       };
-      return helper.sendRequest("get", helper.getEndpointActivities(), parameters, undefined, 200).then(function (
+      return helper.sendRequest("get", helper.getEndpointActivities(), parameters, undefined, 200).then((
         res: any,
-      ) {
+      ) => {
         let activity = res.body;
         expect(activity).toBeTruthy();
         expect(activity).toEqual(statement.object);
@@ -113,13 +113,13 @@ describe("Activities Resource Requirements (Communication 2.5)", function () {
 
     return helper
       .sendRequest("post", helper.getEndpointStatements(), undefined, [statement, statement2], 200)
-      .then(function () {
+      .then(() => {
         let parameters = {
           activityId: statement.object.id,
         };
-        return helper.sendRequest("get", helper.getEndpointActivities(), parameters, undefined, 200).then(function (
+        return helper.sendRequest("get", helper.getEndpointActivities(), parameters, undefined, 200).then((
           res: any,
-        ) {
+        ) => {
           let activity = res.body;
           expect(activity.definition.name["en-US"]).toEqual("example meeting");
           expect(activity.definition.name["fr-FR"]).toEqual("réunion");

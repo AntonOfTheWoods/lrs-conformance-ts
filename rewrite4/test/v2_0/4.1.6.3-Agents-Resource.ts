@@ -44,7 +44,7 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
     let parameters = {
       agent: data.statement.actor,
     };
-    return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
+    return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(() => {
       return helper.sendRequest("get", helper.getEndpointAgents(), parameters, undefined, 200);
     });
   });
@@ -64,13 +64,13 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
     let data = helper.createFromTemplate(templates);
     let statement = data.statement;
 
-    return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
+    return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(() => {
       let parameters = {
         agent: statement.actor,
       };
-      return helper.sendRequest("get", helper.getEndpointAgents(), parameters, undefined, 200).then(function (
+      return helper.sendRequest("get", helper.getEndpointAgents(), parameters, undefined, 200).then((
         res: any,
-      ) {
+      ) => {
         expect(res.body.objectType).toEqual("Person");
         expect(!!res.body && typeof res.body === "object").toBe(true);
       });
@@ -92,10 +92,10 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
     let data = helper.createFromTemplate(templates);
     let statement = data.statement;
 
-    return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
+    return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(() => {
       return helper
         .sendRequest("get", helper.getEndpointAgents(), { agent: statement.actor }, undefined, 200)
-        .then(function (res: any) {
+        .then((res: any) => {
           let person = res.body;
           expect(person).toHaveProperty("objectType", "Person");
         });
@@ -110,10 +110,10 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
     let data = helper.createFromTemplate(templates);
     let statement = data.statement;
 
-    return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
+    return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(() => {
       return helper
         .sendRequest("get", helper.getEndpointAgents(), { agent: statement.actor }, undefined, 200)
-        .then(function (res: any) {
+        .then((res: any) => {
           let person = res.body;
           expect(person).toHaveProperty("name");
           expect(Array.isArray(person.name)).toBe(true);
@@ -133,10 +133,10 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
     let statement = data.statement;
     let MAIL_TO = "mailto:";
 
-    return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
+    return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(() => {
       return helper
         .sendRequest("get", helper.getEndpointAgents(), { agent: statement.actor }, undefined, 200)
-        .then(function (res: any) {
+        .then((res: any) => {
           let person = res.body;
           expect(person).toHaveProperty("mbox");
           expect(Array.isArray(person.mbox)).toBe(true);
@@ -157,10 +157,10 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
     let data = helper.createFromTemplate(templates);
     let statement = data.statement;
 
-    return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
+    return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(() => {
       return helper
         .sendRequest("get", helper.getEndpointAgents(), { agent: statement.actor }, undefined, 200)
-        .then(function (res: any) {
+        .then((res: any) => {
           let person = res.body;
           expect(person).toHaveProperty("mbox");
           expect(Array.isArray(person.mbox)).toBe(true);
@@ -180,10 +180,10 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
     let data = helper.createFromTemplate(templates);
     let statement = data.statement;
 
-    return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
+    return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(() => {
       return helper
         .sendRequest("get", helper.getEndpointAgents(), { agent: statement.actor }, undefined, 200)
-        .then(function (res: any) {
+        .then((res: any) => {
           let person = res.body;
           expect(person).toHaveProperty("mbox_sha1sum");
           expect(Array.isArray(person.mbox_sha1sum)).toBe(true);
@@ -202,10 +202,10 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
     let data = helper.createFromTemplate(templates);
     let statement = data.statement;
 
-    return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
+    return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(() => {
       return helper
         .sendRequest("get", helper.getEndpointAgents(), { agent: statement.actor }, undefined, 200)
-        .then(function (res: any) {
+        .then((res: any) => {
           let person = res.body;
           expect(person).toHaveProperty("openid");
           expect(Array.isArray(person.openid)).toBe(true);
@@ -224,10 +224,10 @@ describe("Agents Resource Requirements (Communication 2.4)", function () {
     let data = helper.createFromTemplate(templates);
     let statement = data.statement;
 
-    return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
+    return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(() => {
       return helper
         .sendRequest("get", helper.getEndpointAgents(), { agent: statement.actor }, undefined, 200)
-        .then(function (res: any) {
+        .then((res: any) => {
           let person = res.body;
           expect(person).toHaveProperty("account");
           expect(Array.isArray(person.account)).toBe(true);

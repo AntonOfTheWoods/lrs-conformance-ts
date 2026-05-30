@@ -34,7 +34,7 @@ describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
       const parameters = {
         activityId: statement.object.id,
       };
-      return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
+      return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(() => {
         return helper.sendRequest("head", helper.getEndpointActivities(), parameters, undefined, 200);
       });
     });
@@ -44,7 +44,7 @@ describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
       const document = helper.buildDocument();
       return helper
         .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204)
-        .then(function () {
+        .then(() => {
           return helper.sendRequest("head", helper.getEndpointActivitiesProfile(), parameters, undefined, 200);
         });
     });
@@ -54,7 +54,7 @@ describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
       const document = helper.buildDocument();
       return helper
         .sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204)
-        .then(function () {
+        .then(() => {
           return helper.sendRequest("head", helper.getEndpointActivitiesState(), parameters, undefined, 200);
         });
     });
@@ -64,7 +64,7 @@ describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
       const parameters = {
         agent: statement.actor,
       };
-      return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
+      return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(() => {
         return helper.sendRequest("head", helper.getEndpointAgents(), parameters, undefined, 200);
       });
     });
@@ -72,7 +72,7 @@ describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
     it("should succeed HEAD agents profile with no body", function () {
       const parameters = helper.buildAgentProfile();
       const document = helper.buildDocument();
-      return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(function () {
+      return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(() => {
         return helper.sendRequest("head", helper.getEndpointAgentsProfile(), parameters, undefined, 200);
       });
     });
@@ -89,7 +89,7 @@ describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
     /*  This is to be removed in a future version on the specification and is being removed now.
         it('should succeed HEAD about with no body', function () {
             return helper.sendRequest('head', helper.getEndpointAbout(), undefined, undefined, 200)
-                .then(function (res: any) {
+                .then((res: any) => {
                     expect(Object.keys(res.body)).to.have.length(0);
                 });
         });
@@ -102,10 +102,10 @@ describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
       const parameters = {
         activityId: data.statement.object.id,
       };
-      return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
-        return helper.sendRequest("head", helper.getEndpointActivities(), parameters, undefined, 200).then(function (
+      return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(() => {
+        return helper.sendRequest("head", helper.getEndpointActivities(), parameters, undefined, 200).then((
           res: any,
-        ) {
+        ) => {
           expect(Object.keys(res.body)).toHaveLength(0);
         });
       });
@@ -116,10 +116,10 @@ describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
       const document = helper.buildDocument();
       return helper
         .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204)
-        .then(function () {
+        .then(() => {
           return helper
             .sendRequest("head", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
-            .then(function (res: any) {
+            .then((res: any) => {
               expect(Object.keys(res.body)).toHaveLength(0);
             });
         });
@@ -130,19 +130,19 @@ describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
       const document = helper.buildDocument();
       return helper
         .sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204)
-        .then(function () {
+        .then(() => {
           return helper
             .sendRequest("head", helper.getEndpointActivitiesState(), parameters, undefined, 200)
-            .then(function (res: any) {
+            .then((res: any) => {
               expect(Object.keys(res.body)).toHaveLength(0);
             });
         });
     });
 
     it("should succeed HEAD agents with no body", function () {
-      return helper.sendRequest("head", helper.getEndpointAgents(), helper.buildAgent(), undefined, 200).then(function (
+      return helper.sendRequest("head", helper.getEndpointAgents(), helper.buildAgent(), undefined, 200).then((
         res: any,
-      ) {
+      ) => {
         expect(Object.keys(res.body)).toHaveLength(0);
       });
     });
@@ -150,10 +150,10 @@ describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
     it("should succeed HEAD agents profile with no body", function () {
       const parameters = helper.buildAgentProfile();
       const document = helper.buildDocument();
-      return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(function () {
-        return helper.sendRequest("head", helper.getEndpointAgentsProfile(), parameters, undefined, 200).then(function (
+      return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(() => {
+        return helper.sendRequest("head", helper.getEndpointAgentsProfile(), parameters, undefined, 200).then((
           res: any,
-        ) {
+        ) => {
           expect(Object.keys(res.body)).toHaveLength(0);
         });
       });
@@ -161,10 +161,10 @@ describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
 
     it("should succeed HEAD statements with no body", function () {
       const statement = helper.buildStatement();
-      return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(function () {
-        return helper.sendRequest("head", helper.getEndpointStatements(), undefined, undefined, 200).then(function (
+      return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(() => {
+        return helper.sendRequest("head", helper.getEndpointStatements(), undefined, undefined, 200).then((
           res: any,
-        ) {
+        ) => {
           expect(Object.keys(res.body)).toHaveLength(0);
         });
       });

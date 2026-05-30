@@ -10,6 +10,7 @@
     "validate:archive-boundary": "bun ./scripts/validate-archive-boundary.ts",
     "migration:mocha:baseline": "bun ./scripts/mocha-migration-baseline.ts",
     "migration:mocha:check-boundary": "bun ./scripts/check-mocha-oracle-boundary.ts",
+    "migration:traffic:check-budget": "bun ./scripts/check-traffic-drift-budget.ts",
     "rewrite:bootstrap:candidate": "bun ./rewrite/scripts/bootstrap-fresh-candidate.ts",
     "lrsql:up": "podman compose -f compose/lrsql/podman-compose.yml up -d",
     "lrsql:down": "podman compose -f compose/lrsql/podman-compose.yml down",

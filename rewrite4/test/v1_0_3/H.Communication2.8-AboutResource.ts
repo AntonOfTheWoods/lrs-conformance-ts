@@ -35,7 +35,7 @@ describe("About Resource Requirements (Communication 2.8)", function () {
    * An LRS's About Resource accepts GET requests. Upon processing a successful GET request returns a version property and code 200 OK
    */
   it("An LRS's About Resource upon processing a successful GET request returns a version property and code 200 OK (multiplicity, Communication 2.8.s4, XAPI-00319)", function () {
-    return helper.sendRequest("get", "/about", undefined, undefined, 200).then(function (res: any) {
+    return helper.sendRequest("get", "/about", undefined, undefined, 200).then((res: any) => {
       let about = res.body;
       expect(about).toHaveProperty("version");
     });
@@ -45,7 +45,7 @@ describe("About Resource Requirements (Communication 2.8)", function () {
    * An LRS's About API's version property is an array of strings
    */
   it("An LRS's About Resource's version property is an array of strings (format, Communication 2.8.s4.table1.row1, XAPI-00318)", function () {
-    return helper.sendRequest("get", "/about", undefined, undefined, 200).then(function (res: any) {
+    return helper.sendRequest("get", "/about", undefined, undefined, 200).then((res: any) => {
       let about = res.body;
       expect(about).toHaveProperty("version");
       expect(about.version).toSatisfy((v: any) => Array.isArray(v));
@@ -56,7 +56,7 @@ describe("About Resource Requirements (Communication 2.8)", function () {
    * An LRS's About API's version property contains at least one string of "1.0.x"
    */
   it("An LRS's About Resource's version property contains at least one string of \"1.0.3\" (Communication 2.8.s5.b1.b1, XAPI-00317)", function () {
-    return helper.sendRequest("get", "/about", undefined, undefined, 200).then(function (res: any) {
+    return helper.sendRequest("get", "/about", undefined, undefined, 200).then((res: any) => {
       let about = res.body;
       expect(about).toHaveProperty("version");
       expect(about.version).toSatisfy((v: any) => Array.isArray(v));
@@ -75,7 +75,7 @@ describe("About Resource Requirements (Communication 2.8)", function () {
    * An LRS's About API's version property can only have values of "0.9", "0.95", "1.0.0", or “1.0.x” with
    */
   it('An LRS\'s About Resource\'s version property can only have values of "0.9", "0.95", "1.0.0", or ""1.0." + X" with (Communication 2.8.s5.b1.b1, XAPI-00316)', function () {
-    return helper.sendRequest("get", "/about", undefined, undefined, 200).then(function (res: any) {
+    return helper.sendRequest("get", "/about", undefined, undefined, 200).then((res: any) => {
       let about = res.body;
       expect(about).toHaveProperty("version");
       expect(about.version).toSatisfy((v: any) => Array.isArray(v));
@@ -121,15 +121,6 @@ describe("About Resource Requirements (Communication 2.8)", function () {
         throw new Error(str);
       }
     });
-
-    /*
-        it ('using About Endpoint', function(done){
-            request(helper.getEndpointAndAuth())
-              .get(helper.getEndpointAbout())
-              .headers(helper.addBasicAuthenicationHeader({}))
-              .expect(200, done)
-        });
-        */
 
     it("using Activities Endpoint", async function () {
       const res = await endAsync(

@@ -15,6 +15,7 @@
 import { expect } from "bun:test";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
+import { expectAsync } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
 
 const helper: any = helperImport;
@@ -38,43 +39,36 @@ describe("Id Property Requirements (Data 2.4.1)", () => {
   /**  XAPI-00026,  Data 2.4.1 Id
    * An LRS generates the "id" property of a Statement if none is provided (Modify, 4.1.1.a)
    */
-  describe('An LRS generates the "id" property of a Statement if none is provided (Modify, Data 2.4.1.s2.b1, XAPI-00026)', function () {
-    it("should complete an empty id property", function (done: any) {
+  describe('An LRS generates the "id" property of a Statement if none is provided (Modify, Data 2.4.1.s2.b1, XAPI-00026)', function (this: {
+    timeout(ms: number): void;
+  }) {
+    it("should complete an empty id property", async function (this: { timeout(ms: number): void }) {
       this.timeout(0);
-      let stmtId: string;
-      let query: string;
       const templates = [{ statement: "{{statements.default}}" }];
-      data = helper.createFromTemplate(templates);
-      data = data.statement;
+      data = helper.createFromTemplate(templates).statement;
       const stmtTime = Date.now();
 
-      request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            stmtId = (res.body as string[])[0] as string;
-            query = "?statementId=" + stmtId;
-            request(helper.getEndpointAndAuth())
-              .get(helper.getEndpointStatements() + query)
-              .wait(helper.genDelay(stmtTime, query, stmtId))
-              .headers(helper.addAllHeaders({}))
-              .end(function (getErr: unknown, getRes: any) {
-                if (getErr) {
-                  done(getErr);
-                } else {
-                  const results = helper.parse(getRes.body, done);
-                  expect(results.id).not.toBeUndefined();
-                  expect(results.id).toEqual(stmtId);
-                  done();
-                }
-              });
-          }
-        });
+      const postRes = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        200,
+      );
+
+      const stmtId = (postRes.body as string[])[0] as string;
+      const query = "?statementId=" + stmtId;
+      const getRes = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + query)
+          .wait(helper.genDelay(stmtTime, query, stmtId))
+          .headers(helper.addAllHeaders({})),
+        200,
+      );
+
+      const results = helper.parse(getRes.body);
+      expect(results.id).not.toBeUndefined();
+      expect(results.id).toEqual(stmtId);
     });
   });
 });

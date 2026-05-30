@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 
-type GlobalSymbol = "before" | "context" | "describe" | "expect" | "it" | "specify";
+type GlobalSymbol = "expect";
 
 type Candidate = {
   file: string;
@@ -10,7 +10,7 @@ type Candidate = {
 
 const repoRoot = resolve(import.meta.dir, "..", "..");
 const suiteRoots = [join(repoRoot, "rewrite4", "test", "v1_0_3"), join(repoRoot, "rewrite4", "test", "v2_0")];
-const orderedSymbols: GlobalSymbol[] = ["before", "context", "describe", "expect", "it", "specify"];
+const orderedSymbols: GlobalSymbol[] = ["expect"];
 
 function toRelative(filePath: string): string {
   return relative(repoRoot, filePath).replaceAll("\\", "/");
@@ -32,11 +32,7 @@ function walkTsFiles(root: string): string[] {
 }
 
 function usesSymbol(source: string, symbol: GlobalSymbol): boolean {
-  if (symbol === "expect") {
-    return /\bexpect\s*\(/.test(source);
-  }
-
-  return new RegExp(`\\b${symbol}\\s*\\(`).test(source);
+  return symbol === "expect" && /\bexpect\s*\(/.test(source);
 }
 
 function hasBunTestImport(source: string): boolean {

@@ -26,7 +26,7 @@ describe("Versioning Requirements (Communication 3.3)", () => {
   /**  XAPI-00333, Communication 3.3 Versioning
    * An LRS sends a header response with "X-Experience-API-Version" as the name and latest patch version after 1.0.0 as the value
    */
-  it('An LRS sends a header response with "X-Experience-API-Version" as the name and the latest patch version after "1.0.0" as the value (Format, Communication 3.3.s3.b1, Communication 3.3.s3.b2, XAPI-00333)', async function () {
+  it('An LRS sends a header response with "X-Experience-API-Version" as the name and the latest patch version after "1.0.0" as the value (Format, Communication 3.3.s3.b1, Communication 3.3.s3.b2, XAPI-00333)', async function (this: { timeout(ms: number): void }) {
     this.timeout(0);
     const id = helper.generateUUID();
     const statementTemplates = [{ statement: "{{statements.default}}" }];
@@ -59,8 +59,8 @@ describe("Versioning Requirements (Communication 3.3)", () => {
   /**  XAPI-00330, Communication 3.3 Versioning
    * An LRS will not modify Statements based on a "version" before "1.0.1"
    */
-  describe('An LRS will not modify Statements based on a "version" before "1.0.1" (Communication 3.3.s3.b4, XAPI-00330)', function () {
-    it("should not convert newer version format to prior version format", async function () {
+  describe('An LRS will not modify Statements based on a "version" before "1.0.1" (Communication 3.3.s3.b4, XAPI-00330)', function (this: { timeout(ms: number): void }) {
+    it("should not convert newer version format to prior version format", async function (this: { timeout(ms: number): void }) {
       this.timeout(0);
       const templates = [{ statement: "{{statements.default}}" }];
       const data = helper.createFromTemplate(templates).statement;
@@ -95,14 +95,14 @@ describe("Versioning Requirements (Communication 3.3)", () => {
    * An LRS rejects with error code 400 Bad Request, a Request which the "X-Experience-API-Version" header's value
    * is anything but "2.0" or "2.0.x", where x is the semantic versioning number to any API except the About API.
    */
-  describe('An LRS rejects with error code 400 Bad Request, a Request which does not use a "X-Experience-API-Version" header name to any Resource except the About Resource (Format, Communication 3.3.s4.b1, Communication 3.3.s3.b7, Communication 2.8.s5.b4, XAPI-00331)', function () {
-    it('Should pass when About GET without header "X-Experience-API-Version"', async function () {
+  describe('An LRS rejects with error code 400 Bad Request, a Request which does not use a "X-Experience-API-Version" header name to any Resource except the About Resource (Format, Communication 3.3.s4.b1, Communication 3.3.s3.b7, Communication 2.8.s5.b4, XAPI-00331)', function (this: { timeout(ms: number): void }) {
+    it('Should pass when About GET without header "X-Experience-API-Version"', async function (this: { timeout(ms: number): void }) {
       await expectAsync(request(helper.getEndpointAndAuth()).get(helper.getEndpointAbout()), 200);
     });
 
-    it('Should fail when Statement GET without header "X-Experience-API-Version"', async function () {
+    it('Should fail when Statement GET without header "X-Experience-API-Version"', async function (this: { timeout(ms: number): void }) {
       const stmtId = helper.generateUUID();
-      before("Placing the statement to be gotten", async function () {
+      before("Placing the statement to be gotten", async function (this: { timeout(ms: number): void }) {
         const templates = [{ statement: "{{statements.default}}" }];
         const data = helper.createFromTemplate(templates).statement;
 
@@ -132,7 +132,7 @@ describe("Versioning Requirements (Communication 3.3)", () => {
       }
     });
 
-    it('Should fail when Statement POST without header "X-Experience-API-Version"', async function () {
+    it('Should fail when Statement POST without header "X-Experience-API-Version"', async function (this: { timeout(ms: number): void }) {
       const templates = [{ statement: "{{statements.default}}" }];
       const data = helper.createFromTemplate(templates).statement;
 
@@ -154,7 +154,7 @@ describe("Versioning Requirements (Communication 3.3)", () => {
       }
     });
 
-    it('Should fail when Statement PUT without header "X-Experience-API-Version"', async function () {
+    it('Should fail when Statement PUT without header "X-Experience-API-Version"', async function (this: { timeout(ms: number): void }) {
       const templates = [{ statement: "{{statements.default}}" }];
       const data = helper.createFromTemplate(templates).statement;
 

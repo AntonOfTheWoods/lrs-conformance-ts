@@ -15,7 +15,7 @@ let request: any = requestBase;
 
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
-before("Before all tests are run", async function () {
+before("Before all tests are run", async function (this: { timeout(ms: number): void }) {
   console.log("Setting up\nAccounting for time differential between test suite and lrs");
   await new Promise<void>((resolve, reject) => {
     helper.setTimeMargin((err: unknown) => {
@@ -52,10 +52,12 @@ describe("Formatting Requirements (Data 2.2)", () => {
   /**  XAPI-00002, Data 2.2 Formatting Requirements
    * An LRS stores 32-bit floating point numbers with at least the precision of IEEE 754
    */
-  describe("An LRS stores 32-bit floating point numbers with at least the precision of IEEE 754 (Data 2.2.s4.b3, XAPI-00002)", function () {
+  describe("An LRS stores 32-bit floating point numbers with at least the precision of IEEE 754 (Data 2.2.s4.b3, XAPI-00002)", function (this: {
+    timeout(ms: number): void;
+  }) {
     this.timeout(0);
 
-    it("should pass and keep precision", async function () {
+    it("should pass and keep precision", async function (this: { timeout(ms: number): void }) {
       const templates = [{ statement: "{{statements.result}}" }, { result: "{{results.default}}" }];
       const data = helper.createFromTemplate(templates).statement;
       const id = helper.generateUUID();
@@ -100,53 +102,65 @@ describe("Formatting Requirements (Data 2.2)", () => {
    */
   describe(
     "The LRS rejects with error code 400 Bad Request parameter values which do not validate to the same standards required for values of the same types in Statements (Data 2.2.s4.b4, XAPI-00012)",
-    function (done: any) {
-      it("should reject when statementId value is invalid", function () {
+    function (this: { timeout(ms: number): void }) {
+      it("should reject when statementId value is invalid", async function (this: { timeout(ms: number): void }) {
         const query = helper.getUrlEncoding({ statementId: "wrong" });
-        request(helper.getEndpointAndAuth())
-          .get(helper.getEndpointStatements() + "?" + query)
-          .headers(helper.addAllHeaders({}))
-          .expect(400, done);
+        await expectAsync(
+          request(helper.getEndpointAndAuth())
+            .get(helper.getEndpointStatements() + "?" + query)
+            .headers(helper.addAllHeaders({})),
+          400,
+        );
       });
 
-      it("should reject when statementId value is invalid", function () {
+      it("should reject when statementId value is invalid", async function (this: { timeout(ms: number): void }) {
         const query = helper.getUrlEncoding({ voidedStatementId: "wrong" });
-        request(helper.getEndpointAndAuth())
-          .get(helper.getEndpointStatements() + "?" + query)
-          .headers(helper.addAllHeaders({}))
-          .expect(400, done);
+        await expectAsync(
+          request(helper.getEndpointAndAuth())
+            .get(helper.getEndpointStatements() + "?" + query)
+            .headers(helper.addAllHeaders({})),
+          400,
+        );
       });
 
-      it("should reject when statementId value is invalid", function () {
+      it("should reject when statementId value is invalid", async function (this: { timeout(ms: number): void }) {
         const query = helper.getUrlEncoding({ agent: "wrong" });
-        request(helper.getEndpointAndAuth())
-          .get(helper.getEndpointStatements() + "?" + query)
-          .headers(helper.addAllHeaders({}))
-          .expect(400, done);
+        await expectAsync(
+          request(helper.getEndpointAndAuth())
+            .get(helper.getEndpointStatements() + "?" + query)
+            .headers(helper.addAllHeaders({})),
+          400,
+        );
       });
 
-      it("should reject when statementId value is invalid", function () {
+      it("should reject when statementId value is invalid", async function (this: { timeout(ms: number): void }) {
         const query = helper.getUrlEncoding({ verb: "not.a.valid.iri.com/verb" });
-        request(helper.getEndpointAndAuth())
-          .get(helper.getEndpointStatements() + "?" + query)
-          .headers(helper.addAllHeaders({}))
-          .expect(400, done);
+        await expectAsync(
+          request(helper.getEndpointAndAuth())
+            .get(helper.getEndpointStatements() + "?" + query)
+            .headers(helper.addAllHeaders({})),
+          400,
+        );
       });
 
-      it("should reject when statementId value is invalid", function () {
+      it("should reject when statementId value is invalid", async function (this: { timeout(ms: number): void }) {
         const query = helper.getUrlEncoding({ activity: "not.a.valid.iri.com/activity" });
-        request(helper.getEndpointAndAuth())
-          .get(helper.getEndpointStatements() + "?" + query)
-          .headers(helper.addAllHeaders({}))
-          .expect(400, done);
+        await expectAsync(
+          request(helper.getEndpointAndAuth())
+            .get(helper.getEndpointStatements() + "?" + query)
+            .headers(helper.addAllHeaders({})),
+          400,
+        );
       });
 
-      it("should reject when statementId value is invalid", function () {
+      it("should reject when statementId value is invalid", async function (this: { timeout(ms: number): void }) {
         const query = helper.getUrlEncoding({ registration: "wrong" });
-        request(helper.getEndpointAndAuth())
-          .get(helper.getEndpointStatements() + "?" + query)
-          .headers(helper.addAllHeaders({}))
-          .expect(400, done);
+        await expectAsync(
+          request(helper.getEndpointAndAuth())
+            .get(helper.getEndpointStatements() + "?" + query)
+            .headers(helper.addAllHeaders({})),
+          400,
+        );
       });
     } as any,
   );
@@ -154,10 +168,12 @@ describe("Formatting Requirements (Data 2.2)", () => {
   /**  XAPI-00014, Data 2.2 Formatting Requirements
    * All Objects are well-created JSON Objects (Nature of Binding)
    */
-  describe("All Objects are well-created JSON Objects (Nature of binding, Data 2.1, XAPI-00014) **Implicit**", function () {
+  describe("All Objects are well-created JSON Objects (Nature of binding, Data 2.1, XAPI-00014) **Implicit**", function (this: {
+    timeout(ms: number): void;
+  }) {
     templatingSelection.createTemplate("verify.ts");
 
-    it("An LRS rejects a not well-created JSON Object", async function () {
+    it("An LRS rejects a not well-created JSON Object", async function (this: { timeout(ms: number): void }) {
       const malformedTemplates = [{ statement: "{{statements.default}}" }];
       const malformed = helper.createFromTemplate(malformedTemplates).statement;
       const string = '"objectType": "Agent"';
@@ -176,258 +192,279 @@ describe("Formatting Requirements (Data 2.2)", () => {
   /**  XAPI-00011, Data 2.2 Formatting Requirements
    * An LRS rejects with error code 400 Bad Request a Statement containing IRL or IRI values without a scheme.
    */
-  describe(
-    "An LRS rejects with error code 400 Bad Request a Statement containing IRL or IRI values without a scheme. (Data 2.2.s4.b1.b8, XAPI-00011)",
-    function (done: any) {
-      // verb id
-      it("should fail with bad verb id scheme", function () {
-        const templates = [
-          {
-            statement: "{{statements.default}}",
-          },
-        ];
-        const data = helper.createFromTemplate(templates).statement;
-        data.id = helper.generateUUID();
-        data.verb.id = data.verb.id.replace("http://", ""); // remove the scheme portion of the IRI
-        const headers = helper.addAllHeaders({});
+  describe("An LRS rejects with error code 400 Bad Request a Statement containing IRL or IRI values without a scheme. (Data 2.2.s4.b1.b8, XAPI-00011)", function (this: {
+    timeout(ms: number): void;
+  }) {
+    // verb id
+    it("should fail with bad verb id scheme", async function (this: { timeout(ms: number): void }) {
+      const templates = [
+        {
+          statement: "{{statements.default}}",
+        },
+      ];
+      const data = helper.createFromTemplate(templates).statement;
+      data.id = helper.generateUUID();
+      data.verb.id = data.verb.id.replace("http://", ""); // remove the scheme portion of the IRI
+      const headers = helper.addAllHeaders({});
 
+      await expectAsync(
         request(helper.getEndpointAndAuth())
           .put(helper.getEndpointStatements() + "?statementId=" + data.id)
           .headers(headers)
-          .json(data)
-          .expect(400, done);
-      });
+          .json(data),
+        400,
+      );
+    });
 
-      // openid
-      it("should fail with bad verb openid scheme", function () {
-        const templates = [
-          {
-            statement: "{{statements.actor}}",
-          },
-        ];
-        const data = helper.createFromTemplate(templates).statement;
-        data.id = helper.generateUUID();
-        data.actor.openid = "open.id.com/testUser";
-        const headers = helper.addAllHeaders({});
+    // openid
+    it("should fail with bad verb openid scheme", async function (this: { timeout(ms: number): void }) {
+      const templates = [
+        {
+          statement: "{{statements.actor}}",
+        },
+      ];
+      const data = helper.createFromTemplate(templates).statement;
+      data.id = helper.generateUUID();
+      data.actor.openid = "open.id.com/testUser";
+      const headers = helper.addAllHeaders({});
 
+      await expectAsync(
         request(helper.getEndpointAndAuth())
           .put(helper.getEndpointStatements() + "?statementId=" + data.id)
           .headers(headers)
-          .json(data)
-          .expect(400, done);
-      });
+          .json(data),
+        400,
+      );
+    });
 
-      // account homePage
-      it("should fail with bad account homePage", function () {
-        const templates = [
-          {
-            statement: "{{statements.actor}}",
-          },
-        ];
-        const data = helper.createFromTemplate(templates).statement;
-        data.id = helper.generateUUID();
-        data.actor.account = { homePage: "homePage.com/testUser", name: "123456" };
-        const headers = helper.addAllHeaders({});
+    // account homePage
+    it("should fail with bad account homePage", async function (this: { timeout(ms: number): void }) {
+      const templates = [
+        {
+          statement: "{{statements.actor}}",
+        },
+      ];
+      const data = helper.createFromTemplate(templates).statement;
+      data.id = helper.generateUUID();
+      data.actor.account = { homePage: "homePage.com/testUser", name: "123456" };
+      const headers = helper.addAllHeaders({});
 
+      await expectAsync(
         request(helper.getEndpointAndAuth())
           .put(helper.getEndpointStatements() + "?statementId=" + data.id)
           .headers(headers)
-          .json(data)
-          .expect(400, done);
-      });
+          .json(data),
+        400,
+      );
+    });
 
-      // object id
-      it("should fail with bad object id", function () {
-        const templates = [
-          {
-            statement: "{{statements.default}}",
-          },
-        ];
-        const data = helper.createFromTemplate(templates).statement;
-        data.id = helper.generateUUID();
-        data.object.id = data.object.id.replace("http://", ""); // remove the scheme portion of the IRI
-        const headers = helper.addAllHeaders({});
+    // object id
+    it("should fail with bad object id", async function (this: { timeout(ms: number): void }) {
+      const templates = [
+        {
+          statement: "{{statements.default}}",
+        },
+      ];
+      const data = helper.createFromTemplate(templates).statement;
+      data.id = helper.generateUUID();
+      data.object.id = data.object.id.replace("http://", ""); // remove the scheme portion of the IRI
+      const headers = helper.addAllHeaders({});
 
+      await expectAsync(
         request(helper.getEndpointAndAuth())
           .put(helper.getEndpointStatements() + "?statementId=" + data.id)
           .headers(headers)
-          .json(data)
-          .expect(400, done);
-      });
+          .json(data),
+        400,
+      );
+    });
 
-      // object type
-      it("should fail with bad object type", function () {
-        const templates = [
-          {
-            statement: "{{statements.default}}",
-          },
-          {
-            object: "{{activities.default}}",
-          },
-        ];
-        const data = helper.createFromTemplate(templates).statement;
-        data.id = helper.generateUUID();
-        data.object.definition.type = data.object.definition.type.replace("http://", ""); // remove the scheme portion of the IRI
-        const headers = helper.addAllHeaders({});
+    // object type
+    it("should fail with bad object type", async function (this: { timeout(ms: number): void }) {
+      const templates = [
+        {
+          statement: "{{statements.default}}",
+        },
+        {
+          object: "{{activities.default}}",
+        },
+      ];
+      const data = helper.createFromTemplate(templates).statement;
+      data.id = helper.generateUUID();
+      data.object.definition.type = data.object.definition.type.replace("http://", ""); // remove the scheme portion of the IRI
+      const headers = helper.addAllHeaders({});
 
+      await expectAsync(
         request(helper.getEndpointAndAuth())
           .put(helper.getEndpointStatements() + "?statementId=" + data.id)
           .headers(headers)
-          .json(data)
-          .expect(400, done);
-      });
+          .json(data),
+        400,
+      );
+    });
 
-      // object moreInfo
-      it("should fail with bad object moreInfo", function () {
-        const templates = [
-          {
-            statement: "{{statements.default}}",
-          },
-          {
-            object: "{{activities.default}}",
-          },
-        ];
-        const data = helper.createFromTemplate(templates).statement;
-        data.id = helper.generateUUID();
-        data.object.definition.moreInfo = data.object.definition.moreInfo.replace("http://", ""); // remove the scheme portion of the IRI
-        const headers = helper.addAllHeaders({});
+    // object moreInfo
+    it("should fail with bad object moreInfo", async function (this: { timeout(ms: number): void }) {
+      const templates = [
+        {
+          statement: "{{statements.default}}",
+        },
+        {
+          object: "{{activities.default}}",
+        },
+      ];
+      const data = helper.createFromTemplate(templates).statement;
+      data.id = helper.generateUUID();
+      data.object.definition.moreInfo = data.object.definition.moreInfo.replace("http://", ""); // remove the scheme portion of the IRI
+      const headers = helper.addAllHeaders({});
 
+      await expectAsync(
         request(helper.getEndpointAndAuth())
           .put(helper.getEndpointStatements() + "?statementId=" + data.id)
           .headers(headers)
-          .json(data)
-          .expect(400, done);
-      });
+          .json(data),
+        400,
+      );
+    });
 
-      // attachment usageType
-      it("should fail with attachment bad usageType", function () {
-        const templates = [
-          {
-            statement: "{{statements.attachment}}",
-          },
-          {
-            attachments: [
-              {
-                usageType: "http://example.com/attachment-usage/test",
-                display: { "en-US": "A test attachment" },
-                description: { "en-US": "A test attachment (description)" },
-                contentType: "text/plain; charset=ascii",
-                length: 27,
-                sha2: "495395e777cd98da653df9615d09c0fd6bb2f8d4788394cd53c56a3bfdcd848a",
-                fileUrl: "http://over.there.com/file.txt",
-              },
-            ],
-          },
-        ];
-        const data = helper.createFromTemplate(templates).statement;
-        data.id = helper.generateUUID();
-        data.attachments[0].usageType = data.attachments[0].usageType.replace("http://", ""); // remove the scheme portion of the IRI
-        const headers = helper.addAllHeaders({});
+    // attachment usageType
+    it("should fail with attachment bad usageType", async function (this: { timeout(ms: number): void }) {
+      const templates = [
+        {
+          statement: "{{statements.attachment}}",
+        },
+        {
+          attachments: [
+            {
+              usageType: "http://example.com/attachment-usage/test",
+              display: { "en-US": "A test attachment" },
+              description: { "en-US": "A test attachment (description)" },
+              contentType: "text/plain; charset=ascii",
+              length: 27,
+              sha2: "495395e777cd98da653df9615d09c0fd6bb2f8d4788394cd53c56a3bfdcd848a",
+              fileUrl: "http://over.there.com/file.txt",
+            },
+          ],
+        },
+      ];
+      const data = helper.createFromTemplate(templates).statement;
+      data.id = helper.generateUUID();
+      data.attachments[0].usageType = data.attachments[0].usageType.replace("http://", ""); // remove the scheme portion of the IRI
+      const headers = helper.addAllHeaders({});
 
+      await expectAsync(
         request(helper.getEndpointAndAuth())
           .put(helper.getEndpointStatements() + "?statementId=" + data.id)
           .headers(headers)
-          .json(data)
-          .expect(400, done);
-      });
+          .json(data),
+        400,
+      );
+    });
 
-      // attachment fileUrl
-      it("should fail with bad attachment fileUrl", function () {
-        const templates = [
-          {
-            statement: "{{statements.attachment}}",
-          },
-          {
-            attachments: [
-              {
-                usageType: "http://example.com/attachment-usage/test",
-                display: { "en-US": "A test attachment" },
-                description: { "en-US": "A test attachment (description)" },
-                contentType: "text/plain; charset=ascii",
-                length: 27,
-                sha2: "495395e777cd98da653df9615d09c0fd6bb2f8d4788394cd53c56a3bfdcd848a",
-                fileUrl: "http://over.there.com/file.txt",
-              },
-            ],
-          },
-        ];
-        const data = helper.createFromTemplate(templates).statement;
-        data.id = helper.generateUUID();
-        data.attachments[0].fileUrl = data.attachments[0].fileUrl.replace("http://", ""); // remove the scheme portion of the IRI
-        const headers = helper.addAllHeaders({});
+    // attachment fileUrl
+    it("should fail with bad attachment fileUrl", async function (this: { timeout(ms: number): void }) {
+      const templates = [
+        {
+          statement: "{{statements.attachment}}",
+        },
+        {
+          attachments: [
+            {
+              usageType: "http://example.com/attachment-usage/test",
+              display: { "en-US": "A test attachment" },
+              description: { "en-US": "A test attachment (description)" },
+              contentType: "text/plain; charset=ascii",
+              length: 27,
+              sha2: "495395e777cd98da653df9615d09c0fd6bb2f8d4788394cd53c56a3bfdcd848a",
+              fileUrl: "http://over.there.com/file.txt",
+            },
+          ],
+        },
+      ];
+      const data = helper.createFromTemplate(templates).statement;
+      data.id = helper.generateUUID();
+      data.attachments[0].fileUrl = data.attachments[0].fileUrl.replace("http://", ""); // remove the scheme portion of the IRI
+      const headers = helper.addAllHeaders({});
 
+      await expectAsync(
         request(helper.getEndpointAndAuth())
           .put(helper.getEndpointStatements() + "?statementId=" + data.id)
           .headers(headers)
-          .json(data)
-          .expect(400, done);
-      });
+          .json(data),
+        400,
+      );
+    });
 
-      // object definition extension
-      it("should fail with bad object definition extension", function () {
-        const templates = [
-          {
-            statement: "{{statements.default}}",
-          },
-          {
-            object: "{{activities.default}}",
-          },
-        ];
-        const data = helper.createFromTemplate(templates).statement;
-        data.id = helper.generateUUID();
-        data.object.definition.extensions = { "not.valid.com/extension": 1234 };
-        const headers = helper.addAllHeaders({});
+    // object definition extension
+    it("should fail with bad object definition extension", async function (this: { timeout(ms: number): void }) {
+      const templates = [
+        {
+          statement: "{{statements.default}}",
+        },
+        {
+          object: "{{activities.default}}",
+        },
+      ];
+      const data = helper.createFromTemplate(templates).statement;
+      data.id = helper.generateUUID();
+      data.object.definition.extensions = { "not.valid.com/extension": 1234 };
+      const headers = helper.addAllHeaders({});
 
+      await expectAsync(
         request(helper.getEndpointAndAuth())
           .put(helper.getEndpointStatements() + "?statementId=" + data.id)
           .headers(headers)
-          .json(data)
-          .expect(400, done);
-      });
+          .json(data),
+        400,
+      );
+    });
 
-      // context extension
-      it("should fail with bad context extension", function () {
-        const templates = [
-          {
-            statement: "{{statements.default}}",
-          },
-          {
-            context: "{{contexts.default}}",
-          },
-        ];
-        const data = helper.createFromTemplate(templates).statement;
-        data.id = helper.generateUUID();
-        data.context.extensions["example.com/extension/wrong"] = 1234;
-        const headers = helper.addAllHeaders({});
+    // context extension
+    it("should fail with bad context extension", async function (this: { timeout(ms: number): void }) {
+      const templates = [
+        {
+          statement: "{{statements.default}}",
+        },
+        {
+          context: "{{contexts.default}}",
+        },
+      ];
+      const data = helper.createFromTemplate(templates).statement;
+      data.id = helper.generateUUID();
+      data.context.extensions["example.com/extension/wrong"] = 1234;
+      const headers = helper.addAllHeaders({});
 
+      await expectAsync(
         request(helper.getEndpointAndAuth())
           .put(helper.getEndpointStatements() + "?statementId=" + data.id)
           .headers(headers)
-          .json(data)
-          .expect(400, done);
-      });
+          .json(data),
+        400,
+      );
+    });
 
-      // result extension
-      it("should fail with bad result extension", function () {
-        const templates = [
-          {
-            statement: "{{statements.default}}",
-          },
-          {
-            result: "{{results.default}}",
-          },
-        ];
-        const data = helper.createFromTemplate(templates).statement;
-        data.id = helper.generateUUID();
-        data.result.extensions["example.com/extension/wrong"] = 1234;
-        const headers = helper.addAllHeaders({});
+    // result extension
+    it("should fail with bad result extension", async function (this: { timeout(ms: number): void }) {
+      const templates = [
+        {
+          statement: "{{statements.default}}",
+        },
+        {
+          result: "{{results.default}}",
+        },
+      ];
+      const data = helper.createFromTemplate(templates).statement;
+      data.id = helper.generateUUID();
+      data.result.extensions["example.com/extension/wrong"] = 1234;
+      const headers = helper.addAllHeaders({});
 
+      await expectAsync(
         request(helper.getEndpointAndAuth())
           .put(helper.getEndpointStatements() + "?statementId=" + data.id)
           .headers(headers)
-          .json(data)
-          .expect(400, done);
-      });
-    } as any,
-  );
+          .json(data),
+        400,
+      );
+    });
+  });
 });

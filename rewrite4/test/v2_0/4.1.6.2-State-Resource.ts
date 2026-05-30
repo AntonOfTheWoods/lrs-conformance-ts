@@ -106,10 +106,10 @@ describe("State Resource Requirements (Communication 2.3)", function () {
   it("An LRS's State Resource accepts GET requests (Communication 2.3, XAPI-00188)", function () {
     let parameters = helper.buildState(),
       document = helper.buildDocument();
-    return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(function () {
-      return helper.sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200).then(function (
+    return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(() => {
+      return helper.sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200).then((
         res: any,
-      ) {
+      ) => {
         let body = res.body;
         expect(body).toEqual(document);
       });
@@ -122,7 +122,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
   it("An LRS's State Resource accepts DELETE requests (Communication 2.3, XAPI-00187)", function () {
     let parameters = helper.buildState(),
       document = helper.buildDocument();
-    return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(function () {
+    return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(() => {
       return helper.sendRequest("delete", helper.getEndpointActivitiesState(), parameters, undefined, 204);
     });
   });
@@ -133,10 +133,10 @@ describe("State Resource Requirements (Communication 2.3)", function () {
   it('An LRS\'s State Resource upon processing a successful GET request with a valid "stateId" as a parameter returns the document satisfying the requirements of the GET and code 200 OK (Communication 2.3.s3, XAPI-00192)', function () {
     let parameters = helper.buildState(),
       document = helper.buildDocument();
-    return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(function () {
-      return helper.sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200).then(function (
+    return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(() => {
+      return helper.sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200).then((
         res: any,
-      ) {
+      ) => {
         let body = res.body;
         expect(body).toEqual(document);
       });
@@ -149,7 +149,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
   it('An LRS\'s State Resource upon processing a successful DELETE request with a valid "stateId" as a parameter deletes the document satisfying the requirements of the DELETE and returns code 204 No Content (Communication 2.3.s3, XAPI-00191)', function () {
     let parameters = helper.buildState(),
       document = helper.buildDocument();
-    return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(function () {
+    return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(() => {
       return helper.sendRequest("delete", helper.getEndpointActivitiesState(), parameters, undefined, 204);
     });
   });
@@ -405,7 +405,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
     let parameters = helper.buildState(),
       document = helper.buildDocument(),
       anotherDocument = "abc";
-    return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(function () {
+    return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(() => {
       return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, anotherDocument, 400);
     });
   });
@@ -416,10 +416,10 @@ describe("State Resource Requirements (Communication 2.3)", function () {
   it("An LRS's State Resource, upon receiving a POST request for a document not currently in the LRS, treats it as a PUT request and store a new document (Communication 2.2.s7, XAPI-00233)", function () {
     let parameters = helper.buildState(),
       document = helper.buildDocument();
-    return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(function () {
-      return helper.sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200).then(function (
+    return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(() => {
+      return helper.sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200).then((
         res: any,
-      ) {
+      ) => {
         let body = res.body;
         expect(body).toEqual(document);
       });
@@ -437,13 +437,13 @@ describe("State Resource Requirements (Communication 2.3)", function () {
       anotherDocument = {
         type: "Civic",
       };
-    return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(function () {
+    return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(() => {
       return helper
         .sendRequest("post", helper.getEndpointActivitiesState(), parameters, anotherDocument, 204)
-        .then(function () {
+        .then(() => {
           return helper
             .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
-            .then(function (res: any) {
+            .then((res: any) => {
               let body = res.body;
               expect(body).toEqual({
                 car: "Honda",
@@ -512,10 +512,10 @@ describe("State Resource Requirements (Communication 2.3)", function () {
     let parameters = helper.buildState(),
       document = helper.buildDocument();
     parameters.registration = helper.generateUUID();
-    return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(function () {
-      return helper.sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200).then(function (
+    return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(() => {
+      return helper.sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200).then((
         res: any,
-      ) {
+      ) => {
         let body = res.body;
         expect(body).toEqual(document);
       });
@@ -540,7 +540,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
     let parameters = helper.buildState(),
       document = helper.buildDocument();
     parameters.registration = helper.generateUUID();
-    return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(function () {
+    return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(() => {
       return helper.sendRequest("delete", helper.getEndpointActivitiesState(), parameters, undefined, 204);
     });
   });
@@ -582,10 +582,10 @@ describe("State Resource Requirements (Communication 2.3)", function () {
   it('An LRS\'s State Resource can process a GET request with "stateId" as a parameter (multiplicity, Communication 2.3.s3.table1.row4, XAPI-00217)', function () {
     let parameters = helper.buildState(),
       document = helper.buildDocument();
-    return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(function () {
-      return helper.sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200).then(function (
+    return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(() => {
+      return helper.sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200).then((
         res: any,
-      ) {
+      ) => {
         let body = res.body;
         expect(body).toEqual(document);
       });
@@ -600,13 +600,13 @@ describe("State Resource Requirements (Communication 2.3)", function () {
       document = helper.buildDocument();
     let stateId = parameters.stateId;
 
-    return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(function () {
+    return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(() => {
       parameters.since = new Date(Date.now() - 60 * 1000 - helper.getTimeMargin()).toISOString(); // Date 1 minute ago
       delete parameters.stateId;
 
-      return helper.sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200).then(function (
+      return helper.sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200).then((
         res: any,
-      ) {
+      ) => {
         let body = res.body;
         expect(Array.isArray(body)).toBe(true);
         expect(body).toContain(stateId);
@@ -630,7 +630,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
   it('An LRS\'s State Resource can process a DELETE request with "stateId" as a parameter (multiplicity, Communication 2.3.s3.table1.row4, XAPI-00216)', function () {
     let parameters = helper.buildState(),
       document = helper.buildDocument();
-    return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(function () {
+    return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(() => {
       return helper.sendRequest("delete", helper.getEndpointActivitiesState(), parameters, undefined, 204);
     });
   });
@@ -642,11 +642,11 @@ describe("State Resource Requirements (Communication 2.3)", function () {
   it('An LRS\'s State Resource upon processing a successful GET request without "stateId" as a parameter returns an array of ids of state data documents satisfying the requirements of the GET and code 200 OK (Communication 2.3.s4, XAPI-00193)', function () {
     let parameters = helper.buildState(),
       document = helper.buildDocument();
-    return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(function () {
+    return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(() => {
       delete parameters.stateId;
-      return helper.sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200).then(function (
+      return helper.sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200).then((
         res: any,
-      ) {
+      ) => {
         let body = res.body;
         expect(Array.isArray(body)).toBe(true);
       });
@@ -662,18 +662,18 @@ describe("State Resource Requirements (Communication 2.3)", function () {
     let state2 = helper.buildState();
     let since = new Date(Date.now() - 60 * 1000 - helper.getTimeMargin()).toISOString(); //Date 1  minute ago
 
-    return helper.sendRequest("post", helper.getEndpointActivitiesState(), state1, document, 204).then(function (
+    return helper.sendRequest("post", helper.getEndpointActivitiesState(), state1, document, 204).then((
       res: any,
-    ) {
-      return helper.sendRequest("post", helper.getEndpointActivitiesState(), state2, document, 204).then(function (
+    ) => {
+      return helper.sendRequest("post", helper.getEndpointActivitiesState(), state2, document, 204).then((
         res: any,
-      ) {
+      ) => {
         let parameters = helper.buildState();
         delete parameters.stateId;
         parameters.since = since;
         return helper
           .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
-          .then(function (res: any) {
+          .then((res: any) => {
             let body = res.body;
             expect(Array.isArray(body)).toBe(true);
             expect(body.length).toBeGreaterThan(1);
@@ -694,17 +694,17 @@ describe("State Resource Requirements (Communication 2.3)", function () {
 
     return helper
       .sendRequest("post", helper.getEndpointActivitiesState(), parameters, helper.buildDocument(), 204)
-      .then(function () {
+      .then(() => {
         delete parameters.stateId;
         return helper
           .sendRequest("post", helper.getEndpointActivitiesState(), helper.buildState(), helper.buildDocument(), 204)
-          .then(function () {
+          .then(() => {
             return helper
               .sendRequest("delete", helper.getEndpointActivitiesState(), parameters, undefined, 204)
-              .then(function () {
+              .then(() => {
                 return helper
                   .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
-                  .then(function (res: any) {
+                  .then((res: any) => {
                     let body = res.body;
                     expect(Array.isArray(body)).toBe(true);
                     expect(body).toHaveLength(0);

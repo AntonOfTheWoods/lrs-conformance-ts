@@ -18,7 +18,9 @@ describe("Encoding Requirements (Communication 1.4)", () => {
    * All Strings are encoded and interpreted as UTF-8
    * This req should stay here (Communication 1.4).  This is the only place which mentions UTF-8 in the spec, other than Comm 1.3
    */
-  it("All Strings are encoded and interpreted as UTF-8 (Communication 1.4.s1.b1, XAPI-00015)", async function () {
+  it("All Strings are encoded and interpreted as UTF-8 (Communication 1.4.s1.b1, XAPI-00015)", async function (this: {
+    timeout(ms: number): void;
+  }) {
     this.timeout(0);
     let verbTemplate = "http://adlnet.gov/expapi/test/unicode/target/";
     let verb = verbTemplate + helper.generateUUID();
@@ -40,20 +42,20 @@ describe("Encoding Requirements (Communication 1.4)", () => {
         .expect(200),
     );
 
-        const res = await endAsync(
-request(helper.getEndpointAndAuth())
-      .get(helper.getEndpointStatements() + "?" + query)
-      .wait(helper.genDelay(stmtTime, "?" + query, null))
-      .headers(helper.addAllHeaders({}))
-      .expect(200)
+    const res = await endAsync(
+      request(helper.getEndpointAndAuth())
+        .get(helper.getEndpointStatements() + "?" + query)
+        .wait(helper.genDelay(stmtTime, "?" + query, null))
+        .headers(helper.addAllHeaders({}))
+        .expect(200),
     );
 
-let results = helper.parse(res.body);
-let languages = results.statements[0].verb.display;
-let unicodeConformant = true;
-for (let key in languages) {
-            if (languages[key] !== unicode.verb.display[key]) unicodeConformant = false;
-          }
-expect(unicodeConformant).toBe(true);
+    let results = helper.parse(res.body);
+    let languages = results.statements[0].verb.display;
+    let unicodeConformant = true;
+    for (let key in languages) {
+      if (languages[key] !== unicode.verb.display[key]) unicodeConformant = false;
+    }
+    expect(unicodeConformant).toBe(true);
   });
 });

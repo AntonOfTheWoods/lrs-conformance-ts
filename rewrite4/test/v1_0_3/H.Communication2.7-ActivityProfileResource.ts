@@ -127,7 +127,7 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", () => {
       document = helper.buildDocument();
     return helper
       .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204)
-      .then(function () {
+      .then(() => {
         return helper.sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200);
       });
   });
@@ -140,10 +140,10 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", () => {
       document = helper.buildDocument();
     return helper
       .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204)
-      .then(function () {
+      .then(() => {
         return helper
           .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
-          .then(function (res: any) {
+          .then((res: any) => {
             let body = res.body;
             expect(body).toEqual(document);
           });
@@ -240,11 +240,11 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", () => {
     parameters.activityId = parameters.activityId + helper.generateUUID();
     return helper
       .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204)
-      .then(function () {
+      .then(() => {
         delete parameters.profileId;
         return helper
           .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
-          .then(function (res: any) {
+          .then((res: any) => {
             let body = res.body;
             expect(body).toSatisfy((v: any) => Array.isArray(v));
             expect(body.length).toBeGreaterThan(0);
@@ -260,7 +260,7 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", () => {
       document = helper.buildDocument();
     return helper
       .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204)
-      .then(function () {
+      .then(() => {
         delete parameters.profileId;
         parameters.since = new Date(Date.now() - 60 * 1000 - helper.getTimeMargin()).toISOString(); //Date one minute ago
 
@@ -293,12 +293,12 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", () => {
 
     return helper
       .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204)
-      .then(function () {
+      .then(() => {
         delete parameters.profileId;
         parameters.since = since;
         return helper
           .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
-          .then(function (res: any) {
+          .then((res: any) => {
             let body = res.body;
             expect(body).toSatisfy((v: any) => Array.isArray(v));
             expect(body.length).toBeGreaterThan(0);
@@ -315,10 +315,10 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", () => {
       document = helper.buildDocument();
     return helper
       .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204)
-      .then(function () {
+      .then(() => {
         return helper
           .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
-          .then(function (res: any) {
+          .then((res: any) => {
             let body = res.body;
             expect(body).toEqual(document);
           });
@@ -339,13 +339,13 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", () => {
       };
     return helper
       .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204)
-      .then(function () {
+      .then(() => {
         return helper
           .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, anotherDocument, 204)
-          .then(function () {
+          .then(() => {
             return helper
               .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
-              .then(function (res: any) {
+              .then((res: any) => {
                 let body = res.body;
                 expect(body).toEqual({
                   car: "Honda",
@@ -365,7 +365,7 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", () => {
       anotherDocument = "abc";
     return helper
       .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204)
-      .then(function () {
+      .then(() => {
         return helper.sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, anotherDocument, 400);
       });
   });

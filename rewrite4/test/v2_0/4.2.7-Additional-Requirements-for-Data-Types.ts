@@ -9,8 +9,8 @@ const xapiRequests: any = xapiRequestsImport;
 
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
-describe("(4.2.7) Additional Requirements for Data Types", function () {
-  describe("IRIs", function () {
+describe("(4.2.7) Additional Requirements for Data Types", () => {
+  describe("IRIs", () => {
     it(
       "When storing or comparing IRIs, LRSs shall handle them only by " +
         "using one or more of the approaches described in 5.3.1 (Simple String Comparison) " +
@@ -42,7 +42,7 @@ describe("(4.2.7) Additional Requirements for Data Types", function () {
     );
   });
 
-  describe("Duration", function () {
+  describe("Duration", () => {
     it("On receiving a Duration with more than 0.01 second precision, the LRS shall not reject the request.", async () => {
       let statement = {
         ...helper.buildStatement(),
@@ -123,7 +123,7 @@ describe("(4.2.7) Additional Requirements for Data Types", function () {
     });
   });
 
-  describe("Timestamps", function () {
+  describe("Timestamps", () => {
     it("checks if the LRS converts timestamps to UTC", async () => {
       const dateEST = "2023-05-04T12:00:00-05:00";
       const dateUTC = "2023-05-04T17:00:00.000Z";

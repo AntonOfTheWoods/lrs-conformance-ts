@@ -26,7 +26,9 @@ describe("Versioning Requirements (Communication 3.3)", () => {
   /**  XAPI-00333, Communication 3.3 Versioning
    * An LRS sends a header response with "X-Experience-API-Version" as the name and latest patch version after 1.0.0 as the value
    */
-  it('An LRS sends a header response with "X-Experience-API-Version" as the name and the latest patch version after "1.0.0" as the value (Format, Communication 3.3.s3.b1, Communication 3.3.s3.b2, XAPI-00333)', async function () {
+  it('An LRS sends a header response with "X-Experience-API-Version" as the name and the latest patch version after "1.0.0" as the value (Format, Communication 3.3.s3.b1, Communication 3.3.s3.b2, XAPI-00333)', async function (this: {
+    timeout(ms: number): void;
+  }) {
     this.timeout(0);
     let id = helper.generateUUID();
     let statementTemplates = [{ statement: "{{statements.default}}" }];
@@ -45,23 +47,27 @@ describe("Versioning Requirements (Communication 3.3)", () => {
         .expect(200),
     );
 
-        const res = await endAsync(
-request(helper.getEndpointAndAuth())
-      .get(helper.getEndpointStatements() + "?" + query)
-      .wait(helper.genDelay(stmtTime, "?" + query, id))
-      .headers(helper.addAllHeaders({}))
-      .expect(200)
+    const res = await endAsync(
+      request(helper.getEndpointAndAuth())
+        .get(helper.getEndpointStatements() + "?" + query)
+        .wait(helper.genDelay(stmtTime, "?" + query, id))
+        .headers(helper.addAllHeaders({}))
+        .expect(200),
     );
 
-expect(res.headers).toHaveProperty("x-experience-api-version");
-expect(res.headers["x-experience-api-version"]).toMatch(REG_ALLOWED_VERSIONS);
+    expect(res.headers).toHaveProperty("x-experience-api-version");
+    expect(res.headers["x-experience-api-version"]).toMatch(REG_ALLOWED_VERSIONS);
   });
 
   /**  XAPI-00330, Communication 3.3 Versioning
    * An LRS will not modify Statements based on a "version" before "1.0.1"
    */
-  describe('An LRS will not modify Statements based on a "version" before "1.0.1" (Communication 3.3.s3.b4, XAPI-00330)', function () {
-    it("should not convert newer version format to prior version format", async function () {
+  describe('An LRS will not modify Statements based on a "version" before "1.0.1" (Communication 3.3.s3.b4, XAPI-00330)', function (this: {
+    timeout(ms: number): void;
+  }) {
+    it("should not convert newer version format to prior version format", async function (this: {
+      timeout(ms: number): void;
+    }) {
       this.timeout(0);
       let templates = [{ statement: "{{statements.default}}" }];
       let data = helper.createFromTemplate(templates);
@@ -78,32 +84,38 @@ expect(res.headers["x-experience-api-version"]).toMatch(REG_ALLOWED_VERSIONS);
           .expect(200),
       );
 
-            const res = await endAsync(
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?statementId=" + data.id)
-        .wait(helper.genDelay(stmtTime, query, data.id))
-        .headers(helper.addAllHeaders({}))
-        .expect(200)
+      const res = await endAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .wait(helper.genDelay(stmtTime, query, data.id))
+          .headers(helper.addAllHeaders({}))
+          .expect(200),
       );
 
-let statement = helper.parse(res.body);
-expect(helper.isEqual(data.actor, statement.actor)).toBe(true);
-expect(helper.isEqual(data.object, statement.object)).toBe(true);
-expect(helper.isEqual(data.verb, statement.verb)).toBe(true);
+      let statement = helper.parse(res.body);
+      expect(helper.isEqual(data.actor, statement.actor)).toBe(true);
+      expect(helper.isEqual(data.object, statement.object)).toBe(true);
+      expect(helper.isEqual(data.verb, statement.verb)).toBe(true);
     });
   });
 
   /**  XAPI-00331, Communication 3.3 Versioning
    * An LRS rejects with error code 400 Bad Request, a Request which the "X-Experience-API-Version" header's value is anything but "1.0" or "1.0.x", where x is the semantic versioning number to any API except the About API
    */
-  describe('An LRS rejects with error code 400 Bad Request, a Request which does not use a "X-Experience-API-Version" header name to any Resource except the About Resource (Format, Communication 3.3.s4.b1, Communication 3.3.s3.b7, Communication 2.8.s5.b4, XAPI-00331)', function () {
-    it('should pass when About GET without header "X-Experience-API-Version"', async function () {
+  describe('An LRS rejects with error code 400 Bad Request, a Request which does not use a "X-Experience-API-Version" header name to any Resource except the About Resource (Format, Communication 3.3.s4.b1, Communication 3.3.s3.b7, Communication 2.8.s5.b4, XAPI-00331)', function (this: {
+    timeout(ms: number): void;
+  }) {
+    it('should pass when About GET without header "X-Experience-API-Version"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       await expectAsync(request(helper.getEndpointAndAuth()).get(helper.getEndpointAbout()), 200);
     });
 
-    it('should fail when Statement GET without header "X-Experience-API-Version"', async function () {
+    it('should fail when Statement GET without header "X-Experience-API-Version"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let stmtId = helper.generateUUID();
-      before("placing the statement to be gotten", async function () {
+      before("placing the statement to be gotten", async function (this: { timeout(ms: number): void }) {
         let templates = [{ statement: "{{statements.default}}" }];
         let data = helper.createFromTemplate(templates).statement;
 
@@ -133,7 +145,9 @@ expect(helper.isEqual(data.verb, statement.verb)).toBe(true);
       }
     });
 
-    it('should fail when Statement POST without header "X-Experience-API-Version"', async function () {
+    it('should fail when Statement POST without header "X-Experience-API-Version"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let templates = [{ statement: "{{statements.default}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
@@ -156,7 +170,9 @@ expect(helper.isEqual(data.verb, statement.verb)).toBe(true);
       }
     });
 
-    it('should fail when Statement PUT without header "X-Experience-API-Version"', async function () {
+    it('should fail when Statement PUT without header "X-Experience-API-Version"', async function (this: {
+      timeout(ms: number): void;
+    }) {
       let templates = [{ statement: "{{statements.default}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
