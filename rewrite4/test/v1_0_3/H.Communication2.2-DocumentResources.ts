@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "chai";
+import { expect } from "bun:test";
 import extend from "../../bun-runtime/extend-compat.ts";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
@@ -75,7 +75,7 @@ describe("Document Resource Requirements (Communication 2.2)", function () {
             .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
             .then(function (res: any) {
               let body = res.body;
-              expect(body).to.eql({
+              expect(body).toEqual({
                 car: "MKZ",
               });
             });
@@ -120,7 +120,7 @@ describe("Document Resource Requirements (Communication 2.2)", function () {
             .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
             .then(function (res: any) {
               let body = res.body;
-              expect(body).to.eql({
+              expect(body).toEqual({
                 car: {
                   make: "Dodge",
                   model: "Ram",

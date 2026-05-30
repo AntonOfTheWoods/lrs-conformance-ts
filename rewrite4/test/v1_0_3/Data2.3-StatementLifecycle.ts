@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "chai";
+import { expect } from "bun:test";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { expectAsync, endAsync } from "../super-request.ts";
@@ -77,7 +77,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
       );
 
       let statement = helper.parse(res.body);
-      expect(statement.id).to.equal(voidedId);
+      expect(statement.id).toEqual(voidedId);
     });
 
     it('should return 404 when using GET with "statementId"', async function () {

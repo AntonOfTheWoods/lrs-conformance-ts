@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "chai";
+import { expect } from "bun:test";
 import crypto from "crypto";
 import extend from "../../bun-runtime/extend-compat.ts";
 import fs from "fs";
@@ -182,7 +182,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
       );
 
       let statement = JSON.parse(res.body as string);
-      expect(statement.verb.id).to.equal(data.verb.id);
+      expect(statement.verb.id).toEqual(data.verb.id);
     });
 
     it('should not update statement with matching "statementId" on POST', async function () {
@@ -219,7 +219,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
       );
 
       let statement = JSON.parse(res.body as string);
-      expect(statement.verb.id).to.equal(data.verb.id);
+      expect(statement.verb.id).toEqual(data.verb.id);
     });
   });
 
@@ -267,7 +267,9 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
         200,
       );
 
-      expect(res.body).to.be.an("array").to.have.length.above(0);
+      expect(res.body).toSatisfy((v: any) => Array.isArray(v));
+      const body = res.body as any[];
+      expect(body.length).toBeGreaterThan(0);
     });
   });
 
@@ -354,7 +356,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
       );
 
       const statement = JSON.parse(res.body as string);
-      expect(statement.id).to.equal(id);
+      expect(statement.id).toEqual(id);
     });
   });
 
@@ -409,7 +411,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
       );
 
       const statement = JSON.parse(res.body as string);
-      expect(statement.id).to.equal(voidedId);
+      expect(statement.id).toEqual(voidedId);
     });
   });
 
@@ -482,7 +484,8 @@ StatementResult Object.
       );
 
       const result = helper.parse(res.body);
-      expect(result).to.have.property("statements").to.be.an("array");
+      expect(result).toHaveProperty("statements");
+      expect(result.statements).toSatisfy((v: any) => Array.isArray(v));
     });
 
     it('should return StatementResult using GET with "agent"', async function () {
@@ -499,7 +502,8 @@ StatementResult Object.
       );
 
       const result = helper.parse(res.body);
-      expect(result).to.have.property("statements").to.be.an("array");
+      expect(result).toHaveProperty("statements");
+      expect(result.statements).toSatisfy((v: any) => Array.isArray(v));
     });
 
     it('should return StatementResult using GET with "verb"', async function () {
@@ -513,7 +517,8 @@ StatementResult Object.
       );
 
       const result = helper.parse(res.body);
-      expect(result).to.have.property("statements").to.be.an("array");
+      expect(result).toHaveProperty("statements");
+      expect(result.statements).toSatisfy((v: any) => Array.isArray(v));
     });
 
     it('should return StatementResult using GET with "activity"', async function () {
@@ -527,7 +532,8 @@ StatementResult Object.
       );
 
       const result = helper.parse(res.body);
-      expect(result).to.have.property("statements").to.be.an("array");
+      expect(result).toHaveProperty("statements");
+      expect(result.statements).toSatisfy((v: any) => Array.isArray(v));
     });
 
     it('should return StatementResult using GET with "registration"', async function () {
@@ -541,7 +547,8 @@ StatementResult Object.
       );
 
       const result = helper.parse(res.body);
-      expect(result).to.have.property("statements").to.be.an("array");
+      expect(result).toHaveProperty("statements");
+      expect(result.statements).toSatisfy((v: any) => Array.isArray(v));
     });
 
     it('should return StatementResult using GET with "related_activities"', async function () {
@@ -558,7 +565,8 @@ StatementResult Object.
       );
 
       const result = helper.parse(res.body);
-      expect(result).to.have.property("statements").to.be.an("array");
+      expect(result).toHaveProperty("statements");
+      expect(result.statements).toSatisfy((v: any) => Array.isArray(v));
     });
 
     it('should return StatementResult using GET with "related_agents"', async function () {
@@ -575,7 +583,8 @@ StatementResult Object.
       );
 
       const result = helper.parse(res.body);
-      expect(result).to.have.property("statements").to.be.an("array");
+      expect(result).toHaveProperty("statements");
+      expect(result.statements).toSatisfy((v: any) => Array.isArray(v));
     });
 
     it('should return StatementResult using GET with "since"', async function () {
@@ -589,7 +598,8 @@ StatementResult Object.
       );
 
       const result = helper.parse(res.body);
-      expect(result).to.have.property("statements").to.be.an("array");
+      expect(result).toHaveProperty("statements");
+      expect(result.statements).toSatisfy((v: any) => Array.isArray(v));
     });
 
     it('should return StatementResult using GET with "until"', async function () {
@@ -603,7 +613,8 @@ StatementResult Object.
       );
 
       const result = helper.parse(res.body);
-      expect(result).to.have.property("statements").to.be.an("array");
+      expect(result).toHaveProperty("statements");
+      expect(result.statements).toSatisfy((v: any) => Array.isArray(v));
     });
 
     it('should return StatementResult using GET with "limit"', async function () {
@@ -617,7 +628,8 @@ StatementResult Object.
       );
 
       const result = helper.parse(res.body);
-      expect(result).to.have.property("statements").to.be.an("array");
+      expect(result).toHaveProperty("statements");
+      expect(result.statements).toSatisfy((v: any) => Array.isArray(v));
     });
 
     it('should return StatementResult using GET with "ascending"', async function () {
@@ -631,7 +643,8 @@ StatementResult Object.
       );
 
       const result = helper.parse(res.body);
-      expect(result).to.have.property("statements").to.be.an("array");
+      expect(result).toHaveProperty("statements");
+      expect(result.statements).toSatisfy((v: any) => Array.isArray(v));
     });
 
     it('should return StatementResult using GET with "format"', async function () {
@@ -645,7 +658,7 @@ StatementResult Object.
       );
 
       const results = helper.parse(res.body);
-      expect(results).to.have.property("statements");
+      expect(results).toHaveProperty("statements");
     });
 
     it('should return multipart response format StatementResult using GET with "attachments" parameter as true', async function () {
@@ -658,18 +671,18 @@ StatementResult Object.
         200,
       );
 
-      expect(res.headers).to.have.property("content-type");
+      expect(res.headers).toHaveProperty("content-type");
       const contentType = res.headers["content-type"] as string;
       let boundary = multipartParser.getBoundary(contentType);
-      expect(boundary).to.be.ok;
+      expect(boundary).toBeTruthy();
       let parsed = multipartParser.parseMultipart(boundary, res.body as string);
-      expect(parsed).to.be.ok;
+      expect(parsed).toBeTruthy();
       const firstPart = parsed[0];
       if (!firstPart) {
         throw new Error("Expected at least one multipart section.");
       }
       let results = helper.parse(firstPart.body);
-      expect(results).to.have.property("statements");
+      expect(results).toHaveProperty("statements");
     });
 
     it('should not return multipart response format using GET with "attachments" parameter as false', async function () {
@@ -683,7 +696,7 @@ StatementResult Object.
       );
 
       let results = helper.parse(res.body);
-      expect(results).to.have.property("statements");
+      expect(results).toHaveProperty("statements");
     });
   });
 
@@ -1021,9 +1034,9 @@ StatementResult Object.
       );
 
       let statement = JSON.parse(res.body as string);
-      expect(statement.verb.display).not.to.have.property("en-US");
-      expect(statement.context.contextActivities.category[0].definition.description).not.to.have.property("en-US");
-      expect(statement.context.contextActivities.category[0].definition.name).not.to.have.property("en-US");
+      expect(statement.verb.display).not.toHaveProperty("en-US");
+      expect(statement.context.contextActivities.category[0].definition.description).not.toHaveProperty("en-US");
+      expect(statement.context.contextActivities.category[0].definition.name).not.toHaveProperty("en-US");
     });
 
     it("should NOT apply this data to choose the matching language in the response when format is not set ", async function () {
@@ -1040,12 +1053,12 @@ StatementResult Object.
       );
 
       let statement = JSON.parse(res.body as string);
-      expect(statement.verb.display).to.have.property("en-US");
-      expect(statement.context.contextActivities.category[0].definition.description).to.have.property("en-US");
-      expect(statement.context.contextActivities.category[0].definition.name).to.have.property("en-US");
-      expect(statement.verb.display).to.have.property("en-GB");
-      expect(statement.context.contextActivities.category[0].definition.description).to.have.property("en-GB");
-      expect(statement.context.contextActivities.category[0].definition.name).to.have.property("en-GB");
+      expect(statement.verb.display).toHaveProperty("en-US");
+      expect(statement.context.contextActivities.category[0].definition.description).toHaveProperty("en-US");
+      expect(statement.context.contextActivities.category[0].definition.name).toHaveProperty("en-US");
+      expect(statement.verb.display).toHaveProperty("en-GB");
+      expect(statement.context.contextActivities.category[0].definition.description).toHaveProperty("en-GB");
+      expect(statement.context.contextActivities.category[0].definition.name).toHaveProperty("en-GB");
     });
   });
 
@@ -1102,14 +1115,14 @@ StatementResult Object.
 
       let result = helper.parse(res.body);
       let stmts = result.statements;
-      expect(stmts).to.be.an("array");
+      expect(stmts).toSatisfy((v: any) => Array.isArray(v));
       stmts.forEach(function (stmt: any) {
         if (stmt.id === id) {
-          expect(stmt.actor).to.eql(agent);
-          expect(stmt.verb).to.eql(verb1);
-          expect(stmt.object.actor).to.eql(group);
-          expect(stmt.object.object).to.eql(activity);
-          expect(stmt.object.verb).to.eql(verb2);
+          expect(stmt.actor).toEqual(agent);
+          expect(stmt.verb).toEqual(verb1);
+          expect(stmt.object.actor).toEqual(group);
+          expect(stmt.object.object).toEqual(activity);
+          expect(stmt.object.verb).toEqual(verb2);
         }
       });
     });
@@ -1166,14 +1179,14 @@ StatementResult Object.
 
       let result = helper.parse(res.body);
       let stmts = result.statements;
-      expect(stmts).to.be.an("array");
+      expect(stmts).toSatisfy((v: any) => Array.isArray(v));
       stmts.forEach(function (stmt: any) {
         if (stmt.id === id) {
-          expect(stmt.actor).to.eql(canonicalActor);
-          expect(stmt.verb).to.eql(mainVerb);
-          expect(stmt.object.verb).to.eql(subVerb);
-          expect(stmt.object.object).to.eql(canonicalSubActivity);
-          expect(stmt.object.actor).to.eql(canonicalGroup);
+          expect(stmt.actor).toEqual(canonicalActor);
+          expect(stmt.verb).toEqual(mainVerb);
+          expect(stmt.object.verb).toEqual(subVerb);
+          expect(stmt.object.object).toEqual(canonicalSubActivity);
+          expect(stmt.object.actor).toEqual(canonicalGroup);
         }
       });
     });
@@ -1190,14 +1203,14 @@ StatementResult Object.
 
       let result = helper.parse(res.body);
       let stmts = result.statements;
-      expect(stmts).to.be.an("array");
+      expect(stmts).toSatisfy((v: any) => Array.isArray(v));
       stmts.forEach(function (stmt: any) {
         if (stmt.id === id) {
-          expect(stmt.actor).to.eql(agent);
-          expect(stmt.verb).to.eql(verb1);
-          expect(stmt.object.actor).to.eql(group);
-          expect(stmt.object.verb).to.eql(verb2);
-          expect(stmt.object.object).to.eql(activity);
+          expect(stmt.actor).toEqual(agent);
+          expect(stmt.verb).toEqual(verb1);
+          expect(stmt.object.actor).toEqual(group);
+          expect(stmt.object.verb).toEqual(verb2);
+          expect(stmt.object.object).toEqual(activity);
         }
       });
     });
@@ -1214,25 +1227,26 @@ StatementResult Object.
 
       let result = helper.parse(res.body);
       let stmts = result.statements;
-      expect(stmts).to.be.an("array");
+      expect(stmts).toSatisfy((v: any) => Array.isArray(v));
       stmts.forEach(function (stmt: any) {
         if (stmt.id === id) {
-          expect(Object.keys(stmt.actor).length).to.be.within(1, 2);
-          expect(Object.keys(stmt.object.actor).length).to.eql(2);
-          expect(Object.keys(stmt.object.object).length).to.eql(1);
+          expect(Object.keys(stmt.actor).length).toBeGreaterThanOrEqual(1);
+          expect(Object.keys(stmt.actor).length).toBeLessThanOrEqual(2);
+          expect(Object.keys(stmt.object.actor).length).toEqual(2);
+          expect(Object.keys(stmt.object.object).length).toEqual(1);
           /*  Removed since spec 1.0.3 is SHOULD*
-                                expect(Object.keys(stmt.verb).length).to.eql(1);
-                                expect(Object.keys(stmt.object.verb).length).to.eql(1);
+                                expect(Object.keys(stmt.verb).length).toEqual(1);
+                                expect(Object.keys(stmt.object.verb).length).toEqual(1);
                                 */
-          expect(stmt.actor.mbox).to.eql(agent.mbox);
+          expect(stmt.actor.mbox).toEqual(agent.mbox);
           if (stmt.actor.objectType) {
-            expect(stmt.actor.objectType).to.eql(agent.objectType);
+            expect(stmt.actor.objectType).toEqual(agent.objectType);
           }
-          expect(stmt.verb.id).to.eql(verb1.id);
-          expect(stmt.object.actor.mbox).to.eql(group.mbox);
-          expect(stmt.object.actor.objectType).to.eql(group.objectType);
-          expect(stmt.object.object.id).to.eql(activity.id);
-          expect(stmt.object.verb.id).to.eql(verb2.id);
+          expect(stmt.verb.id).toEqual(verb1.id);
+          expect(stmt.object.actor.mbox).toEqual(group.mbox);
+          expect(stmt.object.actor.objectType).toEqual(group.objectType);
+          expect(stmt.object.object.id).toEqual(activity.id);
+          expect(stmt.object.verb.id).toEqual(verb2.id);
         }
       });
     });
@@ -1327,7 +1341,7 @@ StatementResult Object.
           .headers(helper.addAllHeaders({})),
         200,
       );
-      expect(res.headers["content-type"]).to.include("multipart/mixed");
+      expect(res.headers["content-type"]).toContain("multipart/mixed");
       // Find the boundary
       let b = (res.headers["content-type"] as string).split(";");
       const boundaryPart = b[1];
@@ -1360,16 +1374,16 @@ StatementResult Object.
       }
       let c = firstPart.substring(bodyStart, bodyEnd);
       let result = helper.parse(c);
-      expect(result).to.have.property("id");
-      expect(result.id).to.equal(stmtId);
+      expect(result).toHaveProperty("id");
+      expect(result.id).toEqual(stmtId);
       // Create an array of global matches of the pattern, the length of which is equal to the number of times that pattern appears in the given string
       let regex1 = new RegExp(t1attHash as string, "g");
       let regex2 = new RegExp(t2attHash as string, "g");
       let match1 = ((res.body as string).match(regex1) || []).length;
       let match2 = ((res.body as string).match(regex2) || []).length;
       // Compare that number to 2 the number of times it is expected for a given has to appear in the response, once in the attachments property, and once along with the attachment
-      expect(match1).to.eql(2);
-      expect(match2).to.eql(2);
+      expect(match1).toEqual(2);
+      expect(match2).toEqual(2);
     });
   });
 
@@ -1387,7 +1401,7 @@ MUST have a "Content-Type" header
         200,
       );
 
-      expect(res.headers).to.have.property("content-type");
+      expect(res.headers).toHaveProperty("content-type");
     });
   });
 
@@ -1868,7 +1882,9 @@ MUST have a "Content-Type" header
       );
 
       let result = helper.parse(res.body);
-      expect(result).to.have.property("statements").to.be.an("array").to.be.length(0);
+      expect(result).toHaveProperty("statements");
+      expect(result.statements).toSatisfy((v: any) => Array.isArray(v));
+      expect(result.statements).toHaveLength(0);
     });
   });
 
@@ -1883,7 +1899,7 @@ MUST have a "Content-Type" header
       );
 
       let through = res.headers["x-experience-api-consistent-through"];
-      expect(through).to.be.ok;
+      expect(through).toBeTruthy();
     });
 
     it('should return "X-Experience-API-Consistent-Through" misusing GET (status code 400)', async function () {
@@ -1895,7 +1911,7 @@ MUST have a "Content-Type" header
       );
 
       let through = res.headers["x-experience-api-consistent-through"];
-      expect(through).to.be.ok;
+      expect(through).toBeTruthy();
     });
 
     it('should return "X-Experience-API-Consistent-Through" using GET with "agent"', async function () {
@@ -1911,7 +1927,7 @@ MUST have a "Content-Type" header
       );
 
       let through = res.headers["x-experience-api-consistent-through"];
-      expect(through).to.be.ok;
+      expect(through).toBeTruthy();
     });
 
     it('should return "X-Experience-API-Consistent-Through" using GET with "verb"', async function () {
@@ -1924,7 +1940,7 @@ MUST have a "Content-Type" header
       );
 
       let through = res.headers["x-experience-api-consistent-through"];
-      expect(through).to.be.ok;
+      expect(through).toBeTruthy();
     });
 
     it('should return "X-Experience-API-Consistent-Through" using GET with "activity"', async function () {
@@ -1937,7 +1953,7 @@ MUST have a "Content-Type" header
       );
 
       let through = res.headers["x-experience-api-consistent-through"];
-      expect(through).to.be.ok;
+      expect(through).toBeTruthy();
     });
 
     it('should return "X-Experience-API-Consistent-Through" using GET with "registration"', async function () {
@@ -1950,7 +1966,7 @@ MUST have a "Content-Type" header
       );
 
       let through = res.headers["x-experience-api-consistent-through"];
-      expect(through).to.be.ok;
+      expect(through).toBeTruthy();
     });
 
     it('should return "X-Experience-API-Consistent-Through" using GET with "related_activities"', async function () {
@@ -1963,7 +1979,7 @@ MUST have a "Content-Type" header
       );
 
       let through = res.headers["x-experience-api-consistent-through"];
-      expect(through).to.be.ok;
+      expect(through).toBeTruthy();
     });
 
     it('should return "X-Experience-API-Consistent-Through" using GET with "related_agents"', async function () {
@@ -1976,7 +1992,7 @@ MUST have a "Content-Type" header
       );
 
       let through = res.headers["x-experience-api-consistent-through"];
-      expect(through).to.be.ok;
+      expect(through).toBeTruthy();
     });
 
     it('should return "X-Experience-API-Consistent-Through" using GET with "since"', async function () {
@@ -1989,7 +2005,7 @@ MUST have a "Content-Type" header
       );
 
       let through = res.headers["x-experience-api-consistent-through"];
-      expect(through).to.be.ok;
+      expect(through).toBeTruthy();
     });
 
     it('should return "X-Experience-API-Consistent-Through" using GET with "until"', async function () {
@@ -2002,7 +2018,7 @@ MUST have a "Content-Type" header
       );
 
       let through = res.headers["x-experience-api-consistent-through"];
-      expect(through).to.be.ok;
+      expect(through).toBeTruthy();
     });
 
     it('should return "X-Experience-API-Consistent-Through" using GET with "limit"', async function () {
@@ -2015,7 +2031,7 @@ MUST have a "Content-Type" header
       );
 
       let through = res.headers["x-experience-api-consistent-through"];
-      expect(through).to.be.ok;
+      expect(through).toBeTruthy();
     });
 
     it('should return "X-Experience-API-Consistent-Through" using GET with "ascending"', async function () {
@@ -2028,7 +2044,7 @@ MUST have a "Content-Type" header
       );
 
       let through = res.headers["x-experience-api-consistent-through"];
-      expect(through).to.be.ok;
+      expect(through).toBeTruthy();
     });
 
     it('should return "X-Experience-API-Consistent-Through" using GET with "format"', async function () {
@@ -2041,7 +2057,7 @@ MUST have a "Content-Type" header
       );
 
       let through = res.headers["x-experience-api-consistent-through"];
-      expect(through).to.be.ok;
+      expect(through).toBeTruthy();
     });
 
     it('should return "X-Experience-API-Consistent-Through" using GET with "attachments"', async function () {
@@ -2054,7 +2070,7 @@ MUST have a "Content-Type" header
       );
 
       let through = res.headers["x-experience-api-consistent-through"];
-      expect(through).to.be.ok;
+      expect(through).toBeTruthy();
     });
   });
 
@@ -2101,8 +2117,8 @@ MUST have a "Content-Type" header
       );
 
       let value = res.headers["x-experience-api-consistent-through"];
-      expect(value).to.be.ok;
-      expect(isValidIsoTimestamp(value)).to.be.true;
+      expect(value).toBeTruthy();
+      expect(isValidIsoTimestamp(value)).toBe(true);
     });
 
     it('should return "X-Experience-API-Consistent-Through" using GET with "agent"', async function () {
@@ -2119,8 +2135,8 @@ MUST have a "Content-Type" header
       );
 
       let value = res.headers["x-experience-api-consistent-through"];
-      expect(value).to.be.ok;
-      expect(isValidIsoTimestamp(value)).to.be.true;
+      expect(value).toBeTruthy();
+      expect(isValidIsoTimestamp(value)).toBe(true);
     });
 
     it('should return "X-Experience-API-Consistent-Through" using GET with "verb"', async function () {
@@ -2134,8 +2150,8 @@ MUST have a "Content-Type" header
       );
 
       let value = res.headers["x-experience-api-consistent-through"];
-      expect(value).to.be.ok;
-      expect(isValidIsoTimestamp(value)).to.be.true;
+      expect(value).toBeTruthy();
+      expect(isValidIsoTimestamp(value)).toBe(true);
     });
 
     it('should return "X-Experience-API-Consistent-Through" using GET with "activity"', async function () {
@@ -2149,8 +2165,8 @@ MUST have a "Content-Type" header
       );
 
       let value = res.headers["x-experience-api-consistent-through"];
-      expect(value).to.be.ok;
-      expect(isValidIsoTimestamp(value)).to.be.true;
+      expect(value).toBeTruthy();
+      expect(isValidIsoTimestamp(value)).toBe(true);
     });
 
     it('should return "X-Experience-API-Consistent-Through" using GET with "registration"', async function () {
@@ -2164,8 +2180,8 @@ MUST have a "Content-Type" header
       );
 
       let value = res.headers["x-experience-api-consistent-through"];
-      expect(value).to.be.ok;
-      expect(isValidIsoTimestamp(value)).to.be.true;
+      expect(value).toBeTruthy();
+      expect(isValidIsoTimestamp(value)).toBe(true);
     });
 
     it('should return "X-Experience-API-Consistent-Through" using GET with "related_activities"', async function () {
@@ -2182,8 +2198,8 @@ MUST have a "Content-Type" header
       );
 
       let value = res.headers["x-experience-api-consistent-through"];
-      expect(value).to.be.ok;
-      expect(isValidIsoTimestamp(value)).to.be.true;
+      expect(value).toBeTruthy();
+      expect(isValidIsoTimestamp(value)).toBe(true);
     });
 
     it('should return "X-Experience-API-Consistent-Through" using GET with "related_agents"', async function () {
@@ -2200,8 +2216,8 @@ MUST have a "Content-Type" header
       );
 
       let value = res.headers["x-experience-api-consistent-through"];
-      expect(value).to.be.ok;
-      expect(isValidIsoTimestamp(value)).to.be.true;
+      expect(value).toBeTruthy();
+      expect(isValidIsoTimestamp(value)).toBe(true);
     });
 
     it('should return "X-Experience-API-Consistent-Through" using GET with "since"', async function () {
@@ -2215,8 +2231,8 @@ MUST have a "Content-Type" header
       );
 
       let value = res.headers["x-experience-api-consistent-through"];
-      expect(value).to.be.ok;
-      expect(isValidIsoTimestamp(value)).to.be.true;
+      expect(value).toBeTruthy();
+      expect(isValidIsoTimestamp(value)).toBe(true);
     });
 
     it('should return "X-Experience-API-Consistent-Through" using GET with "until"', async function () {
@@ -2230,8 +2246,8 @@ MUST have a "Content-Type" header
       );
 
       let value = res.headers["x-experience-api-consistent-through"];
-      expect(value).to.be.ok;
-      expect(isValidIsoTimestamp(value)).to.be.true;
+      expect(value).toBeTruthy();
+      expect(isValidIsoTimestamp(value)).toBe(true);
     });
 
     it('should return "X-Experience-API-Consistent-Through" using GET with "limit"', async function () {
@@ -2245,8 +2261,8 @@ MUST have a "Content-Type" header
       );
 
       let value = res.headers["x-experience-api-consistent-through"];
-      expect(value).to.be.ok;
-      expect(isValidIsoTimestamp(value)).to.be.true;
+      expect(value).toBeTruthy();
+      expect(isValidIsoTimestamp(value)).toBe(true);
     });
 
     it('should return "X-Experience-API-Consistent-Through" using GET with "ascending"', async function () {
@@ -2260,8 +2276,8 @@ MUST have a "Content-Type" header
       );
 
       let value = res.headers["x-experience-api-consistent-through"];
-      expect(value).to.be.ok;
-      expect(isValidIsoTimestamp(value)).to.be.true;
+      expect(value).toBeTruthy();
+      expect(isValidIsoTimestamp(value)).toBe(true);
     });
 
     it('should return "X-Experience-API-Consistent-Through" using GET with "format"', async function () {
@@ -2275,8 +2291,8 @@ MUST have a "Content-Type" header
       );
 
       let value = res.headers["x-experience-api-consistent-through"];
-      expect(value).to.be.ok;
-      expect(isValidIsoTimestamp(value)).to.be.true;
+      expect(value).toBeTruthy();
+      expect(isValidIsoTimestamp(value)).toBe(true);
     });
 
     it('should return "X-Experience-API-Consistent-Through" using GET with "attachments"', async function () {
@@ -2290,8 +2306,8 @@ MUST have a "Content-Type" header
       );
 
       let value = res.headers["x-experience-api-consistent-through"];
-      expect(value).to.be.ok;
-      expect(isValidIsoTimestamp(value)).to.be.true;
+      expect(value).toBeTruthy();
+      expect(isValidIsoTimestamp(value)).toBe(true);
     });
   });
 
@@ -2364,7 +2380,7 @@ MUST have a "Content-Type" header
           .expect(200),
       );
 
-      expect(res.headers["content-type"]).to.match(/^application\/json/);
+      expect(res.headers["content-type"]).toMatch(/^application\/json/);
     });
 
     it('should NOT return the attachment if "attachments" is false', async function () {
@@ -2378,7 +2394,7 @@ MUST have a "Content-Type" header
         200,
       );
 
-      expect(res.headers["content-type"]).to.match(/^application\/json/);
+      expect(res.headers["content-type"]).toMatch(/^application\/json/);
     });
 
     it('should return the attachment when "attachment" is true', async function () {
@@ -2393,14 +2409,14 @@ MUST have a "Content-Type" header
 
       const contentType = res.headers["content-type"] as string;
       const type = contentType.split(";")[0] ?? "";
-      expect(type).to.equal("multipart/mixed");
+      expect(type).toEqual("multipart/mixed");
       const boundary = (contentType.split(";")[1] ?? "").replace(" boundary=", "");
       const body = (res.body as string).split("--" + boundary);
       let idx = -1;
       for (const part of body) {
         idx = Math.max(part.indexOf("here is a simple attachment"), idx);
       }
-      expect(idx).to.not.eql(-1);
+      expect(idx).not.toEqual(-1);
     });
   });
 
@@ -2555,16 +2571,16 @@ MUST have a "Content-Type" header
       );
 
       let results = helper.parse(res.body);
-      expect(results).to.have.property("statements");
+      expect(results).toHaveProperty("statements");
       // console.log(results.statements.length);
       const ids: Array<string | undefined> = [];
       results.statements.forEach(function (stmt: any) {
         ids.push(stmt.id);
       });
       // console.log(ids);
-      expect(ids).to.contain(statementRefId);
-      expect(ids).to.contain(voidingId);
-      expect(ids).to.not.contain(voidedId);
+      expect(ids).toContain(statementRefId);
+      expect(ids).toContain(voidingId);
+      expect(ids).not.toContain(voidedId);
     });
 
     // reworded the test to be more generic, shouldn't have to stay in here
@@ -2583,14 +2599,14 @@ MUST have a "Content-Type" header
 
       try {
         let results = helper.parse(res.body);
-        expect(results).to.have.property("statements");
+        expect(results).toHaveProperty("statements");
         const ids: Array<string | undefined> = [];
         results.statements.forEach(function (stmt: any) {
           ids.push(stmt.id);
         });
-        expect(ids).to.contain(statementRefId);
-        expect(ids).to.contain(voidingId);
-        expect(ids).to.not.contain(voidedId);
+        expect(ids).toContain(statementRefId);
+        expect(ids).toContain(voidingId);
+        expect(ids).not.toContain(voidedId);
       } catch (e) {
         if (e instanceof Error) {
           if (e.message.length > 400) {
@@ -2618,9 +2634,10 @@ MUST have a "Content-Type" header
       );
 
       let results = helper.parse(res.body);
-      expect(results).to.have.property("statements");
-      expect(results.statements).to.have.length(1);
-      expect(results.statements[0]).to.have.property("id").to.equal(statementRefId);
+      expect(results).toHaveProperty("statements");
+      expect(results.statements).toHaveLength(1);
+      expect(results.statements[0]).toHaveProperty("id");
+      expect(results.statements[0].id).toEqual(statementRefId);
     });
 
     // i think this can be removed
@@ -2638,10 +2655,12 @@ MUST have a "Content-Type" header
       );
 
       let results = helper.parse(res.body);
-      expect(results).to.have.property("statements");
-      expect(results.statements).to.have.length(2);
-      expect(results.statements[0]).to.have.property("id").to.equal(statementRefId);
-      expect(results.statements[1]).to.have.property("id").to.equal(voidingId);
+      expect(results).toHaveProperty("statements");
+      expect(results.statements).toHaveLength(2);
+      expect(results.statements[0]).toHaveProperty("id");
+      expect(results.statements[0].id).toEqual(statementRefId);
+      expect(results.statements[1]).toHaveProperty("id");
+      expect(results.statements[1].id).toEqual(voidingId);
       // let pt = new Date(prevStmtTime - helper.getTimeMargin()).toISOString();
       // let st = new Date(stmtTime - helper.getTimeMargin()).toISOString();
       // console.log(sinceVoidingTime +'\n'+ pt +'\n'+ st +'\n'+ untilVoidingTime);
@@ -2739,7 +2758,7 @@ MUST have a "Content-Type" header
 
       let result = helper.parse(res.body);
       const statements = result.statements as Array<{ actor?: { mbox?: string } }>;
-      expect(statements.every((statementItem) => statementItem.actor?.mbox === statement.actor.mbox)).to.be.true;
+      expect(statements.every((statementItem) => statementItem.actor?.mbox === statement.actor.mbox)).toBe(true);
     });
 
     it('should return StatementResult with statements as array using GET with "verb"', async function () {
@@ -2754,7 +2773,7 @@ MUST have a "Content-Type" header
 
       let result = helper.parse(res.body);
       const statements = result.statements as Array<{ verb?: { id?: string } }>;
-      expect(statements.every((statementItem) => statementItem.verb?.id === statement.verb.id)).to.be.true;
+      expect(statements.every((statementItem) => statementItem.verb?.id === statement.verb.id)).toBe(true);
     });
 
     it('should return StatementResult with statements as array using GET with "activity"', async function () {
@@ -2769,7 +2788,7 @@ MUST have a "Content-Type" header
 
       let result = helper.parse(res.body);
       const statements = result.statements as Array<{ object?: { id?: string } }>;
-      expect(statements.every((statementItem) => statementItem.object?.id === statement.object.id)).to.be.true;
+      expect(statements.every((statementItem) => statementItem.object?.id === statement.object.id)).toBe(true);
     });
 
     it('should return StatementResult with statements as array using GET with "registration"', async function () {
@@ -2786,7 +2805,7 @@ MUST have a "Content-Type" header
       const statements = result.statements as Array<{ context?: { registration?: string } }>;
       expect(
         statements.every((statementItem) => statementItem.context?.registration === statement.context.registration),
-      ).to.be.true;
+      ).toBe(true);
     });
 
     it('should return StatementResult with statements as array using GET with "related_activities"', async function () {
@@ -2803,15 +2822,13 @@ MUST have a "Content-Type" header
       );
 
       let result = helper.parse(res.body);
-      expect(result)
-        .to.have.property("statements")
-        .to.be.an("array")
-        .to.satisfy(function (statements: any) {
-          for (let i in statements) {
-            if (!helper.deepSearchObject(statements[i], statement.context.contextActivities.category.id)) return false;
-          }
-          return true;
-        });
+      expect(result).toHaveProperty("statements");
+      expect(result.statements).toSatisfy((v: any) => Array.isArray(v));
+      expect(
+        result.statements.every((s: any) =>
+          helper.deepSearchObject(s, statement.context.contextActivities.category.id),
+        ),
+      ).toBe(true);
     });
 
     it('should return StatementResult with statements as array using GET with "related_agents"', async function () {
@@ -2828,15 +2845,11 @@ MUST have a "Content-Type" header
       );
 
       let result = helper.parse(res.body);
-      expect(result)
-        .to.have.property("statements")
-        .to.be.an("array")
-        .to.satisfy(function (statements: any) {
-          for (let i in statements) {
-            if (!helper.deepSearchObject(statements[i], statement.context.instructor.mbox)) return false;
-          }
-          return true;
-        });
+      expect(result).toHaveProperty("statements");
+      expect(result.statements).toSatisfy((v: any) => Array.isArray(v));
+      expect(result.statements.every((s: any) => helper.deepSearchObject(s, statement.context.instructor.mbox))).toBe(
+        true,
+      );
     });
 
     it('should return StatementResult with statements as array using GET with "since"', async function () {
@@ -2850,15 +2863,11 @@ MUST have a "Content-Type" header
       );
 
       let result = helper.parse(res.body);
-      expect(result)
-        .to.have.property("statements")
-        .to.be.an("array")
-        .to.satisfy(function (statements: any) {
-          for (let i in statements) {
-            if (new Date(statements[i].stored) < new Date("2012-06-01T19:09:13.245Z")) return false;
-          }
-          return true;
-        });
+      expect(result).toHaveProperty("statements");
+      expect(result.statements).toSatisfy((v: any) => Array.isArray(v));
+      expect(result.statements.every((s: any) => new Date(s.stored) >= new Date("2012-06-01T19:09:13.245Z"))).toBe(
+        true,
+      );
     });
 
     it('should return StatementResult with statements as array using GET with "until"', async function () {
@@ -2872,15 +2881,11 @@ MUST have a "Content-Type" header
       );
 
       let result = helper.parse(res.body);
-      expect(result)
-        .to.have.property("statements")
-        .to.be.an("array")
-        .to.satisfy(function (statements: any) {
-          for (let i in statements) {
-            if (new Date(statements[i].stored) > new Date("2012-06-01T19:09:13.245Z")) return false;
-          }
-          return true;
-        });
+      expect(result).toHaveProperty("statements");
+      expect(result.statements).toSatisfy((v: any) => Array.isArray(v));
+      expect(result.statements.every((s: any) => new Date(s.stored) <= new Date("2012-06-01T19:09:13.245Z"))).toBe(
+        true,
+      );
     });
 
     it('should return StatementResult with statements as array using GET with "limit"', async function () {
@@ -2894,7 +2899,9 @@ MUST have a "Content-Type" header
       );
 
       let result = helper.parse(res.body);
-      expect(result).to.have.property("statements").to.be.an("array").to.have.length(1);
+      expect(result).toHaveProperty("statements");
+      expect(result.statements).toSatisfy((v: any) => Array.isArray(v));
+      expect(result.statements).toHaveLength(1);
     });
 
     it('should return StatementResult with statements as array using GET with "ascending"', async function () {
@@ -2908,18 +2915,13 @@ MUST have a "Content-Type" header
       );
 
       let result = helper.parse(res.body);
-      expect(result)
-        .to.have.property("statements")
-        .to.be.an("array")
-        .to.satisfy(function (statements: any) {
-          for (let i = 0; i < statements.length - 1; i++) {
-            let s1 = statements[i].stored;
-            let s2 = statements[i + 1].stored;
-
-            if (new Date(s1) > new Date(s2)) return false;
-          }
-          return true;
-        });
+      expect(result).toHaveProperty("statements");
+      expect(result.statements).toSatisfy((v: any) => Array.isArray(v));
+      expect(
+        result.statements.every(
+          (s: any, i: number, arr: any[]) => i === arr.length - 1 || new Date(s.stored) <= new Date(arr[i + 1].stored),
+        ),
+      ).toBe(true);
     });
 
     //I think there is another test that covers the formatting requirements
@@ -2934,7 +2936,8 @@ MUST have a "Content-Type" header
       );
 
       let result = helper.parse(res.body);
-      expect(result).to.have.property("statements").to.be.an("array");
+      expect(result).toHaveProperty("statements");
+      expect(result.statements).toSatisfy((v: any) => Array.isArray(v));
     });
 
     it('should return StatementResult with statements as array using GET with "attachments"', async function () {
@@ -3000,15 +3003,15 @@ MUST have a "Content-Type" header
       );
 
       const responseBoundary = multipartParser.getBoundary(res.headers["content-type"] as string);
-      expect(responseBoundary).to.be.ok;
+      expect(responseBoundary).toBeTruthy();
       let parsed = multipartParser.parseMultipart(responseBoundary as string, res.body as string);
-      expect(parsed).to.be.ok;
+      expect(parsed).toBeTruthy();
       const firstPart = parsed[0];
       if (!firstPart) {
         throw new Error("Expected at least one multipart section.");
       }
       let results = helper.parse(firstPart.body);
-      expect(results).to.have.property("statements");
+      expect(results).toHaveProperty("statements");
     });
   });
 });

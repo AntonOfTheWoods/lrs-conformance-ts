@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "chai";
+import { expect } from "bun:test";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { endAsync } from "../super-request.ts";
@@ -68,8 +68,8 @@ describe("Id Property Requirements (Data 2.4.1)", () => {
       );
 
       let results = helper.parse(res2.body);
-      expect(results.id).to.not.be.undefined;
-      expect(results.id).to.eql(stmtid);
+      expect(results.id).not.toBeUndefined();
+      expect(results.id).toEqual(stmtid);
     });
   });
 });

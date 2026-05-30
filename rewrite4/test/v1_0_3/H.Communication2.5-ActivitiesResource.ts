@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "chai";
+import { expect } from "bun:test";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 
@@ -68,8 +68,8 @@ describe("Activities Resource Requirements (Communication 2.5)", () => {
         res: any,
       ) {
         let activity = res.body;
-        expect(activity).to.be.ok;
-        expect(activity).to.eql(statement.object);
+        expect(activity).toBeTruthy();
+        expect(activity).toEqual(statement.object);
       });
     });
   });
@@ -116,8 +116,8 @@ describe("Activities Resource Requirements (Communication 2.5)", () => {
           res: any,
         ) {
           let activity = res.body;
-          expect(activity.definition.name["en-US"]).to.eql("example meeting");
-          expect(activity.definition.name["fr-FR"]).to.eql("réunion");
+          expect(activity.definition.name["en-US"]).toEqual("example meeting");
+          expect(activity.definition.name["fr-FR"]).toEqual("réunion");
         });
       });
   });

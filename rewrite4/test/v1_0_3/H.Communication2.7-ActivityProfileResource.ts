@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "chai";
+import { expect } from "bun:test";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { expectAsync } from "../super-request.ts";
@@ -145,7 +145,7 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", () => {
           .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
           .then(function (res: any) {
             let body = res.body;
-            expect(body).to.eql(document);
+            expect(body).toEqual(document);
           });
       });
   });
@@ -246,8 +246,8 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", () => {
           .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
           .then(function (res: any) {
             let body = res.body;
-            expect(body).to.be.an("array");
-            expect(body).to.be.length.above(0);
+            expect(body).toSatisfy((v: any) => Array.isArray(v));
+            expect(body.length).toBeGreaterThan(0);
           });
       });
   });
@@ -300,9 +300,9 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", () => {
           .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
           .then(function (res: any) {
             let body = res.body;
-            expect(body).to.be.an("array");
-            expect(body).to.be.length.above(0);
-            expect(body).to.contain(profile1);
+            expect(body).toSatisfy((v: any) => Array.isArray(v));
+            expect(body.length).toBeGreaterThan(0);
+            expect(body).toContain(profile1);
           });
       });
   });
@@ -320,7 +320,7 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", () => {
           .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
           .then(function (res: any) {
             let body = res.body;
-            expect(body).to.eql(document);
+            expect(body).toEqual(document);
           });
       });
   });
@@ -347,7 +347,7 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", () => {
               .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
               .then(function (res: any) {
                 let body = res.body;
-                expect(body).to.eql({
+                expect(body).toEqual({
                   car: "Honda",
                   type: "Civic",
                 });
@@ -404,7 +404,7 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", () => {
       );
 
       let result = helper.parse(res3.body);
-      expect(result).to.eql(document);
+      expect(result).toEqual(document);
     });
     // case 2 - bad existion
     it("If the existing document does not have a Content-Type of application/json but the document being posted to the Activity Profile Resource does the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", async function () {
@@ -435,7 +435,7 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", () => {
         200,
       );
 
-      expect(res3.body).to.eql(attachment);
+      expect(res3.body).toEqual(attachment);
     });
     // case 3 - bad json
     it("If the document being posted to the Activity Profile Resource has a content type of Content-Type of application/json but cannot be parsed as a JSON Object, the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", async function () {
@@ -467,7 +467,7 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", () => {
       );
 
       let result = helper.parse(res3.body);
-      expect(result).to.eql(document);
+      expect(result).toEqual(document);
     });
   });
 

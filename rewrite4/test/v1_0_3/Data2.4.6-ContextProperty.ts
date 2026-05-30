@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "chai";
+import { expect } from "bun:test";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { endAsync } from "../super-request.ts";
@@ -65,18 +65,19 @@ describe("Context Property Requirements (Data 2.4.6)", function () {
               .expect(200),
           );
 
-                    const res = await endAsync(
-request(helper.getEndpointAndAuth())
-            .get(helper.getEndpointStatements() + query)
-            .wait(helper.genDelay(stmtTime, query, data.id))
-            .headers(helper.addAllHeaders({}))
-            .expect(200)
+          const res = await endAsync(
+            request(helper.getEndpointAndAuth())
+              .get(helper.getEndpointStatements() + query)
+              .wait(helper.genDelay(stmtTime, query, data.id))
+              .headers(helper.addAllHeaders({}))
+              .expect(200),
           );
 
-let statement = helper.parse(res.body);
-expect(statement).to.have.property("context").to.have.property("contextActivities");
-expect(statement.context.contextActivities).to.have.property(type);
-expect(statement.context.contextActivities[type]).to.be.an("array");
+          let statement = helper.parse(res.body);
+          expect(statement).toHaveProperty("context");
+          expect(statement.context).toHaveProperty("contextActivities");
+          expect(statement.context.contextActivities).toHaveProperty(type);
+          expect(statement.context.contextActivities[type]).toSatisfy((v: any) => Array.isArray(v));
         },
       );
     });
@@ -104,21 +105,20 @@ expect(statement.context.contextActivities[type]).to.be.an("array");
               .expect(200),
           );
 
-                    const res = await endAsync(
-request(helper.getEndpointAndAuth())
-            .get(helper.getEndpointStatements() + query)
-            .wait(helper.genDelay(stmtTime, query, data.id))
-            .headers(helper.addAllHeaders({}))
-            .expect(200)
+          const res = await endAsync(
+            request(helper.getEndpointAndAuth())
+              .get(helper.getEndpointStatements() + query)
+              .wait(helper.genDelay(stmtTime, query, data.id))
+              .headers(helper.addAllHeaders({}))
+              .expect(200),
           );
 
-let statement = helper.parse(res.body);
-expect(statement)
-                  .to.have.property("object")
-                  .to.have.property("context")
-                  .to.have.property("contextActivities");
-expect(statement.object.context.contextActivities).to.have.property(type);
-expect(statement.object.context.contextActivities[type]).to.be.an("array");
+          let statement = helper.parse(res.body);
+          expect(statement).toHaveProperty("object");
+          expect(statement.object).toHaveProperty("context");
+          expect(statement.object.context).toHaveProperty("contextActivities");
+          expect(statement.object.context.contextActivities).toHaveProperty(type);
+          expect(statement.object.context.contextActivities[type]).toSatisfy((v: any) => Array.isArray(v));
         },
       );
     });

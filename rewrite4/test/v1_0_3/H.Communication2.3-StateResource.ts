@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "chai";
+import { expect } from "bun:test";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { expectAsync } from "../super-request.ts";
@@ -109,7 +109,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
         res: any,
       ) {
         let body = res.body;
-        expect(body).to.eql(document);
+        expect(body).toEqual(document);
       });
     });
   });
@@ -136,7 +136,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
         res: any,
       ) {
         let body = res.body;
-        expect(body).to.eql(document);
+        expect(body).toEqual(document);
       });
     });
   });
@@ -329,7 +329,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
       );
 
       let result = helper.parse(res3.body);
-      expect(result).to.eql(document);
+      expect(result).toEqual(document);
     });
     // case 2 - bad existing
     it("If the existing document does not have a Content-Type of application/json but the document being posted to the State Resource does the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", async function () {
@@ -360,7 +360,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
         200,
       );
 
-      expect(res3.body).to.eql(attachment);
+      expect(res3.body).toEqual(attachment);
     });
     // case 3 - bad json
     it("If the document being posted to the State Resource has a content type of Content-Type of application/json but cannot be parsed as a JSON Object, the LRS MUST respond with HTTP status code 400 Bad Request, and MUST NOT update the target document as a result of the request.", async function () {
@@ -392,7 +392,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
       );
 
       let result = helper.parse(res3.body);
-      expect(result).to.eql(document);
+      expect(result).toEqual(document);
     });
   });
 
@@ -419,7 +419,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
         res: any,
       ) {
         let body = res.body;
-        expect(body).to.eql(document);
+        expect(body).toEqual(document);
       });
     });
   });
@@ -443,7 +443,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
             .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
             .then(function (res: any) {
               let body = res.body;
-              expect(body).to.eql({
+              expect(body).toEqual({
                 car: "Honda",
                 type: "Civic",
               });
@@ -515,7 +515,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
         res: any,
       ) {
         let body = res.body;
-        expect(body).to.eql(document);
+        expect(body).toEqual(document);
       });
     });
   });
@@ -585,7 +585,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
         res: any,
       ) {
         let body = res.body;
-        expect(body).to.eql(document);
+        expect(body).toEqual(document);
       });
     });
   });
@@ -606,8 +606,8 @@ describe("State Resource Requirements (Communication 2.3)", function () {
         res: any,
       ) {
         let body = res.body;
-        expect(body).to.be.an("Array");
-        expect(body).to.contain(stateId);
+        expect(body).toSatisfy((v: any) => Array.isArray(v));
+        expect(body).toContain(stateId);
       });
     });
   });
@@ -646,7 +646,7 @@ describe("State Resource Requirements (Communication 2.3)", function () {
         res: any,
       ) {
         let body = res.body;
-        expect(body).to.be.an("array");
+        expect(body).toSatisfy((v: any) => Array.isArray(v));
       });
     });
   });
@@ -673,10 +673,10 @@ describe("State Resource Requirements (Communication 2.3)", function () {
           .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
           .then(function (res: any) {
             let body = res.body;
-            expect(body).to.be.an("array");
-            expect(body).to.have.length.above(1);
-            expect(body).to.contain(state1.stateId);
-            expect(body).to.contain(state2.stateId);
+            expect(body).toSatisfy((v: any) => Array.isArray(v));
+            expect(body.length).toBeGreaterThan(1);
+            expect(body).toContain(state1.stateId);
+            expect(body).toContain(state2.stateId);
           });
       });
     });
@@ -704,8 +704,8 @@ describe("State Resource Requirements (Communication 2.3)", function () {
                   .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
                   .then(function (res: any) {
                     let body = res.body;
-                    expect(body).to.be.an("array");
-                    expect(body).to.have.length(0);
+                    expect(body).toSatisfy((v: any) => Array.isArray(v));
+                    expect(body).toHaveLength(0);
                   });
               });
           });

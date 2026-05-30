@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "chai";
+import { expect } from "bun:test";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { endAsync } from "../super-request.ts";
@@ -54,6 +54,6 @@ let unicodeConformant = true;
 for (let key in languages) {
             if (languages[key] !== unicode.verb.display[key]) unicodeConformant = false;
           }
-expect(unicodeConformant).to.be.true;
+expect(unicodeConformant).toBe(true);
   });
 });

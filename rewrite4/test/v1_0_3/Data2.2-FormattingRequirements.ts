@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "chai";
+import { expect } from "bun:test";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { expectAsync, endAsync } from "../super-request.ts";
@@ -88,10 +88,10 @@ describe("Formatting Requirements (Data 2.2)", () => {
       );
 
       let score = helper.parse(res.body).result.score;
-      expect(score.min).to.eql(min);
-      expect(score.raw).to.eql(raw);
-      expect(score.max).to.eql(max);
-      expect(score.scaled).to.eql(min);
+      expect(score.min).toEqual(min);
+      expect(score.raw).toEqual(raw);
+      expect(score.max).toEqual(max);
+      expect(score.scaled).toEqual(min);
     });
   });
 

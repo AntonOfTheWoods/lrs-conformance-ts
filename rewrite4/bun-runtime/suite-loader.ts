@@ -233,31 +233,8 @@ export function getDirectoriesToLoad(normalizedOptions: NormalizedRunnerOptions)
   return directories;
 }
 
-function isMissingAssertionModule(error: unknown): boolean {
-  const moduleError = error as { code?: unknown; message?: unknown };
-  if (moduleError.code === "MODULE_NOT_FOUND") {
-    return true;
-  }
-
-  const message = typeof moduleError.message === "string" ? moduleError.message : String(error);
-  return /Cannot find (module|package) 'chai(?:-things)?'/.test(message);
-}
-
 export function installAssertionPlugins(requireFromRuntimeRoot: NodeJS.Require): void {
-  try {
-    const chai = requireFromRuntimeRoot("chai") as { use?: (plugin: unknown) => void };
-    const chaiThings = requireFromRuntimeRoot("chai-things");
-
-    if (typeof chai.use === "function") {
-      chai.use(chaiThings);
-    }
-  } catch (error) {
-    if (isMissingAssertionModule(error)) {
-      return;
-    }
-
-    throw error;
-  }
+  void requireFromRuntimeRoot;
 }
 
 export function needsTimeMarginBootstrap(selectedFiles: Set<string> | null): boolean {

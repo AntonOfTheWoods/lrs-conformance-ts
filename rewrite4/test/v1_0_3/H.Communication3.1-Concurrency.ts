@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "chai";
+import { expect } from "bun:test";
 import helperImport from "../helper.ts";
 
 const helper: any = helperImport;
@@ -27,7 +27,7 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
           return helper
             .sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200)
             .then(function (res: any) {
-              expect(res.headers).to.have.property("etag");
+              expect(res.headers).toHaveProperty("etag");
             });
         });
     });
@@ -44,7 +44,7 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
           return helper
             .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
             .then(function (res: any) {
-              expect(res.headers).to.have.property("etag");
+              expect(res.headers).toHaveProperty("etag");
             });
         });
     });
@@ -57,8 +57,8 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
         return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200).then(function (
           res: any,
         ) {
-          expect(res.headers.etag).to.be.ok;
-          expect(res.headers.etag).to.match(/\b[0-9a-fA-F]{40}\b/);
+          expect(res.headers.etag).toBeTruthy();
+          expect(res.headers.etag).toMatch(/\b[0-9a-fA-F]{40}\b/);
         });
       });
     });
@@ -71,16 +71,16 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
         return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200).then(function (
           res: any,
         ) {
-          expect(res.headers.etag).to.be.ok;
+          expect(res.headers.etag).toBeTruthy();
           let str = res.headers.etag;
           //test for weak etags
           if (str[0] !== '"') {
-            expect(str[0]).to.equal("W");
-            expect(str[1]).to.equal("/");
+            expect(str[0]).toEqual("W");
+            expect(str[1]).toEqual("/");
             str = str.substring(2);
           }
-          expect(str[0]).to.equal('"');
-          expect(str[41]).to.equal('"');
+          expect(str[0]).toEqual('"');
+          expect(str[41]).toEqual('"');
         });
       });
     });
@@ -155,7 +155,7 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
           res: any,
         ) {
           let result = res.body;
-          expect(result).to.eql(document);
+          expect(result).toEqual(document);
         });
       });
     });
@@ -185,8 +185,8 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
         return helper
           .sendRequest("put", helper.getEndpointActivitiesProfile(), parameters, document2, 409)
           .then(function (res: any) {
-            expect(res).to.have.property("text");
-            expect(res.text).to.have.length.above(0);
+            expect(res).toHaveProperty("text");
+            expect(res.text.length).toBeGreaterThan(0);
           });
       });
 
@@ -197,7 +197,7 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
             return helper
               .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, null, 200)
               .then(function (res: any) {
-                expect(res.body).to.eql(document);
+                expect(res.body).toEqual(document);
               });
           });
       });

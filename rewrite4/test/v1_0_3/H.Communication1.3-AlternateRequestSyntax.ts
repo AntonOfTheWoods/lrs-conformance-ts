@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "chai";
+import { expect } from "bun:test";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { expectAsync } from "../super-request.ts";
@@ -31,8 +31,8 @@ describe("Alternate Request Syntax Requirements (Communication 1.3)", function (
       );
 
       let results = helper.parse(res.body);
-      expect(results).to.have.property("statements");
-      expect(results).to.have.property("more");
+      expect(results).toHaveProperty("statements");
+      expect(results).toHaveProperty("more");
     });
 
     it("An LRS rejects an alternate request syntax not issued as a POST", function () {

@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "chai";
+import { expect } from "bun:test";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { expectAsync, endAsync } from "../super-request.ts";
@@ -493,17 +493,17 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
       let result = helper.parse(res.body);
       let stmts = result.statements;
       let milliChecker = (num: number) => {
-        expect(stmts[num]).to.have.property("timestamp");
+        expect(stmts[num]).toHaveProperty("timestamp");
         const milliseconds = parseMillisecondsFromIso(stmts[num].timestamp);
-        expect(milliseconds).to.not.equal(null);
+        expect(milliseconds).not.toEqual(null);
         //precision to milliseconds
         if ((milliseconds as number) % 10 > 0) {
-          expect((milliseconds as number) % 10).to.be.above(0);
+          expect((milliseconds as number) % 10).toBeGreaterThan(0);
         } else {
           if (++num < stmts.length) {
             milliChecker(num);
           } else {
-            expect((milliseconds as number) % 10).to.be.above(0);
+            expect((milliseconds as number) % 10).toBeGreaterThan(0);
           }
         }
       };
@@ -521,17 +521,17 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
       let result = helper.parse(res.body);
       let stmts = result.statements;
       let milliChecker = (num: number) => {
-        expect(stmts[num]).to.have.property("stored");
+        expect(stmts[num]).toHaveProperty("stored");
         const milliseconds = parseMillisecondsFromIso(stmts[num].stored);
-        expect(milliseconds).to.not.equal(null);
+        expect(milliseconds).not.toEqual(null);
         //precision to milliseconds
         if ((milliseconds as number) % 10 > 0) {
-          expect((milliseconds as number) % 10).to.be.above(0);
+          expect((milliseconds as number) % 10).toBeGreaterThan(0);
         } else {
           if (++num < stmts.length) {
             milliChecker(num);
           } else {
-            expect((milliseconds as number) % 10).to.be.above(0);
+            expect((milliseconds as number) % 10).toBeGreaterThan(0);
           }
         }
       };

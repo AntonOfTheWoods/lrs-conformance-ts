@@ -7,8 +7,6 @@ import path from "node:path";
 import specs from "../specConfig.ts";
 
 const cjsRequire = createRequire(import.meta.url);
-const chai = cjsRequire("chai") as any;
-const chaiThings = cjsRequire("chai-things") as (chaiValue: any, utils: unknown) => void;
 const Mocha = cjsRequire("mocha") as new (options: Record<string, unknown>) => {
   addFile(file: string): void;
   loadFiles(): void;
@@ -71,8 +69,6 @@ function createBattery(version: string): BatteryInfo {
   process.env["BASIC_AUTH_USER"] = "No:";
   process.env["BASIC_AUTH_PASSWORD"] = "User";
   process.env["XAPI_VERSION"] = version;
-
-  chai.use(chaiThings);
 
   const mocha = new Mocha({
     timeout: "15000",

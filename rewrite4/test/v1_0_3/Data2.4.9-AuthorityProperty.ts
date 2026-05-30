@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "chai";
+import { expect } from "bun:test";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { expectAsync, endAsync } from "../super-request.ts";
@@ -84,7 +84,7 @@ request(helper.getEndpointAndAuth())
       );
 
 let statement = helper.parse(res.body);
-expect(statement).to.have.property("authority");
+expect(statement).toHaveProperty("authority");
     });
   });
 });
