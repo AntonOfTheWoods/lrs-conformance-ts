@@ -149,7 +149,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
         .headers(helper.addAllHeaders({}))
         .json(data)
         .expect(204)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -157,7 +157,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
               .put(helper.getEndpointStatements() + "?statementId=" + data.id)
               .headers(helper.addAllHeaders({}))
               .json(modified)
-              .end(function (err, res) {
+              .end(function (err: unknown, res: any) {
                 if (err) {
                   done(err);
                 } else {
@@ -166,7 +166,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
                     .wait(helper.genDelay(stmtTime, query, data.id))
                     .headers(helper.addAllHeaders({}))
                     .expect(200)
-                    .end(function (err, res) {
+                    .end(function (err: unknown, res: any) {
                       if (err) {
                         done(err);
                       } else {
@@ -196,7 +196,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
         .headers(helper.addAllHeaders({}))
         .json(data)
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -204,7 +204,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
               .post(helper.getEndpointStatements())
               .headers(helper.addAllHeaders({}))
               .json(modified)
-              .end(function (err, res) {
+              .end(function (err: unknown, res: any) {
                 if (err) {
                   done(err);
                 } else {
@@ -213,7 +213,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
                     .wait(helper.genDelay(stmtTime, query, data.id))
                     .headers(helper.addAllHeaders({}))
                     .expect(200)
-                    .end(function (err, res) {
+                    .end(function (err: unknown, res: any) {
                       if (err) {
                         done(err);
                       } else {
@@ -268,7 +268,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
         .headers(helper.addAllHeaders({}))
         .json(data)
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -332,7 +332,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
    * An LRS's Statement API upon processing a successful GET request with a "statementId" parameter, returns code 200 OK and a single Statement with the corresponding "id".
    */
   describe('An LRS\'s Statement Resource upon processing a successful GET request with a "statementId" parameter, returns code 200 OK and a single Statement with the corresponding "id".  (Communication 2.1.3.s1, XAPI-00156)', function () {
-    let id, stmtTime;
+    let id: string, stmtTime: number;
 
     before("persist statement", function (done) {
       let templates = [{ statement: "{{statements.default}}" }];
@@ -356,7 +356,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
         .wait(helper.genDelay(stmtTime, "?statementId=" + id, id))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -374,7 +374,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
  */
   describe('An LRS\'s Statement Resource upon processing a successful GET request with a "voidedStatementId" parameter, returns code 200 OK and a single Statement with the corresponding "id".  (Communication 2.1.3.s1, XAPI-00155)', function () {
     let voidedId = helper.generateUUID();
-    let stmtTime;
+    let stmtTime: number;
 
     before("persist voided statement", function (done) {
       let templates = [{ statement: "{{statements.default}}" }];
@@ -411,7 +411,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
         .wait(helper.genDelay(stmtTime, "?" + query, voidedId))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -428,7 +428,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
 StatementResult Object.
  */
   describe('An LRS\'s Statement Resource upon processing a successful GET request with neither a "statementId" nor a "voidedStatementId" parameter, returns code 200 OK and a StatementResult Object.  (Communication 2.1.3.s1, XAPI-00154)', function () {
-    let statement, substatement, stmtTime;
+    let statement: any, substatement: any, stmtTime: number;
     this.timeout(0);
 
     before("persist statement", function (done) {
@@ -484,7 +484,7 @@ StatementResult Object.
         .wait(helper.genDelay(stmtTime, undefined, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -505,7 +505,7 @@ StatementResult Object.
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -523,7 +523,7 @@ StatementResult Object.
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -541,7 +541,7 @@ StatementResult Object.
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -559,7 +559,7 @@ StatementResult Object.
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -580,7 +580,7 @@ StatementResult Object.
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -601,7 +601,7 @@ StatementResult Object.
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -619,7 +619,7 @@ StatementResult Object.
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -637,7 +637,7 @@ StatementResult Object.
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -655,7 +655,7 @@ StatementResult Object.
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -673,7 +673,7 @@ StatementResult Object.
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -691,7 +691,7 @@ StatementResult Object.
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -709,7 +709,7 @@ StatementResult Object.
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -737,7 +737,7 @@ StatementResult Object.
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -767,7 +767,7 @@ StatementResult Object.
         .headers(helper.addAllHeaders({}))
         .json(data)
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -786,7 +786,7 @@ StatementResult Object.
    */
   describe('An LRS\'s Statement Resource can process a GET request with "voidedStatementId" as a parameter  (Communication 2.1.3.s1.table1.row2, XAPI-00157)', function () {
     let voidedId = helper.generateUUID();
-    let stmtTime;
+    let stmtTime: number;
 
     before("persist voided statement", function (done) {
       let templates = [{ statement: "{{statements.default}}" }];
@@ -885,7 +885,7 @@ StatementResult Object.
    * An LRS's Statement API can process a GET request with "related_activities" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with exact match activity results if the activity parameter is set with a valid Verb IRI unless the related_activities parameter is set to true. If set to true it MUST return 200 OK, StatementResult Object with activity ID matches in the Statement Object, and Context Objects and SubStatement Objects.
    */
   describe('An LRS\'s Statement Resource can process a GET request with "related_activities" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row7)', function () {
-    let statement, stmtTime;
+    let statement: any, stmtTime: number;
 
     before("persist statement", function (done) {
       let templates = [
@@ -929,7 +929,7 @@ StatementResult Object.
    * An LRS's Statement API can process a GET request with "related_agents" as a parameter. The Statement API MUST return 200 OK, StatementResult Object with exact match agent results if the agent parameter is set with a valid Agent or Identified Group JSON Object unless the related_agents parameter is set to true. If set to true it MUST return 200 OK, StatementResult Object with agent matches in the Actor, Object, authority, instructor, team, or any of these properties in a contained SubStatement
    */
   describe('An LRS\'s Statement Resource can process a GET request with "related_agents" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row8, XAPI-00176)', function () {
-    let statement, stmtTime;
+    let statement: any, stmtTime: number;
 
     before("persist statement", function (done) {
       let templates = [
@@ -1013,8 +1013,8 @@ StatementResult Object.
    * If the "Accept-Language" header is present as part of the GET request to the Statement API and the "format" parameter is set to "canonical", the LRS MUST apply this data to choose the matching language in the response.
    */
   describe('If the "Accept-Language" header is present as part of the GET request to the Statement API and the "format" parameter is set to "canonical", the LRS MUST apply this data to choose the matching language in the response. (Communication 2.1.3.s1.table1.row11, XAPI-00172)', function () {
-    let statement;
-    let statementID;
+    let statement: any;
+    let statementID: string;
     before("persist statement", function (done) {
       let templates = [
         { statement: "{{statements.context}}" },
@@ -1035,7 +1035,7 @@ StatementResult Object.
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(statement)
-        .expect(200, function (err, res) {
+        .expect(200, function (err: unknown, res: any) {
           statementID = res.body[0];
           done(err);
         });
@@ -1052,7 +1052,7 @@ StatementResult Object.
         .get(helper.getEndpointStatements() + "?" + query)
         .wait(helper.genDelay(null, null, statementID))
         .headers(helper.addAllHeaders({ "Accept-Language": "en-GB" }))
-        .expect(200, function (err, res) {
+        .expect(200, function (err: unknown, res: any) {
           if (err) console.log(err);
 
           let statement = JSON.parse(res.body);
@@ -1074,7 +1074,7 @@ StatementResult Object.
         .get(helper.getEndpointStatements() + "?" + query)
         .wait(helper.genDelay(null, null, statementID))
         .headers(helper.addAllHeaders({ "Accept-Language": "en-GB" }))
-        .expect(200, function (err, res) {
+        .expect(200, function (err: unknown, res: any) {
           if (err) console.log(err);
 
           let statement = JSON.parse(res.body);
@@ -1105,7 +1105,7 @@ StatementResult Object.
    */
   describe('An LRS\'s Statement Resource can process a GET request with "format" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row12)', function () {
     this.timeout(0);
-    let agent, activity, group, verb1, verb2, id, stmtTime;
+    let agent: any, activity: any, group: any, verb1: any, verb2: any, id: string, stmtTime: number;
     before("setting up the statement to test against", function (done) {
       let templates = [
         { statement: "{{statements.object_substatement}}" },
@@ -1127,7 +1127,7 @@ StatementResult Object.
         .headers(helper.addAllHeaders({}))
         .json(data)
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -1143,14 +1143,14 @@ StatementResult Object.
         .wait(helper.genDelay(stmtTime, "?statementId=" + id, id))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
             let result = helper.parse(res.body);
             let stmts = result.statements;
             expect(stmts).to.be.an("array");
-            stmts.forEach(function (stmt) {
+            stmts.forEach(function (stmt: any) {
               if (stmt.id === id) {
                 expect(stmt.actor).to.eql(agent);
                 expect(stmt.verb).to.eql(verb1);
@@ -1211,14 +1211,14 @@ StatementResult Object.
         .headers(helper.addAllHeaders({ "Accept-Language": "en-GB" }))
         .wait(helper.genDelay(stmtTime, "?statementId=" + id, id))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
             let result = helper.parse(res.body);
             let stmts = result.statements;
             expect(stmts).to.be.an("array");
-            stmts.forEach(function (stmt) {
+            stmts.forEach(function (stmt: any) {
               if (stmt.id === id) {
                 expect(stmt.actor).to.eql(canonicalActor);
                 expect(stmt.verb).to.eql(mainVerb);
@@ -1239,14 +1239,14 @@ StatementResult Object.
         .wait(helper.genDelay(stmtTime, "?statementId=" + id, id))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
             let result = helper.parse(res.body);
             let stmts = result.statements;
             expect(stmts).to.be.an("array");
-            stmts.forEach(function (stmt) {
+            stmts.forEach(function (stmt: any) {
               if (stmt.id === id) {
                 expect(stmt.actor).to.eql(agent);
                 expect(stmt.verb).to.eql(verb1);
@@ -1267,14 +1267,14 @@ StatementResult Object.
         .wait(helper.genDelay(stmtTime, "?statementId=" + id, id))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
             let result = helper.parse(res.body);
             let stmts = result.statements;
             expect(stmts).to.be.an("array");
-            stmts.forEach(function (stmt) {
+            stmts.forEach(function (stmt: any) {
               if (stmt.id === id) {
                 expect(Object.keys(stmt.actor).length).to.be.within(1, 2);
                 expect(Object.keys(stmt.object.actor).length).to.eql(2);
@@ -1304,7 +1304,7 @@ StatementResult Object.
    * An LRS's Statement API can process a GET request with "attachments" as a parameter. The Statement API MUST return 200 OK, StatementResult Object and use the multipart response format and include all attachments if the attachment parameter is set to true
    */
   describe('An LRS\'s Statement Resource can process a GET request with "attachments" as a parameter  (**Implicit**, Communication 2.1.3.s1.table1.row13, XAPI-00167)', function () {
-    let stmtTime, stmtId;
+    let stmtTime: number, stmtId: string;
 
     before("set up statement with two attachments for test", function (done) {
       let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
@@ -1373,7 +1373,7 @@ StatementResult Object.
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders(header))
         .body(msg)
-        .expect(200, function (err, res) {
+        .expect(200, function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -1390,7 +1390,7 @@ StatementResult Object.
         .get(helper.getEndpointStatements() + "?" + query)
         .wait(helper.genDelay(stmtTime, "?" + query, stmtId))
         .headers(helper.addAllHeaders({}))
-        .expect(200, function (err, res) {
+        .expect(200, function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -1436,7 +1436,7 @@ MUST have a "Content-Type" header
       request(helper.getEndpointAndAuth())
         .get(helper.getEndpointStatements() + "?" + query)
         .headers(helper.addAllHeaders({}))
-        .expect(200, function (err, res) {
+        .expect(200, function (err: unknown, res: any) {
           expect(res.headers).to.have.property("content-type");
           done();
         });
@@ -1460,8 +1460,8 @@ MUST have a "Content-Type" header
    * An LRS's Statement API rejects a GET request with both "statementId" and anything other than "attachments" or "format" as parameters with error code 400 Bad Request.
    */
   describe('An LRS\'s Statement Resource rejects with error code 400 a GET request with both "statementId" and anything other than "attachments" or "format" as parameters (Communication 2.1.3.s2.b2, XAPI-00151)', function () {
-    let id;
-    let stmtTime;
+    let id: string;
+    let stmtTime: number;
     this.timeout(0);
 
     before("persist statement", function (done) {
@@ -1652,7 +1652,7 @@ MUST have a "Content-Type" header
    */
   describe('An LRS\'s Statement Resource rejects with error code 400 a GET request with both "voidedStatementId" and anything other than "attachments" or "format" as parameters (Communication 2.1.3.s2.b2, XAPI-00150)', function () {
     let voidedId = helper.generateUUID();
-    let stmtTime;
+    let stmtTime: number;
     this.timeout(0);
 
     before("persist voided statement", function (done) {
@@ -1860,7 +1860,7 @@ MUST have a "Content-Type" header
         .get(helper.getEndpointStatements() + "?" + query)
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -1881,7 +1881,7 @@ MUST have a "Content-Type" header
         .get(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -1897,7 +1897,7 @@ MUST have a "Content-Type" header
         .get(helper.getEndpointStatements() + "?LIMIT=1")
         .headers(helper.addAllHeaders({}))
         .expect(400)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -1917,7 +1917,7 @@ MUST have a "Content-Type" header
         .get(helper.getEndpointStatements() + "?" + query)
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -1934,7 +1934,7 @@ MUST have a "Content-Type" header
         .get(helper.getEndpointStatements() + "?" + query)
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -1951,7 +1951,7 @@ MUST have a "Content-Type" header
         .get(helper.getEndpointStatements() + "?" + query)
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -1968,7 +1968,7 @@ MUST have a "Content-Type" header
         .get(helper.getEndpointStatements() + "?" + query)
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -1985,7 +1985,7 @@ MUST have a "Content-Type" header
         .get(helper.getEndpointStatements() + "?" + query)
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2002,7 +2002,7 @@ MUST have a "Content-Type" header
         .get(helper.getEndpointStatements() + "?" + query)
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2019,7 +2019,7 @@ MUST have a "Content-Type" header
         .get(helper.getEndpointStatements() + "?" + query)
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2036,7 +2036,7 @@ MUST have a "Content-Type" header
         .get(helper.getEndpointStatements() + "?" + query)
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2053,7 +2053,7 @@ MUST have a "Content-Type" header
         .get(helper.getEndpointStatements() + "?" + query)
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2070,7 +2070,7 @@ MUST have a "Content-Type" header
         .get(helper.getEndpointStatements() + "?" + query)
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2087,7 +2087,7 @@ MUST have a "Content-Type" header
         .get(helper.getEndpointStatements() + "?" + query)
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2104,7 +2104,7 @@ MUST have a "Content-Type" header
         .get(helper.getEndpointStatements() + "?" + query)
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2120,7 +2120,7 @@ MUST have a "Content-Type" header
    * An LRS's "X-Experience-API-Consistent-Through" header is an ISO 8601 combined date and time
    */
   describe('An LRS\'s "X-Experience-API-Consistent-Through" header is an ISO 8601 combined date and time (Type, Communication 2.1.3.s2.b5).', function () {
-    let statement, stmtTime;
+    let statement: any, stmtTime: number;
     this.timeout(0);
 
     before("persist statement", function (done) {
@@ -2153,7 +2153,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, undefined, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2177,7 +2177,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2198,7 +2198,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2219,7 +2219,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2240,7 +2240,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2264,7 +2264,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2288,7 +2288,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2309,7 +2309,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2330,7 +2330,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2351,7 +2351,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2372,7 +2372,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2393,7 +2393,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2414,7 +2414,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2434,7 +2434,7 @@ MUST have a "Content-Type" header
    */
   describe('An LRSs Statement Resource does not return attachment data and only returns application/json if the "attachment" parameter set to "false" (Communication 2.1.3.s1.b1, XAPI-00161)', function () {
     this.timeout(0);
-    let statementId = null;
+    let statementId: string | null = null;
     let stmtTime: number | null = null;
 
     before("store statement", function (done) {
@@ -2484,7 +2484,7 @@ MUST have a "Content-Type" header
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders(header))
         .body(msg)
-        .expect(200, function (err, res) {
+        .expect(200, function (err: unknown, res: any) {
           if (err) done(err);
           else {
             let body = JSON.parse(res.body);
@@ -2503,7 +2503,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, query, statementId))
         .headers(helper.addAllHeaders())
         .expect(200)
-        .end((err, res) => {
+        .end((err: unknown, res: any) => {
           if (err) {
             done(err);
           } else {
@@ -2521,7 +2521,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, query, statementId))
         .headers(helper.addAllHeaders())
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2538,7 +2538,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, query, statementId))
         .headers(helper.addAllHeaders())
         .expect(200)
-        .end((err, res) => {
+        .end((err: unknown, res: any) => {
           if (err) {
             done(err);
           } else {
@@ -2564,7 +2564,7 @@ MUST have a "Content-Type" header
    */
   describe("An LRS's Statement Resource, upon processing a successful GET request, can only return a Voided Statement if that Statement is specified in the voidedStatementId parameter of that request (Communication 2.1.4.s1.b1, XAPI-00163)", function () {
     let voidedId = helper.generateUUID();
-    let stmtTime;
+    let stmtTime: number;
 
     before("persist voided statement", function (done) {
       let templates = [{ statement: "{{statements.default}}" }];
@@ -2614,8 +2614,8 @@ MUST have a "Content-Type" header
     let voidedId = helper.generateUUID();
     let voidingId = helper.generateUUID();
     let statementRefId = helper.generateUUID();
-    let sinceVoidingTime, untilVoidingTime;
-    let stmtTime, prevStmtTime;
+    let sinceVoidingTime: string, untilVoidingTime: string;
+    let stmtTime: number, prevStmtTime: number;
 
     before("persist voided statement", function (done) {
       // console.log(new Date(Date.now() - helper.getTimeMargin()).toISOString() + ' Ed Before');
@@ -2675,7 +2675,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, "?statementId=" + statementRefId, statementRefId))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2698,7 +2698,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2706,7 +2706,7 @@ MUST have a "Content-Type" header
             expect(results).to.have.property("statements");
             // console.log(results.statements.length);
             const ids: Array<string | undefined> = [];
-            results.statements.forEach(function (stmt) {
+            results.statements.forEach(function (stmt: any) {
               ids.push(stmt.id);
             });
             // console.log(ids);
@@ -2729,7 +2729,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2737,7 +2737,7 @@ MUST have a "Content-Type" header
               let results = helper.parse(res.body, done);
               expect(results).to.have.property("statements");
               const ids: Array<string | undefined> = [];
-              results.statements.forEach(function (stmt) {
+              results.statements.forEach(function (stmt: any) {
                 ids.push(stmt.id);
               });
               expect(ids).to.contain(statementRefId);
@@ -2770,7 +2770,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2794,7 +2794,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2816,7 +2816,7 @@ MUST have a "Content-Type" header
    * The Statements within the "statements" property will correspond to the filtering criterion sent in with the GET request
    */
   describe('The Statements within the "statements" property will correspond to the filtering criterion sent in with the GET request (Communication 2.1.3.s1, XAPI-00164)', function () {
-    let statement, substatement, stmtTime;
+    let statement: any, substatement: any, stmtTime: number;
     this.timeout(0);
 
     before("persist statement", function (done) {
@@ -2894,7 +2894,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2915,7 +2915,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2936,7 +2936,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2957,7 +2957,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2981,7 +2981,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -2989,7 +2989,7 @@ MUST have a "Content-Type" header
             expect(result)
               .to.have.property("statements")
               .to.be.an("array")
-              .to.satisfy(function (statements) {
+              .to.satisfy(function (statements: any) {
                 for (let i in statements) {
                   if (!helper.deepSearchObject(statements[i], statement.context.contextActivities.category.id))
                     return false;
@@ -3011,7 +3011,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -3019,7 +3019,7 @@ MUST have a "Content-Type" header
             expect(result)
               .to.have.property("statements")
               .to.be.an("array")
-              .to.satisfy(function (statements) {
+              .to.satisfy(function (statements: any) {
                 for (let i in statements) {
                   if (!helper.deepSearchObject(statements[i], statement.context.instructor.mbox)) return false;
                 }
@@ -3037,7 +3037,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -3045,7 +3045,7 @@ MUST have a "Content-Type" header
             expect(result)
               .to.have.property("statements")
               .to.be.an("array")
-              .to.satisfy(function (statements) {
+              .to.satisfy(function (statements: any) {
                 for (let i in statements) {
                   if (new Date(statements[i].stored) < new Date("2012-06-01T19:09:13.245Z")) return false;
                 }
@@ -3063,7 +3063,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -3071,7 +3071,7 @@ MUST have a "Content-Type" header
             expect(result)
               .to.have.property("statements")
               .to.be.an("array")
-              .to.satisfy(function (statements) {
+              .to.satisfy(function (statements: any) {
                 for (let i in statements) {
                   if (new Date(statements[i].stored) > new Date("2012-06-01T19:09:13.245Z")) return false;
                 }
@@ -3089,7 +3089,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -3107,7 +3107,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -3115,7 +3115,7 @@ MUST have a "Content-Type" header
             expect(result)
               .to.have.property("statements")
               .to.be.an("array")
-              .to.satisfy(function (statements) {
+              .to.satisfy(function (statements: any) {
                 for (let i = 0; i < statements.length - 1; i++) {
                   let s1 = statements[i].stored;
                   let s2 = statements[i + 1].stored;
@@ -3137,7 +3137,7 @@ MUST have a "Content-Type" header
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -3199,7 +3199,7 @@ MUST have a "Content-Type" header
         .headers(helper.addAllHeaders(header))
         .body(msg)
         .expect(200)
-        .end(function (err, res) {
+        .end(function (err: unknown, res: any) {
           if (err) {
             done(err);
           } else {
@@ -3208,7 +3208,7 @@ MUST have a "Content-Type" header
               .wait(helper.genDelay(stmtTime, "?" + query, undefined))
               .headers(helper.addAllHeaders({}))
               .expect(200)
-              .end(function (err, res) {
+              .end(function (err: unknown, res: any) {
                 if (err) {
                   done(err);
                 } else {
