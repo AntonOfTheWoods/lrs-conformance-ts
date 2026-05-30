@@ -421,7 +421,7 @@ StatementResult Object.
     let statement: any, substatement: any, stmtTime: number;
     this.timeout(0);
 
-    before("persist statement", function (done) {
+    before("persist statement", async function () {
       let templates = [
         { statement: "{{statements.context}}" },
         { context: "{{contexts.category}}" },
@@ -437,14 +437,16 @@ StatementResult Object.
       statement = data.statement;
       statement.context.contextActivities.category.id = "http://www.example.com/test/array/statements/pri";
 
-      request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(statement)
-        .expect(200, done);
+      await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(statement),
+        200,
+      );
     });
 
-    before("persist substatement", function (done) {
+    before("persist substatement", async function () {
       let templates = [
         { statement: "{{statements.object_substatement}}" },
         { object: "{{substatements.context}}" },
@@ -461,217 +463,175 @@ StatementResult Object.
       substatement = data.statement;
       substatement.object.context.contextActivities.category.id = "http://www.example.com/test/array/statements/sub";
       stmtTime = Date.now();
-      request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(substatement)
-        .expect(200, done);
+      await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(substatement),
+        200,
+      );
     });
 
-    it('should return StatementResult using GET without "statementId" or "voidedStatementId"', function (done) {
-      request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements())
-        .wait(helper.genDelay(stmtTime, undefined, undefined))
-        .headers(helper.addAllHeaders({}))
-        .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            let result = helper.parse(res.body, done);
-            expect(result).to.have.property("statements").to.be.an("array");
-            done();
-          }
-        });
+    it('should return StatementResult using GET without "statementId" or "voidedStatementId"', async function () {
+      const res = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements())
+          .wait(helper.genDelay(stmtTime, undefined, undefined))
+          .headers(helper.addAllHeaders({})),
+        200,
+      );
+
+      const result = helper.parse(res.body);
+      expect(result).to.have.property("statements").to.be.an("array");
     });
 
-    it('should return StatementResult using GET with "agent"', function (done) {
+    it('should return StatementResult using GET with "agent"', async function () {
       let templates = [{ agent: "{{agents.default}}" }];
       let data = helper.createFromTemplate(templates);
 
       let query = helper.getUrlEncoding(data);
-      request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .wait(helper.genDelay(stmtTime, "?" + query, undefined))
-        .headers(helper.addAllHeaders({}))
-        .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            let result = helper.parse(res.body, done);
-            expect(result).to.have.property("statements").to.be.an("array");
-            done();
-          }
-        });
+      const res = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .wait(helper.genDelay(stmtTime, "?" + query, undefined))
+          .headers(helper.addAllHeaders({})),
+        200,
+      );
+
+      const result = helper.parse(res.body);
+      expect(result).to.have.property("statements").to.be.an("array");
     });
 
-    it('should return StatementResult using GET with "verb"', function (done) {
+    it('should return StatementResult using GET with "verb"', async function () {
       let query = helper.getUrlEncoding({ verb: statement.verb.id });
-      request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .wait(helper.genDelay(stmtTime, "?" + query, undefined))
-        .headers(helper.addAllHeaders({}))
-        .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            let result = helper.parse(res.body, done);
-            expect(result).to.have.property("statements").to.be.an("array");
-            done();
-          }
-        });
+      const res = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .wait(helper.genDelay(stmtTime, "?" + query, undefined))
+          .headers(helper.addAllHeaders({})),
+        200,
+      );
+
+      const result = helper.parse(res.body);
+      expect(result).to.have.property("statements").to.be.an("array");
     });
 
-    it('should return StatementResult using GET with "activity"', function (done) {
+    it('should return StatementResult using GET with "activity"', async function () {
       let query = helper.getUrlEncoding({ activity: statement.object.id });
-      request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .wait(helper.genDelay(stmtTime, "?" + query, undefined))
-        .headers(helper.addAllHeaders({}))
-        .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            let result = helper.parse(res.body, done);
-            expect(result).to.have.property("statements").to.be.an("array");
-            done();
-          }
-        });
+      const res = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .wait(helper.genDelay(stmtTime, "?" + query, undefined))
+          .headers(helper.addAllHeaders({})),
+        200,
+      );
+
+      const result = helper.parse(res.body);
+      expect(result).to.have.property("statements").to.be.an("array");
     });
 
-    it('should return StatementResult using GET with "registration"', function (done) {
+    it('should return StatementResult using GET with "registration"', async function () {
       let query = helper.getUrlEncoding({ registration: statement.context.registration });
-      request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .wait(helper.genDelay(stmtTime, "?" + query, undefined))
-        .headers(helper.addAllHeaders({}))
-        .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            let result = helper.parse(res.body, done);
-            expect(result).to.have.property("statements").to.be.an("array");
-            done();
-          }
-        });
+      const res = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .wait(helper.genDelay(stmtTime, "?" + query, undefined))
+          .headers(helper.addAllHeaders({})),
+        200,
+      );
+
+      const result = helper.parse(res.body);
+      expect(result).to.have.property("statements").to.be.an("array");
     });
 
-    it('should return StatementResult using GET with "related_activities"', function (done) {
+    it('should return StatementResult using GET with "related_activities"', async function () {
       let query = helper.getUrlEncoding({
         activity: statement.context.contextActivities.category.id,
         related_activities: true,
       });
-      request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .wait(helper.genDelay(stmtTime, "?" + query, undefined))
-        .headers(helper.addAllHeaders({}))
-        .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            let result = helper.parse(res.body, done);
-            expect(result).to.have.property("statements").to.be.an("array");
-            done();
-          }
-        });
+      const res = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .wait(helper.genDelay(stmtTime, "?" + query, undefined))
+          .headers(helper.addAllHeaders({})),
+        200,
+      );
+
+      const result = helper.parse(res.body);
+      expect(result).to.have.property("statements").to.be.an("array");
     });
 
-    it('should return StatementResult using GET with "related_agents"', function (done) {
+    it('should return StatementResult using GET with "related_agents"', async function () {
       let query = helper.getUrlEncoding({
         agent: statement.context.instructor,
         related_agents: true,
       });
-      request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .wait(helper.genDelay(stmtTime, "?" + query, undefined))
-        .headers(helper.addAllHeaders({}))
-        .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            let result = helper.parse(res.body, done);
-            expect(result).to.have.property("statements").to.be.an("array");
-            done();
-          }
-        });
+      const res = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .wait(helper.genDelay(stmtTime, "?" + query, undefined))
+          .headers(helper.addAllHeaders({})),
+        200,
+      );
+
+      const result = helper.parse(res.body);
+      expect(result).to.have.property("statements").to.be.an("array");
     });
 
-    it('should return StatementResult using GET with "since"', function (done) {
+    it('should return StatementResult using GET with "since"', async function () {
       let query = helper.getUrlEncoding({ since: "2012-06-01T19:09:13.245Z" });
-      request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .wait(helper.genDelay(stmtTime, "?" + query, undefined))
-        .headers(helper.addAllHeaders({}))
-        .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            let result = helper.parse(res.body, done);
-            expect(result).to.have.property("statements").to.be.an("array");
-            done();
-          }
-        });
+      const res = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .wait(helper.genDelay(stmtTime, "?" + query, undefined))
+          .headers(helper.addAllHeaders({})),
+        200,
+      );
+
+      const result = helper.parse(res.body);
+      expect(result).to.have.property("statements").to.be.an("array");
     });
 
-    it('should return StatementResult using GET with "until"', function (done) {
+    it('should return StatementResult using GET with "until"', async function () {
       let query = helper.getUrlEncoding({ until: "2012-06-01T19:09:13.245Z" });
-      request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .wait(helper.genDelay(stmtTime, "?" + query, undefined))
-        .headers(helper.addAllHeaders({}))
-        .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            let result = helper.parse(res.body, done);
-            expect(result).to.have.property("statements").to.be.an("array");
-            done();
-          }
-        });
+      const res = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .wait(helper.genDelay(stmtTime, "?" + query, undefined))
+          .headers(helper.addAllHeaders({})),
+        200,
+      );
+
+      const result = helper.parse(res.body);
+      expect(result).to.have.property("statements").to.be.an("array");
     });
 
-    it('should return StatementResult using GET with "limit"', function (done) {
+    it('should return StatementResult using GET with "limit"', async function () {
       let query = helper.getUrlEncoding({ limit: 1 });
-      request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .wait(helper.genDelay(stmtTime, "?" + query, undefined))
-        .headers(helper.addAllHeaders({}))
-        .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            let result = helper.parse(res.body, done);
-            expect(result).to.have.property("statements").to.be.an("array");
-            done();
-          }
-        });
+      const res = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .wait(helper.genDelay(stmtTime, "?" + query, undefined))
+          .headers(helper.addAllHeaders({})),
+        200,
+      );
+
+      const result = helper.parse(res.body);
+      expect(result).to.have.property("statements").to.be.an("array");
     });
 
-    it('should return StatementResult using GET with "ascending"', function (done) {
+    it('should return StatementResult using GET with "ascending"', async function () {
       let query = helper.getUrlEncoding({ ascending: true });
-      request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .wait(helper.genDelay(stmtTime, "?" + query, undefined))
-        .headers(helper.addAllHeaders({}))
-        .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            let result = helper.parse(res.body, done);
-            expect(result).to.have.property("statements").to.be.an("array");
-            done();
-          }
-        });
+      const res = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .wait(helper.genDelay(stmtTime, "?" + query, undefined))
+          .headers(helper.addAllHeaders({})),
+        200,
+      );
+
+      const result = helper.parse(res.body);
+      expect(result).to.have.property("statements").to.be.an("array");
     });
 
     it('should return StatementResult using GET with "format"', function (done) {
