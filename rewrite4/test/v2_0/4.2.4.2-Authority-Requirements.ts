@@ -46,14 +46,13 @@ describe("Authority Property Requirements (Data 2.4.9)", () => {
     let data = helper.createFromTemplate(templates);
     data = data.statement;
     await expectAsync(
-request(helper.getEndpointAndAuth())
-      .post(helper.getEndpointStatements())
-      .headers(helper.addAllHeaders({}))
-      .json(data)
-      ,
-    400,
+      request(helper.getEndpointAndAuth())
+        .post(helper.getEndpointStatements())
+        .headers(helper.addAllHeaders({}))
+        .json(data),
+      400,
     );
-});
+  });
 
   /**  XAPI-00099, Data 2.4.9 Authority
    * An LRS populates the "authority" property if it is not provided in the Statement
@@ -70,30 +69,28 @@ request(helper.getEndpointAndAuth())
       const query = "?statementId=" + data.id;
       const stmtTime = Date.now();
 
-            await endAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        .expect(200)
+      await endAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(data)
+          .expect(200),
       );
 
+      request(helper.getEndpointAndAuth())
+        .get(helper.getEndpointStatements() + query)
+        .headers(helper.addAllHeaders({}))
+        .wait(helper.genDelay(stmtTime, query, data.id))
+        .expect(200)
+        .end(function (getErr: unknown, getRes: any) {
+          if (getErr) {
+            throw getErr;
+            return;
+          }
 
-request(helper.getEndpointAndAuth())
-            .get(helper.getEndpointStatements() + query)
-            .headers(helper.addAllHeaders({}))
-            .wait(helper.genDelay(stmtTime, query, data.id))
-            .expect(200)
-            .end(function (getErr: unknown, getRes: any) {
-              if (getErr) {
-                throw getErr;
-                return;
-              }
-
-              const statement = helper.parse(getRes.body);
-              expect(statement).to.have.property("authority");
-              
-            });
+          const statement = helper.parse(getRes.body);
+          expect(statement).to.have.property("authority");
+        });
     });
   });
 });

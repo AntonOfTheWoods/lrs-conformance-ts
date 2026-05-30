@@ -61,14 +61,13 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        ,
-      204,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        204,
       );
-});
+    });
 
     it("statement activity extension values can be empty string", async function () {
       const template = [
@@ -79,14 +78,13 @@ request(helper.getEndpointAndAuth())
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        ,
-      204,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        204,
       );
-});
+    });
 
     it("statement activity extension values can be null", async function () {
       const template = [
@@ -97,14 +95,13 @@ request(helper.getEndpointAndAuth())
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        ,
-      204,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        204,
       );
-});
+    });
 
     it("statement activity extensions can be empty object", async function () {
       const template = [
@@ -115,14 +112,13 @@ request(helper.getEndpointAndAuth())
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        ,
-      204,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        204,
       );
-});
+    });
 
     it("statement result extensions can be empty object", async function () {
       const template = [
@@ -133,14 +129,13 @@ request(helper.getEndpointAndAuth())
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        ,
-      204,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        204,
       );
-});
+    });
 
     it("statement result extension values can be empty string", async function () {
       const template = [
@@ -151,28 +146,26 @@ request(helper.getEndpointAndAuth())
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        ,
-      204,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        204,
       );
-});
+    });
 
     it("statement result extension values can be null", async function () {
       const template = [{ statement: "{{statements.result}}" }, { result: "{{results.no_extensions}}" }, NULL_VALUE],
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        ,
-      204,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        204,
       );
-});
+    });
 
     it("statement result extension values can be empty object", async function () {
       const template = [
@@ -183,14 +176,13 @@ request(helper.getEndpointAndAuth())
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        ,
-      204,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        204,
       );
-});
+    });
 
     it("statement context extensions can be empty object", async function () {
       const template = [
@@ -201,14 +193,13 @@ request(helper.getEndpointAndAuth())
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        ,
-      204,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        204,
       );
-});
+    });
 
     it("statement context extension values can be empty string", async function () {
       const template = [
@@ -219,28 +210,26 @@ request(helper.getEndpointAndAuth())
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        ,
-      204,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        204,
       );
-});
+    });
 
     it("statement context extension values can be null", async function () {
       const template = [{ statement: "{{statements.context}}" }, { context: "{{contexts.no_extensions}}" }, NULL_VALUE],
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        ,
-      204,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        204,
       );
-});
+    });
 
     it("statement context extension values can be empty object", async function () {
       const template = [
@@ -251,14 +240,13 @@ request(helper.getEndpointAndAuth())
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        ,
-      204,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        204,
       );
-});
+    });
 
     it("statement substatement activity extensions can be empty object", async function () {
       const template = [
@@ -270,14 +258,13 @@ request(helper.getEndpointAndAuth())
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        ,
-      204,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        204,
       );
-});
+    });
 
     it("statement substatement activity extension values can be empty string", async function () {
       const template = [
@@ -289,14 +276,13 @@ request(helper.getEndpointAndAuth())
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        ,
-      204,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        204,
       );
-});
+    });
 
     it("statement substatement activity extension values can be null", async function () {
       const template = [
@@ -308,14 +294,13 @@ request(helper.getEndpointAndAuth())
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        ,
-      204,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        204,
       );
-});
+    });
 
     it("statement substatement activity extension values can be empty object", async function () {
       const template = [
@@ -327,14 +312,13 @@ request(helper.getEndpointAndAuth())
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        ,
-      204,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        204,
       );
-});
+    });
 
     it("statement substatement result extensions can be empty object", async function () {
       const template = [
@@ -346,14 +330,13 @@ request(helper.getEndpointAndAuth())
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        ,
-      204,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        204,
       );
-});
+    });
 
     it("statement substatement result extension values can be empty string", async function () {
       const template = [
@@ -365,14 +348,13 @@ request(helper.getEndpointAndAuth())
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        ,
-      204,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        204,
       );
-});
+    });
 
     it("statement substatement result extension values can be null", async function () {
       const template = [
@@ -384,14 +366,13 @@ request(helper.getEndpointAndAuth())
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        ,
-      204,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        204,
       );
-});
+    });
 
     it("statement substatement result extension values can be empty object", async function () {
       const template = [
@@ -403,14 +384,13 @@ request(helper.getEndpointAndAuth())
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        ,
-      204,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        204,
       );
-});
+    });
 
     it("statement substatement context extensions can be empty object", async function () {
       const template = [
@@ -422,14 +402,13 @@ request(helper.getEndpointAndAuth())
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        ,
-      204,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        204,
       );
-});
+    });
 
     it("statement substatement context extension values can be empty string", async function () {
       const template = [
@@ -441,14 +420,13 @@ request(helper.getEndpointAndAuth())
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        ,
-      204,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        204,
       );
-});
+    });
 
     it("statement substatement context extension values can be null", async function () {
       const template = [
@@ -460,14 +438,13 @@ request(helper.getEndpointAndAuth())
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        ,
-      204,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        204,
       );
-});
+    });
 
     it("statement substatement context extension values can be empty object", async function () {
       const template = [
@@ -479,14 +456,13 @@ request(helper.getEndpointAndAuth())
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        ,
-      204,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        204,
       );
-});
+    });
   });
 
   //Data 4.2
@@ -507,63 +483,59 @@ request(helper.getEndpointAndAuth())
    */
   describe("A Timestamp MUST preserve precision to at least milliseconds, 3 decimal points beyond seconds. (Data 4.5.s1.b3, XAPI-00122)", function () {
     it("retrieve statements, test a timestamp property", async function () {
-            const res = await endAsync(
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders())
-        .expect(200)
+      const res = await endAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders())
+          .expect(200),
       );
 
-const result = helper.parse(res.body);
-const stmts = result.statements;
-const milliChecker = (num: number) => {
-              expect(stmts[num]).to.have.property("timestamp");
-              const milliseconds = parseMillisecondsFromIso(stmts[num].timestamp);
-              expect(milliseconds).to.not.equal(null);
-              //precision to milliseconds
-              if ((milliseconds as number) % 10 > 0) {
-                expect((milliseconds as number) % 10).to.be.above(0);
-                
-              } else {
-                if (++num < stmts.length) {
-                  milliChecker(num);
-                } else {
-                  expect((milliseconds as number) % 10).to.be.above(0);
-                  
-                }
-              }
-            };
-milliChecker(0);
+      const result = helper.parse(res.body);
+      const stmts = result.statements;
+      const milliChecker = (num: number) => {
+        expect(stmts[num]).to.have.property("timestamp");
+        const milliseconds = parseMillisecondsFromIso(stmts[num].timestamp);
+        expect(milliseconds).to.not.equal(null);
+        //precision to milliseconds
+        if ((milliseconds as number) % 10 > 0) {
+          expect((milliseconds as number) % 10).to.be.above(0);
+        } else {
+          if (++num < stmts.length) {
+            milliChecker(num);
+          } else {
+            expect((milliseconds as number) % 10).to.be.above(0);
+          }
+        }
+      };
+      milliChecker(0);
     });
 
     it("retrieve statements, test a stored property", async function () {
-            const res = await endAsync(
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders())
-        .expect(200)
+      const res = await endAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders())
+          .expect(200),
       );
 
-const result = helper.parse(res.body);
-const stmts = result.statements;
-const milliChecker = (num: number) => {
-              expect(stmts[num]).to.have.property("stored");
-              const milliseconds = parseMillisecondsFromIso(stmts[num].stored);
-              expect(milliseconds).to.not.equal(null);
-              //precision to milliseconds
-              if ((milliseconds as number) % 10 > 0) {
-                expect((milliseconds as number) % 10).to.be.above(0);
-                
-              } else {
-                if (++num < stmts.length) {
-                  milliChecker(num);
-                } else {
-                  expect((milliseconds as number) % 10).to.be.above(0);
-                  
-                }
-              }
-            };
-milliChecker(0);
+      const result = helper.parse(res.body);
+      const stmts = result.statements;
+      const milliChecker = (num: number) => {
+        expect(stmts[num]).to.have.property("stored");
+        const milliseconds = parseMillisecondsFromIso(stmts[num].stored);
+        expect(milliseconds).to.not.equal(null);
+        //precision to milliseconds
+        if ((milliseconds as number) % 10 > 0) {
+          expect((milliseconds as number) % 10).to.be.above(0);
+        } else {
+          if (++num < stmts.length) {
+            milliChecker(num);
+          } else {
+            expect((milliseconds as number) % 10).to.be.above(0);
+          }
+        }
+      };
+      milliChecker(0);
     });
   });
 

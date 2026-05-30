@@ -72,14 +72,13 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", function 
         document = helper.buildDocument();
 
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
-        .headers(helper.addAllHeaders({ "If-None-Match": "*" }))
-        .json(document)
-        ,
-      204,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
+          .headers(helper.addAllHeaders({ "If-None-Match": "*" }))
+          .json(document),
+        204,
       );
-});
+    });
   }); // describe
 
   /**  XAPI-00286, Communication 2.7 Activity Profile Resource
@@ -148,14 +147,13 @@ request(helper.getEndpointAndAuth())
     delete parameters.activityId;
 
     await expectAsync(
-request(helper.getEndpointAndAuth())
-      .put(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
-      .headers(helper.addAllHeaders({ "If-None-Match": "*" }))
-      .json(document)
-      ,
-    400,
+      request(helper.getEndpointAndAuth())
+        .put(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
+        .headers(helper.addAllHeaders({ "If-None-Match": "*" }))
+        .json(document),
+      400,
     );
-});
+  });
 
   /**  XAPI-00298, Communication 2.7 Activity Profile Resources
    * An LRS's Activity Profile API rejects a POST request without "activityId" as a parameter with error code 400 Bad Request
@@ -194,14 +192,13 @@ request(helper.getEndpointAndAuth())
     delete parameters.profileId;
 
     await expectAsync(
-request(helper.getEndpointAndAuth())
-      .put(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
-      .headers(helper.addAllHeaders({ "If-None-Match": "*" }))
-      .json(document)
-      ,
-    400,
+      request(helper.getEndpointAndAuth())
+        .put(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
+        .headers(helper.addAllHeaders({ "If-None-Match": "*" }))
+        .json(document),
+      400,
     );
-});
+  });
 
   /**  XAPI-00301, Communication 2.7 Activity Profile Resource
    * An LRS's Activity Profile API rejects a POST request without "profileId" as a parameter with error code 400 Bad Request
@@ -497,14 +494,13 @@ request(helper.getEndpointAndAuth())
     let parameters = helper.buildActivityProfile();
 
     await expectAsync(
-request(helper.getEndpointAndAuth())
-      .post(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
-      .headers(helper.addAllHeaders({ "Content-Type": "application/json" }))
-      .body(document)
-      ,
-    400,
+      request(helper.getEndpointAndAuth())
+        .post(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
+        .headers(helper.addAllHeaders({ "Content-Type": "application/json" }))
+        .body(document),
+      400,
     );
-});
+  });
 
   describe("The LRS shall include a Last-Modified header indicating when the document was last modified.", function () {
     let document = helper.buildDocument();

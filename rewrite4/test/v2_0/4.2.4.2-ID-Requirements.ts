@@ -50,32 +50,30 @@ describe("Id Property Requirements (Data 2.4.1)", () => {
       data = data.statement;
       const stmtTime = Date.now();
 
-            const res = await endAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        .expect(200)
+      const res = await endAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(data)
+          .expect(200),
       );
 
+      stmtId = (res.body as string[])[0] as string;
+      const query = "?statementId=" + stmtId;
+      request(helper.getEndpointAndAuth())
+        .get(helper.getEndpointStatements() + query)
+        .wait(helper.genDelay(stmtTime, query, stmtId))
+        .headers(helper.addAllHeaders({}))
+        .end(function (getErr: unknown, getRes: any) {
+          if (getErr) {
+            throw getErr;
+            return;
+          }
 
-stmtId = ((res.body as string[])[0] as string);
-const query = "?statementId=" + stmtId;
-request(helper.getEndpointAndAuth())
-            .get(helper.getEndpointStatements() + query)
-            .wait(helper.genDelay(stmtTime, query, stmtId))
-            .headers(helper.addAllHeaders({}))
-            .end(function (getErr: unknown, getRes: any) {
-              if (getErr) {
-                throw getErr;
-                return;
-              }
-
-              const results = helper.parse(getRes.body);
-              expect(results.id).to.not.be.undefined;
-              expect(results.id).to.eql(stmtId);
-              
-            });
+          const results = helper.parse(getRes.body);
+          expect(results.id).to.not.be.undefined;
+          expect(results.id).to.eql(stmtId);
+        });
     });
   });
 });

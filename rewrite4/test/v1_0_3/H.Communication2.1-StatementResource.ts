@@ -1001,7 +1001,7 @@ StatementResult Object.
         .headers(helper.addAllHeaders({}))
         .json(statement)
         .expect(200, function (err: unknown, res: any) {
-          statementID = ((res.body as string[])[0] as string);
+          statementID = (res.body as string[])[0] as string;
           done(err);
         });
     });
@@ -2361,15 +2361,15 @@ MUST have a "Content-Type" header
 
     it('should NOT return the attachment if "attachments" is missing', async function () {
       let query = "?statementId=" + statementId;
-            const res = await endAsync(
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + query)
-        .wait(helper.genDelay(stmtTime, query, statementId))
-        .headers(helper.addAllHeaders())
-        .expect(200)
+      const res = await endAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + query)
+          .wait(helper.genDelay(stmtTime, query, statementId))
+          .headers(helper.addAllHeaders())
+          .expect(200),
       );
 
-expect(res.headers["content-type"]).to.match(/^application\/json/);
+      expect(res.headers["content-type"]).to.match(/^application\/json/);
     });
 
     it('should NOT return the attachment if "attachments" is false', async function () {
@@ -2578,35 +2578,33 @@ expect(res.headers["content-type"]).to.match(/^application\/json/);
         verb: verb,
         until: untilVoidingTime,
       });
-            const res = await endAsync(
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .wait(helper.genDelay(stmtTime, "?" + query, undefined))
-        .headers(helper.addAllHeaders({}))
-        .expect(200)
+      const res = await endAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .wait(helper.genDelay(stmtTime, "?" + query, undefined))
+          .headers(helper.addAllHeaders({}))
+          .expect(200),
       );
 
-try {
-              let results = helper.parse(res.body);
-              expect(results).to.have.property("statements");
-              const ids: Array<string | undefined> = [];
-              results.statements.forEach(function (stmt: any) {
-                ids.push(stmt.id);
-              });
-              expect(ids).to.contain(statementRefId);
-              expect(ids).to.contain(voidingId);
-              expect(ids).to.not.contain(voidedId);
-              
-            } catch (e) {
-              if (e instanceof Error) {
-                if (e.message.length > 400) {
-                  e.message = "expected results to have property 'statements' containing " + voidingId;
-                }
-                throw e;
-                return;
-              }
-              throw e;
-            }
+      try {
+        let results = helper.parse(res.body);
+        expect(results).to.have.property("statements");
+        const ids: Array<string | undefined> = [];
+        results.statements.forEach(function (stmt: any) {
+          ids.push(stmt.id);
+        });
+        expect(ids).to.contain(statementRefId);
+        expect(ids).to.contain(voidingId);
+        expect(ids).to.not.contain(voidedId);
+      } catch (e) {
+        if (e instanceof Error) {
+          if (e.message.length > 400) {
+            e.message = "expected results to have property 'statements' containing " + voidingId;
+          }
+          throw e;
+        }
+        throw e;
+      }
     });
 
     // reworded the test to be more generic, shouldn't have to stay in here
@@ -2990,37 +2988,35 @@ try {
       let query = helper.getUrlEncoding({ attachments: true });
       let stmtTime = Date.now();
 
-            await endAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders(header))
-        .body(msg)
-        .expect(200)
+      await endAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders(header))
+          .body(msg)
+          .expect(200),
       );
 
-request(helper.getEndpointAndAuth())
-              .get(helper.getEndpointStatements() + "?" + query)
-              .wait(helper.genDelay(stmtTime, "?" + query, undefined))
-              .headers(helper.addAllHeaders({}))
-              .expect(200)
-              .end(function (err: unknown, res: any) {
-                if (err) {
-                  throw err;
-                } else {
-                  let boundary = multipartParser.getBoundary(res.headers["content-type"]);
-                  expect(boundary).to.be.ok;
-                  let parsed = multipartParser.parseMultipart(boundary, res.body);
-                  expect(parsed).to.be.ok;
-                  const firstPart = parsed[0];
-                  if (!firstPart) {
-                    throw new Error("Expected at least one multipart section.");
-                    return;
-                  }
-                  let results = helper.parse(firstPart.body);
-                  expect(results).to.have.property("statements");
-                  
-                }
-              });
+      request(helper.getEndpointAndAuth())
+        .get(helper.getEndpointStatements() + "?" + query)
+        .wait(helper.genDelay(stmtTime, "?" + query, undefined))
+        .headers(helper.addAllHeaders({}))
+        .expect(200)
+        .end(function (err: unknown, res: any) {
+          if (err) {
+            throw err;
+          } else {
+            let boundary = multipartParser.getBoundary(res.headers["content-type"]);
+            expect(boundary).to.be.ok;
+            let parsed = multipartParser.parseMultipart(boundary, res.body);
+            expect(parsed).to.be.ok;
+            const firstPart = parsed[0];
+            if (!firstPart) {
+              throw new Error("Expected at least one multipart section.");
+            }
+            let results = helper.parse(firstPart.body);
+            expect(results).to.have.property("statements");
+          }
+        });
     });
   });
 });

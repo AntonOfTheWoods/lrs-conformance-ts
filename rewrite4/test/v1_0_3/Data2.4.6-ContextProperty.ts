@@ -13,7 +13,6 @@ const helper: any = helperImport;
 const templatingSelection: any = templatingSelectionImport;
 let request: any = requestBase;
 
-
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
 describe("Context Property Requirements (Data 2.4.6)", function () {
@@ -58,30 +57,29 @@ describe("Context Property Requirements (Data 2.4.6)", function () {
           data.id = helper.generateUUID();
           let query = "?statementId=" + data.id;
           let stmtTime = Date.now();
-                    await endAsync(
-request(helper.getEndpointAndAuth())
-            .post(helper.getEndpointStatements())
-            .headers(helper.addAllHeaders({}))
-            .json(data)
-            .expect(200)
+          await endAsync(
+            request(helper.getEndpointAndAuth())
+              .post(helper.getEndpointStatements())
+              .headers(helper.addAllHeaders({}))
+              .json(data)
+              .expect(200),
           );
 
-request(helper.getEndpointAndAuth())
-                  .get(helper.getEndpointStatements() + query)
-                  .wait(helper.genDelay(stmtTime, query, data.id))
-                  .headers(helper.addAllHeaders({}))
-                  .expect(200)
-                  .end(function (err: unknown, res: any) {
-                    if (err) {
-                      throw err;
-                    } else {
-                      let statement = helper.parse(res.body);
-                      expect(statement).to.have.property("context").to.have.property("contextActivities");
-                      expect(statement.context.contextActivities).to.have.property(type);
-                      expect(statement.context.contextActivities[type]).to.be.an("array");
-                      
-                    }
-                  });
+          request(helper.getEndpointAndAuth())
+            .get(helper.getEndpointStatements() + query)
+            .wait(helper.genDelay(stmtTime, query, data.id))
+            .headers(helper.addAllHeaders({}))
+            .expect(200)
+            .end(function (err: unknown, res: any) {
+              if (err) {
+                throw err;
+              } else {
+                let statement = helper.parse(res.body);
+                expect(statement).to.have.property("context").to.have.property("contextActivities");
+                expect(statement.context.contextActivities).to.have.property(type);
+                expect(statement.context.contextActivities[type]).to.be.an("array");
+              }
+            });
         },
       );
     });
@@ -101,33 +99,32 @@ request(helper.getEndpointAndAuth())
           let query = "?statementId=" + data.id;
           let stmtTime = Date.now();
 
-                    await endAsync(
-request(helper.getEndpointAndAuth())
-            .post(helper.getEndpointStatements())
-            .headers(helper.addAllHeaders({}))
-            .json(data)
-            .expect(200)
+          await endAsync(
+            request(helper.getEndpointAndAuth())
+              .post(helper.getEndpointStatements())
+              .headers(helper.addAllHeaders({}))
+              .json(data)
+              .expect(200),
           );
 
-request(helper.getEndpointAndAuth())
-                  .get(helper.getEndpointStatements() + query)
-                  .wait(helper.genDelay(stmtTime, query, data.id))
-                  .headers(helper.addAllHeaders({}))
-                  .expect(200)
-                  .end(function (err: unknown, res: any) {
-                    if (err) {
-                      throw err;
-                    } else {
-                      let statement = helper.parse(res.body);
-                      expect(statement)
-                        .to.have.property("object")
-                        .to.have.property("context")
-                        .to.have.property("contextActivities");
-                      expect(statement.object.context.contextActivities).to.have.property(type);
-                      expect(statement.object.context.contextActivities[type]).to.be.an("array");
-                      
-                    }
-                  });
+          request(helper.getEndpointAndAuth())
+            .get(helper.getEndpointStatements() + query)
+            .wait(helper.genDelay(stmtTime, query, data.id))
+            .headers(helper.addAllHeaders({}))
+            .expect(200)
+            .end(function (err: unknown, res: any) {
+              if (err) {
+                throw err;
+              } else {
+                let statement = helper.parse(res.body);
+                expect(statement)
+                  .to.have.property("object")
+                  .to.have.property("context")
+                  .to.have.property("contextActivities");
+                expect(statement.object.context.contextActivities).to.have.property(type);
+                expect(statement.object.context.contextActivities[type]).to.be.an("array");
+              }
+            });
         },
       );
     });

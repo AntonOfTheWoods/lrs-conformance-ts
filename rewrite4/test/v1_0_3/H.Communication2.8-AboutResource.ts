@@ -11,7 +11,6 @@ import { endAsync } from "../super-request.ts";
 const helper: any = helperImport;
 let request: any = requestBase;
 
-
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
 describe("About Resource Requirements (Communication 2.8)", function () {
@@ -91,35 +90,33 @@ describe("About Resource Requirements (Communication 2.8)", function () {
    */
   describe('An LRS rejects with error code 400 Bad Request, a Request which does not use a "X-Experience-API-Version" header name to any Resource except the About Resource (multiplicity, Communication 2.8.s4.table1.row2, XAPI-00321)', function () {
     it("using Statement Endpoint", async function () {
-            const res = await endAsync(
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements())
-        .headers(helper.addBasicAuthenicationHeader({}))
+      const res = await endAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements())
+          .headers(helper.addBasicAuthenicationHeader({})),
       );
 
-if (res.statusCode === 400) {
-            // if the status code is a 400, we expect that the request was handled and rejected by a 1.0.x compliant lrs and test for that version in the result headers or that the the request was forwarded to a 0.9x lrs and rejected
-            expect(res.statusCode).to.eql(400);
-            expect(res.headers["x-experience-api-version"]).to.exist;
-            expect(res.headers["x-experience-api-version"]).to.match(/^2\.0\.\d+$|^1\.0\.\d+$|^0?\.9\d*?$/);
-            
-          } else if (res.statusCode === 200) {
-            // if the status code is a 200, we expect that the request was rerouted to a 0.9x compliant lrs and test for that version in the result headers
-            expect(res.statusCode).to.eql(200);
-            expect(res.headers["x-experience-api-version"]).to.exist;
-            expect(res.headers["x-experience-api-version"]).to.match(/^0?\.9\d*?$/);
-            
-          } else {
-            // at this point there was some error and we pass along the message
-            let str = "Received: status code - " + res.statusCode + " from LRS of version ";
-            if (res.headers["x-experience-api-version"]) {
-              str += res.headers["x-experience-api-version"];
-            } else {
-              str += "missing";
-            }
-            str += ".\nExpected: either 400 with LRS version 1.0.x, 2.0.x, or 200 with LRS version 0.9x.";
-            throw new Error(str);
-          }
+      if (res.statusCode === 400) {
+        // if the status code is a 400, we expect that the request was handled and rejected by a 1.0.x compliant lrs and test for that version in the result headers or that the the request was forwarded to a 0.9x lrs and rejected
+        expect(res.statusCode).to.eql(400);
+        expect(res.headers["x-experience-api-version"]).to.exist;
+        expect(res.headers["x-experience-api-version"]).to.match(/^2\.0\.\d+$|^1\.0\.\d+$|^0?\.9\d*?$/);
+      } else if (res.statusCode === 200) {
+        // if the status code is a 200, we expect that the request was rerouted to a 0.9x compliant lrs and test for that version in the result headers
+        expect(res.statusCode).to.eql(200);
+        expect(res.headers["x-experience-api-version"]).to.exist;
+        expect(res.headers["x-experience-api-version"]).to.match(/^0?\.9\d*?$/);
+      } else {
+        // at this point there was some error and we pass along the message
+        let str = "Received: status code - " + res.statusCode + " from LRS of version ";
+        if (res.headers["x-experience-api-version"]) {
+          str += res.headers["x-experience-api-version"];
+        } else {
+          str += "missing";
+        }
+        str += ".\nExpected: either 400 with LRS version 1.0.x, 2.0.x, or 200 with LRS version 0.9x.";
+        throw new Error(str);
+      }
     });
 
     /*
@@ -132,163 +129,153 @@ if (res.statusCode === 400) {
         */
 
     it("using Activities Endpoint", async function () {
-            const res = await endAsync(
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointActivities())
-        .headers(helper.addBasicAuthenicationHeader({}))
+      const res = await endAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointActivities())
+          .headers(helper.addBasicAuthenicationHeader({})),
       );
 
-if (res.statusCode === 400) {
-            // if the status code is a 400, we expect that the request was handled and rejected by a 1.0.x compliant lrs and test for that version in the result headers or that the the request was forwarded to a 0.9x lrs and rejected
-            expect(res.statusCode).to.eql(400);
-            expect(res.headers["x-experience-api-version"]).to.exist;
-            expect(res.headers["x-experience-api-version"]).to.match(/^2\.0\.\d+$|^1\.0\.\d+$|^0?\.9\d*?$/);
-            
-          } else if (res.statusCode === 200) {
-            // if the status code is a 200, we expect that the request was rerouted to a 0.9x compliant lrs and test for that version in the result headers
-            expect(res.statusCode).to.eql(200);
-            expect(res.headers["x-experience-api-version"]).to.exist;
-            expect(res.headers["x-experience-api-version"]).to.match(/^0?\.9\d*?$/);
-            
-          } else {
-            // at this point there was some error and we pass along the message
-            let str = "Received: status code - " + res.statusCode + " from LRS of version ";
-            if (res.headers["x-experience-api-version"]) {
-              str += res.headers["x-experience-api-version"];
-            } else {
-              str += "missing";
-            }
-            str += ".\nExpected: either 400 with LRS version 1.0.x, 2.0.x, or 200 with LRS version 0.9x.";
-            throw new Error(str);
-          }
+      if (res.statusCode === 400) {
+        // if the status code is a 400, we expect that the request was handled and rejected by a 1.0.x compliant lrs and test for that version in the result headers or that the the request was forwarded to a 0.9x lrs and rejected
+        expect(res.statusCode).to.eql(400);
+        expect(res.headers["x-experience-api-version"]).to.exist;
+        expect(res.headers["x-experience-api-version"]).to.match(/^2\.0\.\d+$|^1\.0\.\d+$|^0?\.9\d*?$/);
+      } else if (res.statusCode === 200) {
+        // if the status code is a 200, we expect that the request was rerouted to a 0.9x compliant lrs and test for that version in the result headers
+        expect(res.statusCode).to.eql(200);
+        expect(res.headers["x-experience-api-version"]).to.exist;
+        expect(res.headers["x-experience-api-version"]).to.match(/^0?\.9\d*?$/);
+      } else {
+        // at this point there was some error and we pass along the message
+        let str = "Received: status code - " + res.statusCode + " from LRS of version ";
+        if (res.headers["x-experience-api-version"]) {
+          str += res.headers["x-experience-api-version"];
+        } else {
+          str += "missing";
+        }
+        str += ".\nExpected: either 400 with LRS version 1.0.x, 2.0.x, or 200 with LRS version 0.9x.";
+        throw new Error(str);
+      }
     });
 
     it("using Activities Profile Endpoint", async function () {
-            const res = await endAsync(
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointActivitiesProfile())
-        .headers(helper.addBasicAuthenicationHeader({}))
+      const res = await endAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointActivitiesProfile())
+          .headers(helper.addBasicAuthenicationHeader({})),
       );
 
-if (res.statusCode === 400) {
-            // if the status code is a 400, we expect that the request was handled and rejected by a 1.0.x compliant lrs and test for that version in the result headers or that the the request was forwarded to a 0.9x lrs and rejected
-            expect(res.statusCode).to.eql(400);
-            expect(res.headers["x-experience-api-version"]).to.exist;
-            expect(res.headers["x-experience-api-version"]).to.match(/^2\.0\.\d+$|^1\.0\.\d+$|^0?\.9\d*?$/);
-            
-          } else if (res.statusCode === 200) {
-            // if the status code is a 200, we expect that the request was rerouted to a 0.9x compliant lrs and test for that version in the result headers
-            expect(res.statusCode).to.eql(200);
-            expect(res.headers["x-experience-api-version"]).to.exist;
-            expect(res.headers["x-experience-api-version"]).to.match(/^0?\.9\d*?$/);
-            
-          } else {
-            // at this point there was some error and we pass along the message
-            let str = "Received: status code - " + res.statusCode + " from LRS of version ";
-            if (res.headers["x-experience-api-version"]) {
-              str += res.headers["x-experience-api-version"];
-            } else {
-              str += "missing";
-            }
-            str += ".\nExpected: either 400 with LRS version 1.0.x, 2.0.x, or 200 with LRS version 0.9x.";
-            throw new Error(str);
-          }
+      if (res.statusCode === 400) {
+        // if the status code is a 400, we expect that the request was handled and rejected by a 1.0.x compliant lrs and test for that version in the result headers or that the the request was forwarded to a 0.9x lrs and rejected
+        expect(res.statusCode).to.eql(400);
+        expect(res.headers["x-experience-api-version"]).to.exist;
+        expect(res.headers["x-experience-api-version"]).to.match(/^2\.0\.\d+$|^1\.0\.\d+$|^0?\.9\d*?$/);
+      } else if (res.statusCode === 200) {
+        // if the status code is a 200, we expect that the request was rerouted to a 0.9x compliant lrs and test for that version in the result headers
+        expect(res.statusCode).to.eql(200);
+        expect(res.headers["x-experience-api-version"]).to.exist;
+        expect(res.headers["x-experience-api-version"]).to.match(/^0?\.9\d*?$/);
+      } else {
+        // at this point there was some error and we pass along the message
+        let str = "Received: status code - " + res.statusCode + " from LRS of version ";
+        if (res.headers["x-experience-api-version"]) {
+          str += res.headers["x-experience-api-version"];
+        } else {
+          str += "missing";
+        }
+        str += ".\nExpected: either 400 with LRS version 1.0.x, 2.0.x, or 200 with LRS version 0.9x.";
+        throw new Error(str);
+      }
     });
 
     it("using Activities State Endpoint", async function () {
-            const res = await endAsync(
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointActivitiesState())
-        .headers(helper.addBasicAuthenicationHeader({}))
+      const res = await endAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointActivitiesState())
+          .headers(helper.addBasicAuthenicationHeader({})),
       );
 
-if (res.statusCode === 400) {
-            // if the status code is a 400, we expect that the request was handled and rejected by a 1.0.x compliant lrs and test for that version in the result headers or that the the request was forwarded to a 0.9x lrs and rejected
-            expect(res.statusCode).to.eql(400);
-            expect(res.headers["x-experience-api-version"]).to.exist;
-            expect(res.headers["x-experience-api-version"]).to.match(/^2\.0\.\d+$|^1\.0\.\d+$|^0?\.9\d*?$/);
-            
-          } else if (res.statusCode === 200) {
-            // if the status code is a 200, we expect that the request was rerouted to a 0.9x compliant lrs and test for that version in the result headers
-            expect(res.statusCode).to.eql(200);
-            expect(res.headers["x-experience-api-version"]).to.exist;
-            expect(res.headers["x-experience-api-version"]).to.match(/^0?\.9\d*?$/);
-            
-          } else {
-            // at this point there was some error and we pass along the message
-            let str = "Received: status code - " + res.statusCode + " from LRS of version ";
-            if (res.headers["x-experience-api-version"]) {
-              str += res.headers["x-experience-api-version"];
-            } else {
-              str += "missing";
-            }
-            str += ".\nExpected: either 400 with LRS version 1.0.x, 2.0.x, or 200 with LRS version 0.9x.";
-            throw new Error(str);
-          }
+      if (res.statusCode === 400) {
+        // if the status code is a 400, we expect that the request was handled and rejected by a 1.0.x compliant lrs and test for that version in the result headers or that the the request was forwarded to a 0.9x lrs and rejected
+        expect(res.statusCode).to.eql(400);
+        expect(res.headers["x-experience-api-version"]).to.exist;
+        expect(res.headers["x-experience-api-version"]).to.match(/^2\.0\.\d+$|^1\.0\.\d+$|^0?\.9\d*?$/);
+      } else if (res.statusCode === 200) {
+        // if the status code is a 200, we expect that the request was rerouted to a 0.9x compliant lrs and test for that version in the result headers
+        expect(res.statusCode).to.eql(200);
+        expect(res.headers["x-experience-api-version"]).to.exist;
+        expect(res.headers["x-experience-api-version"]).to.match(/^0?\.9\d*?$/);
+      } else {
+        // at this point there was some error and we pass along the message
+        let str = "Received: status code - " + res.statusCode + " from LRS of version ";
+        if (res.headers["x-experience-api-version"]) {
+          str += res.headers["x-experience-api-version"];
+        } else {
+          str += "missing";
+        }
+        str += ".\nExpected: either 400 with LRS version 1.0.x, 2.0.x, or 200 with LRS version 0.9x.";
+        throw new Error(str);
+      }
     });
 
     it("using Agents Endpoint", async function () {
-            const res = await endAsync(
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointAgents())
-        .headers(helper.addBasicAuthenicationHeader({}))
+      const res = await endAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointAgents())
+          .headers(helper.addBasicAuthenicationHeader({})),
       );
 
-if (res.statusCode === 400) {
-            // if the status code is a 400, we expect that the request was handled and rejected by a 1.0.x compliant lrs and test for that version in the result headers or that the the request was forwarded to a 0.9x lrs and rejected
-            expect(res.statusCode).to.eql(400);
-            expect(res.headers["x-experience-api-version"]).to.exist;
-            expect(res.headers["x-experience-api-version"]).to.match(/^2\.0\.\d+$|^1\.0\.\d+$|^0?\.9\d*?$/);
-            
-          } else if (res.statusCode === 200) {
-            // if the status code is a 200, we expect that the request was rerouted to a 0.9x compliant lrs and test for that version in the result headers
-            expect(res.statusCode).to.eql(200);
-            expect(res.headers["x-experience-api-version"]).to.exist;
-            expect(res.headers["x-experience-api-version"]).to.match(/^0?\.9\d*?$/);
-            
-          } else {
-            // at this point there was some error and we pass along the message
-            let str = "Received: status code - " + res.statusCode + " from LRS of version ";
-            if (res.headers["x-experience-api-version"]) {
-              str += res.headers["x-experience-api-version"];
-            } else {
-              str += "missing";
-            }
-            str += ".\nExpected: either 400 with LRS version 1.0.x, 2.0.x, or 200 with LRS version 0.9x.";
-            throw new Error(str);
-          }
+      if (res.statusCode === 400) {
+        // if the status code is a 400, we expect that the request was handled and rejected by a 1.0.x compliant lrs and test for that version in the result headers or that the the request was forwarded to a 0.9x lrs and rejected
+        expect(res.statusCode).to.eql(400);
+        expect(res.headers["x-experience-api-version"]).to.exist;
+        expect(res.headers["x-experience-api-version"]).to.match(/^2\.0\.\d+$|^1\.0\.\d+$|^0?\.9\d*?$/);
+      } else if (res.statusCode === 200) {
+        // if the status code is a 200, we expect that the request was rerouted to a 0.9x compliant lrs and test for that version in the result headers
+        expect(res.statusCode).to.eql(200);
+        expect(res.headers["x-experience-api-version"]).to.exist;
+        expect(res.headers["x-experience-api-version"]).to.match(/^0?\.9\d*?$/);
+      } else {
+        // at this point there was some error and we pass along the message
+        let str = "Received: status code - " + res.statusCode + " from LRS of version ";
+        if (res.headers["x-experience-api-version"]) {
+          str += res.headers["x-experience-api-version"];
+        } else {
+          str += "missing";
+        }
+        str += ".\nExpected: either 400 with LRS version 1.0.x, 2.0.x, or 200 with LRS version 0.9x.";
+        throw new Error(str);
+      }
     });
 
     it("using Agents Profile Endpoint", async function () {
-            const res = await endAsync(
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointAgentsProfile())
-        .headers(helper.addBasicAuthenicationHeader({}))
+      const res = await endAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointAgentsProfile())
+          .headers(helper.addBasicAuthenicationHeader({})),
       );
 
-if (res.statusCode === 400) {
-            // if the status code is a 400, we expect that the request was handled and rejected by a 1.0.x compliant lrs and test for that version in the result headers or that the the request was forwarded to a 0.9x lrs and rejected
-            expect(res.statusCode).to.eql(400);
-            expect(res.headers["x-experience-api-version"]).to.exist;
-            expect(res.headers["x-experience-api-version"]).to.match(/^2\.0\.\d+$|^1\.0\.\d+$|^0?\.9\d*?$/);
-            
-          } else if (res.statusCode === 200) {
-            // if the status code is a 200, we expect that the request was rerouted to a 0.9x compliant lrs and test for that version in the result headers
-            expect(res.statusCode).to.eql(200);
-            expect(res.headers["x-experience-api-version"]).to.exist;
-            expect(res.headers["x-experience-api-version"]).to.match(/^0?\.9\d*?$/);
-            
-          } else {
-            // at this point there was some error and we pass along the message
-            let str = "Received: status code - " + res.statusCode + " from LRS of version ";
-            if (res.headers["x-experience-api-version"]) {
-              str += res.headers["x-experience-api-version"];
-            } else {
-              str += "missing";
-            }
-            str += ".\nExpected: either 400 with LRS version 1.0.x, 2.0.x, or 200 with LRS version 0.9x.";
-            throw new Error(str);
-          }
+      if (res.statusCode === 400) {
+        // if the status code is a 400, we expect that the request was handled and rejected by a 1.0.x compliant lrs and test for that version in the result headers or that the the request was forwarded to a 0.9x lrs and rejected
+        expect(res.statusCode).to.eql(400);
+        expect(res.headers["x-experience-api-version"]).to.exist;
+        expect(res.headers["x-experience-api-version"]).to.match(/^2\.0\.\d+$|^1\.0\.\d+$|^0?\.9\d*?$/);
+      } else if (res.statusCode === 200) {
+        // if the status code is a 200, we expect that the request was rerouted to a 0.9x compliant lrs and test for that version in the result headers
+        expect(res.statusCode).to.eql(200);
+        expect(res.headers["x-experience-api-version"]).to.exist;
+        expect(res.headers["x-experience-api-version"]).to.match(/^0?\.9\d*?$/);
+      } else {
+        // at this point there was some error and we pass along the message
+        let str = "Received: status code - " + res.statusCode + " from LRS of version ";
+        if (res.headers["x-experience-api-version"]) {
+          str += res.headers["x-experience-api-version"];
+        } else {
+          str += "missing";
+        }
+        str += ".\nExpected: either 400 with LRS version 1.0.x, 2.0.x, or 200 with LRS version 0.9x.";
+        throw new Error(str);
+      }
     });
   });
 });

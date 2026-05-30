@@ -48,31 +48,30 @@ describe("Retrieval of Statements (Data 2.5)", function () {
       const s2 = helper.createFromTemplate(template).statement;
       const stmts = [s1, s2];
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(stmts)
-        ,
-      200,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(stmts),
+        200,
       );
-});
+    });
 
     it("will return single statements property and may return", async function () {
       this.timeout(0);
       const query = "?limit=1";
       const stmtTime = Date.now();
       const res = await expectAsync(
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + query)
-        .wait(helper.genDelay(stmtTime, query, undefined))
-        .headers(helper.addAllHeaders({}))
-        ,
-200,
-);
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + query)
+          .wait(helper.genDelay(stmtTime, query, undefined))
+          .headers(helper.addAllHeaders({})),
+        200,
+      );
 
-const result = helper.parse(res.body);
-            expect(result).to.have.property("statements");
-            expect(result).to.have.property("more");});
+      const result = helper.parse(res.body);
+      expect(result).to.have.property("statements");
+      expect(result).to.have.property("more");
+    });
   });
 
   /**  XAPI-00110, Data 2.5 Retrieval of Statements
@@ -110,14 +109,13 @@ const result = helper.parse(res.body);
       statement.context.contextActivities.category.id = "http://www.example.com/test/array/statements/pri";
 
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(statement)
-        ,
-      200,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(statement),
+        200,
       );
-});
+    });
 
     before("persist substatement", async function () {
       const templates = [
@@ -146,27 +144,26 @@ request(helper.getEndpointAndAuth())
       substatement.object.context.contextActivities.category.id = "http://www.example.com/test/array/statements/sub";
       stmtTime = Date.now();
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(substatement)
-        ,
-      200,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(substatement),
+        200,
       );
-});
+    });
 
     it('should return StatementResult with statements as array using GET without "statementId" or "voidedStatementId"', async function () {
       const res = await expectAsync(
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements())
-        .wait(helper.genDelay(stmtTime, undefined, undefined))
-        .headers(helper.addAllHeaders({}))
-        ,
-200,
-);
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements())
+          .wait(helper.genDelay(stmtTime, undefined, undefined))
+          .headers(helper.addAllHeaders({})),
+        200,
+      );
 
-const result = helper.parse(res.body);
-            expect(result).to.have.property("statements").to.be.an("array");});
+      const result = helper.parse(res.body);
+      expect(result).to.have.property("statements").to.be.an("array");
+    });
   });
 
   /**  XAPI-00114, Data 2.5 Retrieval of Statements
@@ -183,29 +180,28 @@ const result = helper.parse(res.body);
     const query = helper.getUrlEncoding({ limit: 1 });
     const stmtTime = Date.now();
 
-        await endAsync(
-request(helper.getEndpointAndAuth())
-      .post(helper.getEndpointStatements())
-      .headers(helper.addAllHeaders({}))
-      .json([statement1, statement2])
-      .expect(200)
+    await endAsync(
+      request(helper.getEndpointAndAuth())
+        .post(helper.getEndpointStatements())
+        .headers(helper.addAllHeaders({}))
+        .json([statement1, statement2])
+        .expect(200),
     );
 
-request(helper.getEndpointAndAuth())
-            .get(helper.getEndpointStatements() + "?" + query)
-            .wait(helper.genDelay(stmtTime, "?" + query, null))
-            .headers(helper.addAllHeaders({}))
-            .expect(200)
-            .end(function (err: unknown, res: any) {
-              if (err) {
-                throw err;
-              } else {
-                const results = helper.parse(res.body);
-                expect(results.statements).to.exist;
-                expect(results.more).to.exist;
-                
-              }
-            });
+    request(helper.getEndpointAndAuth())
+      .get(helper.getEndpointStatements() + "?" + query)
+      .wait(helper.genDelay(stmtTime, "?" + query, null))
+      .headers(helper.addAllHeaders({}))
+      .expect(200)
+      .end(function (err: unknown, res: any) {
+        if (err) {
+          throw err;
+        } else {
+          const results = helper.parse(res.body);
+          expect(results.statements).to.exist;
+          expect(results.more).to.exist;
+        }
+      });
   });
 
   /**  XAPI-00109, Data 2.5 Retrieval of Statements
@@ -215,19 +211,19 @@ request(helper.getEndpointAndAuth())
     it('should return empty "more" property or no "more" property when all statements returned', async function () {
       const query = helper.getUrlEncoding({ verb: "http://adlnet.gov/expapi/non/existent/344588672021038" });
       const res = await expectAsync(
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .headers(helper.addAllHeaders({}))
-        ,
-200,
-);
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .headers(helper.addAllHeaders({})),
+        200,
+      );
 
-const result = helper.parse(res.body);
-            let passed = false;
+      const result = helper.parse(res.body);
+      let passed = false;
 
-            if (result.more === "" || !result.more) passed = true;
+      if (result.more === "" || !result.more) passed = true;
 
-            expect(passed).to.be.true;});
+      expect(passed).to.be.true;
+    });
   });
 
   /**  XAPI-00108, Data 2.5 Retrieval of Statements
@@ -235,30 +231,29 @@ const result = helper.parse(res.body);
    */
   describe('If not empty, the "more" property\'s IRL refers to a specific container object corresponding to the next page of results from the orignal GET request (Data 2.5.s2.table1.row2, XAPI-00108)', function () {
     it('should return "more" which refers to next page of results', async function () {
-            const res = await endAsync(
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?limit=1")
-        .headers(helper.addAllHeaders({}))
-        .expect(200)
+      const res = await endAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?limit=1")
+          .headers(helper.addAllHeaders({}))
+          .expect(200),
       );
 
-const result = helper.parse(res.body);
-expect(result).to.have.property("more");
-expect(isValidRelativeUrl(result.more)).to.be.true;
-request("")
-              .get(resolve(res.request.href, result.more))
-              .headers(helper.addAllHeaders({}))
-              .expect(200)
-              .end(function (err: unknown, res: any) {
-                if (err) {
-                  throw err;
-                } else {
-                  const results2 = helper.parse(res.body);
-                  expect(results2.statements).to.exist;
-                  expect(results2.more).to.exist;
-                  
-                }
-              });
+      const result = helper.parse(res.body);
+      expect(result).to.have.property("more");
+      expect(isValidRelativeUrl(result.more)).to.be.true;
+      request("")
+        .get(resolve(res.request.href, result.more))
+        .headers(helper.addAllHeaders({}))
+        .expect(200)
+        .end(function (err: unknown, res: any) {
+          if (err) {
+            throw err;
+          } else {
+            const results2 = helper.parse(res.body);
+            expect(results2.statements).to.exist;
+            expect(results2.more).to.exist;
+          }
+        });
     });
   });
 
@@ -282,38 +277,37 @@ request("")
     const query = helper.getUrlEncoding({ limit: 1 });
     const stmtTime = Date.now();
 
-        await endAsync(
-request(helper.getEndpointAndAuth())
-      .post(helper.getEndpointStatements())
-      .headers(helper.addAllHeaders({}))
-      .json([statement1, statement2])
-      .expect(200)
+    await endAsync(
+      request(helper.getEndpointAndAuth())
+        .post(helper.getEndpointStatements())
+        .headers(helper.addAllHeaders({}))
+        .json([statement1, statement2])
+        .expect(200),
     );
 
-request(helper.getEndpointAndAuth())
-            .get(helper.getEndpointStatements() + "?" + query)
-            .wait(helper.genDelay(stmtTime, "?" + query, id2))
+    request(helper.getEndpointAndAuth())
+      .get(helper.getEndpointStatements() + "?" + query)
+      .wait(helper.genDelay(stmtTime, "?" + query, id2))
+      .headers(helper.addAllHeaders({}))
+      .expect(200)
+      .end(function (err: unknown, res: any) {
+        if (err) {
+          throw err;
+        } else {
+          const results = helper.parse(res.body);
+          request("")
+            .get(resolve(res.request.href, results.more))
             .headers(helper.addAllHeaders({}))
             .expect(200)
             .end(function (err: unknown, res: any) {
               if (err) {
                 throw err;
               } else {
-                const results = helper.parse(res.body);
-                request("")
-                  .get(resolve(res.request.href, results.more))
-                  .headers(helper.addAllHeaders({}))
-                  .expect(200)
-                  .end(function (err: unknown, res: any) {
-                    if (err) {
-                      throw err;
-                    } else {
-                      const results2 = helper.parse(res.body);
-                      expect(results2.statements).to.exist;
-                      
-                    }
-                  });
+                const results2 = helper.parse(res.body);
+                expect(results2.statements).to.exist;
               }
             });
+        }
+      });
   });
 });

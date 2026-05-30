@@ -32,32 +32,31 @@ describe("Encoding Requirements (Communication 1.4)", () => {
     });
     let stmtTime = Date.now();
 
-        await endAsync(
-request(helper.getEndpointAndAuth())
-      .post(helper.getEndpointStatements())
-      .headers(helper.addAllHeaders({}))
-      .json(unicode)
-      .expect(200)
+    await endAsync(
+      request(helper.getEndpointAndAuth())
+        .post(helper.getEndpointStatements())
+        .headers(helper.addAllHeaders({}))
+        .json(unicode)
+        .expect(200),
     );
 
-request(helper.getEndpointAndAuth())
-            .get(helper.getEndpointStatements() + "?" + query)
-            .wait(helper.genDelay(stmtTime, "?" + query, null))
-            .headers(helper.addAllHeaders({}))
-            .expect(200)
-            .end(function (err: unknown, res: any) {
-              if (err) {
-                throw err;
-              } else {
-                let results = helper.parse(res.body);
-                let languages = results.statements[0].verb.display;
-                let unicodeConformant = true;
-                for (let key in languages) {
-                  if (languages[key] !== unicode.verb.display[key]) unicodeConformant = false;
-                }
-                expect(unicodeConformant).to.be.true;
-                
-              }
-            });
+    request(helper.getEndpointAndAuth())
+      .get(helper.getEndpointStatements() + "?" + query)
+      .wait(helper.genDelay(stmtTime, "?" + query, null))
+      .headers(helper.addAllHeaders({}))
+      .expect(200)
+      .end(function (err: unknown, res: any) {
+        if (err) {
+          throw err;
+        } else {
+          let results = helper.parse(res.body);
+          let languages = results.statements[0].verb.display;
+          let unicodeConformant = true;
+          for (let key in languages) {
+            if (languages[key] !== unicode.verb.display[key]) unicodeConformant = false;
+          }
+          expect(unicodeConformant).to.be.true;
+        }
+      });
   });
 });

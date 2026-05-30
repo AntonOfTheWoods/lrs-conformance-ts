@@ -28,13 +28,12 @@ describe("Error Codes Requirements (Communication 3.2)", () => {
    */
   it("An LRS rejects with error code 400 Bad Request any request to an Resource which uses a parameter not recognized by the LRS (Communication 3.2.s2.b1, XAPI-00324)", async function () {
     await expectAsync(
-request(helper.getEndpointAndAuth())
-      .get(helper.getEndpointStatements() + "?foo=bar")
-      .headers(helper.addAllHeaders({}))
-      ,
-    400,
+      request(helper.getEndpointAndAuth())
+        .get(helper.getEndpointStatements() + "?foo=bar")
+        .headers(helper.addAllHeaders({})),
+      400,
     );
-});
+  });
 
   /**  XAPI-00325, Communication 3.2 Error Codes
    * An LRS rejects with error code 400 Bad Request any request to an API which uses a parameter with differing case
@@ -48,36 +47,33 @@ request(helper.getEndpointAndAuth())
 
       let query = helper.getUrlEncoding({ StatementId: data.id });
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointStatements() + "?" + query)
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointStatements() + "?" + query)
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        400,
       );
-});
+    });
 
     it('should fail on GET statement when not using "statementId"', async function () {
       let query = helper.getUrlEncoding({ StatementId: helper.generateUUID() });
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .headers(helper.addAllHeaders({}))
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .headers(helper.addAllHeaders({})),
+        400,
       );
-});
+    });
 
     it('should fail on GET statement when not using "voidedStatementId"', async function () {
       let query = helper.getUrlEncoding({ VoidedStatementId: helper.generateUUID() });
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .headers(helper.addAllHeaders({}))
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .headers(helper.addAllHeaders({})),
+        400,
       );
-});
+    });
 
     it('should fail on GET statement when not using "agent"', async function () {
       let templates = [{ Agent: "{{agents.default}}" }];
@@ -85,134 +81,122 @@ request(helper.getEndpointAndAuth())
 
       let query = helper.getUrlEncoding(data);
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .headers(helper.addAllHeaders({}))
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .headers(helper.addAllHeaders({})),
+        400,
       );
-});
+    });
 
     it('should fail on GET statement when not using "verb"', async function () {
       let query = helper.getUrlEncoding({ Verb: "http://adlnet.gov/expapi/verbs/attended" });
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .headers(helper.addAllHeaders({}))
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .headers(helper.addAllHeaders({})),
+        400,
       );
-});
+    });
 
     it('should fail on GET statement when not using "activity"', async function () {
       let query = helper.getUrlEncoding({ Activity: "http://www.example.com/meetings/occurances/34534" });
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .headers(helper.addAllHeaders({}))
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .headers(helper.addAllHeaders({})),
+        400,
       );
-});
+    });
 
     it('should fail on GET statement when not using "registration"', async function () {
       let query = helper.getUrlEncoding({ Registration: "ec531277-b57b-4c15-8d91-d292c5b2b8f7" });
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .headers(helper.addAllHeaders({}))
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .headers(helper.addAllHeaders({})),
+        400,
       );
-});
+    });
 
     it('should fail on GET statement when not using "related_activities"', async function () {
       let query = helper.getUrlEncoding({ Related_Activities: true });
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .headers(helper.addAllHeaders({}))
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .headers(helper.addAllHeaders({})),
+        400,
       );
-});
+    });
 
     it('should fail on GET statement when not using "related_agents"', async function () {
       let query = helper.getUrlEncoding({ Related_Agents: true });
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .headers(helper.addAllHeaders({}))
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .headers(helper.addAllHeaders({})),
+        400,
       );
-});
+    });
 
     it('should fail on GET statement when not using "since"', async function () {
       let query = helper.getUrlEncoding({ Since: "2012-06-01T19:09:13.245Z" });
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .headers(helper.addAllHeaders({}))
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .headers(helper.addAllHeaders({})),
+        400,
       );
-});
+    });
 
     it('should fail on GET statement when not using "until"', async function () {
       let query = helper.getUrlEncoding({ Until: "2012-06-01T19:09:13.245Z" });
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .headers(helper.addAllHeaders({}))
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .headers(helper.addAllHeaders({})),
+        400,
       );
-});
+    });
 
     it('should fail on GET statement when not using "limit"', async function () {
       let query = helper.getUrlEncoding({ Limit: 10 });
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .headers(helper.addAllHeaders({}))
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .headers(helper.addAllHeaders({})),
+        400,
       );
-});
+    });
 
     it('should fail on GET statement when not using "format"', async function () {
       let query = helper.getUrlEncoding({ Format: "ids" });
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .headers(helper.addAllHeaders({}))
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .headers(helper.addAllHeaders({})),
+        400,
       );
-});
+    });
 
     it('should fail on GET statement when not using "attachments"', async function () {
       let query = helper.getUrlEncoding({ Attachments: true });
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .headers(helper.addAllHeaders({}))
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .headers(helper.addAllHeaders({})),
+        400,
       );
-});
+    });
 
     it('should fail on GET statement when not using "ascending"', async function () {
       let query = helper.getUrlEncoding({ Ascending: true });
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .headers(helper.addAllHeaders({}))
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .headers(helper.addAllHeaders({})),
+        400,
       );
-});
+    });
   });
 
   /**  XAPI-00326, Communication 3.2 Error Codes

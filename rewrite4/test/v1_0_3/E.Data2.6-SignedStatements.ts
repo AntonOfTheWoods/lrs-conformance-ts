@@ -9,7 +9,6 @@ import requestBase from "../super-request.ts";
 const helper: any = helperImport;
 let request: any = requestBase;
 
-
 request = helper.OAuthRequest(request);
 describe("Signed Statements (Data 2.6)", () => {
   /**  Matchup with Conformance Requirements Document

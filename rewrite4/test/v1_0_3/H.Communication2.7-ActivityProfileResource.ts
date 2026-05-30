@@ -11,7 +11,6 @@ import { expectAsync } from "../super-request.ts";
 const helper: any = helperImport;
 let request: any = requestBase;
 
-
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
 describe("Activity Profile Resource Requirements (Communication 2.7)", () => {
@@ -72,28 +71,26 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", () => {
         document = helper.buildDocument();
 
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
-        .headers(helper.addAllHeaders({ "If-None-Match": "*" }))
-        .json(document)
-        ,
-      204,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
+          .headers(helper.addAllHeaders({ "If-None-Match": "*" }))
+          .json(document),
+        204,
       );
-});
+    });
 
     it("fails without ETag header", async function () {
       let parameters = helper.buildActivityProfile(),
         document = helper.buildDocument();
 
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
-        .headers(helper.addAllHeaders())
-        .json(document)
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
+          .headers(helper.addAllHeaders())
+          .json(document),
+        400,
       );
-});
+    });
   }); // describe
 
   /**  XAPI-00286, Communication 2.7 Activity Profile Resource
@@ -162,14 +159,13 @@ request(helper.getEndpointAndAuth())
     delete parameters.activityId;
 
     await expectAsync(
-request(helper.getEndpointAndAuth())
-      .put(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
-      .headers(helper.addAllHeaders({ "If-None-Match": "*" }))
-      .json(document)
-      ,
-    400,
+      request(helper.getEndpointAndAuth())
+        .put(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
+        .headers(helper.addAllHeaders({ "If-None-Match": "*" }))
+        .json(document),
+      400,
     );
-});
+  });
 
   /**  XAPI-00298, Communication 2.7 Activity Profile Resources
    * An LRS's Activity Profile API rejects a POST request without "activityId" as a parameter with error code 400 Bad Request
@@ -208,14 +204,13 @@ request(helper.getEndpointAndAuth())
     delete parameters.profileId;
 
     await expectAsync(
-request(helper.getEndpointAndAuth())
-      .put(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
-      .headers(helper.addAllHeaders({ "If-None-Match": "*" }))
-      .json(document)
-      ,
-    400,
+      request(helper.getEndpointAndAuth())
+        .put(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
+        .headers(helper.addAllHeaders({ "If-None-Match": "*" }))
+        .json(document),
+      400,
     );
-});
+  });
 
   /**  XAPI-00301, Communication 2.7 Activity Profile Resource
    * An LRS's Activity Profile API rejects a POST request without "profileId" as a parameter with error code 400 Bad Request
@@ -511,12 +506,11 @@ request(helper.getEndpointAndAuth())
     let parameters = helper.buildActivityProfile();
 
     await expectAsync(
-request(helper.getEndpointAndAuth())
-      .post(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
-      .headers(helper.addAllHeaders({ "Content-Type": "application/json" }))
-      .body(document)
-      ,
-    400,
+      request(helper.getEndpointAndAuth())
+        .post(helper.getEndpointActivitiesProfile() + "?" + helper.getUrlEncoding(parameters))
+        .headers(helper.addAllHeaders({ "Content-Type": "application/json" }))
+        .body(document),
+      400,
     );
-});
+  });
 });

@@ -43,29 +43,27 @@ describe("Version Property Requirements (Data 2.4.10)", () => {
 
     const query = helper.getUrlEncoding({ statementId: id });
 
-        await endAsync(
-request(helper.getEndpointAndAuth())
-      .post(helper.getEndpointStatements())
-      .headers(helper.addAllHeaders({}))
-      .json(statement)
-      .expect(200)
+    await endAsync(
+      request(helper.getEndpointAndAuth())
+        .post(helper.getEndpointStatements())
+        .headers(helper.addAllHeaders({}))
+        .json(statement)
+        .expect(200),
     );
 
+    request(helper.getEndpointAndAuth())
+      .get(helper.getEndpointStatements() + "?" + query)
+      .wait(helper.genDelay(stmtTime, "?" + query, id))
+      .headers(helper.addAllHeaders({}))
+      .expect(200)
+      .end(function (getErr: unknown, getRes: any) {
+        if (getErr) {
+          throw getErr;
+          return;
+        }
 
-request(helper.getEndpointAndAuth())
-          .get(helper.getEndpointStatements() + "?" + query)
-          .wait(helper.genDelay(stmtTime, "?" + query, id))
-          .headers(helper.addAllHeaders({}))
-          .expect(200)
-          .end(function (getErr: unknown, getRes: any) {
-            if (getErr) {
-              throw getErr;
-              return;
-            }
-
-            const results = helper.parse(getRes.body);
-            expect(results.version).to.equal(version);
-            
-          });
+        const results = helper.parse(getRes.body);
+        expect(results.version).to.equal(version);
+      });
   });
 });

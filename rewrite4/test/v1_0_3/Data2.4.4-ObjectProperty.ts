@@ -12,7 +12,6 @@ const helper: any = helperImport;
 const templatingSelection: any = templatingSelectionImport;
 let request: any = requestBase;
 
-
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
 describe("Object Property Requirements (Data 2.4.4)", () => {
@@ -73,14 +72,13 @@ describe("Object Property Requirements (Data 2.4.4)", () => {
       correctResponsesPattern = correctResponsesPattern.statement;
       delete correctResponsesPattern.object.definition.interactionType;
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(correctResponsesPattern)
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(correctResponsesPattern),
+        400,
       );
-});
+    });
 
     it('Activity Definition uses choices without "interactionType" property', async function () {
       id = helper.generateUUID();
@@ -89,14 +87,13 @@ request(helper.getEndpointAndAuth())
       choice = choice.statement;
       delete choice.object.definition.interactionType;
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(choice)
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(choice),
+        400,
       );
-});
+    });
 
     it('Activity Definition uses fill-in without "interactionType" property', async function () {
       id = helper.generateUUID();
@@ -105,14 +102,13 @@ request(helper.getEndpointAndAuth())
       fillin = fillin.statement;
       delete fillin.object.definition.interactionType;
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(fillin)
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(fillin),
+        400,
       );
-});
+    });
 
     it('Activity Definition uses scale without "interactionType" property', async function () {
       id = helper.generateUUID();
@@ -121,14 +117,13 @@ request(helper.getEndpointAndAuth())
       scale = scale.statement;
       delete scale.object.definition.interactionType;
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(scale)
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(scale),
+        400,
       );
-});
+    });
 
     it('Activity Definition uses long-fill-in without "interactionType" property', async function () {
       id = helper.generateUUID();
@@ -137,14 +132,13 @@ request(helper.getEndpointAndAuth())
       fillin = fillin.statement;
       delete fillin.object.definition.interactionType;
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(fillin)
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(fillin),
+        400,
       );
-});
+    });
 
     it('Activity Definition uses source without "interactionType" property', async function () {
       id = helper.generateUUID();
@@ -153,14 +147,13 @@ request(helper.getEndpointAndAuth())
       source = source.statement;
       delete source.object.definition.interactionType;
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(source)
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(source),
+        400,
       );
-});
+    });
 
     it('Activity Definition uses target without "interactionType" property', async function () {
       id = helper.generateUUID();
@@ -169,14 +162,13 @@ request(helper.getEndpointAndAuth())
       target = target.statement;
       delete target.object.definition.interactionType;
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(target)
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(target),
+        400,
       );
-});
+    });
 
     it('Activity Definition uses numeric without "interactionType" property', async function () {
       id = helper.generateUUID();
@@ -185,14 +177,13 @@ request(helper.getEndpointAndAuth())
       numeric = numeric.statement;
       delete numeric.object.definition.interactionType;
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(numeric)
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(numeric),
+        400,
       );
-});
+    });
 
     it('Activity Definition uses other without "interactionType" property', async function () {
       id = helper.generateUUID();
@@ -201,14 +192,13 @@ request(helper.getEndpointAndAuth())
       other = other.statement;
       delete other.object.definition.interactionType;
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(other)
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(other),
+        400,
       );
-});
+    });
 
     it('Activity Definition uses performance without "interactionType" property', async function () {
       id = helper.generateUUID();
@@ -217,14 +207,13 @@ request(helper.getEndpointAndAuth())
       steps = steps.statement;
       delete steps.object.definition.interactionType;
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(steps)
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(steps),
+        400,
       );
-});
+    });
 
     it('Activity Definition uses sequencing without "interactionType" property', async function () {
       id = helper.generateUUID();
@@ -233,14 +222,13 @@ request(helper.getEndpointAndAuth())
       seq = seq.statement;
       delete seq.object.definition.interactionType;
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(seq)
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(seq),
+        400,
       );
-});
+    });
 
     it('Activity Definition uses true-false without "interactionType" property', async function () {
       id = helper.generateUUID();
@@ -249,14 +237,13 @@ request(helper.getEndpointAndAuth())
       tf = tf.statement;
       delete tf.object.definition.interactionType;
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(tf)
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(tf),
+        400,
       );
-});
+    });
   });
 
   //Data 2.4.4.2 - when the object is an agent or a group
@@ -274,14 +261,13 @@ request(helper.getEndpointAndAuth())
       delete data.object.objectType;
 
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        400,
       );
-});
+    });
 
     it("should fail when using group as object and no objectType", async function () {
       let templates = [{ statement: "{{statements.object_group_default}}" }];
@@ -289,14 +275,13 @@ request(helper.getEndpointAndAuth())
       delete data.object.objectType;
 
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        400,
       );
-});
+    });
 
     it("substatement should fail when using agent as object and no objectType", async function () {
       let templates = [
@@ -307,14 +292,13 @@ request(helper.getEndpointAndAuth())
       delete data.object.objectType;
 
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        400,
       );
-});
+    });
 
     it("substatement should fail when using group as object and no objectType", async function () {
       let templates = [
@@ -325,14 +309,13 @@ request(helper.getEndpointAndAuth())
       delete data.object.objectType;
 
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        400,
       );
-});
+    });
   });
 
   //Data 2.4.4.3 - when the object is a statement

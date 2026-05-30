@@ -106,12 +106,12 @@ describe("State Resource Requirements (Communication 2.3)", function () {
     let parameters = helper.buildState(),
       document = helper.buildDocument();
     return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(function () {
-      return helper
-        .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
-        .then(function (res: any) {
-          let body = res.body;
-          expect(body).to.eql(document);
-        });
+      return helper.sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200).then(function (
+        res: any,
+      ) {
+        let body = res.body;
+        expect(body).to.eql(document);
+      });
     });
   });
 
@@ -133,12 +133,12 @@ describe("State Resource Requirements (Communication 2.3)", function () {
     let parameters = helper.buildState(),
       document = helper.buildDocument();
     return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(function () {
-      return helper
-        .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
-        .then(function (res: any) {
-          let body = res.body;
-          expect(body).to.eql(document);
-        });
+      return helper.sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200).then(function (
+        res: any,
+      ) {
+        let body = res.body;
+        expect(body).to.eql(document);
+      });
     });
   });
 
@@ -443,12 +443,12 @@ describe("State Resource Requirements (Communication 2.3)", function () {
     let parameters = helper.buildState(),
       document = helper.buildDocument();
     return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(function () {
-      return helper
-        .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
-        .then(function (res: any) {
-          let body = res.body;
-          expect(body).to.eql(document);
-        });
+      return helper.sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200).then(function (
+        res: any,
+      ) {
+        let body = res.body;
+        expect(body).to.eql(document);
+      });
     });
   });
 
@@ -542,12 +542,12 @@ describe("State Resource Requirements (Communication 2.3)", function () {
       document = helper.buildDocument();
     parameters.registration = helper.generateUUID();
     return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(function () {
-      return helper
-        .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
-        .then(function (res: any) {
-          let body = res.body;
-          expect(body).to.eql(document);
-        });
+      return helper.sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200).then(function (
+        res: any,
+      ) {
+        let body = res.body;
+        expect(body).to.eql(document);
+      });
     });
   });
 
@@ -612,12 +612,12 @@ describe("State Resource Requirements (Communication 2.3)", function () {
     let parameters = helper.buildState(),
       document = helper.buildDocument();
     return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(function () {
-      return helper
-        .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
-        .then(function (res: any) {
-          let body = res.body;
-          expect(body).to.eql(document);
-        });
+      return helper.sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200).then(function (
+        res: any,
+      ) {
+        let body = res.body;
+        expect(body).to.eql(document);
+      });
     });
   });
 
@@ -633,13 +633,13 @@ describe("State Resource Requirements (Communication 2.3)", function () {
       parameters.since = new Date(Date.now() - 60 * 1000 - helper.getTimeMargin()).toISOString(); // Date 1 minute ago
       delete parameters.stateId;
 
-      return helper
-        .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
-        .then(function (res: any) {
-          let body = res.body;
-          expect(body).to.be.an("Array");
-          expect(body).to.contain(stateId);
-        });
+      return helper.sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200).then(function (
+        res: any,
+      ) {
+        let body = res.body;
+        expect(body).to.be.an("Array");
+        expect(body).to.contain(stateId);
+      });
     });
   });
 
@@ -673,12 +673,12 @@ describe("State Resource Requirements (Communication 2.3)", function () {
       document = helper.buildDocument();
     return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(function () {
       delete parameters.stateId;
-      return helper
-        .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
-        .then(function (res: any) {
-          let body = res.body;
-          expect(body).to.be.an("array");
-        });
+      return helper.sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200).then(function (
+        res: any,
+      ) {
+        let body = res.body;
+        expect(body).to.be.an("array");
+      });
     });
   });
 
@@ -691,23 +691,25 @@ describe("State Resource Requirements (Communication 2.3)", function () {
     let state2 = helper.buildState();
     let since = new Date(Date.now() - 60 * 1000 - helper.getTimeMargin()).toISOString(); //Date 1  minute ago
 
-    return helper.sendRequest("post", helper.getEndpointActivitiesState(), state1, document, 204).then(function (res: any) {
-      return helper
-        .sendRequest("post", helper.getEndpointActivitiesState(), state2, document, 204)
-        .then(function (res: any) {
-          let parameters = helper.buildState();
-          delete parameters.stateId;
-          parameters.since = since;
-          return helper
-            .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
-            .then(function (res: any) {
-              let body = res.body;
-              expect(body).to.be.an("array");
-              expect(body).to.have.length.above(1);
-              expect(body).to.contain(state1.stateId);
-              expect(body).to.contain(state2.stateId);
-            });
-        });
+    return helper.sendRequest("post", helper.getEndpointActivitiesState(), state1, document, 204).then(function (
+      res: any,
+    ) {
+      return helper.sendRequest("post", helper.getEndpointActivitiesState(), state2, document, 204).then(function (
+        res: any,
+      ) {
+        let parameters = helper.buildState();
+        delete parameters.stateId;
+        parameters.since = since;
+        return helper
+          .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
+          .then(function (res: any) {
+            let body = res.body;
+            expect(body).to.be.an("array");
+            expect(body).to.have.length.above(1);
+            expect(body).to.contain(state1.stateId);
+            expect(body).to.contain(state2.stateId);
+          });
+      });
     });
   });
 

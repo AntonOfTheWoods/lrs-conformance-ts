@@ -11,7 +11,6 @@ import { expectAsync } from "../super-request.ts";
 const helper: any = helperImport;
 let request: any = requestBase;
 
-
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
 describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
@@ -174,21 +173,15 @@ describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
 
   it("An LRS accepts HEAD requests without Content-Length headers (Communication 1.1)", async function () {
     await expectAsync(
-request(helper.getEndpointAndAuth())
-      .head(helper.getEndpointStatements())
-      .headers(helper.addAllHeaders({}))
-      ,
-    200,
+      request(helper.getEndpointAndAuth()).head(helper.getEndpointStatements()).headers(helper.addAllHeaders({})),
+      200,
     );
-});
+  });
 
   it("An LRS accepts GET requests without Content-Length headers (Communication 1.1)", async function () {
     await expectAsync(
-request(helper.getEndpointAndAuth())
-      .get(helper.getEndpointStatements())
-      .headers(helper.addAllHeaders({}))
-      ,
-    200,
+      request(helper.getEndpointAndAuth()).get(helper.getEndpointStatements()).headers(helper.addAllHeaders({})),
+      200,
     );
-});
+  });
 });

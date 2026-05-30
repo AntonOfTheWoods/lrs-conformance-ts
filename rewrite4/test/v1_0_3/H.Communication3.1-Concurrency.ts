@@ -8,7 +8,6 @@ import helperImport from "../helper.ts";
 
 const helper: any = helperImport;
 
-
 describe("Concurrency Requirements (Communication 3.1)", () => {
   /**  Matchup with Conformance Requirements Document
    * XAPI-00322 - below

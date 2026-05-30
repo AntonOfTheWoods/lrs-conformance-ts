@@ -67,7 +67,9 @@ describe("Activities Resource Requirements (Communication 2.5)", function () {
       let parameters = {
         activityId: statement.object.id,
       };
-      return helper.sendRequest("get", helper.getEndpointActivities(), parameters, undefined, 200).then(function (res: any) {
+      return helper.sendRequest("get", helper.getEndpointActivities(), parameters, undefined, 200).then(function (
+        res: any,
+      ) {
         let activity = res.body;
         expect(activity).to.be.ok;
         expect(activity).to.eql(statement.object);
@@ -115,13 +117,13 @@ describe("Activities Resource Requirements (Communication 2.5)", function () {
         let parameters = {
           activityId: statement.object.id,
         };
-        return helper
-          .sendRequest("get", helper.getEndpointActivities(), parameters, undefined, 200)
-          .then(function (res: any) {
-            let activity = res.body;
-            expect(activity.definition.name["en-US"]).to.eql("example meeting");
-            expect(activity.definition.name["fr-FR"]).to.eql("réunion");
-          });
+        return helper.sendRequest("get", helper.getEndpointActivities(), parameters, undefined, 200).then(function (
+          res: any,
+        ) {
+          let activity = res.body;
+          expect(activity.definition.name["en-US"]).to.eql("example meeting");
+          expect(activity.definition.name["fr-FR"]).to.eql("réunion");
+        });
       });
   });
 

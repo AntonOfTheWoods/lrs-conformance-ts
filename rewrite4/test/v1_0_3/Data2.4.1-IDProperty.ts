@@ -50,30 +50,29 @@ describe("Id Property Requirements (Data 2.4.1)", () => {
       data = data.statement;
       let stmtTime = Date.now();
 
-            const res = await endAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        .expect(200)
+      const res = await endAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(data)
+          .expect(200),
       );
 
-stmtid = ((res.body as string[])[0] as string);
-query = "?statementId=" + stmtid;
-request(helper.getEndpointAndAuth())
-              .get(helper.getEndpointStatements() + query)
-              .wait(helper.genDelay(stmtTime, query, stmtid))
-              .headers(helper.addAllHeaders({}))
-              .end(function (err: unknown, res: any) {
-                if (err) {
-                  throw err;
-                } else {
-                  let results = helper.parse(res.body);
-                  expect(results.id).to.not.be.undefined;
-                  expect(results.id).to.eql(stmtid);
-                  
-                }
-              });
+      stmtid = (res.body as string[])[0] as string;
+      query = "?statementId=" + stmtid;
+      request(helper.getEndpointAndAuth())
+        .get(helper.getEndpointStatements() + query)
+        .wait(helper.genDelay(stmtTime, query, stmtid))
+        .headers(helper.addAllHeaders({}))
+        .end(function (err: unknown, res: any) {
+          if (err) {
+            throw err;
+          } else {
+            let results = helper.parse(res.body);
+            expect(results.id).to.not.be.undefined;
+            expect(results.id).to.eql(stmtid);
+          }
+        });
     });
   });
 });

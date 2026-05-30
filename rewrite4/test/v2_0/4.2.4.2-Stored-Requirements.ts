@@ -53,34 +53,32 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
 
     it("using POST", async function () {
       const stmtTime = Date.now();
-            const res = await endAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders())
-        .json(data)
-        .expect(200)
+      const res = await endAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders())
+          .json(data)
+          .expect(200),
       );
 
+      postId = (res.body as string[])[0] as string;
+      const query = "?statementId=" + postId;
+      request(helper.getEndpointAndAuth())
+        .get(helper.getEndpointStatements() + query)
+        .wait(helper.genDelay(stmtTime, query, postId))
+        .headers(helper.addAllHeaders())
+        .expect(200)
+        .end((getErr: unknown, getRes: any) => {
+          if (getErr) {
+            throw getErr;
+            return;
+          }
 
-postId = ((res.body as string[])[0] as string);
-const query = "?statementId=" + postId;
-request(helper.getEndpointAndAuth())
-            .get(helper.getEndpointStatements() + query)
-            .wait(helper.genDelay(stmtTime, query, postId))
-            .headers(helper.addAllHeaders())
-            .expect(200)
-            .end((getErr: unknown, getRes: any) => {
-              if (getErr) {
-                throw getErr;
-                return;
-              }
-
-              const result = helper.parse(getRes.body);
-              expect(result).to.have.property("stored");
-              const stmtStored = result.stored;
-              expect(stmtStored).to.not.eql(storedTime);
-              
-            });
+          const result = helper.parse(getRes.body);
+          expect(result).to.have.property("stored");
+          const stmtStored = result.stored;
+          expect(stmtStored).to.not.eql(storedTime);
+        });
     });
 
     it("using PUT", function (done) {
@@ -125,37 +123,35 @@ request(helper.getEndpointAndAuth())
    */
   describe("A stored property must be a TimeStamp (Data 2.4.8.s2, XAPI-00023)", function () {
     it("retrieve statements, test a stored property", async function () {
-            const res = await endAsync(
-request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders())
-        .expect(200)
+      const res = await endAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders())
+          .expect(200),
       );
 
+      const result = helper.parse(res.body);
+      const stmts = result.statements;
+      const milliChecker = (num: number) => {
+        expect(stmts[num]).to.have.property("stored");
+        const milliseconds = parseMillisecondsFromIso(stmts[num].stored);
+        expect(milliseconds).to.not.equal(null);
 
-const result = helper.parse(res.body);
-const stmts = result.statements;
-const milliChecker = (num: number) => {
-            expect(stmts[num]).to.have.property("stored");
-            const milliseconds = parseMillisecondsFromIso(stmts[num].stored);
-            expect(milliseconds).to.not.equal(null);
+        if ((milliseconds as number) % 10 > 0) {
+          expect((milliseconds as number) % 10).to.be.above(0);
 
-            if ((milliseconds as number) % 10 > 0) {
-              expect((milliseconds as number) % 10).to.be.above(0);
-              
-              return;
-            }
+          return;
+        }
 
-            const next = num + 1;
-            if (next < stmts.length) {
-              milliChecker(next);
-              return;
-            }
+        const next = num + 1;
+        if (next < stmts.length) {
+          milliChecker(next);
+          return;
+        }
 
-            expect((milliseconds as number) % 10).to.be.above(0);
-            
-          };
-milliChecker(0);
+        expect((milliseconds as number) % 10).to.be.above(0);
+      };
+      milliChecker(0);
     });
   });
 });

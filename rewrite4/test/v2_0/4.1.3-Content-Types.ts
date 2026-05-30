@@ -94,38 +94,35 @@ describe("Content Type Requirements (Communication 1.5)", function () {
 
     it('should succeed when attachment uses "fileUrl" and request content-type is "application/json"', async function () {
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        ,
-      200,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        200,
       );
-});
+    });
 
     it('should succeed when attachment uses "fileUrl" and request content-type is "application/json"', async function () {
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        ,
-      200,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        200,
       );
-});
+    });
 
     it('should fail when attachment uses "fileUrl" and request content-type is "multipart/form-data"', async function () {
       let header = { "Content-Type": "multipart/form-data; boundary=-------314159265358979323846" };
 
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders(header))
-        .body(JSON.stringify(data))
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders(header))
+          .body(JSON.stringify(data)),
+        400,
       );
-});
+    });
 
     it('should succeed when attachment is raw data and request content-type is "multipart/mixed"', async function () {
       let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
@@ -149,14 +146,13 @@ request(helper.getEndpointAndAuth())
       msg += dashes + boundary + dashes + crlf;
 
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders(header))
-        .body(msg)
-        ,
-      200,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders(header))
+          .body(msg),
+        200,
       );
-});
+    });
 
     it('should fail when attachment is raw data and request content-type is "multipart/form-data"', async function () {
       let header = { "Content-Type": "multipart/form-data; boundary=-------314159265358979323846" };
@@ -181,14 +177,13 @@ request(helper.getEndpointAndAuth())
       msg += dashes + boundary + dashes + crlf;
 
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders(header))
-        .body(msg)
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders(header))
+          .body(msg),
+        400,
       );
-});
+    });
 
     it('should succeed when attachment uses "fileUrl" and request content-type is "multipart/mixed"', async function () {
       let boundary = "-------314159265358979323846";
@@ -206,14 +201,13 @@ request(helper.getEndpointAndAuth())
       msg += dashes + boundary + dashes + crlf;
 
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders(header))
-        .body(msg)
-        ,
-      200,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders(header))
+          .body(msg),
+        200,
       );
-});
+    });
 
     it('should succeed when no attachments are included, but request content-type is "multipart/mixed"', async function () {
       let boundary = "-------314159265358979323846";
@@ -230,14 +224,13 @@ request(helper.getEndpointAndAuth())
       msg += dashes + boundary + dashes + crlf;
 
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders(header))
-        .body(msg)
-        ,
-      200,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders(header))
+          .body(msg),
+        200,
       );
-});
+    });
   });
 
   /**  XAPI-00128, Communication 1.5.1 Application/JSON
@@ -305,14 +298,13 @@ request(helper.getEndpointAndAuth())
       msg += dashes + boundary + dashes + crlf;
 
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders(header))
-        .body(msg)
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders(header))
+          .body(msg),
+        400,
       );
-});
+    });
   });
 
   /**  XAPI-00129, Communication 1.5.1 Application/JSON
@@ -367,14 +359,13 @@ request(helper.getEndpointAndAuth())
       msg += dashes + boundary + dashes + crlf;
 
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders(header))
-        .body(msg)
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders(header))
+          .body(msg),
+        400,
       );
-});
+    });
   });
 
   /**  XAPI-00131, Communication 1.5.2 Multipart/Mixed
@@ -419,14 +410,13 @@ request(helper.getEndpointAndAuth())
       msg += dashes + boundary + dashes + crlf;
 
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders(header))
-        .body(msg)
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders(header))
+          .body(msg),
+        400,
       );
-});
+    });
   });
 
   /**  XAPI-00130, Communication 1.5.2 Multipart/Mixed
@@ -470,14 +460,13 @@ request(helper.getEndpointAndAuth())
       msg += dashes + boundary + dashes + crlf;
 
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders(header))
-        .body(msg)
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders(header))
+          .body(msg),
+        400,
       );
-});
+    });
 
     it("should fail if boundary not provided in header", async function () {
       let header = { "Content-Type": "multipart/mixed;" };
@@ -517,14 +506,13 @@ request(helper.getEndpointAndAuth())
       msg += dashes + boundary + dashes + crlf;
 
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders(header))
-        .body(msg)
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders(header))
+          .body(msg),
+        400,
       );
-});
+    });
   });
 
   /**  XAPI-00134, Communication 1.5.2 Multipart/Mixed
@@ -569,14 +557,13 @@ request(helper.getEndpointAndAuth())
       msg += dashes + boundary + dashes + crlf;
 
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders(header))
-        .body(msg)
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders(header))
+          .body(msg),
+        400,
       );
-});
+    });
   });
 
   /**  XAPI-00133, Communication 1.5.2 Multipart/Mixed
@@ -624,14 +611,13 @@ request(helper.getEndpointAndAuth())
       msg += dashes + boundary + dashes + crlf;
 
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders(header))
-        .body(msg)
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders(header))
+          .body(msg),
+        400,
       );
-});
+    });
   });
 
   /**  XAPI-00132, Communication 1.5.2 Multipart/Mixed
@@ -675,14 +661,13 @@ request(helper.getEndpointAndAuth())
       msg += dashes + boundary + dashes + crlf;
 
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders(header))
-        .body(msg)
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders(header))
+          .body(msg),
+        400,
       );
-});
+    });
 
     it('should fail when attachments header "X-Experience-API-Hash" does not match "sha2"', async function () {
       let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
@@ -723,14 +708,13 @@ request(helper.getEndpointAndAuth())
       msg += dashes + boundary + dashes + crlf;
 
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders(header))
-        .body(msg)
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders(header))
+          .body(msg),
+        400,
       );
-});
+    });
   });
 
   /**  XAPI-00135, Communication 1.5.2 Multipart/Mixed
@@ -774,12 +758,11 @@ request(helper.getEndpointAndAuth())
     msg += dashes + boundary + dashes + crlf;
 
     await expectAsync(
-request(helper.getEndpointAndAuth())
-      .post(helper.getEndpointStatements())
-      .headers(helper.addAllHeaders(header))
-      .body(msg)
-      ,
-    400,
+      request(helper.getEndpointAndAuth())
+        .post(helper.getEndpointStatements())
+        .headers(helper.addAllHeaders(header))
+        .body(msg),
+      400,
     );
-});
+  });
 });

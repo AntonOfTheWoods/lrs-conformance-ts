@@ -13,7 +13,6 @@ const helper: any = helperImport;
 const templatingSelection: any = templatingSelectionImport;
 let request: any = requestBase;
 
-
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
 before("Before all tests are run", function (done) {
@@ -64,31 +63,30 @@ describe("Formatting Requirements (Data 2.2)", () => {
       data.result.score.max = max;
       data.result.score.scaled = min;
 
-            await endAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        .expect(200)
+      await endAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(data)
+          .expect(200),
       );
 
-request(helper.getEndpointAndAuth())
-              .get(helper.getEndpointStatements() + query)
-              .wait(helper.genDelay(stmtTime, query, id))
-              .headers(helper.addAllHeaders({}))
-              .expect(200)
-              .end((err: unknown, res: any) => {
-                if (err) {
-                  throw err;
-                } else {
-                  let score = helper.parse(res.body).result.score;
-                  expect(score.min).to.eql(min);
-                  expect(score.raw).to.eql(raw);
-                  expect(score.max).to.eql(max);
-                  expect(score.scaled).to.eql(min);
-                  
-                }
-              });
+      request(helper.getEndpointAndAuth())
+        .get(helper.getEndpointStatements() + query)
+        .wait(helper.genDelay(stmtTime, query, id))
+        .headers(helper.addAllHeaders({}))
+        .expect(200)
+        .end((err: unknown, res: any) => {
+          if (err) {
+            throw err;
+          } else {
+            let score = helper.parse(res.body).result.score;
+            expect(score.min).to.eql(min);
+            expect(score.raw).to.eql(raw);
+            expect(score.max).to.eql(max);
+            expect(score.scaled).to.eql(min);
+          }
+        });
     });
   });
 
@@ -162,14 +160,13 @@ request(helper.getEndpointAndAuth())
       malformed.actor.objectType = string;
 
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(malformed)
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(malformed),
+        400,
       );
-});
+    });
   });
 
   /**  XAPI-00011, Data 2.2 Formatting Requirements

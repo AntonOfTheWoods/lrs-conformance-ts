@@ -72,14 +72,13 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
         document = helper.buildDocument();
 
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointAgentsProfile() + "?" + helper.getUrlEncoding(parameters))
-        .headers(helper.addAllHeaders({ "If-None-Match": "*" }))
-        .json(document)
-        ,
-      204,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointAgentsProfile() + "?" + helper.getUrlEncoding(parameters))
+          .headers(helper.addAllHeaders({ "If-None-Match": "*" }))
+          .json(document),
+        204,
       );
-});
+    });
 
     /**  XAPI-00272, Communication 2.6 Agent Profile Resource
      * An LRS's Agent Profile API upon processing a successful POST request returns code 204 No Content
@@ -115,12 +114,12 @@ request(helper.getEndpointAndAuth())
     let parameters = helper.buildAgentProfile(),
       document = helper.buildDocument();
     return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(function () {
-      return helper
-        .sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200)
-        .then(function (res: any) {
-          let body = res.body;
-          expect(body).to.eql(document);
-        });
+      return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200).then(function (
+        res: any,
+      ) {
+        let body = res.body;
+        expect(body).to.eql(document);
+      });
     });
   });
 
@@ -133,14 +132,13 @@ request(helper.getEndpointAndAuth())
     delete parameters.agent;
 
     await expectAsync(
-request(helper.getEndpointAndAuth())
-      .put(helper.getEndpointAgentsProfile() + "?" + helper.getUrlEncoding(parameters))
-      .headers(helper.addAllHeaders({ "If-None-Match": "*" }))
-      .json(document)
-      ,
-    400,
+      request(helper.getEndpointAndAuth())
+        .put(helper.getEndpointAgentsProfile() + "?" + helper.getUrlEncoding(parameters))
+        .headers(helper.addAllHeaders({ "If-None-Match": "*" }))
+        .json(document),
+      400,
     );
-});
+  });
 
   /**  XAPI-00257, Communication 2.6 Agent Profile Resource
    * An LRS's Agent Profile API rejects a PUT request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request
@@ -152,14 +150,13 @@ request(helper.getEndpointAndAuth())
       parameters.agent = true;
 
       await expectAsync(
-request(helper.getEndpointAndAuth())
-        .put(helper.getEndpointAgentsProfile() + "?" + helper.getUrlEncoding(parameters))
-        .headers(helper.addAllHeaders({ "If-None-Match": "*" }))
-        .json(document)
-        ,
-      400,
+        request(helper.getEndpointAndAuth())
+          .put(helper.getEndpointAgentsProfile() + "?" + helper.getUrlEncoding(parameters))
+          .headers(helper.addAllHeaders({ "If-None-Match": "*" }))
+          .json(document),
+        400,
       );
-});
+    });
   });
 
   /**  XAPI-00263, Communication 2.6 Agent Profile Resource
@@ -225,14 +222,13 @@ request(helper.getEndpointAndAuth())
     delete parameters.profileId;
 
     await expectAsync(
-request(helper.getEndpointAndAuth())
-      .put(helper.getEndpointAgentsProfile() + "?" + helper.getUrlEncoding(parameters))
-      .headers(helper.addAllHeaders({ "If-None-Match": "*" }))
-      .json(document)
-      ,
-    400,
+      request(helper.getEndpointAndAuth())
+        .put(helper.getEndpointAgentsProfile() + "?" + helper.getUrlEncoding(parameters))
+        .headers(helper.addAllHeaders({ "If-None-Match": "*" }))
+        .json(document),
+      400,
     );
-});
+  });
 
   /**  XAPI-00266, Communication 2.6 Agent Profile Resource
    * An LRS's Agent Profile API rejects a POST request without "profileId" as a parameter with error code 400 Bad Request
@@ -261,12 +257,12 @@ request(helper.getEndpointAndAuth())
       document = helper.buildDocument();
     return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(function () {
       delete parameters.profileId;
-      return helper
-        .sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200)
-        .then(function (res: any) {
-          let body = res.body;
-          expect(body).to.have.length.above(0);
-        });
+      return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200).then(function (
+        res: any,
+      ) {
+        let body = res.body;
+        expect(body).to.have.length.above(0);
+      });
     });
   });
 
@@ -316,14 +312,14 @@ request(helper.getEndpointAndAuth())
     return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(function () {
       parameters.since = since;
       delete parameters.profileId;
-      return helper
-        .sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200)
-        .then(function (res: any) {
-          let body = res.body;
-          expect(body).to.be.an("array");
-          expect(body).to.have.length.above(0);
-          expect(body).to.contain(profile1);
-        });
+      return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200).then(function (
+        res: any,
+      ) {
+        let body = res.body;
+        expect(body).to.be.an("array");
+        expect(body).to.have.length.above(0);
+        expect(body).to.contain(profile1);
+      });
     });
   });
 
@@ -363,12 +359,12 @@ request(helper.getEndpointAndAuth())
     let parameters = helper.buildAgentProfile(),
       document = helper.buildDocument();
     return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(function () {
-      return helper
-        .sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200)
-        .then(function (res: any) {
-          let body = res.body;
-          expect(body).to.eql(document);
-        });
+      return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200).then(function (
+        res: any,
+      ) {
+        let body = res.body;
+        expect(body).to.eql(document);
+      });
     });
   });
 
@@ -566,14 +562,13 @@ request(helper.getEndpointAndAuth())
     let header = { "content-type": "application/json" };
 
     await expectAsync(
-request(helper.getEndpointAndAuth())
-      .post(helper.getEndpointAgentsProfile() + "?" + helper.getUrlEncoding(parameters) + "&agent=" + agent)
-      .headers(helper.addAllHeaders(header))
-      .body(attachment)
-      ,
-    400,
+      request(helper.getEndpointAndAuth())
+        .post(helper.getEndpointAgentsProfile() + "?" + helper.getUrlEncoding(parameters) + "&agent=" + agent)
+        .headers(helper.addAllHeaders(header))
+        .body(attachment),
+      400,
     );
-});
+  });
 
   describe("The LRS shall include a Last-Modified header indicating when the document was last modified.", function () {
     let document = helper.buildDocument();
