@@ -3,88 +3,63 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-(function (
-  module: any,
-  fs: any,
-  extend: any,
-  moment: any,
-  request: any,
-  requestPromise: any,
-  chai: any,
-  liburl: any,
-  Joi: any,
-  helper: any,
-  multipartParser: any,
-  redirect: any,
-) {
-  // "use strict";
+import { expect } from "chai";
+import helperImport from "../helper.ts";
+import requestBase from "super-request";
 
-  var expect = chai.expect;
-  if (global.OAUTH) request = helper.OAuthRequest(request);
+const helper: any = helperImport;
+let request: any = requestBase;
 
-  describe("Encoding Requirements (Communication 1.4)", () => {
-    /**  XAPI-00015,  2.2. Formatting Requirements
-     * All Strings are encoded and interpreted as UTF-8
-     * This req should stay here (Communication 1.4).  This is the only place which mentions UTF-8 in the spec, other than Comm 1.3
-     */
-    it("All Strings are encoded and interpreted as UTF-8 (Communication 1.4.s1.b1, XAPI-00015)", function (done) {
-      this.timeout(0);
-      var verbTemplate = "http://adlnet.gov/expapi/test/unicode/target/";
-      var verb = verbTemplate + helper.generateUUID();
-      var unicodeTemplates = [{ statement: "{{statements.unicode}}" }];
+if (global.OAUTH) request = helper.OAuthRequest(request);
 
-      var unicode = helper.createFromTemplate(unicodeTemplates);
-      unicode = unicode.statement;
-      unicode.verb.id = verb;
+describe("Encoding Requirements (Communication 1.4)", () => {
+  /**  XAPI-00015,  2.2. Formatting Requirements
+   * All Strings are encoded and interpreted as UTF-8
+   * This req should stay here (Communication 1.4).  This is the only place which mentions UTF-8 in the spec, other than Comm 1.3
+   */
+  it("All Strings are encoded and interpreted as UTF-8 (Communication 1.4.s1.b1, XAPI-00015)", function (done) {
+    this.timeout(0);
+    const verbTemplate = "http://adlnet.gov/expapi/test/unicode/target/";
+    const verb = verbTemplate + helper.generateUUID();
+    const unicodeTemplates = [{ statement: "{{statements.unicode}}" }];
 
-      var query = helper.getUrlEncoding({
-        verb: verb,
-      });
-      var stmtTime = Date.now();
+    const unicode = helper.createFromTemplate(unicodeTemplates).statement;
+    unicode.verb.id = verb;
 
-      request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(unicode)
-        .expect(200)
-        .end(function (err, res) {
-          if (err) {
-            done(err);
-          } else {
-            request(helper.getEndpointAndAuth())
-              .get(helper.getEndpointStatements() + "?" + query)
-              .wait(helper.genDelay(stmtTime, "?" + query, null))
-              .headers(helper.addAllHeaders({}))
-              .expect(200)
-              .end(function (err, res) {
-                if (err) {
-                  done(err);
-                } else {
-                  var results = helper.parse(res.body, done);
-                  var languages = results.statements[0].verb.display;
-                  var unicodeConformant = true;
-                  for (var key in languages) {
-                    if (languages[key] !== unicode.verb.display[key]) unicodeConformant = false;
-                  }
-                  expect(unicodeConformant).to.be.true;
-                  done();
-                }
-              });
-          }
-        });
+    const query = helper.getUrlEncoding({
+      verb: verb,
     });
+    const stmtTime = Date.now();
+
+    request(helper.getEndpointAndAuth())
+      .post(helper.getEndpointStatements())
+      .headers(helper.addAllHeaders({}))
+      .json(unicode)
+      .expect(200)
+      .end(function (err, res) {
+        if (err) {
+          done(err);
+        } else {
+          request(helper.getEndpointAndAuth())
+            .get(helper.getEndpointStatements() + "?" + query)
+            .wait(helper.genDelay(stmtTime, "?" + query, null))
+            .headers(helper.addAllHeaders({}))
+            .expect(200)
+            .end(function (err, res) {
+              if (err) {
+                done(err);
+              } else {
+                const results = helper.parse(res.body, done);
+                const languages = results.statements[0].verb.display;
+                let unicodeConformant = true;
+                for (const key in languages) {
+                  if (languages[key] !== unicode.verb.display[key]) unicodeConformant = false;
+                }
+                expect(unicodeConformant).to.be.true;
+                done();
+              }
+            });
+        }
+      });
   });
-})(
-  module,
-  require("fs"),
-  require("extend"),
-  require("moment"),
-  require("super-request"),
-  require("supertest-as-promised"),
-  require("chai"),
-  require("url"),
-  require("joi"),
-  require("./../helper.ts"),
-  require("./../multipartParser.ts"),
-  require("./../redirect.ts"),
-);
+});

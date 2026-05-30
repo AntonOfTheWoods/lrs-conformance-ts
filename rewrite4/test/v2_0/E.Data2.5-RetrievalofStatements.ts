@@ -3,42 +3,21 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import __esmDep1 from "fs";
-import __esmDep2 from "extend";
-import __esmDep3 from "moment";
-import __esmDep4 from "super-request";
-import __esmDep5 from "supertest-as-promised";
-import __esmDep6 from "chai";
-import __esmDep7 from "url";
-import __esmDep8 from "joi";
-import __esmDep9 from "./../helper.ts";
-import __esmDep10 from "./../multipartParser.ts";
-import __esmDep11 from "./../redirect.ts";
-import __esmDep12 from "validator";
-import __esmDep13 from "chai-things";
+import { expect, use } from "chai";
+import chaiThings from "chai-things";
+import requestBase from "super-request";
+import helperImport from "../helper.ts";
+import validator from "validator";
+import { resolve } from "url";
 
-(function (
-  module: any,
-  fs: any,
-  extend: any,
-  moment: any,
-  request: any,
-  requestPromise: any,
-  chai: any,
-  liburl: any,
-  Joi: any,
-  helper: any,
-  multipartParser: any,
-  redirect: any,
-  validator: any,
-) {
-  // "use strict";
+use(chaiThings);
 
-  chai.use(__esmDep13);
-  var expect = chai.expect;
-  if (global.OAUTH) request = helper.OAuthRequest(request);
+const helper: any = helperImport;
+let request: any = requestBase;
 
-  describe("Retrieval of Statements (Data 2.5)", function () {
+if (global.OAUTH) request = helper.OAuthRequest(request);
+
+describe("Retrieval of Statements (Data 2.5)", function () {
     /**  Matchup with Conformance Requirements Document
      * XAPI-00108 - below
      * XAPI-00109 - below
@@ -54,10 +33,10 @@ import __esmDep13 from "chai-things";
      */
     describe('An LRS\'s Statement API, upon processing a successful GET request, will return a single "statements" property and a single "more" property. (Data 2.5.s2.table1, XAPI-00113)', function () {
       before("guarantee two statements in LRS", function (done) {
-        var template = [{ statement: "{{statements.default}}" }],
-          s1 = helper.createFromTemplate(template).statement,
-          s2 = helper.createFromTemplate(template).statement,
-          stmts = [s1, s2];
+        const template = [{ statement: "{{statements.default}}" }];
+        const s1 = helper.createFromTemplate(template).statement;
+        const s2 = helper.createFromTemplate(template).statement;
+        const stmts = [s1, s2];
         request(helper.getEndpointAndAuth())
           .post(helper.getEndpointStatements())
           .headers(helper.addAllHeaders({}))
@@ -67,8 +46,8 @@ import __esmDep13 from "chai-things";
 
       it("will return single statements property and may return", function (done) {
         this.timeout(0);
-        var query = "?limit=1";
-        var stmtTime = Date.now();
+        const query = "?limit=1";
+        const stmtTime = Date.now();
         request(helper.getEndpointAndAuth())
           .get(helper.getEndpointStatements() + query)
           .wait(helper.genDelay(stmtTime, query, undefined))
@@ -78,7 +57,7 @@ import __esmDep13 from "chai-things";
             if (err) {
               done(err);
             } else {
-              var result = helper.parse(res.body, done);
+              const result = helper.parse(res.body, done);
               expect(result).to.have.property("statements");
               expect(result).to.have.property("more");
               done();
@@ -91,11 +70,13 @@ import __esmDep13 from "chai-things";
      * A "statements" property is an Array of Statements. Make a GET request which will return at least one statement and confirm the “statements” property is a valid Array of Statements.
      */
     describe('A "statements" property is an Array of Statements (Type, Data 2.5.s2.table1.row1, XAPI-00110)', function () {
-      var statement, substatement, stmtTime;
+      let statement: any;
+      let substatement: any;
+      let stmtTime: any;
       this.timeout(0);
 
       before("persist statement", function (done) {
-        var templates = [
+        const templates = [
           { statement: "{{statements.context}}" },
           { context: "{{contexts.category}}" },
           {
@@ -106,7 +87,7 @@ import __esmDep13 from "chai-things";
             },
           },
         ];
-        var data = helper.createFromTemplate(templates);
+        const data = helper.createFromTemplate(templates);
         statement = data.statement;
 
         //randomize data to prevent old results from breaking assertion logic
@@ -127,7 +108,7 @@ import __esmDep13 from "chai-things";
       });
 
       before("persist substatement", function (done) {
-        var templates = [
+        const templates = [
           { statement: "{{statements.object_substatement}}" },
           { object: "{{substatements.context}}" },
           { context: "{{contexts.category}}" },
@@ -139,7 +120,7 @@ import __esmDep13 from "chai-things";
             },
           },
         ];
-        var data = helper.createFromTemplate(templates);
+        const data = helper.createFromTemplate(templates);
         substatement = data.statement;
 
         //randomize data to prevent old results from breaking assertion logic
@@ -169,7 +150,7 @@ import __esmDep13 from "chai-things";
             if (err) {
               done(err);
             } else {
-              var result = helper.parse(res.body, done);
+              const result = helper.parse(res.body, done);
               expect(result).to.have.property("statements").to.be.an("array");
               done();
             }
@@ -182,16 +163,14 @@ import __esmDep13 from "chai-things";
      */
     it('A "statements" property which is too large for a single page will create a container for each additional page (Data 2.5.s2.table1.row1, XAPI-00114)', function (done) {
       this.timeout(0);
-      var statementTemplates = [{ statement: "{{statements.default}}" }];
+      const statementTemplates = [{ statement: "{{statements.default}}" }];
 
-      var statement1 = helper.createFromTemplate(statementTemplates);
-      statement1 = statement1.statement;
+      const statement1 = helper.createFromTemplate(statementTemplates).statement;
 
-      var statement2 = helper.createFromTemplate(statementTemplates);
-      statement2 = statement2.statement;
+      const statement2 = helper.createFromTemplate(statementTemplates).statement;
 
-      var query = helper.getUrlEncoding({ limit: 1 });
-      var stmtTime = Date.now();
+      const query = helper.getUrlEncoding({ limit: 1 });
+      const stmtTime = Date.now();
 
       request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
@@ -211,7 +190,7 @@ import __esmDep13 from "chai-things";
                 if (err) {
                   done(err);
                 } else {
-                  var results = helper.parse(res.body, done);
+                  const results = helper.parse(res.body, done);
                   expect(results.statements).to.exist;
                   expect(results.more).to.exist;
                   done();
@@ -226,7 +205,7 @@ import __esmDep13 from "chai-things";
      */
     describe('The "more" property is absent or an empty string (no whitespace) if the entire results of the original GET request have been returned. (Data 2.5.s2.table1.row2, XAPI-00109)', function () {
       it('should return empty "more" property or no "more" property when all statements returned', function (done) {
-        var query = helper.getUrlEncoding({ verb: "http://adlnet.gov/expapi/non/existent/344588672021038" });
+        const query = helper.getUrlEncoding({ verb: "http://adlnet.gov/expapi/non/existent/344588672021038" });
         request(helper.getEndpointAndAuth())
           .get(helper.getEndpointStatements() + "?" + query)
           .headers(helper.addAllHeaders({}))
@@ -235,8 +214,8 @@ import __esmDep13 from "chai-things";
             if (err) {
               done(err);
             } else {
-              var result = helper.parse(res.body, done);
-              var passed = false;
+              const result = helper.parse(res.body, done);
+              let passed = false;
 
               if (result.more === "" || !result.more) passed = true;
 
@@ -260,7 +239,7 @@ import __esmDep13 from "chai-things";
             if (err) {
               done(err);
             } else {
-              var result = helper.parse(res.body, done);
+              const result = helper.parse(res.body, done);
               expect(result).to.have.property("more");
               expect(
                 validator.isURL(result.more, {
@@ -277,14 +256,14 @@ import __esmDep13 from "chai-things";
                 }),
               ).to.be.truthy;
               request("")
-                .get(liburl.resolve(res.request.href, result.more))
+                .get(resolve(res.request.href, result.more))
                 .headers(helper.addAllHeaders({}))
                 .expect(200)
                 .end(function (err, res) {
                   if (err) {
                     done(err);
                   } else {
-                    var results2 = helper.parse(res.body, done);
+                    const results2 = helper.parse(res.body, done);
                     expect(results2.statements).to.exist;
                     expect(results2.more).to.exist;
                     done();
@@ -300,22 +279,20 @@ import __esmDep13 from "chai-things";
      */
     it('A "more" property\'s referenced container object follows the same rules as the original GET request, originating with a single "statements" property and a single "more" property (Data 2.5.s2.table1.row2, XAPI-00111)', function (done) {
       this.timeout(0);
-      var verbTemplate = "http://adlnet.gov/expapi/test/more/target/";
-      var id1 = helper.generateUUID();
-      var id2 = helper.generateUUID();
-      var statementTemplates = [{ statement: "{{statements.default}}" }];
+      const verbTemplate = "http://adlnet.gov/expapi/test/more/target/";
+      const id1 = helper.generateUUID();
+      const id2 = helper.generateUUID();
+      const statementTemplates = [{ statement: "{{statements.default}}" }];
 
-      var statement1 = helper.createFromTemplate(statementTemplates);
-      statement1 = statement1.statement;
+      const statement1 = helper.createFromTemplate(statementTemplates).statement;
       statement1.verb.id = verbTemplate + "one";
       statement1.id = id1;
 
-      var statement2 = helper.createFromTemplate(statementTemplates);
-      statement2 = statement2.statement;
+      const statement2 = helper.createFromTemplate(statementTemplates).statement;
       statement2.verb.id = verbTemplate + "two";
       statement2.id = id2;
-      var query = helper.getUrlEncoding({ limit: 1 });
-      var stmtTime = Date.now();
+      const query = helper.getUrlEncoding({ limit: 1 });
+      const stmtTime = Date.now();
 
       request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
@@ -335,16 +312,16 @@ import __esmDep13 from "chai-things";
                 if (err) {
                   done(err);
                 } else {
-                  var results = helper.parse(res.body, done);
+                  const results = helper.parse(res.body, done);
                   request("")
-                    .get(liburl.resolve(res.request.href, results.more))
+                    .get(resolve(res.request.href, results.more))
                     .headers(helper.addAllHeaders({}))
                     .expect(200)
                     .end(function (err, res) {
                       if (err) {
                         done(err);
                       } else {
-                        var results2 = helper.parse(res.body, done);
+                        const results2 = helper.parse(res.body, done);
                         expect(results2.statements).to.exist;
                         done();
                       }
@@ -355,18 +332,3 @@ import __esmDep13 from "chai-things";
         });
     });
   });
-})(
-  undefined,
-  __esmDep1,
-  __esmDep2,
-  __esmDep3,
-  __esmDep4,
-  __esmDep5,
-  __esmDep6,
-  __esmDep7,
-  __esmDep8,
-  __esmDep9,
-  __esmDep10,
-  __esmDep11,
-  __esmDep12,
-);

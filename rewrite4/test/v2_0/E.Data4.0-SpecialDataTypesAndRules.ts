@@ -3,40 +3,19 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import __esmDep1 from "fs";
-import __esmDep2 from "extend";
-import __esmDep3 from "moment";
-import __esmDep4 from "super-request";
-import __esmDep5 from "supertest-as-promised";
-import __esmDep6 from "chai";
-import __esmDep7 from "url";
-import __esmDep8 from "joi";
-import __esmDep9 from "./../helper.ts";
-import __esmDep10 from "./../multipartParser.ts";
-import __esmDep11 from "./../redirect.ts";
-import __esmDep12 from "./../templatingSelection.ts";
+import { expect } from "chai";
+import moment from "moment";
+import helperImport from "../helper.ts";
+import requestBase from "super-request";
+import templatingSelectionImport from "../templatingSelection.ts";
 
-(function (
-  module: any,
-  fs: any,
-  extend: any,
-  moment: any,
-  request: any,
-  requestPromise: any,
-  chai: any,
-  liburl: any,
-  Joi: any,
-  helper: any,
-  multipartParser: any,
-  redirect: any,
-  templatingSelection: any,
-) {
-  // "use strict";
+const helper: any = helperImport;
+const templatingSelection: any = templatingSelectionImport;
+let request: any = requestBase;
 
-  var expect = chai.expect;
-  if (global.OAUTH) request = helper.OAuthRequest(request);
+if (global.OAUTH) request = helper.OAuthRequest(request);
 
-  describe("Special Data Types and Rules (Data 4.0)", function () {
+describe("Special Data Types and Rules (Data 4.0)", function () {
     //Data 4.1
     /**  Matchup with Conformance Requirements Document
      * XAPI-00118 - in extensions.js
@@ -50,13 +29,13 @@ import __esmDep12 from "./../templatingSelection.ts";
      * Tests for other emptys and PUT
      */
     describe("An Extension can be null, an empty string, objects with nothing in them when using PUT. (Format, Data 4.1, XAPI-00119)", function () {
-      var NULL_VALUE = { extensions: { "http://example.com/ex": null } },
+      const NULL_VALUE = { extensions: { "http://example.com/ex": null } },
         EMPTY_STRING_VALUE = { extensions: { "http://example.com/ex": "" } },
         EMPTY_OBJECT_VALUE = { extensions: { "http://example.com/ex": {} } },
         VALID_EXTENSION_EMPTY = { extensions: {} };
 
       it("statement activity extensions can be empty object", function (done) {
-        var template = [
+        const template = [
             { statement: "{{statements.object_activity}}" },
             { object: "{{activities.no_extensions}}" },
             { definition: VALID_EXTENSION_EMPTY },
@@ -71,7 +50,7 @@ import __esmDep12 from "./../templatingSelection.ts";
       });
 
       it("statement activity extension values can be empty string", function (done) {
-        var template = [
+        const template = [
             { statement: "{{statements.object_activity}}" },
             { object: "{{activities.no_extensions}}" },
             { definition: EMPTY_STRING_VALUE },
@@ -86,7 +65,7 @@ import __esmDep12 from "./../templatingSelection.ts";
       });
 
       it("statement activity extension values can be null", function (done) {
-        var template = [
+        const template = [
             { statement: "{{statements.object_activity}}" },
             { object: "{{activities.no_extensions}}" },
             { definition: NULL_VALUE },
@@ -101,7 +80,7 @@ import __esmDep12 from "./../templatingSelection.ts";
       });
 
       it("statement activity extensions can be empty object", function (done) {
-        var template = [
+        const template = [
             { statement: "{{statements.object_activity}}" },
             { object: "{{activities.no_extensions}}" },
             { definition: EMPTY_OBJECT_VALUE },
@@ -116,7 +95,7 @@ import __esmDep12 from "./../templatingSelection.ts";
       });
 
       it("statement result extensions can be empty object", function (done) {
-        var template = [
+        const template = [
             { statement: "{{statements.result}}" },
             { result: "{{results.no_extensions}}" },
             VALID_EXTENSION_EMPTY,
@@ -131,7 +110,7 @@ import __esmDep12 from "./../templatingSelection.ts";
       });
 
       it("statement result extension values can be empty string", function (done) {
-        var template = [
+        const template = [
             { statement: "{{statements.result}}" },
             { result: "{{results.no_extensions}}" },
             EMPTY_STRING_VALUE,
@@ -146,7 +125,7 @@ import __esmDep12 from "./../templatingSelection.ts";
       });
 
       it("statement result extension values can be null", function (done) {
-        var template = [{ statement: "{{statements.result}}" }, { result: "{{results.no_extensions}}" }, NULL_VALUE],
+        const template = [{ statement: "{{statements.result}}" }, { result: "{{results.no_extensions}}" }, NULL_VALUE],
           data = helper.createFromTemplate(template).statement;
         data.id = helper.generateUUID();
         request(helper.getEndpointAndAuth())
@@ -157,7 +136,7 @@ import __esmDep12 from "./../templatingSelection.ts";
       });
 
       it("statement result extension values can be empty object", function (done) {
-        var template = [
+        const template = [
             { statement: "{{statements.result}}" },
             { result: "{{results.no_extensions}}" },
             EMPTY_OBJECT_VALUE,
@@ -172,7 +151,7 @@ import __esmDep12 from "./../templatingSelection.ts";
       });
 
       it("statement context extensions can be empty object", function (done) {
-        var template = [
+        const template = [
             { statement: "{{statements.context}}" },
             { context: "{{contexts.no_extensions}}" },
             VALID_EXTENSION_EMPTY,
@@ -187,7 +166,7 @@ import __esmDep12 from "./../templatingSelection.ts";
       });
 
       it("statement context extension values can be empty string", function (done) {
-        var template = [
+        const template = [
             { statement: "{{statements.context}}" },
             { context: "{{contexts.no_extensions}}" },
             EMPTY_STRING_VALUE,
@@ -202,7 +181,7 @@ import __esmDep12 from "./../templatingSelection.ts";
       });
 
       it("statement context extension values can be null", function (done) {
-        var template = [{ statement: "{{statements.context}}" }, { context: "{{contexts.no_extensions}}" }, NULL_VALUE],
+        const template = [{ statement: "{{statements.context}}" }, { context: "{{contexts.no_extensions}}" }, NULL_VALUE],
           data = helper.createFromTemplate(template).statement;
         data.id = helper.generateUUID();
         request(helper.getEndpointAndAuth())
@@ -213,7 +192,7 @@ import __esmDep12 from "./../templatingSelection.ts";
       });
 
       it("statement context extension values can be empty object", function (done) {
-        var template = [
+        const template = [
             { statement: "{{statements.context}}" },
             { context: "{{contexts.no_extensions}}" },
             EMPTY_OBJECT_VALUE,
@@ -228,7 +207,7 @@ import __esmDep12 from "./../templatingSelection.ts";
       });
 
       it("statement substatement activity extensions can be empty object", function (done) {
-        var template = [
+        const template = [
             { statement: "{{statements.object_substatement}}" },
             { object: "{{substatements.activity}}" },
             { object: "{{activities.no_extensions}}" },
@@ -244,7 +223,7 @@ import __esmDep12 from "./../templatingSelection.ts";
       });
 
       it("statement substatement activity extension values can be empty string", function (done) {
-        var template = [
+        const template = [
             { statement: "{{statements.object_substatement}}" },
             { object: "{{substatements.activity}}" },
             { object: "{{activities.no_extensions}}" },
@@ -260,7 +239,7 @@ import __esmDep12 from "./../templatingSelection.ts";
       });
 
       it("statement substatement activity extension values can be null", function (done) {
-        var template = [
+        const template = [
             { statement: "{{statements.object_substatement}}" },
             { object: "{{substatements.activity}}" },
             { object: "{{activities.no_extensions}}" },
@@ -276,7 +255,7 @@ import __esmDep12 from "./../templatingSelection.ts";
       });
 
       it("statement substatement activity extension values can be empty object", function (done) {
-        var template = [
+        const template = [
             { statement: "{{statements.object_substatement}}" },
             { object: "{{substatements.activity}}" },
             { object: "{{activities.no_extensions}}" },
@@ -292,7 +271,7 @@ import __esmDep12 from "./../templatingSelection.ts";
       });
 
       it("statement substatement result extensions can be empty object", function (done) {
-        var template = [
+        const template = [
             { statement: "{{statements.object_substatement}}" },
             { object: "{{substatements.result}}" },
             { result: "{{results.no_extensions}}" },
@@ -308,7 +287,7 @@ import __esmDep12 from "./../templatingSelection.ts";
       });
 
       it("statement substatement result extension values can be empty string", function (done) {
-        var template = [
+        const template = [
             { statement: "{{statements.object_substatement}}" },
             { object: "{{substatements.result}}" },
             { result: "{{results.no_extensions}}" },
@@ -324,7 +303,7 @@ import __esmDep12 from "./../templatingSelection.ts";
       });
 
       it("statement substatement result extension values can be null", function (done) {
-        var template = [
+        const template = [
             { statement: "{{statements.object_substatement}}" },
             { object: "{{substatements.activity}}" },
             { object: "{{activities.no_extensions}}" },
@@ -340,7 +319,7 @@ import __esmDep12 from "./../templatingSelection.ts";
       });
 
       it("statement substatement result extension values can be empty object", function (done) {
-        var template = [
+        const template = [
             { statement: "{{statements.object_substatement}}" },
             { object: "{{substatements.result}}" },
             { result: "{{results.no_extensions}}" },
@@ -356,7 +335,7 @@ import __esmDep12 from "./../templatingSelection.ts";
       });
 
       it("statement substatement context extensions can be empty object", function (done) {
-        var template = [
+        const template = [
             { statement: "{{statements.object_substatement}}" },
             { object: "{{substatements.context}}" },
             { context: "{{contexts.no_extensions}}" },
@@ -372,7 +351,7 @@ import __esmDep12 from "./../templatingSelection.ts";
       });
 
       it("statement substatement context extension values can be empty string", function (done) {
-        var template = [
+        const template = [
             { statement: "{{statements.object_substatement}}" },
             { object: "{{substatements.context}}" },
             { context: "{{contexts.no_extensions}}" },
@@ -388,7 +367,7 @@ import __esmDep12 from "./../templatingSelection.ts";
       });
 
       it("statement substatement context extension values can be null", function (done) {
-        var template = [
+        const template = [
             { statement: "{{statements.object_substatement}}" },
             { object: "{{substatements.context}}" },
             { context: "{{contexts.no_extensions}}" },
@@ -404,7 +383,7 @@ import __esmDep12 from "./../templatingSelection.ts";
       });
 
       it("statement substatement context extension values can be empty object", function (done) {
-        var template = [
+        const template = [
             { statement: "{{statements.object_substatement}}" },
             { object: "{{substatements.context}}" },
             { context: "{{contexts.no_extensions}}" },
@@ -446,12 +425,12 @@ import __esmDep12 from "./../templatingSelection.ts";
             if (err) {
               done(err);
             } else {
-              var result = helper.parse(res.body);
-              var stmts = result.statements;
-              var milliChecker = (num) => {
+              const result = helper.parse(res.body);
+              const stmts = result.statements;
+              const milliChecker = (num: number) => {
                 expect(stmts[num]).to.have.property("timestamp");
                 //formatted iso 8601
-                var chkStored = moment(stmts[num].timestamp, moment.ISO_8601);
+                const chkStored = moment(stmts[num].timestamp, moment.ISO_8601);
                 expect(chkStored.isValid()).to.be.true;
                 expect(isNaN(chkStored._pf.parsedDateParts[6])).to.be.false;
                 //precision to milliseconds
@@ -481,12 +460,12 @@ import __esmDep12 from "./../templatingSelection.ts";
             if (err) {
               done(err);
             } else {
-              var result = helper.parse(res.body);
-              var stmts = result.statements;
-              var milliChecker = (num) => {
+              const result = helper.parse(res.body);
+              const stmts = result.statements;
+              const milliChecker = (num: number) => {
                 expect(stmts[num]).to.have.property("stored");
                 //formatted iso 8601
-                var chkStored = moment(stmts[num].stored, moment.ISO_8601);
+                const chkStored = moment(stmts[num].stored, moment.ISO_8601);
                 expect(chkStored.isValid()).to.be.true;
                 expect(isNaN(chkStored._pf.parsedDateParts[6])).to.be.false;
                 //precision to milliseconds
@@ -514,18 +493,3 @@ import __esmDep12 from "./../templatingSelection.ts";
      */
     templatingSelection.createTemplate("durations.ts");
   });
-})(
-  undefined,
-  __esmDep1,
-  __esmDep2,
-  __esmDep3,
-  __esmDep4,
-  __esmDep5,
-  __esmDep6,
-  __esmDep7,
-  __esmDep8,
-  __esmDep9,
-  __esmDep10,
-  __esmDep11,
-  __esmDep12,
-);

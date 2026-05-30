@@ -3,32 +3,13 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import __esmDep1 from "fs";
-import __esmDep2 from "extend";
-import __esmDep3 from "moment";
-import __esmDep4 from "super-request";
-import __esmDep5 from "supertest-as-promised";
-import __esmDep6 from "chai";
-import __esmDep7 from "joi";
-import __esmDep8 from "./../helper.ts";
-import __esmDep9 from "./../multipartParser.ts";
+import helperImport from "../helper.ts";
+import requestBase from "super-request";
 
-(function (
-  module: any,
-  fs: any,
-  extend: any,
-  moment: any,
-  request: any,
-  requestPromise: any,
-  chai: any,
-  Joi: any,
-  helper: any,
-  multipartParser: any,
-) {
-  "use strict";
+const helper: any = helperImport;
+const request: any = helper.OAuthRequest(requestBase);
 
-  request = helper.OAuthRequest(request);
-  describe("Signed Statements (Data 2.6)", () => {
+describe("Signed Statements (Data 2.6)", () => {
     /**  Matchup with Conformance Requirements Document
      * XAPI-00115 - below
      * XAPI-00116 - below
@@ -36,9 +17,8 @@ import __esmDep9 from "./../multipartParser.ts";
      */
 
     describe("LRS must validate and store statement signatures if they are provided (Data 2.6)", function () {
-      var templates = [{ statement: "{{statements.default}}" }];
-      var data = helper.createFromTemplate(templates);
-      data = data.statement;
+      const templates = [{ statement: "{{statements.default}}" }];
+      const data = helper.createFromTemplate(templates).statement;
 
       /**  XAPI-00115, Data 2.5 Signed Statements
        * A Signed Statement MUST include a JSON web signature (JWS) as defined here: http://tools.ietf.org/html/rfc7515, as an Attachment with a usageType of http://adlnet.gov/expapi/attachments/signature and a contentType of application/octet-stream. The LRS must reject with 400 a statement which has usageType of http://adlnet.gov/expapi/attachments/signature and a contentType of application/octet-stream but does not have a signature attached.
@@ -46,8 +26,8 @@ import __esmDep9 from "./../multipartParser.ts";
       describe("A Signed Statement MUST include a JSON web signature, JWS (Data 2.6.s4.b1, XAPI-00115)", function () {
         it("rejects a signed statement with a malformed signature - bad content type", function (done) {
           data.id = helper.generateUUID();
-          var options: any = { attachmentInfo: { contentType: "text/plain; charset=ascii" } };
-          var body = helper.signStatement(data, options);
+          const options: any = { attachmentInfo: { contentType: "text/plain; charset=ascii" } };
+          const body = helper.signStatement(data, options);
 
           request(helper.getEndpointAndAuth())
             .post(helper.getEndpointStatements())
@@ -58,8 +38,8 @@ import __esmDep9 from "./../multipartParser.ts";
 
         it("rejects a signed statement with a malformed signature - bad JWS", function (done) {
           data.id = helper.generateUUID();
-          var options: any = { breakJson: true };
-          var body = helper.signStatement(data, options);
+          const options: any = { breakJson: true };
+          const body = helper.signStatement(data, options);
 
           request(helper.getEndpointAndAuth())
             .post(helper.getEndpointStatements())
@@ -75,8 +55,8 @@ import __esmDep9 from "./../multipartParser.ts";
       describe("The JWS signature MUST have a payload of a valid JSON serialization of the complete Statement before the signature was added. (Data 2.6.s4.b3, XAPI-00116)", function () {
         it("rejects statement with invalid JSON serialization", function (done) {
           data.id = helper.generateUUID();
-          var options: any = { breakJson: true };
-          var body = helper.signStatement(data, options);
+          const options: any = { breakJson: true };
+          const body = helper.signStatement(data, options);
 
           request(helper.getEndpointAndAuth())
             .post(helper.getEndpointStatements())
@@ -93,8 +73,8 @@ import __esmDep9 from "./../multipartParser.ts";
         it('Accepts signed statement with "RS256"', function (done) {
           // sign statement
           data.id = helper.generateUUID();
-          var options: any = {};
-          var body = helper.signStatement(data, options);
+          const options: any = {};
+          const body = helper.signStatement(data, options);
 
           request(helper.getEndpointAndAuth())
             .post(helper.getEndpointStatements())
@@ -106,8 +86,8 @@ import __esmDep9 from "./../multipartParser.ts";
         it('Accepts signed statement with "RS384"', function (done) {
           // sign statement
           data.id = helper.generateUUID();
-          var options: any = { algorithm: "RS384" };
-          var body = helper.signStatement(data, options);
+          const options: any = { algorithm: "RS384" };
+          const body = helper.signStatement(data, options);
 
           request(helper.getEndpointAndAuth())
             .post(helper.getEndpointStatements())
@@ -119,8 +99,8 @@ import __esmDep9 from "./../multipartParser.ts";
         it('Accepts signed statement with "RS512"', function (done) {
           // sign statement
           data.id = helper.generateUUID();
-          var options: any = { algorithm: "RS512" };
-          var body = helper.signStatement(data, options);
+          const options: any = { algorithm: "RS512" };
+          const body = helper.signStatement(data, options);
 
           request(helper.getEndpointAndAuth())
             .post(helper.getEndpointStatements())
@@ -131,8 +111,8 @@ import __esmDep9 from "./../multipartParser.ts";
 
         it("Rejects signed statement with another algorithm", function (done) {
           data.id = helper.generateUUID();
-          var options: any = { algorithm: "HS256" };
-          var body = helper.signStatement(data, options);
+          const options: any = { algorithm: "HS256" };
+          const body = helper.signStatement(data, options);
 
           request(helper.getEndpointAndAuth())
             .post(helper.getEndpointStatements())
@@ -143,4 +123,3 @@ import __esmDep9 from "./../multipartParser.ts";
       });
     }); //end describe statement signatures
   });
-})(undefined, __esmDep1, __esmDep2, __esmDep3, __esmDep4, __esmDep5, __esmDep6, __esmDep7, __esmDep8, __esmDep9);

@@ -3,35 +3,12 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-(function (
-  module: any,
-  fs: any,
-  extend: any,
-  moment: any,
-  request: any,
-  requestPromise: any,
-  chai: any,
-  liburl: any,
-  Joi: any,
-  helper: any,
-  multipartParser: any,
-  redirect: any,
-) {
-  // "use strict";
-  if (global.OAUTH) request = helper.OAuthRequest(request);
+import helperImport from "../helper.ts";
+import requestBase from "super-request";
 
-  describe("Headers Requirements (Communication 1.2)", () => {});
-})(
-  module,
-  require("fs"),
-  require("extend"),
-  require("moment"),
-  require("super-request"),
-  require("supertest-as-promised"),
-  require("chai"),
-  require("url"),
-  require("joi"),
-  require("./../helper.ts"),
-  require("./../multipartParser.ts"),
-  require("./../redirect.ts"),
-);
+const helper: any = helperImport;
+let request: any = requestBase;
+
+if (global.OAUTH) request = helper.OAuthRequest(request);
+
+describe("Headers Requirements (Communication 1.2)", () => {});
