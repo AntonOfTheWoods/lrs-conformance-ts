@@ -5,6 +5,7 @@
 
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
+import { expectAsync } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
 
 const helper: any = helperImport;
@@ -62,7 +63,7 @@ describe("Object Property Requirements (Data 2.4.4)", () => {
    * An Activity Definition uses the "interactionType" property if correctResponsesPattern is present. An LRS rejects a statement with 400 Bad Request if a correctResponsePattern is present and interactionType is not.
    */
   describe('An Activity Definition uses the "interactionType" property if any of the correctResponsesPattern, choices, scale, source, target, or steps properties are used (Multiplicity, Data 2.4.4.1.s8, XAPI-00064) **Implicit**', function () {
-    it('Activity Definition uses correctResponsesPattern without "interactionType" property', function (done) {
+    it('Activity Definition uses correctResponsesPattern without "interactionType" property', async function () {
       id = helper.generateUUID();
       let correctResponsesPatterntemplates = [
         { statement: "{{statements.default}}" },
@@ -71,155 +72,191 @@ describe("Object Property Requirements (Data 2.4.4)", () => {
       correctResponsesPattern = helper.createFromTemplate(correctResponsesPatterntemplates);
       correctResponsesPattern = correctResponsesPattern.statement;
       delete correctResponsesPattern.object.definition.interactionType;
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(correctResponsesPattern)
-        .expect(400, done);
-    });
+        ,
+      400,
+      );
+});
 
-    it('Activity Definition uses choices without "interactionType" property', function (done) {
+    it('Activity Definition uses choices without "interactionType" property', async function () {
       id = helper.generateUUID();
       let choicetemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.choice}}" }];
       choice = helper.createFromTemplate(choicetemplates);
       choice = choice.statement;
       delete choice.object.definition.interactionType;
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(choice)
-        .expect(400, done);
-    });
+        ,
+      400,
+      );
+});
 
-    it('Activity Definition uses fill-in without "interactionType" property', function (done) {
+    it('Activity Definition uses fill-in without "interactionType" property', async function () {
       id = helper.generateUUID();
       let fillintemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.fill_in}}" }];
       fillin = helper.createFromTemplate(fillintemplates);
       fillin = fillin.statement;
       delete fillin.object.definition.interactionType;
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(fillin)
-        .expect(400, done);
-    });
+        ,
+      400,
+      );
+});
 
-    it('Activity Definition uses scale without "interactionType" property', function (done) {
+    it('Activity Definition uses scale without "interactionType" property', async function () {
       id = helper.generateUUID();
       let scaletemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.likert}}" }];
       scale = helper.createFromTemplate(scaletemplates);
       scale = scale.statement;
       delete scale.object.definition.interactionType;
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(scale)
-        .expect(400, done);
-    });
+        ,
+      400,
+      );
+});
 
-    it('Activity Definition uses long-fill-in without "interactionType" property', function (done) {
+    it('Activity Definition uses long-fill-in without "interactionType" property', async function () {
       id = helper.generateUUID();
       let fillintemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.long_fill_in}}" }];
       fillin = helper.createFromTemplate(fillintemplates);
       fillin = fillin.statement;
       delete fillin.object.definition.interactionType;
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(fillin)
-        .expect(400, done);
-    });
+        ,
+      400,
+      );
+});
 
-    it('Activity Definition uses source without "interactionType" property', function (done) {
+    it('Activity Definition uses source without "interactionType" property', async function () {
       id = helper.generateUUID();
       let sourcetemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.matching}}" }];
       source = helper.createFromTemplate(sourcetemplates);
       source = source.statement;
       delete source.object.definition.interactionType;
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(source)
-        .expect(400, done);
-    });
+        ,
+      400,
+      );
+});
 
-    it('Activity Definition uses target without "interactionType" property', function (done) {
+    it('Activity Definition uses target without "interactionType" property', async function () {
       id = helper.generateUUID();
       let targettemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.matching_target}}" }];
       target = helper.createFromTemplate(targettemplates);
       target = target.statement;
       delete target.object.definition.interactionType;
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(target)
-        .expect(400, done);
-    });
+        ,
+      400,
+      );
+});
 
-    it('Activity Definition uses numeric without "interactionType" property', function (done) {
+    it('Activity Definition uses numeric without "interactionType" property', async function () {
       id = helper.generateUUID();
       let numerictemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.numeric}}" }];
       numeric = helper.createFromTemplate(numerictemplates);
       numeric = numeric.statement;
       delete numeric.object.definition.interactionType;
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(numeric)
-        .expect(400, done);
-    });
+        ,
+      400,
+      );
+});
 
-    it('Activity Definition uses other without "interactionType" property', function (done) {
+    it('Activity Definition uses other without "interactionType" property', async function () {
       id = helper.generateUUID();
       let othertemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.other}}" }];
       other = helper.createFromTemplate(othertemplates);
       other = other.statement;
       delete other.object.definition.interactionType;
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(other)
-        .expect(400, done);
-    });
+        ,
+      400,
+      );
+});
 
-    it('Activity Definition uses performance without "interactionType" property', function (done) {
+    it('Activity Definition uses performance without "interactionType" property', async function () {
       id = helper.generateUUID();
       let stepstemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.performance}}" }];
       steps = helper.createFromTemplate(stepstemplates);
       steps = steps.statement;
       delete steps.object.definition.interactionType;
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(steps)
-        .expect(400, done);
-    });
+        ,
+      400,
+      );
+});
 
-    it('Activity Definition uses sequencing without "interactionType" property', function (done) {
+    it('Activity Definition uses sequencing without "interactionType" property', async function () {
       id = helper.generateUUID();
       let seqtemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.sequencing}}" }];
       seq = helper.createFromTemplate(seqtemplates);
       seq = seq.statement;
       delete seq.object.definition.interactionType;
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(seq)
-        .expect(400, done);
-    });
+        ,
+      400,
+      );
+});
 
-    it('Activity Definition uses true-false without "interactionType" property', function (done) {
+    it('Activity Definition uses true-false without "interactionType" property', async function () {
       id = helper.generateUUID();
       let tftemplates = [{ statement: "{{statements.default}}" }, { object: "{{activities.true_false}}" }];
       tf = helper.createFromTemplate(tftemplates);
       tf = tf.statement;
       delete tf.object.definition.interactionType;
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(tf)
-        .expect(400, done);
-    });
+        ,
+      400,
+      );
+});
   });
 
   //Data 2.4.4.2 - when the object is an agent or a group
@@ -231,31 +268,37 @@ describe("Object Property Requirements (Data 2.4.4)", () => {
    * Statements that use an Agent or Group as an Object MUST specify an "objectType" property. The LRS rejects with 400 Bad Request if the “objectType” property is absent and the Object is an Agent Object or Group Object.
    */
   describe('Statements that use an Agent or Group as an Object MUST specify an "objectType" property. (Data 2.4.4.2.s1.b1, XAPI-00065)', function () {
-    it("should fail when using agent as object and no objectType", function (done) {
+    it("should fail when using agent as object and no objectType", async function () {
       let templates = [{ statement: "{{statements.object_agent_default}}" }];
       let data = helper.createFromTemplate(templates).statement;
       delete data.object.objectType;
 
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .expect(400, done);
-    });
+        ,
+      400,
+      );
+});
 
-    it("should fail when using group as object and no objectType", function (done) {
+    it("should fail when using group as object and no objectType", async function () {
       let templates = [{ statement: "{{statements.object_group_default}}" }];
       let data = helper.createFromTemplate(templates).statement;
       delete data.object.objectType;
 
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .expect(400, done);
-    });
+        ,
+      400,
+      );
+});
 
-    it("substatement should fail when using agent as object and no objectType", function (done) {
+    it("substatement should fail when using agent as object and no objectType", async function () {
       let templates = [
         { statement: "{{statements.object_substatement}}" },
         { object: "{{statements.object_agent_default}}" },
@@ -263,14 +306,17 @@ describe("Object Property Requirements (Data 2.4.4)", () => {
       let data = helper.createFromTemplate(templates).statement;
       delete data.object.objectType;
 
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .expect(400, done);
-    });
+        ,
+      400,
+      );
+});
 
-    it("substatement should fail when using group as object and no objectType", function (done) {
+    it("substatement should fail when using group as object and no objectType", async function () {
       let templates = [
         { statement: "{{statements.object_substatement}}" },
         { object: "{{statements.object_group_default}}" },
@@ -278,12 +324,15 @@ describe("Object Property Requirements (Data 2.4.4)", () => {
       let data = helper.createFromTemplate(templates).statement;
       delete data.object.objectType;
 
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .expect(400, done);
-    });
+        ,
+      400,
+      );
+});
   });
 
   //Data 2.4.4.3 - when the object is a statement

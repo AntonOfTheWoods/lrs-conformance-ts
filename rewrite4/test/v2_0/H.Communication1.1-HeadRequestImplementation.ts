@@ -6,6 +6,7 @@
 import { expect } from "chai";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
+import { expectAsync } from "../super-request.ts";
 
 const helper: any = helperImport;
 let request: any = requestBase;
@@ -170,17 +171,23 @@ describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
     });
   });
 
-  it("An LRS accepts HEAD requests without Content-Length headers (Communication 1.1)", function (done) {
-    request(helper.getEndpointAndAuth())
+  it("An LRS accepts HEAD requests without Content-Length headers (Communication 1.1)", async function () {
+    await expectAsync(
+request(helper.getEndpointAndAuth())
       .head(helper.getEndpointStatements())
       .headers(helper.addAllHeaders({}))
-      .expect(200, done);
-  });
+      ,
+    200,
+    );
+});
 
-  it("An LRS accepts GET requests without Content-Length headers (Communication 1.1)", function (done) {
-    request(helper.getEndpointAndAuth())
+  it("An LRS accepts GET requests without Content-Length headers (Communication 1.1)", async function () {
+    await expectAsync(
+request(helper.getEndpointAndAuth())
       .get(helper.getEndpointStatements())
       .headers(helper.addAllHeaders({}))
-      .expect(200, done);
-  });
+      ,
+    200,
+    );
+});
 });

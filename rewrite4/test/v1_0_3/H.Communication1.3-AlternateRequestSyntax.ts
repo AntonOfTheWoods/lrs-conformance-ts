@@ -6,6 +6,7 @@
 import { expect } from "chai";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
+import { expectAsync } from "../super-request.ts";
 
 const helper: any = helperImport;
 let request: any = requestBase;
@@ -21,23 +22,19 @@ describe("Alternate Request Syntax Requirements (Communication 1.3)", function (
     /**  XAPI-00148, Communication 2.1.2 POST Statements
      * An LRS accepts a valid POST request containing a GET request returning 200 OK and the StatementResult Object.
      */
-    it("An LRS accepts a valid POST request containing a GET request returning 200 OK and the StatementResult Object. (Communication 1.3, Communication 2.1.2.s2.b3, XAPI-00148)", function (done) {
-      request(helper.getEndpointAndAuth())
+    it("An LRS accepts a valid POST request containing a GET request returning 200 OK and the StatementResult Object. (Communication 1.3, Communication 2.1.2.s2.b3, XAPI-00148)", async function () {
+      const res = await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements() + "?method=GET")
         .headers(helper.addAllHeaders({}))
         .form({ limit: 1 })
-        .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            let results = helper.parse(res.body, done);
+        ,
+200,
+);
+
+let results = helper.parse(res.body);
             expect(results).to.have.property("statements");
-            expect(results).to.have.property("more");
-            done();
-          }
-        });
-    });
+            expect(results).to.have.property("more");});
 
     it("An LRS rejects an alternate request syntax not issued as a POST", function () {
       let parameters = { method: "POST" };
@@ -95,7 +92,7 @@ describe("Alternate Request Syntax Requirements (Communication 1.3)", function (
     });
 
     describe('An LRS will reject an alternate request syntax sending content which does not have a form parameter with the name of "content" (Communication 1.3.s3.b4)', function () {
-      it("will pass PUT with content body which is url encoded", function (done) {
+      it("will pass PUT with content body which is url encoded", async function () {
         let headers = helper.addAllHeaders({});
         let auth = headers["Authorization"];
         let query = helper.getUrlEncoding({ method: "PUT" });
@@ -110,19 +107,22 @@ describe("Alternate Request Syntax Requirements (Communication 1.3)", function (
           Authorization: auth,
         };
 
-        request(helper.getEndpointAndAuth())
+        await expectAsync(
+request(helper.getEndpointAndAuth())
           .post(helper.getEndpointStatements() + "?" + query)
           .headers({ "content-type": "application/x-www-form-urlencoded" })
           .form(form)
-          .expect(204, done);
-      });
+          ,
+        204,
+        );
+});
 
       it("will fail PUT with no content body", function () {
         let parameters = { method: "PUT" };
         return helper.sendRequest("post", helper.getEndpointStatements(), parameters, undefined, 400);
       });
 
-      it("will fail PUT with content body which is not url encoded", function (done) {
+      it("will fail PUT with content body which is not url encoded", async function () {
         let headers = helper.addAllHeaders({});
         let query = helper.getUrlEncoding({ method: "PUT" });
         let templates = [{ statement: "{{statements.default}}" }];
@@ -135,12 +135,15 @@ describe("Alternate Request Syntax Requirements (Communication 1.3)", function (
           "X-Experience-API-Version": "1.0.3",
         };
 
-        request(helper.getEndpointAndAuth())
+        await expectAsync(
+request(helper.getEndpointAndAuth())
           .post(helper.getEndpointStatements() + "?" + query)
           .headers(headers)
           .body(JSON.stringify(form))
-          .expect(400, done);
-      });
+          ,
+        400,
+        );
+});
     });
   });
 });

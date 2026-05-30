@@ -5,6 +5,7 @@
 import { expect } from "chai";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
+import { expectAsync } from "../super-request.ts";
 import xapiRequestsImport from "./util/requests.ts";
 
 const helper: any = helperImport;
@@ -66,16 +67,19 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
     /**  XAPI-00273, Communication 2.6 Agent Profile Resource
      * An LRS's Agent Profile API upon processing a successful PUT request returns code 204 No Content
      */
-    it("An LRS's Agent Profile Resource upon processing a successful PUT request returns code 204 No Content (Communication 2.6.s3, XAPI-00273)", function (done) {
+    it("An LRS's Agent Profile Resource upon processing a successful PUT request returns code 204 No Content (Communication 2.6.s3, XAPI-00273)", async function () {
       let parameters = helper.buildAgentProfile(),
         document = helper.buildDocument();
 
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .put(helper.getEndpointAgentsProfile() + "?" + helper.getUrlEncoding(parameters))
         .headers(helper.addAllHeaders({ "If-None-Match": "*" }))
         .json(document)
-        .expect(204, done);
-    });
+        ,
+      204,
+      );
+});
 
     /**  XAPI-00272, Communication 2.6 Agent Profile Resource
      * An LRS's Agent Profile API upon processing a successful POST request returns code 204 No Content
@@ -123,33 +127,39 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
   /**  XAPI-00264, Communication 2.6 Agent Profile Resource
    * An LRS's Agent Profile API rejects a PUT request without "agent" as a parameter with error code 400 Bad Request
    */
-  it('An LRS\'s Agent Profile Resource rejects a PUT request without "agent" as a parameter with error code 400 Bad Request (multiplicity, Communication 2.6.s3.table1.row1, XAPI-00264)', function (done) {
+  it('An LRS\'s Agent Profile Resource rejects a PUT request without "agent" as a parameter with error code 400 Bad Request (multiplicity, Communication 2.6.s3.table1.row1, XAPI-00264)', async function () {
     let parameters = helper.buildAgentProfile(),
       document = helper.buildDocument();
     delete parameters.agent;
 
-    request(helper.getEndpointAndAuth())
+    await expectAsync(
+request(helper.getEndpointAndAuth())
       .put(helper.getEndpointAgentsProfile() + "?" + helper.getUrlEncoding(parameters))
       .headers(helper.addAllHeaders({ "If-None-Match": "*" }))
       .json(document)
-      .expect(400, done);
-  });
+      ,
+    400,
+    );
+});
 
   /**  XAPI-00257, Communication 2.6 Agent Profile Resource
    * An LRS's Agent Profile API rejects a PUT request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request
    */
   describe('An LRS\'s Agent Profile Resource rejects a PUT request with "agent" as a parameter if it is not an Agent Object with error code 400 Bad Request (format, Communication 2.6.s3.table1.row1, XAPI-00257)', function () {
-    it('Should reject PUT with "agent" with invalid value', function (done) {
+    it('Should reject PUT with "agent" with invalid value', async function () {
       let document = helper.buildDocument();
       let parameters = helper.buildAgentProfile();
       parameters.agent = true;
 
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .put(helper.getEndpointAgentsProfile() + "?" + helper.getUrlEncoding(parameters))
         .headers(helper.addAllHeaders({ "If-None-Match": "*" }))
         .json(document)
-        .expect(400, done);
-    });
+        ,
+      400,
+      );
+});
   });
 
   /**  XAPI-00263, Communication 2.6 Agent Profile Resource
@@ -209,17 +219,20 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
   /** XAPI-00267, Communication 2.6 Agent Profile Resource
    * An LRS's Agent Profile API rejects a PUT request without "profileId" as a parameter with error code 400 Bad Request
    */
-  it('An LRS\'s Agent Profile Resource rejects a PUT request without "profileId" as a parameter with error code 400 Bad Request (multiplicity, Communication 2.6.s3.table1.row2, XAPI-00267)', function (done) {
+  it('An LRS\'s Agent Profile Resource rejects a PUT request without "profileId" as a parameter with error code 400 Bad Request (multiplicity, Communication 2.6.s3.table1.row2, XAPI-00267)', async function () {
     let parameters = helper.buildAgentProfile(),
       document = helper.buildDocument();
     delete parameters.profileId;
 
-    request(helper.getEndpointAndAuth())
+    await expectAsync(
+request(helper.getEndpointAndAuth())
       .put(helper.getEndpointAgentsProfile() + "?" + helper.getUrlEncoding(parameters))
       .headers(helper.addAllHeaders({ "If-None-Match": "*" }))
       .json(document)
-      .expect(400, done);
-  });
+      ,
+    400,
+    );
+});
 
   /**  XAPI-00266, Communication 2.6 Agent Profile Resource
    * An LRS's Agent Profile API rejects a POST request without "profileId" as a parameter with error code 400 Bad Request
@@ -534,7 +547,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
   /**  XAPI-00284, Communication 2.6 Agent Profile Resource
    * An LRS must reject with 400 Bad Request a POST request to the Activitiy Profile API which contains name/value pairs with invalid JSON and the Content-Type header is "application/json"
    */
-  it("An LRS must reject with 400 Bad Request a POST request to the Activitiy Profile Resource which contains name/value pairs with invalid JSON and the Content-Type header is 'application/json' (Communication 2.6, XAPI-00284)", function (done) {
+  it("An LRS must reject with 400 Bad Request a POST request to the Activitiy Profile Resource which contains name/value pairs with invalid JSON and the Content-Type header is 'application/json' (Communication 2.6, XAPI-00284)", async function () {
     let parameters = {
       profileId: helper.generateUUID(),
     };
@@ -552,12 +565,15 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", function () 
     let attachment = JSON.stringify(helper.buildDocument());
     let header = { "content-type": "application/json" };
 
-    request(helper.getEndpointAndAuth())
+    await expectAsync(
+request(helper.getEndpointAndAuth())
       .post(helper.getEndpointAgentsProfile() + "?" + helper.getUrlEncoding(parameters) + "&agent=" + agent)
       .headers(helper.addAllHeaders(header))
       .body(attachment)
-      .expect(400, done);
-  });
+      ,
+    400,
+    );
+});
 
   describe("The LRS shall include a Last-Modified header indicating when the document was last modified.", function () {
     let document = helper.buildDocument();

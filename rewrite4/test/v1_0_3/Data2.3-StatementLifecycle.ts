@@ -6,12 +6,12 @@
 import { expect } from "chai";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
+import { expectAsync } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
 
 const helper: any = helperImport;
 const templatingSelection: any = templatingSelectionImport;
 let request: any = requestBase;
-
 
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
@@ -34,60 +34,62 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
     let voidedId = helper.generateUUID();
     let stmtTime: number;
 
-    before("persist voided statement", function (done) {
+    before("persist voided statement", async function () {
       let templates = [{ statement: "{{statements.default}}" }];
       let voided = helper.createFromTemplate(templates);
       voided = voided.statement;
       voided.id = voidedId;
 
-      request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(voided)
-        .expect(200, done);
+      await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(voided),
+        200,
+      );
     });
 
-    before("persist voiding statement", function (done) {
+    before("persist voiding statement", async function () {
       let templates = [{ statement: "{{statements.voiding}}" }];
       let voiding = helper.createFromTemplate(templates);
       voiding = voiding.statement;
       voiding.object.id = voidedId;
       stmtTime = Date.now();
 
-      request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(voiding)
-        .expect(200, done);
+      await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(voiding),
+        200,
+      );
     });
 
-    it('should return a voided statement when using GET "voidedStatementId"', function (done) {
+    it('should return a voided statement when using GET "voidedStatementId"', async function () {
       this.timeout(0);
       let query = helper.getUrlEncoding({ voidedStatementId: voidedId });
-      request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .wait(helper.genDelay(stmtTime, "?" + query, voidedId))
-        .headers(helper.addAllHeaders({}))
-        .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            let statement = helper.parse(res.body, done);
-            expect(statement.id).to.equal(voidedId);
-            done();
-          }
-        });
+      const res = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .wait(helper.genDelay(stmtTime, "?" + query, voidedId))
+          .headers(helper.addAllHeaders({})),
+        200,
+      );
+
+      let statement = helper.parse(res.body);
+      expect(statement.id).to.equal(voidedId);
     });
 
-    it('should return 404 when using GET with "statementId"', function (done) {
+    it('should return 404 when using GET with "statementId"', async function () {
       this.timeout(0);
       let query = helper.getUrlEncoding({ statementId: voidedId });
-      request(helper.getEndpointAndAuth())
-        .get(helper.getEndpointStatements() + "?" + query)
-        .wait(helper.genDelay(stmtTime, "?" + query, voidedId))
-        .headers(helper.addAllHeaders({}))
-        .expect(404, done);
+      await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .wait(helper.genDelay(stmtTime, "?" + query, voidedId))
+          .headers(helper.addAllHeaders({})),
+        404,
+      );
     });
   });
 
@@ -101,45 +103,37 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
     let voidedId: string;
     let voidingId: string;
 
-    before("persist voided statement", function (done) {
+    before("persist voided statement", async function () {
       let templates = [{ statement: "{{statements.default}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
 
-      request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            voidedId = res.body[0];
-            done();
-          }
-        });
+      const res = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        200,
+      );
+
+      voidedId = (res.body as string[])[0] as string;
     });
 
-    before("persist voiding statement", function (done) {
+    before("persist voiding statement", async function () {
       let templates = [{ statement: "{{statements.voiding}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
       data.object.id = voidedId;
 
-      request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            voidingId = res.body[0];
-            done();
-          }
-        });
+      const res = await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        200,
+      );
+
+      voidingId = (res.body as string[])[0] as string;
     });
 
     it("should not void an already voided statement", function (done) {

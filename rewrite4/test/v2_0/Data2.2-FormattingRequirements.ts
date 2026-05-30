@@ -6,6 +6,7 @@
 import { expect } from "chai";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
+import { expectAsync } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
 
 const helper: any = helperImport;
@@ -155,18 +156,21 @@ describe("Formatting Requirements (Data 2.2)", () => {
   describe("All Objects are well-created JSON Objects (Nature of binding, Data 2.1, XAPI-00014) **Implicit**", function () {
     templatingSelection.createTemplate("verify.ts");
 
-    it("An LRS rejects a not well-created JSON Object", function (done) {
+    it("An LRS rejects a not well-created JSON Object", async function () {
       const malformedTemplates = [{ statement: "{{statements.default}}" }];
       const malformed = helper.createFromTemplate(malformedTemplates).statement;
       const string = '"objectType": "Agent"';
       malformed.actor.objectType = string;
 
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(malformed)
-        .expect(400, done);
-    });
+        ,
+      400,
+      );
+});
   });
 
   /**  XAPI-00011, Data 2.2 Formatting Requirements

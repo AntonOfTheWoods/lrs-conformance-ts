@@ -6,6 +6,7 @@
 import { expect } from "chai";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
+import { expectAsync } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
 
 const helper: any = helperImport;
@@ -33,32 +34,38 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
     const voidedId = helper.generateUUID();
     let stmtTime: number;
 
-    before("Persist voided statement", function (done) {
+    before("Persist voided statement", async function () {
       const templates = [{ statement: "{{statements.default}}" }];
       let voided = helper.createFromTemplate(templates);
       voided = voided.statement;
       voided.id = voidedId;
 
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(voided)
-        .expect(200, done);
-    });
+        ,
+      200,
+      );
+});
 
-    before("Persist voiding statement", function (done) {
+    before("Persist voiding statement", async function () {
       const templates = [{ statement: "{{statements.voiding}}" }];
       let voiding = helper.createFromTemplate(templates);
       voiding = voiding.statement;
       voiding.object.id = voidedId;
       stmtTime = Date.now();
 
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(voiding)
-        .expect(200, done);
-    });
+        ,
+      200,
+      );
+});
 
     it('Should return a voided statement when using GET "voidedStatementId"', function (done) {
       const context = this;
@@ -81,16 +88,19 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
         });
     });
 
-    it('Should return 404 when using GET with "statementId"', function (done) {
+    it('Should return 404 when using GET with "statementId"', async function () {
       const context = this;
       context.timeout(0);
       const query = helper.getUrlEncoding({ statementId: voidedId });
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .get(helper.getEndpointStatements() + "?" + query)
         .wait(helper.genDelay(stmtTime, "?" + query, voidedId))
         .headers(helper.addAllHeaders({}))
-        .expect(404, done);
-    });
+        ,
+      404,
+      );
+});
   });
 
   /**  XAPI-00016, Data 2.3.2 Voiding

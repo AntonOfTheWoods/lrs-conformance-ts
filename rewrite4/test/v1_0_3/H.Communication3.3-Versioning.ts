@@ -6,6 +6,7 @@
 import { expect } from "chai";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
+import { expectAsync } from "../super-request.ts";
 
 const helper: any = helperImport;
 let request: any = requestBase;
@@ -111,9 +112,12 @@ describe("Versioning Requirements (Communication 3.3)", () => {
    * An LRS rejects with error code 400 Bad Request, a Request which the "X-Experience-API-Version" header's value is anything but "1.0" or "1.0.x", where x is the semantic versioning number to any API except the About API
    */
   describe('An LRS rejects with error code 400 Bad Request, a Request which does not use a "X-Experience-API-Version" header name to any Resource except the About Resource (Format, Communication 3.3.s4.b1, Communication 3.3.s3.b7, Communication 2.8.s5.b4, XAPI-00331)', function () {
-    it('should pass when About GET without header "X-Experience-API-Version"', function (done) {
-      request(helper.getEndpointAndAuth()).get(helper.getEndpointAbout()).expect(200, done);
-    });
+    it('should pass when About GET without header "X-Experience-API-Version"', async function () {
+      await expectAsync(
+request(helper.getEndpointAndAuth()).get(helper.getEndpointAbout()),
+      200,
+      );
+});
 
     it('should fail when Statement GET without header "X-Experience-API-Version"', function (done) {
       let stmtId = helper.generateUUID();

@@ -6,6 +6,7 @@
 import { expect } from "chai";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
+import { expectAsync } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
 
 const helper: any = helperImport;
@@ -27,7 +28,7 @@ describe("Authority Property Requirements (Data 2.4.9)", () => {
   /**  XAPI-00100, Data 2.4.9 Authority
    * An LRS rejects with error code 400 Bad Request, a Request whose "authority" is a Group having more than two Agents
    */
-  it('An LRS rejects with error code 400 Bad Request, a Request whose "authority" is a Group and consists of non-O-Auth Agents (Data 2.4.9.s3.b3, XAPI-00100)', function (done) {
+  it('An LRS rejects with error code 400 Bad Request, a Request whose "authority" is a Group and consists of non-O-Auth Agents (Data 2.4.9.s3.b3, XAPI-00100)', async function () {
     const templates = [
       { statement: "{{statements.default}}" },
       {
@@ -44,12 +45,15 @@ describe("Authority Property Requirements (Data 2.4.9)", () => {
     ];
     let data = helper.createFromTemplate(templates);
     data = data.statement;
-    request(helper.getEndpointAndAuth())
+    await expectAsync(
+request(helper.getEndpointAndAuth())
       .post(helper.getEndpointStatements())
       .headers(helper.addAllHeaders({}))
       .json(data)
-      .expect(400, done);
-  });
+      ,
+    400,
+    );
+});
 
   /**  XAPI-00099, Data 2.4.9 Authority
    * An LRS populates the "authority" property if it is not provided in the Statement

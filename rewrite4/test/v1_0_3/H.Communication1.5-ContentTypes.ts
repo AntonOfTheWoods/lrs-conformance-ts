@@ -7,6 +7,7 @@ import crypto from "crypto";
 import fs from "fs";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
+import { expectAsync } from "../super-request.ts";
 
 const helper: any = helperImport;
 let request: any = requestBase;
@@ -94,25 +95,31 @@ describe("Content Type Requirements (Communication 1.5)", function () {
       pattHash = crypto.createHash("SHA256").update(pictureAtt).digest("hex");
     });
 
-    it('should succeed when attachment uses "fileUrl" and request content-type is "application/json"', function (done) {
-      request(helper.getEndpointAndAuth())
+    it('should succeed when attachment uses "fileUrl" and request content-type is "application/json"', async function () {
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .expect(200, done);
-    });
+        ,
+      200,
+      );
+});
 
-    it('should fail when attachment uses "fileUrl" and request content-type is "multipart/form-data"', function (done) {
+    it('should fail when attachment uses "fileUrl" and request content-type is "multipart/form-data"', async function () {
       let header = { "Content-Type": "multipart/form-data; boundary=-------314159265358979323846" };
 
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders(header))
         .body(JSON.stringify(data))
-        .expect(400, done);
-    });
+        ,
+      400,
+      );
+});
 
-    it('should succeed when attachment is raw data and request content-type is "multipart/mixed"', function (done) {
+    it('should succeed when attachment is raw data and request content-type is "multipart/mixed"', async function () {
       let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
 
       delete data.attachments[0].fileUrl;
@@ -133,14 +140,17 @@ describe("Content Type Requirements (Communication 1.5)", function () {
       msg += pictureAtt + crlf;
       msg += dashes + boundary + dashes + crlf;
 
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders(header))
         .body(msg)
-        .expect(200, done);
-    });
+        ,
+      200,
+      );
+});
 
-    it('should fail when attachment is raw data and request content-type is "multipart/form-data"', function (done) {
+    it('should fail when attachment is raw data and request content-type is "multipart/form-data"', async function () {
       let header = { "Content-Type": "multipart/form-data; boundary=-------314159265358979323846" };
 
       delete data.attachments[0].fileUrl;
@@ -162,19 +172,22 @@ describe("Content Type Requirements (Communication 1.5)", function () {
       msg += pictureAtt + crlf;
       msg += dashes + boundary + dashes + crlf;
 
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders(header))
         .body(msg)
-        .expect(400, done);
-    });
+        ,
+      400,
+      );
+});
   });
 
   /**  XAPI-00128, Communication 1.5.1 Application/JSON
    * An LRS rejects with error code 400 Bad Request, a PUT or POST Request which has excess multi-part sections that are not attachments.
    */
   describe("An LRS rejects with error code 400 Bad Request, a PUT or POST Request which has excess multi-part sections that are not attachments. (Communication 1.5.1.s1.b2, Data 2.4.11, XAPI-00128)", function () {
-    it("should fail when passing statement attachments with excess multipart sections", function (done) {
+    it("should fail when passing statement attachments with excess multipart sections", async function () {
       let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
       let templates = [
         { statement: "{{statements.attachment}}" },
@@ -234,19 +247,22 @@ describe("Content Type Requirements (Communication 1.5)", function () {
 
       msg += dashes + boundary + dashes + crlf;
 
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders(header))
         .body(msg)
-        .expect(400, done);
-    });
+        ,
+      400,
+      );
+});
   });
 
   /**  XAPI-00129, Communication 1.5.1 Application/JSON
    * An LRS rejects with error code 400 Bad Request, a PUT or POST Request which is missing multi-part sections for non-fileURL attachments must be rejected.
    */
   describe('An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content-Type" header with value "application/json", and has a discrepancy in the number of Attachments vs. the number of fileURL members (Communication 1.5.1.s1.b2, Data 2.4.11, XAPI-00129)', function () {
-    it('should fail when passing statement attachments and missing attachment"s binary', function (done) {
+    it('should fail when passing statement attachments and missing attachment"s binary', async function () {
       let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
       let templates = [
         { statement: "{{statements.attachment}}" },
@@ -293,19 +309,22 @@ describe("Content Type Requirements (Communication 1.5)", function () {
       msg += txtAtt1 + crlf;
       msg += dashes + boundary + dashes + crlf;
 
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders(header))
         .body(msg)
-        .expect(400, done);
-    });
+        ,
+      400,
+      );
+});
   });
 
   /**  XAPI-00131, Communication 1.5.2 Multipart/Mixed
    * An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and does not have a body header named "boundary"
    */
   describe('An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and does not have a body header named "boundary" (Communication 1.5.2.s2.b2, Data 2.4.11, RFC 2046, XAPI-00131)', function () {
-    it("should fail if boundary not provided in body", function (done) {
+    it("should fail if boundary not provided in body", async function () {
       let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
 
       let templates = [
@@ -342,19 +361,22 @@ describe("Content Type Requirements (Communication 1.5)", function () {
       msg += txtAtt1 + crlf;
       msg += dashes + boundary + dashes + crlf;
 
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders(header))
         .body(msg)
-        .expect(400, done);
-    });
+        ,
+      400,
+      );
+});
   });
 
   /**  XAPI-00130, Communication 1.5.2 Multipart/Mixed
    * An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and does not have a Boundary before each "Content-Type" header
    */
   describe('An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and does not have a Boundary before each "Content-Type" header (Communication 1.5.2.s2.b2, Data 2.4.11, RFC 2046, XAPI-00130)', function () {
-    it("should fail if boundary not provided in body", function (done) {
+    it("should fail if boundary not provided in body", async function () {
       let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
       let templates = [
         { statement: "{{statements.attachment}}" },
@@ -390,14 +412,17 @@ describe("Content Type Requirements (Communication 1.5)", function () {
       msg += txtAtt1 + crlf;
       msg += dashes + boundary + dashes + crlf;
 
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders(header))
         .body(msg)
-        .expect(400, done);
-    });
+        ,
+      400,
+      );
+});
 
-    it("should fail if boundary not provided in header", function (done) {
+    it("should fail if boundary not provided in header", async function () {
       let header = { "Content-Type": "multipart/mixed;" };
       let templates = [
         { statement: "{{statements.attachment}}" },
@@ -434,19 +459,22 @@ describe("Content Type Requirements (Communication 1.5)", function () {
       msg += txtAtt1 + crlf;
       msg += dashes + boundary + dashes + crlf;
 
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders(header))
         .body(msg)
-        .expect(400, done);
-    });
+        ,
+      400,
+      );
+});
   });
 
   /**  XAPI-00134, Communication 1.5.2 Multipart/Mixed
    * An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and does not the first document part with a "Content-Type" header with a value of "application/json"
    */
   describe('An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and does not the first document part with a "Content-Type" header with a value of "application/json" (RFC 2046, Communication 1.5.2.s2.b2.b1, Data 2.4.11, XAPI-00134)', function () {
-    it('should fail when attachment is raw data and first part content type is not "application/json"', function (done) {
+    it('should fail when attachment is raw data and first part content type is not "application/json"', async function () {
       let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
       let templates = [
         { statement: "{{statements.attachment}}" },
@@ -483,19 +511,22 @@ describe("Content Type Requirements (Communication 1.5)", function () {
       msg += txtAtt1 + crlf;
       msg += dashes + boundary + dashes + crlf;
 
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders(header))
         .body(msg)
-        .expect(400, done);
-    });
+        ,
+      400,
+      );
+});
   });
 
   /**  XAPI-00133, Communication 1.5.2 Multipart/Mixed
    * An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and does not have all of the Statements in the first document part
    */
   describe('An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and does not have all of the Statements in the first document part (RFC 2046, Data 2.4.11, Communication 1.5.2.s2.b2.b1, XAPI-00133)', function () {
-    it("should fail when statements separated into multiple parts", function (done) {
+    it("should fail when statements separated into multiple parts", async function () {
       let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
       let templates = [
         { statement: "{{statements.attachment}}" },
@@ -535,19 +566,22 @@ describe("Content Type Requirements (Communication 1.5)", function () {
       msg += txtAtt1 + crlf;
       msg += dashes + boundary + dashes + crlf;
 
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders(header))
         .body(msg)
-        .expect(400, done);
-    });
+        ,
+      400,
+      );
+});
   });
 
   /**  XAPI-00132, Communication 1.5.2 Multipart/Mixed
    * An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and for any part except the first does not have a Header named "X-Experience-API-Hash" with a value of one of those found in a "sha2" property of a Statement in the first part of this document
    */
   describe('An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and for any part except the first does not have a Header named "X-Experience-API-Hash" with a value of one of those found in a "sha2" property of a Statement in the first part of this document (Communication 1.5.2.s2.b2.b3", Communication 1.5.2.s1.b4, Data 2.4.11, XAPI-00132)', function () {
-    it('should fail when attachments missing header "X-Experience-API-Hash"', function (done) {
+    it('should fail when attachments missing header "X-Experience-API-Hash"', async function () {
       let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
       let templates = [
         { statement: "{{statements.attachment}}" },
@@ -583,14 +617,17 @@ describe("Content Type Requirements (Communication 1.5)", function () {
       msg += txtAtt1 + crlf;
       msg += dashes + boundary + dashes + crlf;
 
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders(header))
         .body(msg)
-        .expect(400, done);
-    });
+        ,
+      400,
+      );
+});
 
-    it('should fail when attachments header "X-Experience-API-Hash" does not match "sha2"', function (done) {
+    it('should fail when attachments header "X-Experience-API-Hash" does not match "sha2"', async function () {
       let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
       let templates = [
         { statement: "{{statements.attachment}}" },
@@ -628,18 +665,21 @@ describe("Content Type Requirements (Communication 1.5)", function () {
       msg += txtAtt1 + crlf;
       msg += dashes + boundary + dashes + crlf;
 
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders(header))
         .body(msg)
-        .expect(400, done);
-    });
+        ,
+      400,
+      );
+});
   });
 
   /**  XAPI-00135, Communication 1.5.2 Multipart/Mixed
    * An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and for any part except the first does not have a Header named "Content-Transfer-Encoding" with a value of "binary"
    */
-  it('An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and for any part except the first does not have a Header named "Content-Transfer-Encoding" with a value of "binary" (Data 2.4.11, XAPI-00135)', function (done) {
+  it('An LRS rejects with error code 400 Bad Request, a PUT or POST Request which uses Attachments, has a "Content Type" header with value "multipart/mixed", and for any part except the first does not have a Header named "Content-Transfer-Encoding" with a value of "binary" (Data 2.4.11, XAPI-00135)', async function () {
     let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
     let templates = [
       { statement: "{{statements.attachment}}" },
@@ -676,10 +716,13 @@ describe("Content Type Requirements (Communication 1.5)", function () {
     msg += txtAtt1 + crlf;
     msg += dashes + boundary + dashes + crlf;
 
-    request(helper.getEndpointAndAuth())
+    await expectAsync(
+request(helper.getEndpointAndAuth())
       .post(helper.getEndpointStatements())
       .headers(helper.addAllHeaders(header))
       .body(msg)
-      .expect(400, done);
-  });
+      ,
+    400,
+    );
+});
 });

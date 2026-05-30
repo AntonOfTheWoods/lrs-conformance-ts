@@ -6,6 +6,7 @@
 import { expect } from "chai";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
+import { expectAsync } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
 
 const helper: any = helperImport;
@@ -51,7 +52,7 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
       EMPTY_OBJECT_VALUE = { extensions: { "http://example.com/ex": {} } },
       VALID_EXTENSION_EMPTY = { extensions: {} };
 
-    it("statement activity extensions can be empty object", function (done) {
+    it("statement activity extensions can be empty object", async function () {
       const template = [
           { statement: "{{statements.object_activity}}" },
           { object: "{{activities.no_extensions}}" },
@@ -59,14 +60,17 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
         ],
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .put(helper.getEndpointStatements() + "?statementId=" + data.id)
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .expect(204, done);
-    });
+        ,
+      204,
+      );
+});
 
-    it("statement activity extension values can be empty string", function (done) {
+    it("statement activity extension values can be empty string", async function () {
       const template = [
           { statement: "{{statements.object_activity}}" },
           { object: "{{activities.no_extensions}}" },
@@ -74,14 +78,17 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
         ],
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .put(helper.getEndpointStatements() + "?statementId=" + data.id)
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .expect(204, done);
-    });
+        ,
+      204,
+      );
+});
 
-    it("statement activity extension values can be null", function (done) {
+    it("statement activity extension values can be null", async function () {
       const template = [
           { statement: "{{statements.object_activity}}" },
           { object: "{{activities.no_extensions}}" },
@@ -89,14 +96,17 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
         ],
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .put(helper.getEndpointStatements() + "?statementId=" + data.id)
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .expect(204, done);
-    });
+        ,
+      204,
+      );
+});
 
-    it("statement activity extensions can be empty object", function (done) {
+    it("statement activity extensions can be empty object", async function () {
       const template = [
           { statement: "{{statements.object_activity}}" },
           { object: "{{activities.no_extensions}}" },
@@ -104,14 +114,17 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
         ],
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .put(helper.getEndpointStatements() + "?statementId=" + data.id)
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .expect(204, done);
-    });
+        ,
+      204,
+      );
+});
 
-    it("statement result extensions can be empty object", function (done) {
+    it("statement result extensions can be empty object", async function () {
       const template = [
           { statement: "{{statements.result}}" },
           { result: "{{results.no_extensions}}" },
@@ -119,14 +132,17 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
         ],
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .put(helper.getEndpointStatements() + "?statementId=" + data.id)
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .expect(204, done);
-    });
+        ,
+      204,
+      );
+});
 
-    it("statement result extension values can be empty string", function (done) {
+    it("statement result extension values can be empty string", async function () {
       const template = [
           { statement: "{{statements.result}}" },
           { result: "{{results.no_extensions}}" },
@@ -134,25 +150,31 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
         ],
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .put(helper.getEndpointStatements() + "?statementId=" + data.id)
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .expect(204, done);
-    });
+        ,
+      204,
+      );
+});
 
-    it("statement result extension values can be null", function (done) {
+    it("statement result extension values can be null", async function () {
       const template = [{ statement: "{{statements.result}}" }, { result: "{{results.no_extensions}}" }, NULL_VALUE],
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .put(helper.getEndpointStatements() + "?statementId=" + data.id)
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .expect(204, done);
-    });
+        ,
+      204,
+      );
+});
 
-    it("statement result extension values can be empty object", function (done) {
+    it("statement result extension values can be empty object", async function () {
       const template = [
           { statement: "{{statements.result}}" },
           { result: "{{results.no_extensions}}" },
@@ -160,14 +182,17 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
         ],
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .put(helper.getEndpointStatements() + "?statementId=" + data.id)
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .expect(204, done);
-    });
+        ,
+      204,
+      );
+});
 
-    it("statement context extensions can be empty object", function (done) {
+    it("statement context extensions can be empty object", async function () {
       const template = [
           { statement: "{{statements.context}}" },
           { context: "{{contexts.no_extensions}}" },
@@ -175,14 +200,17 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
         ],
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .put(helper.getEndpointStatements() + "?statementId=" + data.id)
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .expect(204, done);
-    });
+        ,
+      204,
+      );
+});
 
-    it("statement context extension values can be empty string", function (done) {
+    it("statement context extension values can be empty string", async function () {
       const template = [
           { statement: "{{statements.context}}" },
           { context: "{{contexts.no_extensions}}" },
@@ -190,25 +218,31 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
         ],
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .put(helper.getEndpointStatements() + "?statementId=" + data.id)
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .expect(204, done);
-    });
+        ,
+      204,
+      );
+});
 
-    it("statement context extension values can be null", function (done) {
+    it("statement context extension values can be null", async function () {
       const template = [{ statement: "{{statements.context}}" }, { context: "{{contexts.no_extensions}}" }, NULL_VALUE],
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .put(helper.getEndpointStatements() + "?statementId=" + data.id)
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .expect(204, done);
-    });
+        ,
+      204,
+      );
+});
 
-    it("statement context extension values can be empty object", function (done) {
+    it("statement context extension values can be empty object", async function () {
       const template = [
           { statement: "{{statements.context}}" },
           { context: "{{contexts.no_extensions}}" },
@@ -216,14 +250,17 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
         ],
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .put(helper.getEndpointStatements() + "?statementId=" + data.id)
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .expect(204, done);
-    });
+        ,
+      204,
+      );
+});
 
-    it("statement substatement activity extensions can be empty object", function (done) {
+    it("statement substatement activity extensions can be empty object", async function () {
       const template = [
           { statement: "{{statements.object_substatement}}" },
           { object: "{{substatements.activity}}" },
@@ -232,14 +269,17 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
         ],
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .put(helper.getEndpointStatements() + "?statementId=" + data.id)
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .expect(204, done);
-    });
+        ,
+      204,
+      );
+});
 
-    it("statement substatement activity extension values can be empty string", function (done) {
+    it("statement substatement activity extension values can be empty string", async function () {
       const template = [
           { statement: "{{statements.object_substatement}}" },
           { object: "{{substatements.activity}}" },
@@ -248,14 +288,17 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
         ],
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .put(helper.getEndpointStatements() + "?statementId=" + data.id)
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .expect(204, done);
-    });
+        ,
+      204,
+      );
+});
 
-    it("statement substatement activity extension values can be null", function (done) {
+    it("statement substatement activity extension values can be null", async function () {
       const template = [
           { statement: "{{statements.object_substatement}}" },
           { object: "{{substatements.activity}}" },
@@ -264,14 +307,17 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
         ],
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .put(helper.getEndpointStatements() + "?statementId=" + data.id)
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .expect(204, done);
-    });
+        ,
+      204,
+      );
+});
 
-    it("statement substatement activity extension values can be empty object", function (done) {
+    it("statement substatement activity extension values can be empty object", async function () {
       const template = [
           { statement: "{{statements.object_substatement}}" },
           { object: "{{substatements.activity}}" },
@@ -280,14 +326,17 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
         ],
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .put(helper.getEndpointStatements() + "?statementId=" + data.id)
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .expect(204, done);
-    });
+        ,
+      204,
+      );
+});
 
-    it("statement substatement result extensions can be empty object", function (done) {
+    it("statement substatement result extensions can be empty object", async function () {
       const template = [
           { statement: "{{statements.object_substatement}}" },
           { object: "{{substatements.result}}" },
@@ -296,14 +345,17 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
         ],
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .put(helper.getEndpointStatements() + "?statementId=" + data.id)
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .expect(204, done);
-    });
+        ,
+      204,
+      );
+});
 
-    it("statement substatement result extension values can be empty string", function (done) {
+    it("statement substatement result extension values can be empty string", async function () {
       const template = [
           { statement: "{{statements.object_substatement}}" },
           { object: "{{substatements.result}}" },
@@ -312,14 +364,17 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
         ],
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .put(helper.getEndpointStatements() + "?statementId=" + data.id)
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .expect(204, done);
-    });
+        ,
+      204,
+      );
+});
 
-    it("statement substatement result extension values can be null", function (done) {
+    it("statement substatement result extension values can be null", async function () {
       const template = [
           { statement: "{{statements.object_substatement}}" },
           { object: "{{substatements.activity}}" },
@@ -328,14 +383,17 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
         ],
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .put(helper.getEndpointStatements() + "?statementId=" + data.id)
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .expect(204, done);
-    });
+        ,
+      204,
+      );
+});
 
-    it("statement substatement result extension values can be empty object", function (done) {
+    it("statement substatement result extension values can be empty object", async function () {
       const template = [
           { statement: "{{statements.object_substatement}}" },
           { object: "{{substatements.result}}" },
@@ -344,14 +402,17 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
         ],
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .put(helper.getEndpointStatements() + "?statementId=" + data.id)
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .expect(204, done);
-    });
+        ,
+      204,
+      );
+});
 
-    it("statement substatement context extensions can be empty object", function (done) {
+    it("statement substatement context extensions can be empty object", async function () {
       const template = [
           { statement: "{{statements.object_substatement}}" },
           { object: "{{substatements.context}}" },
@@ -360,14 +421,17 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
         ],
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .put(helper.getEndpointStatements() + "?statementId=" + data.id)
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .expect(204, done);
-    });
+        ,
+      204,
+      );
+});
 
-    it("statement substatement context extension values can be empty string", function (done) {
+    it("statement substatement context extension values can be empty string", async function () {
       const template = [
           { statement: "{{statements.object_substatement}}" },
           { object: "{{substatements.context}}" },
@@ -376,14 +440,17 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
         ],
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .put(helper.getEndpointStatements() + "?statementId=" + data.id)
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .expect(204, done);
-    });
+        ,
+      204,
+      );
+});
 
-    it("statement substatement context extension values can be null", function (done) {
+    it("statement substatement context extension values can be null", async function () {
       const template = [
           { statement: "{{statements.object_substatement}}" },
           { object: "{{substatements.context}}" },
@@ -392,14 +459,17 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
         ],
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .put(helper.getEndpointStatements() + "?statementId=" + data.id)
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .expect(204, done);
-    });
+        ,
+      204,
+      );
+});
 
-    it("statement substatement context extension values can be empty object", function (done) {
+    it("statement substatement context extension values can be empty object", async function () {
       const template = [
           { statement: "{{statements.object_substatement}}" },
           { object: "{{substatements.context}}" },
@@ -408,12 +478,15 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
         ],
         data = helper.createFromTemplate(template).statement;
       data.id = helper.generateUUID();
-      request(helper.getEndpointAndAuth())
+      await expectAsync(
+request(helper.getEndpointAndAuth())
         .put(helper.getEndpointStatements() + "?statementId=" + data.id)
         .headers(helper.addAllHeaders({}))
         .json(data)
-        .expect(204, done);
-    });
+        ,
+      204,
+      );
+});
   });
 
   //Data 4.2
