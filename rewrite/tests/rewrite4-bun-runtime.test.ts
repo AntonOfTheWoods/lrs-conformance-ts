@@ -418,7 +418,7 @@ test("rewrite4 describe runtime supports top-level before hooks and timeout call
   expect(result.summary.failed).toBe(0);
 });
 
-test("rewrite4 describe runtime executes sibling cases before nested suites to match legacy mocha ordering", async () => {
+test("rewrite4 describe runtime executes sibling cases before nested suites to match legacy suite ordering", async () => {
   const events: string[] = [];
   const runtime = createDescribeRuntime({ rootTitle: "", version: "1.0.3" });
 
