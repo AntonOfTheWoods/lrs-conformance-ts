@@ -344,7 +344,7 @@ function createHelperTransportSupport(context: HelperTransportContext) {
           }
 
           const contentType = response && response.headers ? response.headers["content-type"] : undefined;
-          if (response && typeof response.body === "string" && contentType && contentType.indexOf("json") !== -1) {
+          if (response && typeof response.body === "string" && contentType && contentType.includes("json")) {
             try {
               response.body = JSON.parse(response.body);
             } catch (_parseError) {}
@@ -448,7 +448,7 @@ function createHelperTransportSupport(context: HelperTransportContext) {
 
         function wrapPromise(p: RequestChain | undefined) {
           if (!p) return;
-          if (p.__wrapped === true) return;
+          if (p.__wrapped) return;
           p.__wrapped = true;
           for (const i in p) {
             (function (methodName) {
@@ -472,7 +472,7 @@ function createHelperTransportSupport(context: HelperTransportContext) {
 
         function wrapMethods(testRequest: RequestChain | undefined) {
           if (!testRequest) return;
-          if (testRequest.__wrapped === true) return;
+          if (testRequest.__wrapped) return;
           testRequest.__wrapped = true;
           if (testRequest._options) testRequest._options.oauth = runtimeGlobal.OAUTH;
           for (const i in testRequest) {

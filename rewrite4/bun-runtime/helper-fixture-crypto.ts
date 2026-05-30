@@ -112,7 +112,7 @@ function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
         const value = item[key];
 
         const object: Record<string, unknown> = {};
-        if (typeof value === "string" && value.indexOf("{{") === 0 && value.indexOf("}}") === value.length - 2) {
+        if (typeof value === "string" && value.startsWith("{{") && value.endsWith("}}")) {
           object[key] = createMapping(mapper, value);
           templates.push(object);
         } else {
@@ -157,7 +157,11 @@ function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
         for (const i in candidate) {
           if (candidate[i] === expected) return true;
           else {
-            if (typeof candidate[i] === "object" && candidate[i] !== null && tested.indexOf(candidate[i])) {
+            if (
+              typeof candidate[i] === "object" &&
+              candidate[i] !== null &&
+              !tested.includes(candidate[i] as Record<string, unknown>)
+            ) {
               found = found || _internal(candidate[i] as Record<string, unknown>, expected);
             }
           }
@@ -181,13 +185,13 @@ function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
 
         const files = context.fs.readdirSync(state.TEMPLATE_FOLDER + "/" + folder) as string[];
         files.forEach(function (file) {
-          if (file.indexOf(".json") <= 0) {
+          if (!file.endsWith(".json")) {
             return;
           }
 
           const subfolder = state.TEMPLATE_FOLDER_RELATIVE + "/" + folder;
           const data = context.extend(true, {}, context.helperRequire(subfolder + "/" + file));
-          const name = file.substring(0, file.indexOf(".json"));
+          const name = file.slice(0, -".json".length);
           fileMapping[name] = data;
         });
       });
@@ -208,7 +212,7 @@ function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
 
       const files = context.fs.readdirSync(state.CONFIG_FOLDER) as string[];
       files.forEach(function (file) {
-        if (file.indexOf(".ts") <= 0) {
+        if (!file.endsWith(".ts")) {
           return;
         }
 
