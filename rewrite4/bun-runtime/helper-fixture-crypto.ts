@@ -1,5 +1,7 @@
 "use strict";
 
+import { CompactSign } from "jose";
+
 type AnyRecord = Record<string, any>;
 type JsonMapping = Record<string, Record<string, unknown>>;
 
@@ -31,13 +33,7 @@ type FixtureCryptoContext = {
   getHelperExports(): HelperExports;
   getState(): HelperState;
   helperRequire: NodeJS.Require;
-  jws: {
-    sign(options: Record<string, unknown>): string;
-  };
   lodashIsEqual(left: unknown, right: unknown): boolean;
-  uuid: {
-    v4(): string;
-  };
 };
 
 type AttachmentInfo = {
@@ -90,6 +86,23 @@ function validateConfiguration(configurations: TestConfiguration[], location: st
       throw new Error('Invalid configuration "config not array": ' + location);
     }
   });
+}
+
+async function signCompactJws(
+  cryptoModule: typeof import("crypto"),
+  algorithm: string,
+  payload: string,
+  privateKey: string,
+): Promise<string> {
+  const encoder = new TextEncoder();
+  const encodedPayload = encoder.encode(payload);
+  const signer = new CompactSign(encodedPayload).setProtectedHeader({ alg: algorithm });
+
+  if (algorithm.startsWith("HS")) {
+    return signer.sign(encoder.encode(privateKey));
+  }
+
+  return signer.sign(cryptoModule.createPrivateKey(privateKey));
 }
 
 function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
@@ -347,7 +360,7 @@ function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
       return parsed;
     },
 
-    signStatement: function signStatement(statement: SignableStatement, options?: SignStatementOptions) {
+    signStatement: async function signStatement(statement: SignableStatement, options?: SignStatementOptions) {
       options = options || {};
       options.privateKey =
         options.privateKey ||
@@ -390,11 +403,10 @@ function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
 
       delete statement.attachments;
 
-      const signature = context.jws.sign({
-        header: { alg: options.algorithm },
-        payload: options.breakJson ? JSON.stringify(statement).replace('"', "'") : statement,
-        privateKey: options.privateKey,
-      });
+      const signingPayload = options.breakJson
+        ? JSON.stringify(statement).replace('"', "'")
+        : JSON.stringify(statement);
+      const signature = await signCompactJws(context.crypto, options.algorithm, signingPayload, options.privateKey);
       const signatureBuffer = Buffer.from(signature);
 
       statement.attachments = [

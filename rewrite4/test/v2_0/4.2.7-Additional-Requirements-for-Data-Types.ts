@@ -109,7 +109,7 @@ describe("(4.2.7) Additional Requirements for Data Types", function () {
 
       let boundary = xapiRequests.generateRandomMultipartBoundary();
 
-      let shortDurationSignedBody = xapiRequests.generateSignedStatementBody(statement, boundary);
+      let shortDurationSignedBody = await xapiRequests.generateSignedStatementBody(statement, boundary);
       let fullDurationSignedBody = shortDurationSignedBody.replace(durationShort, durationFull);
 
       let res = await xapiRequests.sendSignedStatementBody(fullDurationSignedBody, boundary);

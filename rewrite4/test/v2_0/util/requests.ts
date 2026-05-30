@@ -6,7 +6,7 @@ import helperExports from "../../helper.ts";
 const oldHelpers = helperExports as {
   generateUUID(): string;
   getUrlEncoding(params: Record<string, unknown>): string;
-  signStatement(statement: Record<string, unknown>, options: { boundary: string }): Buffer;
+  signStatement(statement: Record<string, unknown>, options: { boundary: string }): Promise<Buffer>;
 };
 
 type AxiosResponse = import("axios").AxiosResponse;
@@ -78,9 +78,9 @@ const requests = {
     return `-------------__${oldHelpers.generateUUID()}__123__456`;
   },
 
-  generateSignedStatementBody(statement: Record<string, unknown>, boundary?: string): string {
+  async generateSignedStatementBody(statement: Record<string, unknown>, boundary?: string): Promise<string> {
     const multipartBoundary = boundary || requests.generateRandomMultipartBoundary();
-    return oldHelpers.signStatement(statement, { boundary: multipartBoundary }).toString();
+    return (await oldHelpers.signStatement(statement, { boundary: multipartBoundary })).toString();
   },
 
   async sendSignedStatementBody(
