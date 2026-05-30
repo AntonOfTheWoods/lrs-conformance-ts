@@ -6,7 +6,7 @@
 import { expect } from "chai";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
-import { expectAsync } from "../super-request.ts";
+import { expectAsync, endAsync } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
 
 const helper: any = helperImport;
@@ -59,7 +59,7 @@ request(helper.getEndpointAndAuth())
    * An LRS populates the "authority" property if it is not provided in the Statement
    */
   describe('An LRS populates the "authority" property if it is not provided in the Statement, based on header information with the Agent corresponding to the user (contained within the header) (Implicit, Data 2.4.9.s3.b4, XAPI-00099) ', function () {
-    it("should populate authority ", function (done) {
+    it("should populate authority ", async function () {
       this.timeout(0);
       let templates = [{ statement: "{{statements.default}}" }];
       let data = helper.createFromTemplate(templates);
@@ -68,31 +68,28 @@ request(helper.getEndpointAndAuth())
       let query = "?statementId=" + data.id;
       let stmtTime = Date.now();
 
-      request(helper.getEndpointAndAuth())
+            await endAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(data)
         .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            request(helper.getEndpointAndAuth())
+      );
+
+request(helper.getEndpointAndAuth())
               .get(helper.getEndpointStatements() + query)
               .headers(helper.addAllHeaders({}))
               .wait(helper.genDelay(stmtTime, query, data.id))
               .expect(200)
               .end(function (err: unknown, res: any) {
                 if (err) {
-                  done(err);
+                  throw err;
                 } else {
-                  let statement = helper.parse(res.body, done);
+                  let statement = helper.parse(res.body);
                   expect(statement).to.have.property("authority");
-                  done();
+                  
                 }
               });
-          }
-        });
     });
   });
 });

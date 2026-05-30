@@ -6,7 +6,7 @@
 import { expect } from "chai";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
-import { expectAsync } from "../super-request.ts";
+import { expectAsync, endAsync } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
 
 const helper: any = helperImport;
@@ -47,7 +47,7 @@ describe("Formatting Requirements (Data 2.2)", () => {
   describe("An LRS stores 32-bit floating point numbers with at least the precision of IEEE 754 (Data 2.2.s4.b3, XAPI-00002)", function () {
     this.timeout(0);
 
-    it("should pass and keep precision", function (done) {
+    it("should pass and keep precision", async function () {
       const templates = [{ statement: "{{statements.result}}" }, { result: "{{results.default}}" }];
       const data = helper.createFromTemplate(templates).statement;
       const id = helper.generateUUID();
@@ -63,34 +63,31 @@ describe("Formatting Requirements (Data 2.2)", () => {
       data.result.score.max = max;
       data.result.score.scaled = min;
 
-      request(helper.getEndpointAndAuth())
+            await endAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(data)
         .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            request(helper.getEndpointAndAuth())
+      );
+
+request(helper.getEndpointAndAuth())
               .get(helper.getEndpointStatements() + query)
               .wait(helper.genDelay(stmtTime, query, id))
               .headers(helper.addAllHeaders({}))
               .expect(200)
               .end((err: unknown, res: any) => {
                 if (err) {
-                  done(err);
+                  throw err;
                 } else {
                   const score = helper.parse(res.body).result.score;
                   expect(score.min).to.eql(min);
                   expect(score.raw).to.eql(raw);
                   expect(score.max).to.eql(max);
                   expect(score.scaled).to.eql(min);
-                  done();
+                  
                 }
               });
-          }
-        });
     });
   });
 

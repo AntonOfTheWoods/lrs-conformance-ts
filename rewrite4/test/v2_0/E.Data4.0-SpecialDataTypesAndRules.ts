@@ -6,7 +6,7 @@
 import { expect } from "chai";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
-import { expectAsync } from "../super-request.ts";
+import { expectAsync, endAsync } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
 
 const helper: any = helperImport;
@@ -506,70 +506,64 @@ request(helper.getEndpointAndAuth())
    * A Timestamp MUST preserve precision to at least milliseconds (3 decimal points beyond seconds). The LRS accepts a statement with a valid timestamp which has more than 3 decimal points beyond seconds and when recalled it returns at least 3 decimals points beyond seconds.
    */
   describe("A Timestamp MUST preserve precision to at least milliseconds, 3 decimal points beyond seconds. (Data 4.5.s1.b3, XAPI-00122)", function () {
-    it("retrieve statements, test a timestamp property", function (done) {
-      request(helper.getEndpointAndAuth())
+    it("retrieve statements, test a timestamp property", async function () {
+            const res = await endAsync(
+request(helper.getEndpointAndAuth())
         .get(helper.getEndpointStatements())
         .headers(helper.addAllHeaders())
         .expect(200)
-        .end((err: unknown, res: any) => {
-          if (err) {
-            done(err);
-          } else {
-            const result = helper.parse(res.body);
-            const stmts = result.statements;
-            const milliChecker = (num: number) => {
+      );
+
+const result = helper.parse(res.body);
+const stmts = result.statements;
+const milliChecker = (num: number) => {
               expect(stmts[num]).to.have.property("timestamp");
               const milliseconds = parseMillisecondsFromIso(stmts[num].timestamp);
               expect(milliseconds).to.not.equal(null);
               //precision to milliseconds
               if ((milliseconds as number) % 10 > 0) {
                 expect((milliseconds as number) % 10).to.be.above(0);
-                done();
+                
               } else {
                 if (++num < stmts.length) {
                   milliChecker(num);
                 } else {
                   expect((milliseconds as number) % 10).to.be.above(0);
-                  done();
+                  
                 }
               }
             };
-            milliChecker(0);
-          }
-        });
+milliChecker(0);
     });
 
-    it("retrieve statements, test a stored property", function (done) {
-      request(helper.getEndpointAndAuth())
+    it("retrieve statements, test a stored property", async function () {
+            const res = await endAsync(
+request(helper.getEndpointAndAuth())
         .get(helper.getEndpointStatements())
         .headers(helper.addAllHeaders())
         .expect(200)
-        .end((err: unknown, res: any) => {
-          if (err) {
-            done(err);
-          } else {
-            const result = helper.parse(res.body);
-            const stmts = result.statements;
-            const milliChecker = (num: number) => {
+      );
+
+const result = helper.parse(res.body);
+const stmts = result.statements;
+const milliChecker = (num: number) => {
               expect(stmts[num]).to.have.property("stored");
               const milliseconds = parseMillisecondsFromIso(stmts[num].stored);
               expect(milliseconds).to.not.equal(null);
               //precision to milliseconds
               if ((milliseconds as number) % 10 > 0) {
                 expect((milliseconds as number) % 10).to.be.above(0);
-                done();
+                
               } else {
                 if (++num < stmts.length) {
                   milliChecker(num);
                 } else {
                   expect((milliseconds as number) % 10).to.be.above(0);
-                  done();
+                  
                 }
               }
             };
-            milliChecker(0);
-          }
-        });
+milliChecker(0);
     });
   });
 

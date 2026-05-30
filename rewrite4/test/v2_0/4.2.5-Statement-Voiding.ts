@@ -6,7 +6,7 @@
 import { expect } from "chai";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
-import { expectAsync } from "../super-request.ts";
+import { expectAsync, endAsync } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
 
 const helper: any = helperImport;
@@ -67,25 +67,21 @@ request(helper.getEndpointAndAuth())
       );
 });
 
-    it('Should return a voided statement when using GET "voidedStatementId"', function (done) {
+    it('Should return a voided statement when using GET "voidedStatementId"', async function () {
       const context = this;
       context.timeout(0);
       const query = helper.getUrlEncoding({ voidedStatementId: voidedId });
-      request(helper.getEndpointAndAuth())
+            const res = await endAsync(
+request(helper.getEndpointAndAuth())
         .get(helper.getEndpointStatements() + "?" + query)
         .wait(helper.genDelay(stmtTime, "?" + query, voidedId))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-            return;
-          }
+      );
 
-          const statement = helper.parse(res.body, done);
-          expect(statement.id).to.equal(voidedId);
-          done();
-        });
+
+const statement = helper.parse(res.body);
+expect(statement.id).to.equal(voidedId);
     });
 
     it('Should return 404 when using GET with "statementId"', async function () {
@@ -113,47 +109,39 @@ request(helper.getEndpointAndAuth())
     let voidedId: string;
     let voidingId: string;
 
-    before("Persist voided statement", function (done) {
+    before("Persist voided statement", async function () {
       const templates = [{ statement: "{{statements.default}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
 
-      request(helper.getEndpointAndAuth())
+            const res = await endAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(data)
         .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-            return;
-          }
+      );
 
-          voidedId = res.body[0];
-          done();
-        });
+
+voidedId = ((res.body as string[])[0] as string);
     });
 
-    before("Persist voiding statement", function (done) {
+    before("Persist voiding statement", async function () {
       const templates = [{ statement: "{{statements.voiding}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
       data.object.id = voidedId;
 
-      request(helper.getEndpointAndAuth())
+            const res = await endAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(data)
         .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-            return;
-          }
+      );
 
-          voidingId = res.body[0];
-          done();
-        });
+
+voidingId = ((res.body as string[])[0] as string);
     });
 
     it("Should not void an already voided statement", function (done) {

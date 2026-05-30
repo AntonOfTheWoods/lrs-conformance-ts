@@ -6,6 +6,7 @@
 import { expect } from "chai";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
+import { endAsync } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
 
 const helper: any = helperImport;
@@ -25,7 +26,7 @@ describe("Version Property Requirements (Data 2.4.10)", () => {
   /**  XAPI-00332, Communication 3.3 Versioning which should be moved to Data 2.4.10 Version Property
    * Statements returned by an LRS MUST retain the version property they are accepted with.
    */
-  it("Statements returned by an LRS MUST retain the version property they are accepted with (Format, Data 2.4.10, XAPI-00332)", function (done) {
+  it("Statements returned by an LRS MUST retain the version property they are accepted with (Format, Data 2.4.10, XAPI-00332)", async function () {
     const context = this;
     context.timeout(0);
     const stmtTime = Date.now();
@@ -42,32 +43,29 @@ describe("Version Property Requirements (Data 2.4.10)", () => {
 
     const query = helper.getUrlEncoding({ statementId: id });
 
-    request(helper.getEndpointAndAuth())
+        await endAsync(
+request(helper.getEndpointAndAuth())
       .post(helper.getEndpointStatements())
       .headers(helper.addAllHeaders({}))
       .json(statement)
       .expect(200)
-      .end(function (err: unknown, res: any) {
-        if (err) {
-          done(err);
-          return;
-        }
+    );
 
-        request(helper.getEndpointAndAuth())
+
+request(helper.getEndpointAndAuth())
           .get(helper.getEndpointStatements() + "?" + query)
           .wait(helper.genDelay(stmtTime, "?" + query, id))
           .headers(helper.addAllHeaders({}))
           .expect(200)
           .end(function (getErr: unknown, getRes: any) {
             if (getErr) {
-              done(getErr);
+              throw getErr;
               return;
             }
 
             const results = helper.parse(getRes.body);
             expect(results.version).to.equal(version);
-            done();
+            
           });
-      });
   });
 });

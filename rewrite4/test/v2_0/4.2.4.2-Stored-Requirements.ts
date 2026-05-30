@@ -6,6 +6,7 @@
 import { expect } from "chai";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
+import { endAsync } from "../super-request.ts";
 
 const helper: any = helperImport;
 let request: any = requestBase;
@@ -50,30 +51,27 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
     let putId: string;
     let param: string;
 
-    it("using POST", function (done) {
+    it("using POST", async function () {
       const stmtTime = Date.now();
-      request(helper.getEndpointAndAuth())
+            const res = await endAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders())
         .json(data)
         .expect(200)
-        .end((err: unknown, res: any) => {
-          if (err) {
-            done(err);
-            return;
-          }
+      );
 
-          postId = res.body[0];
-          const query = "?statementId=" + postId;
 
-          request(helper.getEndpointAndAuth())
+postId = ((res.body as string[])[0] as string);
+const query = "?statementId=" + postId;
+request(helper.getEndpointAndAuth())
             .get(helper.getEndpointStatements() + query)
             .wait(helper.genDelay(stmtTime, query, postId))
             .headers(helper.addAllHeaders())
             .expect(200)
             .end((getErr: unknown, getRes: any) => {
               if (getErr) {
-                done(getErr);
+                throw getErr;
                 return;
               }
 
@@ -81,9 +79,8 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
               expect(result).to.have.property("stored");
               const stmtStored = result.stored;
               expect(stmtStored).to.not.eql(storedTime);
-              done();
+              
             });
-        });
     });
 
     it("using PUT", function (done) {
@@ -127,27 +124,25 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
    * A "stored" property is a TimeStamp, per section 4.5. An LRS assigns the “stored” property upon receipt with a valid TimeStamp.
    */
   describe("A stored property must be a TimeStamp (Data 2.4.8.s2, XAPI-00023)", function () {
-    it("retrieve statements, test a stored property", (done) => {
-      request(helper.getEndpointAndAuth())
+    it("retrieve statements, test a stored property", async function () {
+            const res = await endAsync(
+request(helper.getEndpointAndAuth())
         .get(helper.getEndpointStatements())
         .headers(helper.addAllHeaders())
         .expect(200)
-        .end((err: unknown, res: any) => {
-          if (err) {
-            done(err);
-            return;
-          }
+      );
 
-          const result = helper.parse(res.body);
-          const stmts = result.statements;
-          const milliChecker = (num: number) => {
+
+const result = helper.parse(res.body);
+const stmts = result.statements;
+const milliChecker = (num: number) => {
             expect(stmts[num]).to.have.property("stored");
             const milliseconds = parseMillisecondsFromIso(stmts[num].stored);
             expect(milliseconds).to.not.equal(null);
 
             if ((milliseconds as number) % 10 > 0) {
               expect((milliseconds as number) % 10).to.be.above(0);
-              done();
+              
               return;
             }
 
@@ -158,10 +153,9 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
             }
 
             expect((milliseconds as number) % 10).to.be.above(0);
-            done();
+            
           };
-          milliChecker(0);
-        });
+milliChecker(0);
     });
   });
 });

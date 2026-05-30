@@ -6,6 +6,7 @@
 import { expect } from "chai";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
+import { endAsync } from "../super-request.ts";
 
 const helper: any = helperImport;
 let request: any = requestBase;
@@ -51,72 +52,65 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
     let postId: string;
     let putId: string;
 
-    it("using POST", function (done) {
+    it("using POST", async function () {
       let stmtTime = Date.now();
-      request(helper.getEndpointAndAuth())
+            const res = await endAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders())
         .json(data)
         .expect(200)
-        .end((err: unknown, res: any) => {
-          if (err) {
-            done(err);
-          } else {
-            postId = res.body[0];
-            let query = "?statementId=" + postId;
+      );
 
-            request(helper.getEndpointAndAuth())
+postId = ((res.body as string[])[0] as string);
+let query = "?statementId=" + postId;
+request(helper.getEndpointAndAuth())
               .get(helper.getEndpointStatements() + query)
               .wait(helper.genDelay(stmtTime, query, postId))
               .headers(helper.addAllHeaders())
               .expect(200)
               .end((err: unknown, res: any) => {
                 if (err) {
-                  done(err);
+                  throw err;
                 } else {
                   let result = helper.parse(res.body);
                   expect(result).to.have.property("stored");
                   let stmtStored = result.stored;
                   expect(stmtStored).to.not.eql(storedTime);
-                  done();
+                  
                 }
               });
-          }
-        });
     });
 
-    it("using PUT", function (done) {
+    it("using PUT", async function () {
       putId = helper.generateUUID();
       param = "?statementId=" + putId;
       let stmtTime = Date.now();
 
-      request(helper.getEndpointAndAuth())
+            await endAsync(
+request(helper.getEndpointAndAuth())
         .put(helper.getEndpointStatements() + param)
         .headers(helper.addAllHeaders())
         .json(data)
         .expect(204)
-        .end((err: unknown, _res: any) => {
-          if (err) {
-            done(err);
-          } else {
-            request(helper.getEndpointAndAuth())
+      );
+
+request(helper.getEndpointAndAuth())
               .get(helper.getEndpointStatements() + param)
               .wait(helper.genDelay(stmtTime, param, putId))
               .headers(helper.addAllHeaders())
               .expect(200)
               .end((err: unknown, res: any) => {
                 if (err) {
-                  done(err);
+                  throw err;
                 } else {
                   let result = helper.parse(res.body);
                   expect(result).to.have.property("stored");
                   let stmtStored = result.stored;
                   expect(stmtStored).to.not.eql(storedTime);
-                  done();
+                  
                 }
               });
-          }
-        });
     });
   });
 
@@ -124,37 +118,34 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
    * A "stored" property is a TimeStamp, per section 4.5. An LRS assigns the “stored” property upon receipt with a valid TimeStamp.
    */
   describe("A stored property must be a TimeStamp (Data 2.4.8.s2, XAPI-00023)", function () {
-    it("retrieve statements, test a stored property", (done) => {
-      request(helper.getEndpointAndAuth())
+    it("retrieve statements, test a stored property", async function () {
+            const res = await endAsync(
+request(helper.getEndpointAndAuth())
         .get(helper.getEndpointStatements())
         .headers(helper.addAllHeaders())
         .expect(200)
-        .end((err: unknown, res: any) => {
-          if (err) {
-            done(err);
-          } else {
-            let result = helper.parse(res.body);
-            let stmts = result.statements;
-            let milliChecker = (num: number) => {
+      );
+
+let result = helper.parse(res.body);
+let stmts = result.statements;
+let milliChecker = (num: number) => {
               expect(stmts[num]).to.have.property("stored");
               const milliseconds = parseMillisecondsFromIso(stmts[num].stored);
               expect(milliseconds).to.not.equal(null);
               //precision to milliseconds
               if ((milliseconds as number) % 10 > 0) {
                 expect((milliseconds as number) % 10).to.be.above(0);
-                done();
+                
               } else {
                 if (++num < stmts.length) {
                   milliChecker(num);
                 } else {
                   expect((milliseconds as number) % 10).to.be.above(0);
-                  done();
+                  
                 }
               }
             };
-            milliChecker(0);
-          }
-        });
+milliChecker(0);
     });
   });
 });

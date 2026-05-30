@@ -6,7 +6,7 @@
 import { expect } from "chai";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
-import { expectAsync } from "../super-request.ts";
+import { expectAsync, endAsync } from "../super-request.ts";
 
 const helper: any = helperImport;
 let request: any = requestBase;
@@ -26,7 +26,7 @@ describe("Versioning Requirements (Communication 3.3)", () => {
   /**  XAPI-00333, Communication 3.3 Versioning
    * An LRS sends a header response with "X-Experience-API-Version" as the name and latest patch version after 1.0.0 as the value
    */
-  it('An LRS sends a header response with "X-Experience-API-Version" as the name and the latest patch version after "1.0.0" as the value (Format, Communication 3.3.s3.b1, Communication 3.3.s3.b2, XAPI-00333)', function (done) {
+  it('An LRS sends a header response with "X-Experience-API-Version" as the name and the latest patch version after "1.0.0" as the value (Format, Communication 3.3.s3.b1, Communication 3.3.s3.b2, XAPI-00333)', async function () {
     this.timeout(0);
     const id = helper.generateUUID();
     const statementTemplates = [{ statement: "{{statements.default}}" }];
@@ -36,38 +36,35 @@ describe("Versioning Requirements (Communication 3.3)", () => {
     const query = helper.getUrlEncoding({ statementId: id });
     const stmtTime = Date.now();
 
-    request(helper.getEndpointAndAuth())
+        await endAsync(
+request(helper.getEndpointAndAuth())
       .post(helper.getEndpointStatements())
       .headers(helper.addAllHeaders({}))
       .json(statement)
       .expect(200)
-      .end(function (err: unknown, res: any) {
-        if (err) {
-          done(err);
-        } else {
-          request(helper.getEndpointAndAuth())
+    );
+
+request(helper.getEndpointAndAuth())
             .get(helper.getEndpointStatements() + "?" + query)
             .wait(helper.genDelay(stmtTime, "?" + query, id))
             .headers(helper.addAllHeaders({}))
             .expect(200)
             .end(function (err: unknown, res: any) {
               if (err) {
-                done(err);
+                throw err;
               } else {
                 expect(res.headers).to.have.property("x-experience-api-version");
                 expect(res.headers["x-experience-api-version"]).to.match(REG_ALLOWED_VERSIONS);
-                done();
+                
               }
             });
-        }
-      });
   });
 
   /**  XAPI-00330, Communication 3.3 Versioning
    * An LRS will not modify Statements based on a "version" before "1.0.1"
    */
   describe('An LRS will not modify Statements based on a "version" before "1.0.1" (Communication 3.3.s3.b4, XAPI-00330)', function () {
-    it("should not convert newer version format to prior version format", function (done) {
+    it("should not convert newer version format to prior version format", async function () {
       this.timeout(0);
       const templates = [{ statement: "{{statements.default}}" }];
       const data = helper.createFromTemplate(templates).statement;
@@ -75,33 +72,30 @@ describe("Versioning Requirements (Communication 3.3)", () => {
       const query = "?statementId=" + data.id;
       const stmtTime = Date.now();
 
-      request(helper.getEndpointAndAuth())
+            await endAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(data)
         .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            request(helper.getEndpointAndAuth())
+      );
+
+request(helper.getEndpointAndAuth())
               .get(helper.getEndpointStatements() + "?statementId=" + data.id)
               .wait(helper.genDelay(stmtTime, query, data.id))
               .headers(helper.addAllHeaders({}))
               .expect(200)
               .end(function (err: unknown, res: any) {
                 if (err) {
-                  done(err);
+                  throw err;
                 } else {
-                  const statement = helper.parse(res.body, done);
+                  const statement = helper.parse(res.body);
                   expect(helper.isEqual(data.actor, statement.actor)).to.be.true;
                   expect(helper.isEqual(data.object, statement.object)).to.be.true;
                   expect(helper.isEqual(data.verb, statement.verb)).to.be.true;
-                  done();
+                  
                 }
               });
-          }
-        });
     });
   });
 
@@ -117,7 +111,7 @@ request(helper.getEndpointAndAuth()).get(helper.getEndpointAbout()),
       );
 });
 
-    it('Should fail when Statement GET without header "X-Experience-API-Version"', function (done) {
+    it('Should fail when Statement GET without header "X-Experience-API-Version"', async function () {
       const stmtId = helper.generateUUID();
       before("Placing the statement to be gotten", async function () {
         const templates = [{ statement: "{{statements.default}}" }];
@@ -132,77 +126,74 @@ request(helper.getEndpointAndAuth())
         );
       });
 
-      request(helper.getEndpointAndAuth())
+            const res = await endAsync(
+request(helper.getEndpointAndAuth())
         .get(helper.getEndpointStatements() + "?statementId=" + stmtId)
         .headers(helper.addBasicAuthenicationHeader({}))
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else if (res.statusCode === 400) {
+      );
+
+if (res.statusCode === 400) {
             expect(res.headers["x-experience-api-version"]).to.match(REG_ALLOWED_VERSIONS);
-            done();
+            
           } else if (res.statusCode === 404) {
             expect(res.headers["x-experience-api-version"]).to.match(/^0\.95?$/);
-            done();
+            
           } else {
             throw new Error(
               `Version header (${res.headers["x-experience-api-version"]}) and Status Code (${res.statusCode}) do not match specification.  Expected version header 2.0.0 with status code 400 or version header 0.9 or 0.95 with status code either 400 or 404.`,
             );
-            done();
+            
           }
-        });
     });
 
-    it('Should fail when Statement POST without header "X-Experience-API-Version"', function (done) {
+    it('Should fail when Statement POST without header "X-Experience-API-Version"', async function () {
       const templates = [{ statement: "{{statements.default}}" }];
       const data = helper.createFromTemplate(templates).statement;
 
-      request(helper.getEndpointAndAuth())
+            const res = await endAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addBasicAuthenicationHeader({}))
         .json(data)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else if (res.statusCode === 400) {
+      );
+
+if (res.statusCode === 400) {
             expect(res.headers["x-experience-api-version"]).to.match(REG_ALLOWED_VERSIONS);
-            done();
+            
           } else if (res.statusCode === 404) {
             expect(res.headers["x-experience-api-version"]).to.match(/^0\.95?$/);
-            done();
+            
           } else {
             throw new Error(
               `Version header (${res.headers["x-experience-api-version"]}) and Status Code (${res.statusCode}) do not match specification.  Expected version header 2.0.0 with status code 400 or version header 0.9 or 0.95 with status code either 400 or 404.`,
             );
-            done();
+            
           }
-        });
     });
 
-    it('Should fail when Statement PUT without header "X-Experience-API-Version"', function (done) {
+    it('Should fail when Statement PUT without header "X-Experience-API-Version"', async function () {
       const templates = [{ statement: "{{statements.default}}" }];
       const data = helper.createFromTemplate(templates).statement;
 
-      request(helper.getEndpointAndAuth())
+            const res = await endAsync(
+request(helper.getEndpointAndAuth())
         .put(helper.getEndpointStatements() + "?statementId=" + helper.generateUUID())
         .headers(helper.addBasicAuthenicationHeader({}))
         .json(data)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else if (res.statusCode === 400) {
+      );
+
+if (res.statusCode === 400) {
             expect(res.headers["x-experience-api-version"]).to.match(REG_ALLOWED_VERSIONS);
-            done();
+            
           } else if (res.statusCode === 404) {
             expect(res.headers["x-experience-api-version"]).to.match(/^0\.95?$/);
-            done();
+            
           } else {
             throw new Error(
               `Version header (${res.headers["x-experience-api-version"]}) and Status Code (${res.statusCode}) do not match specification.  Expected version header 2.0.0 or 1.0.X with status code 400, or version header 0.9 or 0.95 with status code either 400 or 404.`,
             );
-            done();
+            
           }
-        });
     });
   });
 });

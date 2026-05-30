@@ -6,6 +6,7 @@
 import { expect } from "chai";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
+import { endAsync } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
 
 const helper: any = helperImport;
@@ -40,7 +41,7 @@ describe("Id Property Requirements (Data 2.4.1)", () => {
    * An LRS generates the "id" property of a Statement if none is provided (Modify, 4.1.1.a)
    */
   describe('An LRS generates the "id" property of a Statement if none is provided (Modify, Data 2.4.1.s2.b1, XAPI-00026)', function () {
-    it("should complete an empty id property", (done) => {
+    it("should complete an empty id property", async function () {
       this.timeout(0);
       let stmtid: string;
       let query: string;
@@ -49,33 +50,30 @@ describe("Id Property Requirements (Data 2.4.1)", () => {
       data = data.statement;
       let stmtTime = Date.now();
 
-      request(helper.getEndpointAndAuth())
+            const res = await endAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(data)
         .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            stmtid = res.body[0];
-            query = "?statementId=" + stmtid;
-            request(helper.getEndpointAndAuth())
+      );
+
+stmtid = ((res.body as string[])[0] as string);
+query = "?statementId=" + stmtid;
+request(helper.getEndpointAndAuth())
               .get(helper.getEndpointStatements() + query)
               .wait(helper.genDelay(stmtTime, query, stmtid))
               .headers(helper.addAllHeaders({}))
               .end(function (err: unknown, res: any) {
                 if (err) {
-                  done(err);
+                  throw err;
                 } else {
-                  let results = helper.parse(res.body, done);
+                  let results = helper.parse(res.body);
                   expect(results.id).to.not.be.undefined;
                   expect(results.id).to.eql(stmtid);
-                  done();
+                  
                 }
               });
-          }
-        });
     });
   });
 });

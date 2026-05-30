@@ -1001,7 +1001,7 @@ StatementResult Object.
         .headers(helper.addAllHeaders({}))
         .json(statement)
         .expect(200, function (err: unknown, res: any) {
-          statementID = res.body[0];
+          statementID = ((res.body as string[])[0] as string);
           done(err);
         });
     });
@@ -2573,22 +2573,21 @@ expect(res.headers["content-type"]).to.match(/^application\/json/);
     });
 
     // reworded the test to be more generic, shouldn't have to stay in here
-    it('should only return statements stored at or before designated "before" timestamp when using "until" parameter', function (done) {
+    it('should only return statements stored at or before designated "before" timestamp when using "until" parameter', async function () {
       let query = helper.getUrlEncoding({
         verb: verb,
         until: untilVoidingTime,
       });
-      request(helper.getEndpointAndAuth())
+            const res = await endAsync(
+request(helper.getEndpointAndAuth())
         .get(helper.getEndpointStatements() + "?" + query)
         .wait(helper.genDelay(stmtTime, "?" + query, undefined))
         .headers(helper.addAllHeaders({}))
         .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            try {
-              let results = helper.parse(res.body, done);
+      );
+
+try {
+              let results = helper.parse(res.body);
               expect(results).to.have.property("statements");
               const ids: Array<string | undefined> = [];
               results.statements.forEach(function (stmt: any) {
@@ -2597,19 +2596,17 @@ expect(res.headers["content-type"]).to.match(/^application\/json/);
               expect(ids).to.contain(statementRefId);
               expect(ids).to.contain(voidingId);
               expect(ids).to.not.contain(voidedId);
-              done();
+              
             } catch (e) {
               if (e instanceof Error) {
                 if (e.message.length > 400) {
                   e.message = "expected results to have property 'statements' containing " + voidingId;
                 }
-                done(e);
+                throw e;
                 return;
               }
-              done(e);
+              throw e;
             }
-          }
-        });
     });
 
     // reworded the test to be more generic, shouldn't have to stay in here
@@ -2947,7 +2944,7 @@ expect(res.headers["content-type"]).to.match(/^application\/json/);
       expect(result).to.have.property("statements").to.be.an("array");
     });
 
-    it('should return StatementResult with statements as array using GET with "attachments"', function (done) {
+    it('should return StatementResult with statements as array using GET with "attachments"', async function () {
       let header = { "Content-Type": "multipart/mixed; boundary=-------314159265358979323846" };
       let templates = [
         { statement: "{{statements.attachment}}" },
@@ -2993,23 +2990,22 @@ expect(res.headers["content-type"]).to.match(/^application\/json/);
       let query = helper.getUrlEncoding({ attachments: true });
       let stmtTime = Date.now();
 
-      request(helper.getEndpointAndAuth())
+            await endAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders(header))
         .body(msg)
         .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-          } else {
-            request(helper.getEndpointAndAuth())
+      );
+
+request(helper.getEndpointAndAuth())
               .get(helper.getEndpointStatements() + "?" + query)
               .wait(helper.genDelay(stmtTime, "?" + query, undefined))
               .headers(helper.addAllHeaders({}))
               .expect(200)
               .end(function (err: unknown, res: any) {
                 if (err) {
-                  done(err);
+                  throw err;
                 } else {
                   let boundary = multipartParser.getBoundary(res.headers["content-type"]);
                   expect(boundary).to.be.ok;
@@ -3017,16 +3013,14 @@ expect(res.headers["content-type"]).to.match(/^application\/json/);
                   expect(parsed).to.be.ok;
                   const firstPart = parsed[0];
                   if (!firstPart) {
-                    done(new Error("Expected at least one multipart section."));
+                    throw new Error("Expected at least one multipart section.");
                     return;
                   }
-                  let results = helper.parse(firstPart.body, done);
+                  let results = helper.parse(firstPart.body);
                   expect(results).to.have.property("statements");
-                  done();
+                  
                 }
               });
-          }
-        });
     });
   });
 });

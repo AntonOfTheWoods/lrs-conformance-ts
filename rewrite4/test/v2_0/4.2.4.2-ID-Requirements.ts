@@ -15,6 +15,7 @@
 import { expect } from "chai";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
+import { endAsync } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
 
 const helper: any = helperImport;
@@ -39,7 +40,7 @@ describe("Id Property Requirements (Data 2.4.1)", () => {
    * An LRS generates the "id" property of a Statement if none is provided (Modify, 4.1.1.a)
    */
   describe('An LRS generates the "id" property of a Statement if none is provided (Modify, Data 2.4.1.s2.b1, XAPI-00026)', function () {
-    it("should complete an empty id property", (done) => {
+    it("should complete an empty id property", async function () {
       const context = this;
       context.timeout(0);
 
@@ -49,35 +50,32 @@ describe("Id Property Requirements (Data 2.4.1)", () => {
       data = data.statement;
       const stmtTime = Date.now();
 
-      request(helper.getEndpointAndAuth())
+            const res = await endAsync(
+request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
         .headers(helper.addAllHeaders({}))
         .json(data)
         .expect(200)
-        .end(function (err: unknown, res: any) {
-          if (err) {
-            done(err);
-            return;
-          }
+      );
 
-          stmtId = res.body[0];
-          const query = "?statementId=" + stmtId;
-          request(helper.getEndpointAndAuth())
+
+stmtId = ((res.body as string[])[0] as string);
+const query = "?statementId=" + stmtId;
+request(helper.getEndpointAndAuth())
             .get(helper.getEndpointStatements() + query)
             .wait(helper.genDelay(stmtTime, query, stmtId))
             .headers(helper.addAllHeaders({}))
             .end(function (getErr: unknown, getRes: any) {
               if (getErr) {
-                done(getErr);
+                throw getErr;
                 return;
               }
 
-              const results = helper.parse(getRes.body, done);
+              const results = helper.parse(getRes.body);
               expect(results.id).to.not.be.undefined;
               expect(results.id).to.eql(stmtId);
-              done();
+              
             });
-        });
     });
   });
 });

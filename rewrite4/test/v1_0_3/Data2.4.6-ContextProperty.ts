@@ -6,6 +6,7 @@
 import { expect } from "chai";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
+import { endAsync } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
 
 const helper: any = helperImport;
@@ -50,40 +51,37 @@ describe("Context Property Requirements (Data 2.4.6)", function () {
     types.forEach(function (type) {
       it(
         'should return array for statement context "' + type + '"  when single ContextActivity is passed',
-        function (done) {
+        async function () {
           let templates = [{ statement: "{{statements.context}}" }, { context: "{{contexts." + type + "}}" }];
           let data = helper.createFromTemplate(templates);
           data = data.statement;
           data.id = helper.generateUUID();
           let query = "?statementId=" + data.id;
           let stmtTime = Date.now();
-          request(helper.getEndpointAndAuth())
+                    await endAsync(
+request(helper.getEndpointAndAuth())
             .post(helper.getEndpointStatements())
             .headers(helper.addAllHeaders({}))
             .json(data)
             .expect(200)
-            .end(function (err: unknown, res: any) {
-              if (err) {
-                done(err);
-              } else {
-                request(helper.getEndpointAndAuth())
+          );
+
+request(helper.getEndpointAndAuth())
                   .get(helper.getEndpointStatements() + query)
                   .wait(helper.genDelay(stmtTime, query, data.id))
                   .headers(helper.addAllHeaders({}))
                   .expect(200)
                   .end(function (err: unknown, res: any) {
                     if (err) {
-                      done(err);
+                      throw err;
                     } else {
-                      let statement = helper.parse(res.body, done);
+                      let statement = helper.parse(res.body);
                       expect(statement).to.have.property("context").to.have.property("contextActivities");
                       expect(statement.context.contextActivities).to.have.property(type);
                       expect(statement.context.contextActivities[type]).to.be.an("array");
-                      done();
+                      
                     }
                   });
-              }
-            });
         },
       );
     });
@@ -91,7 +89,7 @@ describe("Context Property Requirements (Data 2.4.6)", function () {
     types.forEach(function (type) {
       it(
         'should return array for statement substatement context "' + type + '"  when single ContextActivity is passed',
-        function (done) {
+        async function () {
           let templates = [
             { statement: "{{statements.object_substatement}}" },
             { object: "{{substatements.context}}" },
@@ -103,36 +101,33 @@ describe("Context Property Requirements (Data 2.4.6)", function () {
           let query = "?statementId=" + data.id;
           let stmtTime = Date.now();
 
-          request(helper.getEndpointAndAuth())
+                    await endAsync(
+request(helper.getEndpointAndAuth())
             .post(helper.getEndpointStatements())
             .headers(helper.addAllHeaders({}))
             .json(data)
             .expect(200)
-            .end(function (err: unknown, res: any) {
-              if (err) {
-                done(err);
-              } else {
-                request(helper.getEndpointAndAuth())
+          );
+
+request(helper.getEndpointAndAuth())
                   .get(helper.getEndpointStatements() + query)
                   .wait(helper.genDelay(stmtTime, query, data.id))
                   .headers(helper.addAllHeaders({}))
                   .expect(200)
                   .end(function (err: unknown, res: any) {
                     if (err) {
-                      done(err);
+                      throw err;
                     } else {
-                      let statement = helper.parse(res.body, done);
+                      let statement = helper.parse(res.body);
                       expect(statement)
                         .to.have.property("object")
                         .to.have.property("context")
                         .to.have.property("contextActivities");
                       expect(statement.object.context.contextActivities).to.have.property(type);
                       expect(statement.object.context.contextActivities[type]).to.be.an("array");
-                      done();
+                      
                     }
                   });
-              }
-            });
         },
       );
     });
