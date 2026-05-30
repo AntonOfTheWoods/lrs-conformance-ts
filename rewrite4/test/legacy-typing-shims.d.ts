@@ -41,11 +41,6 @@ declare module "comb" {
   export default value;
 }
 
-declare module "moment" {
-  const value: any;
-  export default value;
-}
-
 declare module "form-urlencoded" {
   const value: any;
   export default value;

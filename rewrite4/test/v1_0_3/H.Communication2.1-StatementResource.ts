@@ -8,7 +8,6 @@ import crypto from "crypto";
 import extend from "extend";
 import fs from "fs";
 import helperImport from "../helper.ts";
-import moment from "moment";
 import multipartParser from "../multipartParser.ts";
 import requestBase from "super-request";
 
@@ -25,6 +24,10 @@ let request: any = requestBase;
  */
 
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
+
+function isValidIsoTimestamp(value: unknown): boolean {
+  return typeof value === "string" && !Number.isNaN(Date.parse(value));
+}
 
 describe("Statement Resource Requirements (Communication 2.1)", () => {
   let data: any;
@@ -2159,9 +2162,7 @@ MUST have a "Content-Type" header
           } else {
             let value = res.headers["x-experience-api-consistent-through"];
             expect(value).to.be.ok;
-            let through = moment(value, moment.ISO_8601);
-            expect(through).to.be.ok;
-            expect(through.isValid()).to.be.true;
+            expect(isValidIsoTimestamp(value)).to.be.true;
             done();
           }
         });
@@ -2183,9 +2184,7 @@ MUST have a "Content-Type" header
           } else {
             let value = res.headers["x-experience-api-consistent-through"];
             expect(value).to.be.ok;
-            let through = moment(value, moment.ISO_8601);
-            expect(through).to.be.ok;
-            expect(through.isValid()).to.be.true;
+            expect(isValidIsoTimestamp(value)).to.be.true;
             done();
           }
         });
@@ -2204,9 +2203,7 @@ MUST have a "Content-Type" header
           } else {
             let value = res.headers["x-experience-api-consistent-through"];
             expect(value).to.be.ok;
-            let through = moment(value, moment.ISO_8601);
-            expect(through).to.be.ok;
-            expect(through.isValid()).to.be.true;
+            expect(isValidIsoTimestamp(value)).to.be.true;
             done();
           }
         });
@@ -2225,9 +2222,7 @@ MUST have a "Content-Type" header
           } else {
             let value = res.headers["x-experience-api-consistent-through"];
             expect(value).to.be.ok;
-            let through = moment(value, moment.ISO_8601);
-            expect(through).to.be.ok;
-            expect(through.isValid()).to.be.true;
+            expect(isValidIsoTimestamp(value)).to.be.true;
             done();
           }
         });
@@ -2246,9 +2241,7 @@ MUST have a "Content-Type" header
           } else {
             let value = res.headers["x-experience-api-consistent-through"];
             expect(value).to.be.ok;
-            let through = moment(value, moment.ISO_8601);
-            expect(through).to.be.ok;
-            expect(through.isValid()).to.be.true;
+            expect(isValidIsoTimestamp(value)).to.be.true;
             done();
           }
         });
@@ -2270,9 +2263,7 @@ MUST have a "Content-Type" header
           } else {
             let value = res.headers["x-experience-api-consistent-through"];
             expect(value).to.be.ok;
-            let through = moment(value, moment.ISO_8601);
-            expect(through).to.be.ok;
-            expect(through.isValid()).to.be.true;
+            expect(isValidIsoTimestamp(value)).to.be.true;
             done();
           }
         });
@@ -2294,9 +2285,7 @@ MUST have a "Content-Type" header
           } else {
             let value = res.headers["x-experience-api-consistent-through"];
             expect(value).to.be.ok;
-            let through = moment(value, moment.ISO_8601);
-            expect(through).to.be.ok;
-            expect(through.isValid()).to.be.true;
+            expect(isValidIsoTimestamp(value)).to.be.true;
             done();
           }
         });
@@ -2315,9 +2304,7 @@ MUST have a "Content-Type" header
           } else {
             let value = res.headers["x-experience-api-consistent-through"];
             expect(value).to.be.ok;
-            let through = moment(value, moment.ISO_8601);
-            expect(through).to.be.ok;
-            expect(through.isValid()).to.be.true;
+            expect(isValidIsoTimestamp(value)).to.be.true;
             done();
           }
         });
@@ -2336,9 +2323,7 @@ MUST have a "Content-Type" header
           } else {
             let value = res.headers["x-experience-api-consistent-through"];
             expect(value).to.be.ok;
-            let through = moment(value, moment.ISO_8601);
-            expect(through).to.be.ok;
-            expect(through.isValid()).to.be.true;
+            expect(isValidIsoTimestamp(value)).to.be.true;
             done();
           }
         });
@@ -2357,9 +2342,7 @@ MUST have a "Content-Type" header
           } else {
             let value = res.headers["x-experience-api-consistent-through"];
             expect(value).to.be.ok;
-            let through = moment(value, moment.ISO_8601);
-            expect(through).to.be.ok;
-            expect(through.isValid()).to.be.true;
+            expect(isValidIsoTimestamp(value)).to.be.true;
             done();
           }
         });
@@ -2378,9 +2361,7 @@ MUST have a "Content-Type" header
           } else {
             let value = res.headers["x-experience-api-consistent-through"];
             expect(value).to.be.ok;
-            let through = moment(value, moment.ISO_8601);
-            expect(through).to.be.ok;
-            expect(through.isValid()).to.be.true;
+            expect(isValidIsoTimestamp(value)).to.be.true;
             done();
           }
         });
@@ -2399,9 +2380,7 @@ MUST have a "Content-Type" header
           } else {
             let value = res.headers["x-experience-api-consistent-through"];
             expect(value).to.be.ok;
-            let through = moment(value, moment.ISO_8601);
-            expect(through).to.be.ok;
-            expect(through.isValid()).to.be.true;
+            expect(isValidIsoTimestamp(value)).to.be.true;
             done();
           }
         });
@@ -2420,9 +2399,7 @@ MUST have a "Content-Type" header
           } else {
             let value = res.headers["x-experience-api-consistent-through"];
             expect(value).to.be.ok;
-            let through = moment(value, moment.ISO_8601);
-            expect(through).to.be.ok;
-            expect(through.isValid()).to.be.true;
+            expect(isValidIsoTimestamp(value)).to.be.true;
             done();
           }
         });

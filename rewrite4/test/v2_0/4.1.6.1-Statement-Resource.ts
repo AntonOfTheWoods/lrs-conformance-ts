@@ -8,7 +8,6 @@ import fs from "node:fs";
 
 import { expect } from "chai";
 import extend from "extend";
-import moment from "moment";
 import helperImport from "../helper.ts";
 import multipartParser from "../multipartParser.ts";
 import requestBase from "super-request";
@@ -19,6 +18,10 @@ const xapiRequests: any = xapiRequestsImport;
 let request: any = requestBase;
 
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
+
+function isValidIsoTimestamp(value: unknown): boolean {
+  return typeof value === "string" && !Number.isNaN(Date.parse(value));
+}
 
 //Communication 2.0
 /**  Matchup with Conformance Requirements Document
@@ -2215,9 +2218,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
           } else {
             let value = res.headers["x-experience-api-consistent-through"];
             expect(value).to.be.ok;
-            let through = moment(value, moment.ISO_8601);
-            expect(through).to.be.ok;
-            expect(through.isValid()).to.be.true;
+            expect(isValidIsoTimestamp(value)).to.be.true;
             done();
           }
         });
@@ -2239,9 +2240,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
           } else {
             let value = res.headers["x-experience-api-consistent-through"];
             expect(value).to.be.ok;
-            let through = moment(value, moment.ISO_8601);
-            expect(through).to.be.ok;
-            expect(through.isValid()).to.be.true;
+            expect(isValidIsoTimestamp(value)).to.be.true;
             done();
           }
         });
@@ -2260,9 +2259,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
           } else {
             let value = res.headers["x-experience-api-consistent-through"];
             expect(value).to.be.ok;
-            let through = moment(value, moment.ISO_8601);
-            expect(through).to.be.ok;
-            expect(through.isValid()).to.be.true;
+            expect(isValidIsoTimestamp(value)).to.be.true;
             done();
           }
         });
@@ -2281,9 +2278,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
           } else {
             let value = res.headers["x-experience-api-consistent-through"];
             expect(value).to.be.ok;
-            let through = moment(value, moment.ISO_8601);
-            expect(through).to.be.ok;
-            expect(through.isValid()).to.be.true;
+            expect(isValidIsoTimestamp(value)).to.be.true;
             done();
           }
         });
@@ -2302,9 +2297,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
           } else {
             let value = res.headers["x-experience-api-consistent-through"];
             expect(value).to.be.ok;
-            let through = moment(value, moment.ISO_8601);
-            expect(through).to.be.ok;
-            expect(through.isValid()).to.be.true;
+            expect(isValidIsoTimestamp(value)).to.be.true;
             done();
           }
         });
@@ -2326,9 +2319,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
           } else {
             let value = res.headers["x-experience-api-consistent-through"];
             expect(value).to.be.ok;
-            let through = moment(value, moment.ISO_8601);
-            expect(through).to.be.ok;
-            expect(through.isValid()).to.be.true;
+            expect(isValidIsoTimestamp(value)).to.be.true;
             done();
           }
         });
@@ -2350,9 +2341,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
           } else {
             let value = res.headers["x-experience-api-consistent-through"];
             expect(value).to.be.ok;
-            let through = moment(value, moment.ISO_8601);
-            expect(through).to.be.ok;
-            expect(through.isValid()).to.be.true;
+            expect(isValidIsoTimestamp(value)).to.be.true;
             done();
           }
         });
@@ -2371,9 +2360,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
           } else {
             let value = res.headers["x-experience-api-consistent-through"];
             expect(value).to.be.ok;
-            let through = moment(value, moment.ISO_8601);
-            expect(through).to.be.ok;
-            expect(through.isValid()).to.be.true;
+            expect(isValidIsoTimestamp(value)).to.be.true;
             done();
           }
         });
@@ -2392,9 +2379,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
           } else {
             let value = res.headers["x-experience-api-consistent-through"];
             expect(value).to.be.ok;
-            let through = moment(value, moment.ISO_8601);
-            expect(through).to.be.ok;
-            expect(through.isValid()).to.be.true;
+            expect(isValidIsoTimestamp(value)).to.be.true;
             done();
           }
         });
@@ -2413,9 +2398,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
           } else {
             let value = res.headers["x-experience-api-consistent-through"];
             expect(value).to.be.ok;
-            let through = moment(value, moment.ISO_8601);
-            expect(through).to.be.ok;
-            expect(through.isValid()).to.be.true;
+            expect(isValidIsoTimestamp(value)).to.be.true;
             done();
           }
         });
@@ -2434,9 +2417,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
           } else {
             let value = res.headers["x-experience-api-consistent-through"];
             expect(value).to.be.ok;
-            let through = moment(value, moment.ISO_8601);
-            expect(through).to.be.ok;
-            expect(through.isValid()).to.be.true;
+            expect(isValidIsoTimestamp(value)).to.be.true;
             done();
           }
         });
@@ -2455,9 +2436,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
           } else {
             let value = res.headers["x-experience-api-consistent-through"];
             expect(value).to.be.ok;
-            let through = moment(value, moment.ISO_8601);
-            expect(through).to.be.ok;
-            expect(through.isValid()).to.be.true;
+            expect(isValidIsoTimestamp(value)).to.be.true;
             done();
           }
         });
@@ -2476,9 +2455,7 @@ describe("Statement Resource Requirements (Communication 2.1)", () => {
           } else {
             let value = res.headers["x-experience-api-consistent-through"];
             expect(value).to.be.ok;
-            let through = moment(value, moment.ISO_8601);
-            expect(through).to.be.ok;
-            expect(through.isValid()).to.be.true;
+            expect(isValidIsoTimestamp(value)).to.be.true;
             done();
           }
         });

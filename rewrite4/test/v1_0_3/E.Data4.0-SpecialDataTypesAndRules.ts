@@ -5,7 +5,6 @@
 
 import { expect } from "chai";
 import helperImport from "../helper.ts";
-import moment from "moment";
 import requestBase from "super-request";
 import templatingSelectionImport from "../templatingSelection.ts";
 
@@ -16,6 +15,24 @@ let request: any = requestBase;
 // "use strict";
 
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
+
+function parseMillisecondsFromIso(value: unknown): number | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  if (Number.isNaN(Date.parse(value))) {
+    return null;
+  }
+
+  const fractionMatch = /\.(\d+)/.exec(value);
+  if (!fractionMatch || !fractionMatch[1]) {
+    return null;
+  }
+
+  const milliseconds = Number.parseInt(fractionMatch[1].slice(0, 3).padEnd(3, "0"), 10);
+  return Number.isNaN(milliseconds) ? null : milliseconds;
+}
 
 describe("Special Data Types and Rules (Data 4.0)", function () {
   //Data 4.1
@@ -431,19 +448,17 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
             let stmts = result.statements;
             let milliChecker = (num: number) => {
               expect(stmts[num]).to.have.property("timestamp");
-              //formatted iso 8601
-              let chkStored = moment(stmts[num].timestamp, moment.ISO_8601);
-              expect(chkStored.isValid()).to.be.true;
-              expect(isNaN(chkStored._pf.parsedDateParts[6])).to.be.false;
+              const milliseconds = parseMillisecondsFromIso(stmts[num].timestamp);
+              expect(milliseconds).to.not.equal(null);
               //precision to milliseconds
-              if (chkStored._pf.parsedDateParts[6] % 10 > 0) {
-                expect(chkStored._pf.parsedDateParts[6] % 10).to.be.above(0);
+              if ((milliseconds as number) % 10 > 0) {
+                expect((milliseconds as number) % 10).to.be.above(0);
                 done();
               } else {
                 if (++num < stmts.length) {
                   milliChecker(num);
                 } else {
-                  expect(chkStored._pf.parsedDateParts[6] % 10).to.be.above(0);
+                  expect((milliseconds as number) % 10).to.be.above(0);
                   done();
                 }
               }
@@ -466,19 +481,17 @@ describe("Special Data Types and Rules (Data 4.0)", function () {
             let stmts = result.statements;
             let milliChecker = (num: number) => {
               expect(stmts[num]).to.have.property("stored");
-              //formatted iso 8601
-              let chkStored = moment(stmts[num].stored, moment.ISO_8601);
-              expect(chkStored.isValid()).to.be.true;
-              expect(isNaN(chkStored._pf.parsedDateParts[6])).to.be.false;
+              const milliseconds = parseMillisecondsFromIso(stmts[num].stored);
+              expect(milliseconds).to.not.equal(null);
               //precision to milliseconds
-              if (chkStored._pf.parsedDateParts[6] % 10 > 0) {
-                expect(chkStored._pf.parsedDateParts[6] % 10).to.be.above(0);
+              if ((milliseconds as number) % 10 > 0) {
+                expect((milliseconds as number) % 10).to.be.above(0);
                 done();
               } else {
                 if (++num < stmts.length) {
                   milliChecker(num);
                 } else {
-                  expect(chkStored._pf.parsedDateParts[6] % 10).to.be.above(0);
+                  expect((milliseconds as number) % 10).to.be.above(0);
                   done();
                 }
               }

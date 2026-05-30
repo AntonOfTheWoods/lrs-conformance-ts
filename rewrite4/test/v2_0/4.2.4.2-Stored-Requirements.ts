@@ -3,7 +3,6 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import moment from "moment";
 import { expect } from "chai";
 import helperImport from "../helper.ts";
 import requestBase from "super-request";
@@ -12,6 +11,24 @@ const helper: any = helperImport;
 let request: any = requestBase;
 
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
+
+function parseMillisecondsFromIso(value: unknown): number | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  if (Number.isNaN(Date.parse(value))) {
+    return null;
+  }
+
+  const fractionMatch = /\.(\d+)/.exec(value);
+  if (!fractionMatch || !fractionMatch[1]) {
+    return null;
+  }
+
+  const milliseconds = Number.parseInt(fractionMatch[1].slice(0, 3).padEnd(3, "0"), 10);
+  return Number.isNaN(milliseconds) ? null : milliseconds;
+}
 
 describe("Stored Property Requirements (Data 2.4.8)", () => {
   /**  Matchup with Conformance Requirements Document
@@ -125,12 +142,11 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
           const stmts = result.statements;
           const milliChecker = (num: number) => {
             expect(stmts[num]).to.have.property("stored");
-            const chkStored = moment(stmts[num].stored, moment.ISO_8601);
-            expect(chkStored.isValid()).to.be.true;
-            expect(isNaN(chkStored._pf.parsedDateParts[6])).to.be.false;
+            const milliseconds = parseMillisecondsFromIso(stmts[num].stored);
+            expect(milliseconds).to.not.equal(null);
 
-            if (chkStored._pf.parsedDateParts[6] % 10 > 0) {
-              expect(chkStored._pf.parsedDateParts[6] % 10).to.be.above(0);
+            if ((milliseconds as number) % 10 > 0) {
+              expect((milliseconds as number) % 10).to.be.above(0);
               done();
               return;
             }
@@ -141,7 +157,7 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
               return;
             }
 
-            expect(chkStored._pf.parsedDateParts[6] % 10).to.be.above(0);
+            expect((milliseconds as number) % 10).to.be.above(0);
             done();
           };
           milliChecker(0);
