@@ -5,15 +5,32 @@
 
 import { beforeAll, describe, expect, it } from "../bun-test.ts";
 import helperImport from "../helper.ts";
-import requestBase from "../super-request.ts";
-import { expectAsync, endAsync } from "../super-request.ts";
+import requestBase, { expectAsync, endAsync, type RequestFactory } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
 
-const helper: any = helperImport;
-const templatingSelection: any = templatingSelectionImport;
-let request: any = requestBase;
+type StatementVoidingHelper = {
+  OAuthRequest(request: RequestFactory): RequestFactory;
+  addAllHeaders(headers?: Record<string, string | undefined>): Record<string, string | undefined>;
+  createFromTemplate(templates: Array<Record<string, unknown>>): { statement: any };
+  genDelay(stmtTime: number, query?: string, statementId?: string): Promise<unknown>;
+  generateUUID(): string;
+  getEndpointAndAuth(): string;
+  getEndpointStatements(): string;
+  getUrlEncoding(object: Record<string, unknown>): string;
+  parse(input: unknown): any;
+};
 
-if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
+type StatementVoidingTemplatingSelection = {
+  createTemplate(name: string): void;
+};
+
+const helper = helperImport as unknown as StatementVoidingHelper;
+const templatingSelection = templatingSelectionImport as unknown as StatementVoidingTemplatingSelection;
+let request: RequestFactory = requestBase;
+
+if (process.env["OAUTH1_ENABLED"] === "true") {
+  request = helper.OAuthRequest(request) as unknown as RequestFactory;
+}
 
 describe("Statement Lifecycle Requirements (Data 2.3)", () => {
   /**  Matchup with Conformance Requirements Document
@@ -36,8 +53,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
 
     beforeAll(async () => {
       const templates = [{ statement: "{{statements.default}}" }];
-      let voided = helper.createFromTemplate(templates);
-      voided = voided.statement;
+      const voided = helper.createFromTemplate(templates).statement;
       voided.id = voidedId;
 
       await expectAsync(
@@ -51,8 +67,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
 
     beforeAll(async () => {
       const templates = [{ statement: "{{statements.voiding}}" }];
-      let voiding = helper.createFromTemplate(templates);
-      voiding = voiding.statement;
+      const voiding = helper.createFromTemplate(templates).statement;
       voiding.object.id = voidedId;
       stmtTime = Date.now();
 
@@ -103,8 +118,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
 
     beforeAll(async () => {
       const templates = [{ statement: "{{statements.default}}" }];
-      let data = helper.createFromTemplate(templates);
-      data = data.statement;
+      const data = helper.createFromTemplate(templates).statement;
 
       const res = await endAsync(
         request(helper.getEndpointAndAuth())
@@ -119,8 +133,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
 
     beforeAll(async () => {
       const templates = [{ statement: "{{statements.voiding}}" }];
-      let data = helper.createFromTemplate(templates);
-      data = data.statement;
+      const data = helper.createFromTemplate(templates).statement;
       data.object.id = voidedId;
 
       const res = await endAsync(
@@ -136,8 +149,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
 
     it("Should not void an already voided statement", async function () {
       const templates = [{ statement: "{{statements.object_statementref}}" }, { verb: "{{verbs.voided}}" }];
-      let data = helper.createFromTemplate(templates);
-      data = data.statement;
+      const data = helper.createFromTemplate(templates).statement;
       data.object.id = voidedId;
       const stmtTime = Date.now();
 
@@ -160,8 +172,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
 
     it("Should not void a voiding statement", async function () {
       const templates = [{ statement: "{{statements.object_statementref}}" }, { verb: "{{verbs.voided}}" }];
-      let data = helper.createFromTemplate(templates);
-      data = data.statement;
+      const data = helper.createFromTemplate(templates).statement;
       data.object.id = voidingId;
       const stmtTime = Date.now();
       await endAsync(
@@ -192,8 +203,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
 
     it("Shall not reject a voided statement.", async function () {
       const templates = [{ statement: "{{statements.object_statementref}}" }, { verb: "{{verbs.voided}}" }];
-      let data = helper.createFromTemplate(templates);
-      data = data.statement;
+      const data = helper.createFromTemplate(templates).statement;
       data.object.id = nonExistentStatementID;
       await expectAsync(
         request(helper.getEndpointAndAuth())

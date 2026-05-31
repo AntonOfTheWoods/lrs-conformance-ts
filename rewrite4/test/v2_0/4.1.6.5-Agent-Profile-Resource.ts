@@ -4,18 +4,59 @@
  */
 import { beforeAll, describe, expect, it } from "../bun-test.ts";
 import helperImport from "../helper.ts";
-import requestBase from "../super-request.ts";
-import { expectAsync } from "../super-request.ts";
+import requestBase, { expectAsync, type RequestFactory } from "../super-request.ts";
 import xapiRequestsImport from "./util/requests.ts";
 
-const helper: any = helperImport;
-const xapiRequests: any = xapiRequestsImport;
-let request: any = requestBase;
+type AgentProfileParams = {
+  agent?: any;
+  profileId?: any;
+  since?: any;
+};
+type DocumentPayload = {
+  name?: string;
+  [key: string]: unknown;
+};
 
-if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
+type AgentProfileHelper = {
+  OAuthRequest(request: RequestFactory): RequestFactory;
+  addAllHeaders(headers?: Record<string, string | undefined>): Record<string, string | undefined>;
+  buildAgentProfile(): AgentProfileParams;
+  buildDocument(): DocumentPayload;
+  generateUUID(): string;
+  getEndpointAgentsProfile(): string;
+  getEndpointAndAuth(): string;
+  getTimeMargin(): number;
+  getUrlEncoding(object: unknown): string;
+  parse(input: unknown): any;
+  sendRequest(
+    method: string,
+    endpoint: string,
+    parameters: AgentProfileParams,
+    body: DocumentPayload | string | undefined,
+    expectedStatus: number,
+  ): Promise<any>;
+};
+
+type AgentProfileRequests = {
+  resourcePaths: {
+    agentsProfile: string;
+  };
+  delay(milliseconds: number): Promise<void>;
+  deleteDocument(path: string, params: AgentProfileParams): Promise<any>;
+  getDocuments(path: string, params: AgentProfileParams): Promise<any>;
+  postDocument(path: string, body: DocumentPayload, params: AgentProfileParams): Promise<any>;
+};
+
+const helper = helperImport as unknown as AgentProfileHelper;
+const xapiRequests = xapiRequestsImport as unknown as AgentProfileRequests;
+let request: RequestFactory = requestBase;
+
+if (process.env["OAUTH1_ENABLED"] === "true") {
+  request = helper.OAuthRequest(request) as unknown as RequestFactory;
+}
 
 describe("Agent Profile Resource Requirements (Communication 2.6)", () => {
-  let document: any;
+  let document: DocumentPayload;
   /**  Matchup with Conformance
    * XAPI-00255 - below
    * XAPI-00256 - below
@@ -114,12 +155,12 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", () => {
     let parameters = helper.buildAgentProfile(),
       document = helper.buildDocument();
     return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(() => {
-      return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200).then((
-        res: any,
-      ) => {
-        let body = res.body;
-        expect(body).toEqual(document);
-      });
+      return helper
+        .sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200)
+        .then((res: any) => {
+          let body = res.body;
+          expect(body).toEqual(document);
+        });
     });
   });
 
@@ -257,12 +298,12 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", () => {
       document = helper.buildDocument();
     return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(() => {
       delete parameters.profileId;
-      return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200).then((
-        res: any,
-      ) => {
-        let body = res.body;
-        expect(body.length).toBeGreaterThan(0);
-      });
+      return helper
+        .sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200)
+        .then((res: any) => {
+          let body = res.body;
+          expect(body.length).toBeGreaterThan(0);
+        });
     });
   });
 
@@ -312,14 +353,14 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", () => {
     return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(() => {
       parameters.since = since;
       delete parameters.profileId;
-      return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200).then((
-        res: any,
-      ) => {
-        let body = res.body;
-        expect(Array.isArray(body)).toBe(true);
-        expect(body.length).toBeGreaterThan(0);
-        expect(body).toContain(profile1);
-      });
+      return helper
+        .sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200)
+        .then((res: any) => {
+          let body = res.body;
+          expect(Array.isArray(body)).toBe(true);
+          expect(body.length).toBeGreaterThan(0);
+          expect(body).toContain(profile1);
+        });
     });
   });
 
@@ -359,12 +400,12 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", () => {
     let parameters = helper.buildAgentProfile(),
       document = helper.buildDocument();
     return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(() => {
-      return helper.sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200).then((
-        res: any,
-      ) => {
-        let body = res.body;
-        expect(body).toEqual(document);
-      });
+      return helper
+        .sendRequest("get", helper.getEndpointAgentsProfile(), parameters, undefined, 200)
+        .then((res: any) => {
+          let body = res.body;
+          expect(body).toEqual(document);
+        });
     });
   });
 

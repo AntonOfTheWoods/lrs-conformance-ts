@@ -3,19 +3,61 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 import requestModule from "../super-request.ts";
-import { expectAsync } from "../super-request.ts";
+import { expectAsync, type RequestFactory } from "../super-request.ts";
 import { beforeAll, describe, expect, it } from "../bun-test.ts";
 import helperModule from "../helper.ts";
 import xapiRequestsModule from "./util/requests.ts";
 
-let request = requestModule as unknown as (target: string) => any;
-const helper = helperModule as any;
-const xapiRequests = xapiRequestsModule as any;
+type ActivityProfileParams = {
+  activityId?: any;
+  profileId?: any;
+  since?: any;
+};
+type DocumentPayload = {
+  name?: string;
+  [key: string]: unknown;
+};
 
-if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
+type ActivityProfileHelper = {
+  OAuthRequest(request: RequestFactory): RequestFactory;
+  addAllHeaders(headers?: Record<string, string | undefined>): Record<string, string | undefined>;
+  buildActivityProfile(): ActivityProfileParams;
+  buildDocument(): DocumentPayload;
+  generateUUID(): string;
+  getEndpointActivitiesProfile(): string;
+  getEndpointAndAuth(): string;
+  getTimeMargin(): number;
+  getUrlEncoding(object: unknown): string;
+  parse(input: unknown): any;
+  sendRequest(
+    method: string,
+    endpoint: string,
+    parameters: ActivityProfileParams,
+    body: DocumentPayload | string | undefined,
+    expectedStatus: number,
+  ): Promise<any>;
+};
+
+type ActivityProfileRequests = {
+  resourcePaths: {
+    activityProfile: string;
+  };
+  delay(milliseconds: number): Promise<void>;
+  deleteDocument(path: string, params: ActivityProfileParams): Promise<any>;
+  getDocuments(path: string, params: ActivityProfileParams): Promise<any>;
+  postDocument(path: string, body: DocumentPayload, params: ActivityProfileParams): Promise<any>;
+};
+
+let request: RequestFactory = requestModule;
+const helper = helperModule as unknown as ActivityProfileHelper;
+const xapiRequests = xapiRequestsModule as unknown as ActivityProfileRequests;
+
+if (process.env["OAUTH1_ENABLED"] === "true") {
+  request = helper.OAuthRequest(request) as unknown as RequestFactory;
+}
 
 describe("Activity Profile Resource Requirements (Communication 2.7)", () => {
-  let document: any;
+  let document: DocumentPayload;
   /**  Matchup with
    * XAPI-00285 - below
    * XAPI-00286 - below
@@ -112,11 +154,9 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", () => {
   it("An LRS's Activity Profile Resource accepts GET requests (Communication 2.7, XAPI-00290)", () => {
     let parameters = helper.buildActivityProfile(),
       document = helper.buildDocument();
-    return helper
-      .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204)
-      .then(() => {
-        return helper.sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200);
-      });
+    return helper.sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204).then(() => {
+      return helper.sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200);
+    });
   });
 
   /**  XAPI-00288, Communication 2.7 Activity Profile Resource
@@ -125,16 +165,14 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", () => {
   it('An LRS\'s Activity Profile Resource upon processing a successful GET request with a valid "profileId" as a parameter returns the document satisfying the requirements of the GET and code 200 OK (Communication 2.7.s3, XAPI-00288)', () => {
     let parameters = helper.buildActivityProfile(),
       document = helper.buildDocument();
-    return helper
-      .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204)
-      .then(() => {
-        return helper
-          .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
-          .then((res: any) => {
-            let body = res.body;
-            expect(body).toEqual(document);
-          });
-      });
+    return helper.sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204).then(() => {
+      return helper
+        .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
+        .then((res: any) => {
+          let body = res.body;
+          expect(body).toEqual(document);
+        });
+    });
   });
 
   /**  XAPI-00299, Communication 2.7 Activity Profile Resource
@@ -225,18 +263,16 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", () => {
     let parameters = helper.buildActivityProfile(),
       document = helper.buildDocument();
     parameters.activityId = parameters.activityId + helper.generateUUID();
-    return helper
-      .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204)
-      .then(() => {
-        delete parameters.profileId;
-        return helper
-          .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
-          .then((res: any) => {
-            let body = res.body;
-            expect(Array.isArray(body)).toBe(true);
-            expect(body.length).toBeGreaterThan(0);
-          });
-      });
+    return helper.sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204).then(() => {
+      delete parameters.profileId;
+      return helper
+        .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
+        .then((res: any) => {
+          let body = res.body;
+          expect(Array.isArray(body)).toBe(true);
+          expect(body.length).toBeGreaterThan(0);
+        });
+    });
   });
 
   /**  XAPI-00303, Communication 2.7 Activity Profile Resource
@@ -245,14 +281,12 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", () => {
   it('An LRS\'s Activity Profile Resource can process a GET request with "since" as a parameter (multiplicity, Communication 2.7.s4.table1.row2, XAPI-00303)', () => {
     let parameters = helper.buildActivityProfile(),
       document = helper.buildDocument();
-    return helper
-      .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204)
-      .then(() => {
-        delete parameters.profileId;
-        parameters.since = new Date(Date.now() - 60 * 1000 - helper.getTimeMargin()).toISOString(); //Date one minute ago
+    return helper.sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204).then(() => {
+      delete parameters.profileId;
+      parameters.since = new Date(Date.now() - 60 * 1000 - helper.getTimeMargin()).toISOString(); //Date one minute ago
 
-        return helper.sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200);
-      });
+      return helper.sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200);
+    });
   });
 
   /**  XAPI-00295, Communication 2.7 Activity Profile Resource
@@ -278,20 +312,18 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", () => {
     parameters.activityId = parameters.activityId + helper.generateUUID();
     let since = new Date(Date.now() - 60 * 1000 - helper.getTimeMargin()).toISOString();
 
-    return helper
-      .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204)
-      .then(() => {
-        delete parameters.profileId;
-        parameters.since = since;
-        return helper
-          .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
-          .then((res: any) => {
-            let body = res.body;
-            expect(Array.isArray(body)).toBe(true);
-            expect(body.length).toBeGreaterThan(0);
-            expect(body).toContain(profile1);
-          });
-      });
+    return helper.sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204).then(() => {
+      delete parameters.profileId;
+      parameters.since = since;
+      return helper
+        .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
+        .then((res: any) => {
+          let body = res.body;
+          expect(Array.isArray(body)).toBe(true);
+          expect(body.length).toBeGreaterThan(0);
+          expect(body).toContain(profile1);
+        });
+    });
   });
 
   /**  XAPI-00310, Communication 2.7 Activity Profile Resource
@@ -300,16 +332,14 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", () => {
   it("An LRS's Activity Profile Resource, upon receiving a POST request for a document not currently in the LRS, treats it as a PUT request and store a new document (Communication 2.2.s7, XAPI-00310)", () => {
     let parameters = helper.buildActivityProfile(),
       document = helper.buildDocument();
-    return helper
-      .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204)
-      .then(() => {
-        return helper
-          .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
-          .then((res: any) => {
-            let body = res.body;
-            expect(body).toEqual(document);
-          });
-      });
+    return helper.sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204).then(() => {
+      return helper
+        .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
+        .then((res: any) => {
+          let body = res.body;
+          expect(body).toEqual(document);
+        });
+    });
   });
 
   /**  XAPI-00308, Communication 2.7 Activity Profile Resource
@@ -324,23 +354,21 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", () => {
       anotherDocument = {
         type: "Civic",
       };
-    return helper
-      .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204)
-      .then(() => {
-        return helper
-          .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, anotherDocument, 204)
-          .then(() => {
-            return helper
-              .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
-              .then((res: any) => {
-                let body = res.body;
-                expect(body).toEqual({
-                  car: "Honda",
-                  type: "Civic",
-                });
+    return helper.sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204).then(() => {
+      return helper
+        .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, anotherDocument, 204)
+        .then(() => {
+          return helper
+            .sendRequest("get", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
+            .then((res: any) => {
+              let body = res.body;
+              expect(body).toEqual({
+                car: "Honda",
+                type: "Civic",
               });
-          });
-      });
+            });
+        });
+    });
   });
 
   /**  XAPI-00309, Communication 2.7 Activity Profile Resource
@@ -350,11 +378,9 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", () => {
     let parameters = helper.buildActivityProfile(),
       document = helper.buildDocument(),
       anotherDocument = "abc";
-    return helper
-      .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204)
-      .then(() => {
-        return helper.sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, anotherDocument, 400);
-      });
+    return helper.sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204).then(() => {
+      return helper.sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, anotherDocument, 400);
+    });
   });
 
   /**  XAPI-00313, Communication 2.7 Activity Profile Resource

@@ -7,10 +7,58 @@ import { beforeAll, describe, expect, it } from "../bun-test.ts";
 import helperImport from "../helper.ts";
 import xapiRequestsImport from "./util/requests.ts";
 
-const helper: any = helperImport;
-const xapiRequests: any = xapiRequestsImport;
+type ResourceParams = Record<string, unknown>;
+type HeaderOverrides = Record<string, string> | undefined;
+type DocumentBody = {
+  name: string;
+  [key: string]: unknown;
+};
+type RequestResponse = {
+  status: number;
+  data: any;
+  headers: {
+    etag?: string;
+  };
+};
 
-function runConcurrencyTestsForDocumentResource(resourceName: string, resourcePath: string, resourceParams: any) {
+type ConcurrencyHelper = {
+  buildActivityProfile(): ResourceParams;
+  buildAgentProfile(): ResourceParams;
+  buildDocument(): DocumentBody;
+  buildState(): ResourceParams;
+  generateUUID(): string;
+};
+
+type ConcurrencyRequests = {
+  resourcePaths: {
+    activityProfile: string;
+    activityState: string;
+    agentsProfile: string;
+  };
+  deleteDocument(path: string, params: ResourceParams, headers?: HeaderOverrides): Promise<RequestResponse>;
+  getDocuments(path: string, params: ResourceParams, headers?: HeaderOverrides): Promise<RequestResponse>;
+  postDocument(
+    path: string,
+    body: DocumentBody,
+    params: ResourceParams,
+    headers?: HeaderOverrides,
+  ): Promise<RequestResponse>;
+  putDocument(
+    path: string,
+    body: DocumentBody,
+    params: ResourceParams,
+    headers?: HeaderOverrides,
+  ): Promise<RequestResponse>;
+};
+
+const helper = helperImport as unknown as ConcurrencyHelper;
+const xapiRequests = xapiRequestsImport as unknown as ConcurrencyRequests;
+
+function runConcurrencyTestsForDocumentResource(
+  resourceName: string,
+  resourcePath: string,
+  resourceParams: ResourceParams,
+) {
   describe(`Concurrency for the ${resourceName} Resource.`, () => {
     let document = helper.buildDocument();
 
@@ -21,7 +69,7 @@ function runConcurrencyTestsForDocumentResource(resourceName: string, resourcePa
 
     it("An LRS responding to a GET request SHALL add an ETag HTTP header to the response.", async () => {
       let documentResponse = await xapiRequests.getDocuments(resourcePath, resourceParams);
-      const etag = documentResponse.headers.etag;
+      const etag = documentResponse.headers.etag ?? "";
 
       expect(typeof etag).toBe("string");
     });
@@ -30,7 +78,7 @@ function runConcurrencyTestsForDocumentResource(resourceName: string, resourcePa
       let documentResponse = await xapiRequests.getDocuments(resourcePath, resourceParams);
 
       /** @type {string} */
-      let etag = documentResponse.headers.etag;
+      let etag = documentResponse.headers.etag ?? "";
 
       expect(typeof etag).toBe("string");
 
@@ -75,7 +123,7 @@ function runConcurrencyTestsForDocumentResource(resourceName: string, resourcePa
           await xapiRequests.postDocument(resourcePath, document, resourceParams);
 
           let documentResponse = await xapiRequests.getDocuments(resourcePath, resourceParams);
-          correctTag = documentResponse.headers.etag;
+          correctTag = documentResponse.headers.etag ?? '""';
         });
 
         it("Should reject a PUT request with a 412 Precondition Failed when using an incorrect ETag", async () => {
@@ -119,7 +167,7 @@ function runConcurrencyTestsForDocumentResource(resourceName: string, resourcePa
           await xapiRequests.postDocument(resourcePath, document, resourceParams);
 
           let documentResponse = await xapiRequests.getDocuments(resourcePath, resourceParams);
-          correctTag = documentResponse.headers.etag;
+          correctTag = documentResponse.headers.etag ?? '""';
         });
 
         it("Should reject a POST request with a 412 Precondition Failed when using an incorrect ETag", async () => {
@@ -159,7 +207,7 @@ function runConcurrencyTestsForDocumentResource(resourceName: string, resourcePa
           await xapiRequests.postDocument(resourcePath, document, resourceParams);
 
           let documentResponse = await xapiRequests.getDocuments(resourcePath, resourceParams);
-          correctTag = documentResponse.headers.etag;
+          correctTag = documentResponse.headers.etag ?? '""';
         });
 
         it("Should reject a DELETE request with a 412 Precondition Failed when using an incorrect ETag", async () => {

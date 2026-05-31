@@ -5,15 +5,33 @@
 
 import { beforeAll, describe, expect, it } from "../bun-test.ts";
 import helperImport from "../helper.ts";
-import requestBase from "../super-request.ts";
-import { expectAsync, endAsync } from "../super-request.ts";
+import requestBase, { expectAsync, endAsync, type RequestFactory } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
 
-const helper: any = helperImport;
-const templatingSelection: any = templatingSelectionImport;
-let request: any = requestBase;
+type FormattingHelper = {
+  OAuthRequest(request: RequestFactory): RequestFactory;
+  addAllHeaders(headers?: Record<string, string | undefined>): Record<string, string | undefined>;
+  createFromTemplate(templates: Array<Record<string, unknown>>): { statement: any };
+  genDelay(stmtTime: number, query?: string, statementId?: string | null): Promise<unknown>;
+  generateUUID(): string;
+  getEndpointAndAuth(): string;
+  getEndpointStatements(): string;
+  getUrlEncoding(object: Record<string, unknown>): string;
+  parse(input: unknown): any;
+  setTimeMargin(done: (error?: unknown) => void): void;
+};
 
-if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
+type FormattingTemplatingSelection = {
+  createTemplate(name: string): void;
+};
+
+const helper = helperImport as unknown as FormattingHelper;
+const templatingSelection = templatingSelectionImport as unknown as FormattingTemplatingSelection;
+let request: RequestFactory = requestBase;
+
+if (process.env["OAUTH1_ENABLED"] === "true") {
+  request = helper.OAuthRequest(request) as unknown as RequestFactory;
+}
 
 beforeAll(async function () {
   console.log("Setting up\nAccounting for time differential between test suite and lrs");
@@ -96,58 +114,55 @@ describe("Formatting Requirements (Data 2.2)", () => {
   /**  XAPI-00012
    * The LRS rejects with error code 400 Bad Request parameter values which do not validate to the same standards required for values of the same types in Statements.
    */
-  describe(
-    "The LRS rejects with error code 400 Bad Request parameter values which do not validate to the same standards required for values of the same types in Statements (Data 2.2.s4.b4, XAPI-00012)",
-    function () {
-      it("should reject when statementId value is invalid", async function () {
-        const query = helper.getUrlEncoding({ statementId: "wrong" });
-        await request(helper.getEndpointAndAuth())
-          .get(helper.getEndpointStatements() + "?" + query)
-          .headers(helper.addAllHeaders({}))
-          .expect(400);
-      });
+  describe("The LRS rejects with error code 400 Bad Request parameter values which do not validate to the same standards required for values of the same types in Statements (Data 2.2.s4.b4, XAPI-00012)", function () {
+    it("should reject when statementId value is invalid", async function () {
+      const query = helper.getUrlEncoding({ statementId: "wrong" });
+      await request(helper.getEndpointAndAuth())
+        .get(helper.getEndpointStatements() + "?" + query)
+        .headers(helper.addAllHeaders({}))
+        .expect(400);
+    });
 
-      it("should reject when statementId value is invalid", async function () {
-        const query = helper.getUrlEncoding({ voidedStatementId: "wrong" });
-        await request(helper.getEndpointAndAuth())
-          .get(helper.getEndpointStatements() + "?" + query)
-          .headers(helper.addAllHeaders({}))
-          .expect(400);
-      });
+    it("should reject when statementId value is invalid", async function () {
+      const query = helper.getUrlEncoding({ voidedStatementId: "wrong" });
+      await request(helper.getEndpointAndAuth())
+        .get(helper.getEndpointStatements() + "?" + query)
+        .headers(helper.addAllHeaders({}))
+        .expect(400);
+    });
 
-      it("should reject when statementId value is invalid", async function () {
-        const query = helper.getUrlEncoding({ agent: "wrong" });
-        await request(helper.getEndpointAndAuth())
-          .get(helper.getEndpointStatements() + "?" + query)
-          .headers(helper.addAllHeaders({}))
-          .expect(400);
-      });
+    it("should reject when statementId value is invalid", async function () {
+      const query = helper.getUrlEncoding({ agent: "wrong" });
+      await request(helper.getEndpointAndAuth())
+        .get(helper.getEndpointStatements() + "?" + query)
+        .headers(helper.addAllHeaders({}))
+        .expect(400);
+    });
 
-      it("should reject when statementId value is invalid", async function () {
-        const query = helper.getUrlEncoding({ verb: "not.a.valid.iri.com/verb" });
-        await request(helper.getEndpointAndAuth())
-          .get(helper.getEndpointStatements() + "?" + query)
-          .headers(helper.addAllHeaders({}))
-          .expect(400);
-      });
+    it("should reject when statementId value is invalid", async function () {
+      const query = helper.getUrlEncoding({ verb: "not.a.valid.iri.com/verb" });
+      await request(helper.getEndpointAndAuth())
+        .get(helper.getEndpointStatements() + "?" + query)
+        .headers(helper.addAllHeaders({}))
+        .expect(400);
+    });
 
-      it("should reject when statementId value is invalid", async function () {
-        const query = helper.getUrlEncoding({ activity: "not.a.valid.iri.com/activity" });
-        await request(helper.getEndpointAndAuth())
-          .get(helper.getEndpointStatements() + "?" + query)
-          .headers(helper.addAllHeaders({}))
-          .expect(400);
-      });
+    it("should reject when statementId value is invalid", async function () {
+      const query = helper.getUrlEncoding({ activity: "not.a.valid.iri.com/activity" });
+      await request(helper.getEndpointAndAuth())
+        .get(helper.getEndpointStatements() + "?" + query)
+        .headers(helper.addAllHeaders({}))
+        .expect(400);
+    });
 
-      it("should reject when statementId value is invalid", async function () {
-        const query = helper.getUrlEncoding({ registration: "wrong" });
-        await request(helper.getEndpointAndAuth())
-          .get(helper.getEndpointStatements() + "?" + query)
-          .headers(helper.addAllHeaders({}))
-          .expect(400);
-      });
-    } as any,
-  );
+    it("should reject when statementId value is invalid", async function () {
+      const query = helper.getUrlEncoding({ registration: "wrong" });
+      await request(helper.getEndpointAndAuth())
+        .get(helper.getEndpointStatements() + "?" + query)
+        .headers(helper.addAllHeaders({}))
+        .expect(400);
+    });
+  });
 
   /**  XAPI-00014, Data 2.2 Formatting Requirements
    * All Objects are well-created JSON Objects (Nature of Binding)
