@@ -1,4 +1,4 @@
-# Rewrite Helpers
+# Legacy Helpers
 
 This directory contains active helper and validator tooling for the original upstream JavaScript conformance suite.
 

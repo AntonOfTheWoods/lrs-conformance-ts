@@ -23,7 +23,7 @@ type CompareReport = {
 };
 
 type SuiteFailureParity = {
-  candidateOnlySuiteFailures?: unknown[];
+  runtimeOnlySuiteFailures?: unknown[];
   sharedSuiteFailures?: unknown[];
   upstreamOnlySuiteFailures?: unknown[];
 };
@@ -99,7 +99,7 @@ function main(): void {
     return !isAllowedOwner(owner, allowlist);
   });
 
-  const candidateOnlyFailures = (suiteParity.candidateOnlySuiteFailures ?? []).length;
+  const runtimeOnlyFailures = (suiteParity.runtimeOnlySuiteFailures ?? []).length;
   const sharedFailures = (suiteParity.sharedSuiteFailures ?? []).length;
   const upstreamOnlyFailures = (suiteParity.upstreamOnlySuiteFailures ?? []).length;
 
@@ -113,7 +113,7 @@ function main(): void {
       matchedCount: compare.matchedCount ?? null,
       mismatchCount,
       signatureMismatchEntries: signatureMismatches.length,
-      candidateOnlySuiteFailures: candidateOnlyFailures,
+      runtimeOnlySuiteFailures: runtimeOnlyFailures,
       sharedSuiteFailures: sharedFailures,
       upstreamOnlySuiteFailures: upstreamOnlyFailures,
     },
@@ -129,7 +129,7 @@ function main(): void {
 
   console.log(JSON.stringify(summary, null, 2));
 
-  if (candidateOnlyFailures > 0 || sharedFailures > 0 || upstreamOnlyFailures > 0) {
+  if (runtimeOnlyFailures > 0 || sharedFailures > 0 || upstreamOnlyFailures > 0) {
     console.error("Traffic drift budget failed: suite failure parity is not clean.");
     process.exitCode = 1;
     return;

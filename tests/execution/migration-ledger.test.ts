@@ -12,7 +12,7 @@ describe("migration ledger", () => {
     const units = getMigrationLedgerUnitsForDirectory("v1_0_3");
 
     expect(migrationLedger.schemaVersion).toBe("migration-ledger.v1");
-    expect(migrationLedger.defaultMode).toBe("upstream-oracle");
+    expect(migrationLedger.defaultMode).toBe("legacy-oracle");
     expect(units).toHaveLength(32);
     expect(units.slice(0, 5).map((unit) => unit.unitKey)).toEqual([
       "test/v1_0_3/Data2.2-FormattingRequirements",

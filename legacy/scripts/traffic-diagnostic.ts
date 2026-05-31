@@ -1,4 +1,5 @@
 import { mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { dirname, isAbsolute, relative, resolve } from "node:path";
 
 import { captureOwnerHeaderName, type CaptureExecutionMetadata } from "../../shared/execution/execution-owner.ts";
@@ -246,10 +247,10 @@ export interface TraceDbStateBoundaryComparison {
 }
 
 export interface TraceDbStateComparisonReport {
-  candidateCapturedExchangeCount: number;
-  candidateCompletedRawSequenceEnd: number | null;
-  candidateManifestPath: string;
-  candidateReplayIssues: TraceDbReplayIssue[];
+  runtimeCapturedExchangeCount: number;
+  runtimeCompletedRawSequenceEnd: number | null;
+  runtimeManifestPath: string;
+  runtimeReplayIssues: TraceDbReplayIssue[];
   comparedBoundaryCount: number;
   different: boolean;
   divergentBoundaries: TraceDbStateBoundaryComparison[];
@@ -330,8 +331,8 @@ function validateDiagnosticUnitSelection(unitKeys: string[], version: SupportedV
   return unitKeys;
 }
 
-function isWithinPath(basePath: string, candidatePath: string): boolean {
-  const relativePath = relative(basePath, candidatePath);
+function isWithinPath(basePath: string, runtimePath: string): boolean {
+  const relativePath = relative(basePath, runtimePath);
   return relativePath === "" || (!relativePath.startsWith("..") && !isAbsolute(relativePath));
 }
 
@@ -438,9 +439,116 @@ async function findMissingDbStateFingerprintPath(manifestPath: string): Promise<
   return null;
 }
 
+function createDbStateSelectionKey(selectedUnitKeys: string[]): string {
+  if (selectedUnitKeys.length === 0) {
+    return "all-units";
+  }
+
+  const normalized = [...selectedUnitKeys].sort();
+  const digest = createHash("sha1").update(JSON.stringify(normalized)).digest("hex").slice(0, 12);
+  return `units-${digest}`;
+}
+
+function resolveDbStateArtifactPaths(options: {
+  versionDir: string;
+  runner: RawTrafficArtifact["runner"];
+  mode: TraceDbStateMode;
+  selectedUnitKeys: string[];
+}): {
+  dbStateDir: string;
+  manifestPath: string;
+} {
+  const selectionKey = createDbStateSelectionKey(options.selectedUnitKeys);
+  const artifactPrefix = `${options.runner}-db-state-${options.mode}-${selectionKey}`;
+  return {
+    dbStateDir: resolve(options.versionDir, `${artifactPrefix}-states`),
+    manifestPath: resolve(options.versionDir, `${artifactPrefix}-manifest.json`),
+  };
+}
+
+function haveSameUnitKeySelection(left: string[], right: string[]): boolean {
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  const normalizedLeft = [...left].sort();
+  const normalizedRight = [...right].sort();
+  for (let index = 0; index < normalizedLeft.length; index += 1) {
+    if (normalizedLeft[index] !== normalizedRight[index]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+async function isReusableDbStateManifestCompatible(options: {
+  manifestPath: string;
+  requiredMode: TraceDbStateMode;
+  requiredSelectedUnitKeys: string[];
+}): Promise<boolean> {
+  const missingPath = await findMissingDbStateFingerprintPath(options.manifestPath);
+  if (missingPath !== null) {
+    return false;
+  }
+
+  let manifest: TraceNodeDbStateManifest;
+  try {
+    manifest = await readJson<TraceNodeDbStateManifest>(options.manifestPath);
+  } catch {
+    return false;
+  }
+
+  if (manifest.mode !== options.requiredMode) {
+    return false;
+  }
+
+  return haveSameUnitKeySelection(manifest.selectedUnitKeys ?? [], options.requiredSelectedUnitKeys);
+}
+
+async function resolveCompatibleDbStateManifestPath(options: {
+  requiredMode: TraceDbStateMode;
+  requiredSelectedUnitKeys: string[];
+  runner: RawTrafficArtifact["runner"];
+  versionDir: string;
+}): Promise<string | null> {
+  const keyedManifestPath = resolveDbStateArtifactPaths({
+    mode: options.requiredMode,
+    runner: options.runner,
+    selectedUnitKeys: options.requiredSelectedUnitKeys,
+    versionDir: options.versionDir,
+  }).manifestPath;
+
+  if (
+    await isReusableDbStateManifestCompatible({
+      manifestPath: keyedManifestPath,
+      requiredMode: options.requiredMode,
+      requiredSelectedUnitKeys: options.requiredSelectedUnitKeys,
+    })
+  ) {
+    return keyedManifestPath;
+  }
+
+  // Backward compatibility for legacy single-manifest layout.
+  const legacyManifestPath = resolve(options.versionDir, `${options.runner}-db-state-manifest.json`);
+  if (
+    await isReusableDbStateManifestCompatible({
+      manifestPath: legacyManifestPath,
+      requiredMode: options.requiredMode,
+      requiredSelectedUnitKeys: options.requiredSelectedUnitKeys,
+    })
+  ) {
+    return legacyManifestPath;
+  }
+
+  return null;
+}
+
 export async function resolveReusableOracleVersionDir(options: {
   currentVersionDir: string;
   oracleDir: string;
+  requiredDbStateMode?: TraceDbStateMode;
+  requiredSelectedUnitKeys?: string[];
   requireDbStateManifest: boolean;
   requireUpstreamRunArtifact: boolean;
   version: SupportedVersion;
@@ -448,23 +556,32 @@ export async function resolveReusableOracleVersionDir(options: {
   const currentDir = resolve(options.currentVersionDir);
   const oracleRoot = resolve(options.oracleDir);
   const directRuntime = resolve(oracleRoot, options.version);
-  const candidateVersionDirs: string[] = [];
+  const runtimeVersionDirs: string[] = [];
+  const requiredSelectedUnitKeys = options.requiredSelectedUnitKeys ?? [];
 
   const directHasRaw = await pathExists(resolve(directRuntime, "upstream-raw.json"));
   const directDbStateManifestPath = resolve(directRuntime, "upstream-db-state-manifest.json");
   const directHasDbState =
-    !options.requireDbStateManifest || (await findMissingDbStateFingerprintPath(directDbStateManifestPath)) === null;
+    !options.requireDbStateManifest ||
+    (options.requiredDbStateMode
+      ? (await resolveCompatibleDbStateManifestPath({
+          requiredMode: options.requiredDbStateMode,
+          requiredSelectedUnitKeys,
+          runner: "upstream",
+          versionDir: directRuntime,
+        })) !== null
+      : (await findMissingDbStateFingerprintPath(directDbStateManifestPath)) === null);
   const directHasRun =
     !options.requireUpstreamRunArtifact || (await pathExists(resolve(directRuntime, "upstream-run.json")));
   if (directRuntime !== currentDir && directHasRaw && directHasDbState && directHasRun) {
-    candidateVersionDirs.push(directRuntime);
+    runtimeVersionDirs.push(directRuntime);
   }
 
   let entries: string[];
   try {
     entries = await readdir(oracleRoot);
   } catch {
-    return candidateVersionDirs[0] ?? null;
+    return runtimeVersionDirs[0] ?? null;
   }
 
   for (const entryName of entries) {
@@ -488,15 +605,23 @@ export async function resolveReusableOracleVersionDir(options: {
     const hasRaw = await pathExists(resolve(versionDir, "upstream-raw.json"));
     const dbStateManifestPath = resolve(versionDir, "upstream-db-state-manifest.json");
     const hasDbState =
-      !options.requireDbStateManifest || (await findMissingDbStateFingerprintPath(dbStateManifestPath)) === null;
+      !options.requireDbStateManifest ||
+      (options.requiredDbStateMode
+        ? (await resolveCompatibleDbStateManifestPath({
+            requiredMode: options.requiredDbStateMode,
+            requiredSelectedUnitKeys,
+            runner: "upstream",
+            versionDir,
+          })) !== null
+        : (await findMissingDbStateFingerprintPath(dbStateManifestPath)) === null);
     const hasRun = !options.requireUpstreamRunArtifact || (await pathExists(resolve(versionDir, "upstream-run.json")));
     if (hasRaw && hasDbState && hasRun) {
-      candidateVersionDirs.push(versionDir);
+      runtimeVersionDirs.push(versionDir);
     }
   }
 
   const ranked: Array<{ mtimeMs: number; versionDir: string }> = [];
-  for (const versionDir of candidateVersionDirs) {
+  for (const versionDir of runtimeVersionDirs) {
     try {
       const stats = await stat(resolve(versionDir, "upstream-raw.json"));
       ranked.push({
@@ -504,7 +629,7 @@ export async function resolveReusableOracleVersionDir(options: {
         versionDir,
       });
     } catch {
-      // Ignore candidates that disappear while scanning.
+      // Ignore runtimes that disappear while scanning.
     }
   }
 
@@ -1129,14 +1254,14 @@ function extractStatementIdsFromReplayResponse(bodyText: string | null): string[
   return [];
 }
 
-function rewriteStatementRefIdsInReplayJson(
+function remapStatementRefIdsInReplayJson(
   value: ReplayJsonValue,
   statementIdMap: ReadonlyMap<string, string>,
 ): ReplayJsonValue {
   if (Array.isArray(value)) {
     let changed = false;
     const rewrittenItems = value.map((item) => {
-      const rewrittenItem = rewriteStatementRefIdsInReplayJson(item, statementIdMap);
+      const rewrittenItem = remapStatementRefIdsInReplayJson(item, statementIdMap);
       changed ||= rewrittenItem !== item;
       return rewrittenItem;
     });
@@ -1154,7 +1279,7 @@ function rewriteStatementRefIdsInReplayJson(
   const rewrittenRecord: { [key: string]: ReplayJsonValue } = {};
 
   for (const [key, entry] of Object.entries(record)) {
-    let rewrittenEntry = rewriteStatementRefIdsInReplayJson(entry, statementIdMap);
+    let rewrittenEntry = remapStatementRefIdsInReplayJson(entry, statementIdMap);
 
     if (isStatementRef && key === "id" && typeof entry === "string") {
       const mappedId = statementIdMap.get(entry);
@@ -1180,7 +1305,7 @@ function shouldTrackReplayStatementIds(exchange: Pick<RawTrafficExchange, "reque
   return path.endsWith("/xapi/statements") && exchange.response.status === 200;
 }
 
-function rewriteReplayQueryParam(
+function remapReplayQueryParam(
   url: URL,
   parameter: "statementId" | "voidedStatementId",
   statementIdMap: ReadonlyMap<string, string>,
@@ -1212,13 +1337,13 @@ export function mapReplayTargetUrl(
   mapped.pathname = finalPath;
   mapped.search = original.search;
 
-  rewriteReplayQueryParam(mapped, "statementId", statementIdMap);
-  rewriteReplayQueryParam(mapped, "voidedStatementId", statementIdMap);
+  remapReplayQueryParam(mapped, "statementId", statementIdMap);
+  remapReplayQueryParam(mapped, "voidedStatementId", statementIdMap);
 
   return mapped.toString();
 }
 
-export function rewriteReplayRequestBody(
+export function remapReplayRequestBody(
   exchange: Pick<RawTrafficExchange, "request">,
   statementIdMap: ReadonlyMap<string, string>,
 ): Uint8Array | undefined {
@@ -1245,7 +1370,7 @@ export function rewriteReplayRequestBody(
   const originalBodyText = Buffer.from(originalBody).toString("utf8");
   try {
     const parsed = JSON.parse(originalBodyText) as ReplayJsonValue;
-    const rewritten = rewriteStatementRefIdsInReplayJson(parsed, statementIdMap);
+    const rewritten = remapStatementRefIdsInReplayJson(parsed, statementIdMap);
     if (rewritten === parsed) {
       return originalBody;
     }
@@ -1313,8 +1438,13 @@ export async function writeTraceDbStateArtifacts(options: {
     return null;
   }
 
-  const manifestPath = resolve(options.versionDir, `${options.rawArtifact.runner}-db-state-manifest.json`);
-  const dbStateDir = resolve(options.versionDir, `${options.rawArtifact.runner}-db-states`);
+  const selectedUnitKeys = options.selectedUnitKeys ? [...options.selectedUnitKeys] : [];
+  const { dbStateDir, manifestPath } = resolveDbStateArtifactPaths({
+    mode: options.mode,
+    runner: options.rawArtifact.runner,
+    selectedUnitKeys,
+    versionDir: options.versionDir,
+  });
   const entriesBySequence = new Map<number, TraceNodeIndexEntry[]>();
 
   for (const entry of options.nodeIndex.entries) {
@@ -1343,7 +1473,7 @@ export async function writeTraceDbStateArtifacts(options: {
     replayIssues,
     runner: options.rawArtifact.runner,
     schemaVersion: "trace-node-db-state-manifest.v1",
-    selectedUnitKeys: options.selectedUnitKeys ? [...options.selectedUnitKeys] : [],
+    selectedUnitKeys,
     traceNodeIndexPath: options.nodeIndexPath,
     version: options.rawArtifact.version,
   };
@@ -1376,7 +1506,7 @@ export async function writeTraceDbStateArtifacts(options: {
         options.rawArtifact.targetBaseUrl,
         replayStatementIdMap,
       );
-      const replayRequestBody = rewriteReplayRequestBody(exchange, replayStatementIdMap);
+      const replayRequestBody = remapReplayRequestBody(exchange, replayStatementIdMap);
       let response: Response;
       try {
         response = await fetch(targetUrl, {
@@ -1684,24 +1814,24 @@ function groupSignatureAttemptsByOwnerLabel(
 }
 
 function isRetryDrivenStatementPollOwnerMismatch(
-  candidateEntry: SignatureOwnerAttempts | undefined,
+  runtimeEntry: SignatureOwnerAttempts | undefined,
   upstreamEntry: SignatureOwnerAttempts | undefined,
 ): boolean {
-  if (!candidateEntry || !upstreamEntry) {
+  if (!runtimeEntry || !upstreamEntry) {
     return false;
   }
 
-  if (candidateEntry.exchanges.length !== 1 || upstreamEntry.exchanges.length !== 1) {
+  if (runtimeEntry.exchanges.length !== 1 || upstreamEntry.exchanges.length !== 1) {
     return false;
   }
 
-  const candidateExchange = candidateEntry.exchanges[0];
+  const runtimeExchange = runtimeEntry.exchanges[0];
   const upstreamExchange = upstreamEntry.exchanges[0];
-  if (!candidateExchange || !upstreamExchange) {
+  if (!runtimeExchange || !upstreamExchange) {
     return false;
   }
 
-  return candidateExchange.attempts > 1 || upstreamExchange.attempts > 1;
+  return runtimeExchange.attempts > 1 || upstreamExchange.attempts > 1;
 }
 
 function isInvalidStatementParamsMismatch(exchange: TrafficComparisonCountMismatch["sample"]): boolean {
@@ -1731,33 +1861,33 @@ function shouldIgnoreTimingDrivenStatementPollMismatch(
     return false;
   }
 
-  const candidateOwners = groupSignatureAttemptsByOwnerLabel(runtime, mismatch.key);
+  const runtimeOwners = groupSignatureAttemptsByOwnerLabel(runtime, mismatch.key);
   const upstreamOwners = groupSignatureAttemptsByOwnerLabel(upstream, mismatch.key);
-  const ownerLabels = [...new Set([...candidateOwners.keys(), ...upstreamOwners.keys()])];
+  const ownerLabels = [...new Set([...runtimeOwners.keys(), ...upstreamOwners.keys()])];
   const invalidStatementParamsMismatch = isInvalidStatementParamsMismatch(mismatch.sample);
   let differingOwnerCount = 0;
 
   for (const ownerLabel of ownerLabels) {
-    const candidateEntry = candidateOwners.get(ownerLabel);
+    const runtimeEntry = runtimeOwners.get(ownerLabel);
     const upstreamEntry = upstreamOwners.get(ownerLabel);
-    const candidateCount = candidateEntry?.count ?? 0;
+    const runtimeCount = runtimeEntry?.count ?? 0;
     const upstreamCount = upstreamEntry?.count ?? 0;
 
-    if (candidateCount === upstreamCount) {
+    if (runtimeCount === upstreamCount) {
       continue;
     }
 
     differingOwnerCount += 1;
-    if (!isRetryDrivenStatementPollOwnerMismatch(candidateEntry, upstreamEntry)) {
+    if (!isRetryDrivenStatementPollOwnerMismatch(runtimeEntry, upstreamEntry)) {
       return false;
     }
 
     if (!invalidStatementParamsMismatch) {
-      if (Math.abs(candidateCount - upstreamCount) !== 1) {
+      if (Math.abs(runtimeCount - upstreamCount) !== 1) {
         return false;
       }
 
-      if (candidateCount < 2 || upstreamCount < 2) {
+      if (runtimeCount < 2 || upstreamCount < 2) {
         return false;
       }
     }
@@ -1902,11 +2032,11 @@ function haveEquivalentReplayIssues(runtime: TraceDbReplayIssue[], upstream: Tra
 }
 
 function pickFirstReplayIssue(report: {
-  candidateReplayIssues: TraceDbReplayIssue[];
+  runtimeReplayIssues: TraceDbReplayIssue[];
   upstreamReplayIssues: TraceDbReplayIssue[];
 }): TraceDbStateComparisonReport["firstReplayIssue"] {
   const ordered = [
-    ...report.candidateReplayIssues.map((issue) => ({ issue, runner: "runtime" as const })),
+    ...report.runtimeReplayIssues.map((issue) => ({ issue, runner: "runtime" as const })),
     ...report.upstreamReplayIssues.map((issue) => ({ issue, runner: "upstream" as const })),
   ].sort((left, right) => left.issue.rawSequence - right.issue.rawSequence || left.runner.localeCompare(right.runner));
 
@@ -1928,22 +2058,22 @@ async function readFingerprintWithCache(
 }
 
 export async function compareTraceDbStateManifests(options: {
-  candidateManifestPath: string;
+  runtimeManifestPath: string;
   upstreamManifestPath: string;
 }): Promise<TraceDbStateComparisonReport> {
-  const candidateManifest = await readJson<TraceNodeDbStateManifest>(options.candidateManifestPath);
+  const runtimeManifest = await readJson<TraceNodeDbStateManifest>(options.runtimeManifestPath);
   const upstreamManifest = await readJson<TraceNodeDbStateManifest>(options.upstreamManifestPath);
   const replayIssuesDifferent = !haveEquivalentReplayIssues(
-    candidateManifest.replayIssues,
+    runtimeManifest.replayIssues,
     upstreamManifest.replayIssues,
   );
-  const candidateBoundaries = buildTraceDbStateBoundaryMap(candidateManifest);
+  const runtimeBoundaries = buildTraceDbStateBoundaryMap(runtimeManifest);
   const upstreamBoundaries = buildTraceDbStateBoundaryMap(upstreamManifest);
-  const boundaryKeys = [...new Set([...candidateBoundaries.keys(), ...upstreamBoundaries.keys()])].sort(
+  const boundaryKeys = [...new Set([...runtimeBoundaries.keys(), ...upstreamBoundaries.keys()])].sort(
     (left, right) =>
-      getTraceDbStateBoundarySortSequence(candidateBoundaries.get(left) ?? null, upstreamBoundaries.get(left) ?? null) -
+      getTraceDbStateBoundarySortSequence(runtimeBoundaries.get(left) ?? null, upstreamBoundaries.get(left) ?? null) -
         getTraceDbStateBoundarySortSequence(
-          candidateBoundaries.get(right) ?? null,
+          runtimeBoundaries.get(right) ?? null,
           upstreamBoundaries.get(right) ?? null,
         ) || left.localeCompare(right),
   );
@@ -1951,7 +2081,7 @@ export async function compareTraceDbStateManifests(options: {
   const divergentBoundaries: TraceDbStateBoundaryComparison[] = [];
 
   for (const boundaryKey of boundaryKeys) {
-    const runtime = candidateBoundaries.get(boundaryKey) ?? null;
+    const runtime = runtimeBoundaries.get(boundaryKey) ?? null;
     const upstream = upstreamBoundaries.get(boundaryKey) ?? null;
     const rawSequenceEnd = getTraceDbStateBoundarySortSequence(runtime, upstream);
     let fingerprintComparison: ComparisonResult | null = null;
@@ -1987,20 +2117,20 @@ export async function compareTraceDbStateManifests(options: {
   }
 
   const report: TraceDbStateComparisonReport = {
-    candidateCapturedExchangeCount: candidateManifest.capturedExchangeCount,
-    candidateCompletedRawSequenceEnd: candidateManifest.completedRawSequenceEnd,
-    candidateManifestPath: options.candidateManifestPath,
-    candidateReplayIssues: candidateManifest.replayIssues,
+    runtimeCapturedExchangeCount: runtimeManifest.capturedExchangeCount,
+    runtimeCompletedRawSequenceEnd: runtimeManifest.completedRawSequenceEnd,
+    runtimeManifestPath: options.runtimeManifestPath,
+    runtimeReplayIssues: runtimeManifest.replayIssues,
     comparedBoundaryCount: boundaryKeys.length,
     different:
       divergentBoundaries.length > 0 ||
       replayIssuesDifferent ||
-      candidateManifest.capturedExchangeCount !== upstreamManifest.capturedExchangeCount ||
-      candidateManifest.completedRawSequenceEnd !== upstreamManifest.completedRawSequenceEnd,
+      runtimeManifest.capturedExchangeCount !== upstreamManifest.capturedExchangeCount ||
+      runtimeManifest.completedRawSequenceEnd !== upstreamManifest.completedRawSequenceEnd,
     divergentBoundaries,
     firstDivergentBoundary: divergentBoundaries[0] ?? null,
     firstReplayIssue: pickFirstReplayIssue({
-      candidateReplayIssues: candidateManifest.replayIssues,
+      runtimeReplayIssues: runtimeManifest.replayIssues,
       upstreamReplayIssues: upstreamManifest.replayIssues,
     }),
     upstreamCapturedExchangeCount: upstreamManifest.capturedExchangeCount,
@@ -2018,7 +2148,7 @@ export function suppressSequenceOnlyDbStateDifferences(
   if (
     report.divergentBoundaries.length > 0 ||
     report.firstReplayIssue !== null ||
-    report.candidateReplayIssues.length > 0 ||
+    report.runtimeReplayIssues.length > 0 ||
     report.upstreamReplayIssues.length > 0
   ) {
     return report;
@@ -2057,9 +2187,7 @@ export function suppressUnalignedSequenceBoundaryDifferences(
   }
 
   const hasReplayIssues =
-    report.firstReplayIssue !== null ||
-    report.candidateReplayIssues.length > 0 ||
-    report.upstreamReplayIssues.length > 0;
+    report.firstReplayIssue !== null || report.runtimeReplayIssues.length > 0 || report.upstreamReplayIssues.length > 0;
 
   return {
     ...report,
@@ -2151,7 +2279,7 @@ export function suppressSignedStatementAttachmentDbDifferences(
 ): TraceDbStateComparisonReport {
   if (
     report.firstReplayIssue !== null ||
-    report.candidateReplayIssues.length > 0 ||
+    report.runtimeReplayIssues.length > 0 ||
     report.upstreamReplayIssues.length > 0 ||
     report.divergentBoundaries.length === 0
   ) {
@@ -2176,12 +2304,12 @@ export function suppressSignedStatementAttachmentDbDifferences(
 }
 
 export async function writeTraceDbStateComparisonReport(options: {
-  candidateManifestPath: string;
+  runtimeManifestPath: string;
   outPath: string;
   upstreamManifestPath: string;
 }): Promise<TraceDbStateComparisonReport> {
   const rawReport = await compareTraceDbStateManifests({
-    candidateManifestPath: options.candidateManifestPath,
+    runtimeManifestPath: options.runtimeManifestPath,
     upstreamManifestPath: options.upstreamManifestPath,
   });
   const report = suppressSignedStatementAttachmentDbDifferences(
@@ -2197,9 +2325,9 @@ function renderTraceDbStateComparisonReport(report: TraceDbStateComparisonReport
     "",
     `Different: ${report.different ? "yes" : "no"}`,
     `Compared boundaries: ${report.comparedBoundaryCount}`,
-    `Runtime replay issues: ${report.candidateReplayIssues.length}`,
+    `Runtime replay issues: ${report.runtimeReplayIssues.length}`,
     `Upstream replay issues: ${report.upstreamReplayIssues.length}`,
-    `Runtime completed sequence: ${report.candidateCompletedRawSequenceEnd ?? "n/a"}`,
+    `Runtime completed sequence: ${report.runtimeCompletedRawSequenceEnd ?? "n/a"}`,
     `Upstream completed sequence: ${report.upstreamCompletedRawSequenceEnd ?? "n/a"}`,
   ];
 
@@ -2388,38 +2516,33 @@ async function captureRunner(
 async function runVersion(config: DiagnosticConfig, version: SupportedVersion): Promise<void> {
   const versionDir = resolve(config.outDir, version);
   await mkdir(versionDir, { recursive: true });
-  const candidateRunPath = resolve(versionDir, "runtime-run.json");
+  const runtimeRunPath = resolve(versionDir, "runtime-run.json");
   const upstreamRunPath = resolve(versionDir, "upstream-run.json");
 
-  const candidateRaw = await captureRunner("runtime", config, version, versionDir);
-  await assertRunArtifactExecutedTests("runtime", candidateRunPath);
-  const candidateNormalized = normalizeTrafficArtifact(candidateRaw);
-  const candidateRawPath = resolve(versionDir, "runtime-raw.json");
-  const candidateNormalizedPath = resolve(versionDir, "runtime-normalized.json");
-  await writeJson(candidateRawPath, candidateRaw);
-  await writeJson(candidateNormalizedPath, candidateNormalized);
-  const candidateTraceArtifacts = await writeTraceArtifacts(
-    versionDir,
-    candidateRaw,
-    candidateNormalized,
-    config.unitKeys,
-  );
-  const candidateDbStateArtifacts = await writeTraceDbStateArtifacts({
+  const runtimeRaw = await captureRunner("runtime", config, version, versionDir);
+  await assertRunArtifactExecutedTests("runtime", runtimeRunPath);
+  const runtimeNormalized = normalizeTrafficArtifact(runtimeRaw);
+  const runtimeRawPath = resolve(versionDir, "runtime-raw.json");
+  const runtimeNormalizedPath = resolve(versionDir, "runtime-normalized.json");
+  await writeJson(runtimeRawPath, runtimeRaw);
+  await writeJson(runtimeNormalizedPath, runtimeNormalized);
+  const runtimeTraceArtifacts = await writeTraceArtifacts(versionDir, runtimeRaw, runtimeNormalized, config.unitKeys);
+  const runtimeDbStateArtifacts = await writeTraceDbStateArtifacts({
     mode: config.dbStateMode,
-    nodeIndex: candidateTraceArtifacts.nodeIndex,
-    nodeIndexPath: candidateTraceArtifacts.nodeIndexPath,
-    rawArtifact: candidateRaw,
-    rawArtifactPath: candidateRawPath,
+    nodeIndex: runtimeTraceArtifacts.nodeIndex,
+    nodeIndexPath: runtimeTraceArtifacts.nodeIndexPath,
+    rawArtifact: runtimeRaw,
+    rawArtifactPath: runtimeRawPath,
     selectedUnitKeys: config.unitKeys,
     versionDir,
   });
-  if (candidateDbStateArtifacts) {
-    await writeJson(candidateTraceArtifacts.traceManifestPath, {
-      ...candidateTraceArtifacts.traceManifest,
-      dbStateManifestPath: candidateDbStateArtifacts.manifestPath,
+  if (runtimeDbStateArtifacts) {
+    await writeJson(runtimeTraceArtifacts.traceManifestPath, {
+      ...runtimeTraceArtifacts.traceManifest,
+      dbStateManifestPath: runtimeDbStateArtifacts.manifestPath,
     } satisfies TraceRunManifest);
   }
-  if (config.dbStateMode !== "none" && !candidateDbStateArtifacts) {
+  if (config.dbStateMode !== "none" && !runtimeDbStateArtifacts) {
     throw new Error(
       `[traffic-diagnostic] --db-state-mode=${config.dbStateMode} requested, but runtime DB-state artifacts were not generated.`,
     );
@@ -2433,6 +2556,8 @@ async function runVersion(config: DiagnosticConfig, version: SupportedVersion): 
     ? await resolveReusableOracleVersionDir({
         currentVersionDir: versionDir,
         oracleDir: config.oracleDir,
+        requiredDbStateMode: requireReusableDbStateArtifacts ? config.dbStateMode : undefined,
+        requiredSelectedUnitKeys: config.unitKeys ?? [],
         requireDbStateManifest: requireReusableDbStateArtifacts,
         requireUpstreamRunArtifact: true,
         version,
@@ -2462,17 +2587,31 @@ async function runVersion(config: DiagnosticConfig, version: SupportedVersion): 
       await writeJson(resolve(versionDir, "upstream-run.json"), upstreamRun);
     }
 
-    const oracleDbStateManifestPath = resolve(oracleVersionDir, "upstream-db-state-manifest.json");
+    const oracleDbStateManifestPath = requireReusableDbStateArtifacts
+      ? await resolveCompatibleDbStateManifestPath({
+          requiredMode: config.dbStateMode,
+          requiredSelectedUnitKeys: config.unitKeys ?? [],
+          runner: "upstream",
+          versionDir: oracleVersionDir,
+        })
+      : resolve(oracleVersionDir, "upstream-db-state-manifest.json");
     if (requireReusableDbStateArtifacts) {
-      const missingDbStatePath = await findMissingDbStateFingerprintPath(oracleDbStateManifestPath);
-      if (missingDbStatePath !== null) {
+      if (!oracleDbStateManifestPath) {
         console.warn(
-          `[traffic-diagnostic] Reusable oracle DB-state artifacts are incomplete for ${version} (missing ${missingDbStatePath}); refreshing upstream instead.`,
+          `[traffic-diagnostic] Reusable oracle DB-state artifacts are incompatible for ${version}; refreshing upstream instead.`,
         );
         oracleVersionDir = null;
+      } else {
+        const missingDbStatePath = await findMissingDbStateFingerprintPath(oracleDbStateManifestPath);
+        if (missingDbStatePath !== null) {
+          console.warn(
+            `[traffic-diagnostic] Reusable oracle DB-state artifacts are incomplete for ${version} (missing ${missingDbStatePath}); refreshing upstream instead.`,
+          );
+          oracleVersionDir = null;
+        }
       }
 
-      if (oracleVersionDir) {
+      if (oracleVersionDir && oracleDbStateManifestPath) {
         upstreamDbStateArtifacts = {
           manifestPath: oracleDbStateManifestPath,
         };
@@ -2528,24 +2667,24 @@ async function runVersion(config: DiagnosticConfig, version: SupportedVersion): 
     throw new Error("[traffic-diagnostic] Internal error: upstream artifacts were not initialized.");
   }
 
-  const candidateFailedLeaves = await readFailedLeavesFromRunArtifact(candidateRunPath);
+  const runtimeFailedLeaves = await readFailedLeavesFromRunArtifact(runtimeRunPath);
   const upstreamRunArtifactAvailable = await pathExists(upstreamRunPath);
   const upstreamFailedLeaves = upstreamRunArtifactAvailable
     ? await readFailedLeavesFromRunArtifact(upstreamRunPath)
     : [];
-  const candidateOnlySuiteFailures = upstreamRunArtifactAvailable
-    ? candidateFailedLeaves.filter((entry) => !upstreamFailedLeaves.includes(entry))
+  const runtimeOnlySuiteFailures = upstreamRunArtifactAvailable
+    ? runtimeFailedLeaves.filter((entry) => !upstreamFailedLeaves.includes(entry))
     : [];
   const upstreamOnlySuiteFailures = upstreamRunArtifactAvailable
-    ? upstreamFailedLeaves.filter((entry) => !candidateFailedLeaves.includes(entry))
+    ? upstreamFailedLeaves.filter((entry) => !runtimeFailedLeaves.includes(entry))
     : [];
   const sharedSuiteFailures = upstreamRunArtifactAvailable
-    ? candidateFailedLeaves.filter((entry) => upstreamFailedLeaves.includes(entry))
+    ? runtimeFailedLeaves.filter((entry) => upstreamFailedLeaves.includes(entry))
     : [];
 
   await writeJson(resolve(versionDir, "suite-failure-parity.json"), {
-    candidateFailedLeaves,
-    candidateOnlySuiteFailures,
+    runtimeFailedLeaves,
+    runtimeOnlySuiteFailures,
     sharedSuiteFailures,
     upstreamFailedLeaves,
     upstreamRunArtifactAvailable,
@@ -2554,9 +2693,9 @@ async function runVersion(config: DiagnosticConfig, version: SupportedVersion): 
   });
 
   const dbStateComparisonReport =
-    candidateDbStateArtifacts && upstreamDbStateArtifacts
+    runtimeDbStateArtifacts && upstreamDbStateArtifacts
       ? await writeTraceDbStateComparisonReport({
-          candidateManifestPath: candidateDbStateArtifacts.manifestPath,
+          runtimeManifestPath: runtimeDbStateArtifacts.manifestPath,
           outPath: resolve(versionDir, "compare-db-state.json"),
           upstreamManifestPath: upstreamDbStateArtifacts.manifestPath,
         })
@@ -2569,7 +2708,7 @@ async function runVersion(config: DiagnosticConfig, version: SupportedVersion): 
   }
 
   const stableRuntimeNormalized = stabilizeSignedStatementAttachments(
-    stabilizeTimingDrivenStatementPolls(candidateNormalized),
+    stabilizeTimingDrivenStatementPolls(runtimeNormalized),
   );
   const stableUpstreamNormalized = stabilizeSignedStatementAttachments(
     stabilizeTimingDrivenStatementPolls(upstreamNormalized),
@@ -2595,13 +2734,13 @@ async function runVersion(config: DiagnosticConfig, version: SupportedVersion): 
       {
         version,
         mode: comparison.mode,
-        candidateExitCode: candidateRaw.exitCode,
+        runtimeExitCode: runtimeRaw.exitCode,
         upstreamExitCode: upstreamRaw.exitCode,
-        candidateCount: comparison.leftCount,
+        runtimeCount: comparison.leftCount,
         upstreamCount: comparison.rightCount,
         matchedCount: comparison.matchedCount,
         upstreamSource,
-        candidateOnlySuiteFailureCount: upstreamRunArtifactAvailable ? candidateOnlySuiteFailures.length : null,
+        runtimeOnlySuiteFailureCount: upstreamRunArtifactAvailable ? runtimeOnlySuiteFailures.length : null,
         sharedSuiteFailureCount: upstreamRunArtifactAvailable ? sharedSuiteFailures.length : null,
         upstreamOnlySuiteFailureCount: upstreamRunArtifactAvailable ? upstreamOnlySuiteFailures.length : null,
         upstreamRunArtifactAvailable,

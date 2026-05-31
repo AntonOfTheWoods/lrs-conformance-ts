@@ -78,8 +78,8 @@ function getFlagValue(args: string[], flag: string): string | undefined {
   return args[index + 1];
 }
 
-function isWithinPath(basePath: string, candidatePath: string): boolean {
-  const relativePath = relative(basePath, candidatePath);
+function isWithinPath(basePath: string, runtimePath: string): boolean {
+  const relativePath = relative(basePath, runtimePath);
   return relativePath === "" || (!relativePath.startsWith("..") && !isAbsolute(relativePath));
 }
 

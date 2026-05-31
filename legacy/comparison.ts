@@ -219,7 +219,7 @@ export function compareParityTrees(
   };
 }
 
-export function getRewriteParityRoot(runResult: RuntimeParityResultLike): unknown {
+export function getRuntimeParityRoot(runResult: RuntimeParityResultLike): unknown {
   return runResult.root;
 }
 
@@ -247,11 +247,11 @@ export function compareRuntimeRunOutputs(
 }
 
 export function compareParityRunOutputs(
-  rewriteRun: RuntimeParityResultLike,
+  runtimeRun: RuntimeParityResultLike,
   upstreamRecord: UpstreamParityRecordLike,
   options: CompareParityTreesOptions = {},
 ): ParityComparisonResult {
-  return compareParityTrees(getRewriteParityRoot(rewriteRun), getUpstreamParityRoot(upstreamRecord), {
+  return compareParityTrees(getRuntimeParityRoot(runtimeRun), getUpstreamParityRoot(upstreamRecord), {
     leftIncludeRoot: options.leftIncludeRoot ?? false,
     rightIncludeRoot: options.rightIncludeRoot ?? true,
   });

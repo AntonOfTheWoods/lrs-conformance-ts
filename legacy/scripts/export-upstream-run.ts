@@ -93,7 +93,7 @@ export interface UpstreamUnitSelection {
 }
 
 export interface ExportRunMetadata {
-  mode: "runtime" | "upstream-oracle";
+  mode: "runtime" | "legacy-oracle";
   providedSuiteRunnerMode: ProvidedSuiteRunnerMode | null;
   providedSuiteRuntimeMode: ProvidedSuiteRuntimeMode | null;
   selectedFiles: string[] | null;
@@ -805,8 +805,8 @@ function ensureUpstreamSuiteReady(suiteDir: string, missingMessage: string): str
   return consoleRunnerPath;
 }
 
-function isWithinPath(basePath: string, candidatePath: string): boolean {
-  const relativePath = relative(basePath, candidatePath);
+function isWithinPath(basePath: string, runtimePath: string): boolean {
+  const relativePath = relative(basePath, runtimePath);
   return relativePath === "" || (!relativePath.startsWith("..") && !isAbsolute(relativePath));
 }
 
@@ -1224,7 +1224,7 @@ export function buildExportRunMetadata(options: {
   unitSelection: UpstreamUnitSelection | null;
 }): ExportRunMetadata {
   return {
-    mode: options.config.suiteDir ? "runtime" : "upstream-oracle",
+    mode: options.config.suiteDir ? "runtime" : "legacy-oracle",
     providedSuiteRunnerMode: options.config.suiteDir ? options.config.providedSuiteRunnerMode : null,
     providedSuiteRuntimeMode: options.config.suiteDir ? "bun-ts" : null,
     selectedFiles: options.unitSelection?.filePaths ?? null,
@@ -1247,8 +1247,8 @@ async function listLogFiles(logDir: string): Promise<string[]> {
 
 async function selectLatestLogFile(logDir: string, previousFiles: Set<string>): Promise<string | undefined> {
   const currentFiles = await listLogFiles(logDir);
-  const candidates = currentFiles.filter((name) => !previousFiles.has(name));
-  const pool = candidates.length > 0 ? candidates : currentFiles;
+  const newFiles = currentFiles.filter((name) => !previousFiles.has(name));
+  const pool = newFiles.length > 0 ? newFiles : currentFiles;
 
   if (pool.length === 0) {
     return undefined;

@@ -51,17 +51,17 @@ describe("v1.0.3 vs v2.0 original-suite delta matrix", () => {
 
     expect(matrix.similarity).toEqual({
       configPairs: {
-        candidatePairs: 26,
+        sharedPairs: 26,
         exactIdenticalPairs: 22,
         normalizedIdenticalPairs: 23,
       },
       templatePairs: {
-        candidatePairs: 124,
+        sharedPairs: 124,
         exactIdenticalPairs: 124,
         normalizedIdenticalPairs: 124,
       },
       totalPairs: {
-        candidatePairs: 150,
+        sharedPairs: 150,
         exactIdenticalPairs: 146,
         normalizedIdenticalPairs: 147,
       },

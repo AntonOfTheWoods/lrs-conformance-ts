@@ -97,7 +97,7 @@ export function listSuiteDefinitionFiles(testDirectory: string): string[] {
 }
 
 async function createBattery(version: string): Promise<BatteryInfo> {
-  const rewriteRoot = path.join(__dirname, "..");
+  const runtimeRoot = path.join(__dirname, "..");
   const directory = version === "1.0.3" ? "v1_0_3" : "v2_0";
   const root: CollectedSuiteNode = {
     title: "",
@@ -119,7 +119,7 @@ async function createBattery(version: string): Promise<BatteryInfo> {
     await registerSuiteFiles({
       normalizedOptions,
       runtime,
-      runtimeRoot: rewriteRoot,
+      runtimeRoot: runtimeRoot,
     });
   } finally {
     restoreEnvironment();

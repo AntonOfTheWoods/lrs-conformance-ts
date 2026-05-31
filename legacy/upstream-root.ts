@@ -4,11 +4,11 @@ import { fileURLToPath } from "node:url";
 
 let cachedUpstreamRoot: string | null = null;
 
-function isUpstreamSuiteRoot(candidateRoot: string): boolean {
+function isUpstreamSuiteRoot(runtimeRoot: string): boolean {
   return (
-    existsSync(join(candidateRoot, "batteries.js")) &&
-    existsSync(join(candidateRoot, "test", "v2_0")) &&
-    existsSync(join(candidateRoot, "test", "v1_0_3"))
+    existsSync(join(runtimeRoot, "batteries.js")) &&
+    existsSync(join(runtimeRoot, "test", "v2_0")) &&
+    existsSync(join(runtimeRoot, "test", "v1_0_3"))
   );
 }
 
@@ -44,8 +44,8 @@ export function resolveUpstreamRoot(): string {
     return cachedUpstreamRoot;
   }
 
-  const rewriteDir = dirname(fileURLToPath(import.meta.url));
-  const projectRoot = resolve(rewriteDir, "..");
+  const legacyDir = dirname(fileURLToPath(import.meta.url));
+  const projectRoot = resolve(legacyDir, "..");
   const discovered = discoverSiblingUpstreamRoot(projectRoot);
 
   if (!discovered) {

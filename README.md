@@ -6,13 +6,13 @@ To install dependencies:
 bun install
 ```
 
-To run the active upstream-helper checks:
+To run the active legacy-comparison checks:
 
 ```bash
 bun run test
 ```
 
-The active root-level code now focuses on upstream-oracle migration tooling: trace capture,
+The active root-level code now focuses on legacy-oracle migration tooling: trace capture,
 upstream export, parity comparison, and migration control metadata.
 
 This project was created using `bun init` in bun v1.3.14. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.

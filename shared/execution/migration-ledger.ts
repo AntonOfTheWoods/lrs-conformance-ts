@@ -1,4 +1,4 @@
-export type MigrationMode = "dual-run-compare" | "excluded" | "runtime-active" | "upstream-oracle";
+export type MigrationMode = "dual-run-compare" | "excluded" | "runtime-active" | "legacy-oracle";
 
 export interface MigrationLedgerUnit {
   directory: string;
@@ -465,7 +465,7 @@ export const migrationLedgerUnits = [
 ] as const satisfies readonly MigrationLedgerUnit[];
 
 export const migrationLedger = {
-  defaultMode: "upstream-oracle",
+  defaultMode: "legacy-oracle",
   schemaVersion: "migration-ledger.v1",
   units: migrationLedgerUnits,
   updatedAt: "2026-05-27T00:00:00.000Z",

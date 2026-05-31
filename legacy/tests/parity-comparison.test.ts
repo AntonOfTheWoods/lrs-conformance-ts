@@ -61,7 +61,7 @@ describe("parity comparison normalizer", () => {
   });
 
   test("compares runtime and upstream leaf outcomes by canonical path", () => {
-    const rewriteTree = {
+    const runtimeTree = {
       id: "run.1.0.3",
       title: "xAPI 1.0.3",
       status: "passed",
@@ -100,7 +100,7 @@ describe("parity comparison normalizer", () => {
       ],
     };
 
-    const comparison = compareParityTrees(rewriteTree, upstreamTree, {
+    const comparison = compareParityTrees(runtimeTree, upstreamTree, {
       leftIncludeRoot: false,
       rightIncludeRoot: true,
     });
@@ -180,7 +180,7 @@ describe("parity comparison normalizer", () => {
   });
 
   test("compares actual runner-shaped outputs through the runtime adapters", () => {
-    const rewriteRun = {
+    const runtimeRun = {
       root: {
         id: "run.1.0.3",
         title: "xAPI 1.0.3",
@@ -221,7 +221,7 @@ describe("parity comparison normalizer", () => {
       },
     };
 
-    const comparison = compareParityRunOutputs(rewriteRun, upstreamRecord);
+    const comparison = compareParityRunOutputs(runtimeRun, upstreamRecord);
 
     expect(comparison.matched).toHaveLength(1);
     expect(comparison.statusMismatches).toHaveLength(0);

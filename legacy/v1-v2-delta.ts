@@ -16,7 +16,7 @@ export interface VersionSuiteInventory {
 }
 
 export interface PairSimilaritySummary {
-  candidatePairs: number;
+  sharedPairs: number;
   exactIdenticalPairs: number;
   normalizedIdenticalPairs: number;
 }
@@ -187,7 +187,7 @@ function summarizePairs(
   }
 
   return {
-    candidatePairs: sharedItems.length,
+    sharedPairs: sharedItems.length,
     exactIdenticalPairs,
     normalizedIdenticalPairs,
   };
@@ -234,7 +234,7 @@ export function buildOriginalSuiteDeltaMatrix(): OriginalSuiteDeltaMatrix {
       configPairs: configPairSummary,
       templatePairs: templatePairSummary,
       totalPairs: {
-        candidatePairs: configPairSummary.candidatePairs + templatePairSummary.candidatePairs,
+        sharedPairs: configPairSummary.sharedPairs + templatePairSummary.sharedPairs,
         exactIdenticalPairs: configPairSummary.exactIdenticalPairs + templatePairSummary.exactIdenticalPairs,
         normalizedIdenticalPairs:
           configPairSummary.normalizedIdenticalPairs + templatePairSummary.normalizedIdenticalPairs,

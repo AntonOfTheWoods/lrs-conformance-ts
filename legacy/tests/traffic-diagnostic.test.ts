@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 
 import { createCaptureExecutionMetadata } from "../../shared/execution/execution-owner.ts";
 import {
@@ -22,7 +22,7 @@ import {
   resolveReusableOracleVersionDir,
   recordReplayStatementIdMappings,
   resolveRunnerScope,
-  rewriteReplayRequestBody,
+  remapReplayRequestBody,
   stabilizeSignedStatementAttachments,
   suppressSignedStatementAttachmentDbDifferences,
   suppressSequenceOnlyDbStateDifferences,
@@ -526,6 +526,106 @@ test("resolveReusableOracleVersionDir ignores the active output directory", asyn
   }
 });
 
+test("resolveReusableOracleVersionDir skips reusable oracles with mismatched DB-state mode", async () => {
+  const oracleRoot = await createAgentsTempDir("oracle-scan-db-state-mode-");
+  try {
+    const incompatibleVersionDir = join(oracleRoot, "incompatible", "1.0.3");
+    const compatibleVersionDir = join(oracleRoot, "compatible", "1.0.3");
+    await mkdir(incompatibleVersionDir, { recursive: true });
+    await mkdir(compatibleVersionDir, { recursive: true });
+
+    await writeFile(join(incompatibleVersionDir, "upstream-raw.json"), "{}\n", "utf8");
+    await writeFile(join(incompatibleVersionDir, "upstream-run.json"), "{}\n", "utf8");
+    await writeFile(join(compatibleVersionDir, "upstream-raw.json"), "{}\n", "utf8");
+    await writeFile(join(compatibleVersionDir, "upstream-run.json"), "{}\n", "utf8");
+
+    const incompatibleFingerprintPath = join(incompatibleVersionDir, "upstream-db-states", "sequence-000001.json");
+    const compatibleFingerprintPath = join(compatibleVersionDir, "upstream-db-states", "sequence-000001.json");
+    await mkdir(dirname(incompatibleFingerprintPath), { recursive: true });
+    await mkdir(dirname(compatibleFingerprintPath), { recursive: true });
+    await writeFile(incompatibleFingerprintPath, "{}\n", "utf8");
+    await writeFile(compatibleFingerprintPath, "{}\n", "utf8");
+
+    await writeFile(
+      join(incompatibleVersionDir, "upstream-db-state-manifest.json"),
+      `${JSON.stringify(
+        {
+          capturedExchangeCount: 1,
+          completedRawSequenceEnd: 1,
+          entries: [
+            {
+              entryKind: "case",
+              fingerprintPath: incompatibleFingerprintPath,
+              nodeKey: "case:v1_0_3:Formatting Requirements (Data 2.2):Example",
+              rawSequenceEnd: 1,
+              runner: "upstream",
+              selectionMode: "captured-execution",
+              unitKey: "v1_0_3:Formatting Requirements (Data 2.2)",
+            },
+          ],
+          mode: "all",
+          rawArtifactPath: join(incompatibleVersionDir, "upstream-raw.json"),
+          replayIssues: [],
+          runner: "upstream",
+          schemaVersion: "trace-node-db-state-manifest.v1",
+          selectedUnitKeys: [],
+          traceNodeIndexPath: join(incompatibleVersionDir, "upstream-trace-node-index.json"),
+          version: "1.0.3",
+        },
+        null,
+        2,
+      )}\n`,
+      "utf8",
+    );
+
+    await writeFile(
+      join(compatibleVersionDir, "upstream-db-state-manifest.json"),
+      `${JSON.stringify(
+        {
+          capturedExchangeCount: 1,
+          completedRawSequenceEnd: 1,
+          entries: [
+            {
+              entryKind: "case",
+              fingerprintPath: compatibleFingerprintPath,
+              nodeKey: "case:v1_0_3:Formatting Requirements (Data 2.2):Example",
+              rawSequenceEnd: 1,
+              runner: "upstream",
+              selectionMode: "captured-execution",
+              unitKey: "v1_0_3:Formatting Requirements (Data 2.2)",
+            },
+          ],
+          mode: "mutations",
+          rawArtifactPath: join(compatibleVersionDir, "upstream-raw.json"),
+          replayIssues: [],
+          runner: "upstream",
+          schemaVersion: "trace-node-db-state-manifest.v1",
+          selectedUnitKeys: [],
+          traceNodeIndexPath: join(compatibleVersionDir, "upstream-trace-node-index.json"),
+          version: "1.0.3",
+        },
+        null,
+        2,
+      )}\n`,
+      "utf8",
+    );
+
+    const selected = await resolveReusableOracleVersionDir({
+      currentVersionDir: join(oracleRoot, "current", "1.0.3"),
+      oracleDir: oracleRoot,
+      requiredDbStateMode: "mutations",
+      requiredSelectedUnitKeys: [],
+      requireDbStateManifest: true,
+      requireUpstreamRunArtifact: true,
+      version: "1.0.3",
+    });
+
+    expect(selected).toBe(compatibleVersionDir);
+  } finally {
+    await rm(oracleRoot, { force: true, recursive: true });
+  }
+});
+
 test("createTraceNodeIndex falls back to the requested unitKey when upstream metadata is unavailable", () => {
   const rawArtifact: RawTrafficArtifact = {
     ...createRawArtifact(null),
@@ -764,10 +864,10 @@ test("stabilizeSignedStatementAttachments strips volatile signature hashes from 
 
 test("suppressSequenceOnlyDbStateDifferences ignores aligned-boundary sequence drift in diagnostic reports", () => {
   const report: TraceDbStateComparisonReport = {
-    candidateCapturedExchangeCount: 21,
-    candidateCompletedRawSequenceEnd: 14,
-    candidateManifestPath: "/tmp/runtime-manifest.json",
-    candidateReplayIssues: [],
+    runtimeCapturedExchangeCount: 21,
+    runtimeCompletedRawSequenceEnd: 14,
+    runtimeManifestPath: "/tmp/runtime-manifest.json",
+    runtimeReplayIssues: [],
     comparedBoundaryCount: 2,
     different: true,
     divergentBoundaries: [],
@@ -781,7 +881,7 @@ test("suppressSequenceOnlyDbStateDifferences ignores aligned-boundary sequence d
 
   const effective = suppressSequenceOnlyDbStateDifferences(report);
   expect(effective.different).toBe(false);
-  expect(effective.candidateCompletedRawSequenceEnd).toBe(14);
+  expect(effective.runtimeCompletedRawSequenceEnd).toBe(14);
   expect(effective.upstreamCompletedRawSequenceEnd).toBe(12);
 });
 
@@ -789,10 +889,10 @@ test("suppressSignedStatementAttachmentDbDifferences ignores hash-only signed st
   const currentSignedStatementNodeKey =
     'case:v1_0_3:Signed Statements (Data 2.6):Signed Statements (Data 2.6) > The JWS signature MUST use an algorithm of "RS256", "RS384", or "RS512". (Data 2.6.s4.b4, XAPI-00117) > Accepts signed statement with "RS256"';
   const report: TraceDbStateComparisonReport = {
-    candidateCapturedExchangeCount: 7,
-    candidateCompletedRawSequenceEnd: 6,
-    candidateManifestPath: "/tmp/runtime-manifest.json",
-    candidateReplayIssues: [],
+    runtimeCapturedExchangeCount: 7,
+    runtimeCompletedRawSequenceEnd: 6,
+    runtimeManifestPath: "/tmp/runtime-manifest.json",
+    runtimeReplayIssues: [],
     comparedBoundaryCount: 7,
     different: true,
     divergentBoundaries: [
@@ -958,10 +1058,10 @@ test("suppressSignedStatementAttachmentDbDifferences ignores hash-only signed st
 
 test("suppressSignedStatementAttachmentDbDifferences ignores signed-table hash drift after signed-statement suites", () => {
   const report: TraceDbStateComparisonReport = {
-    candidateCapturedExchangeCount: 1675,
-    candidateCompletedRawSequenceEnd: 1758,
-    candidateManifestPath: "/tmp/runtime-manifest.json",
-    candidateReplayIssues: [],
+    runtimeCapturedExchangeCount: 1675,
+    runtimeCompletedRawSequenceEnd: 1758,
+    runtimeManifestPath: "/tmp/runtime-manifest.json",
+    runtimeReplayIssues: [],
     comparedBoundaryCount: 1758,
     different: true,
     divergentBoundaries: [
@@ -1313,8 +1413,8 @@ test("recordReplayStatementIdMappings remaps replayed statement identifiers in d
   ).toBe("http://localhost:8080/xapi/statements?voidedStatementId=replayed-statement-id");
 });
 
-test("rewriteReplayRequestBody remaps StatementRef ids in JSON statement posts", () => {
-  const rewrittenBody = rewriteReplayRequestBody(
+test("remapReplayRequestBody remaps StatementRef ids in JSON statement posts", () => {
+  const rewrittenBody = remapReplayRequestBody(
     {
       request: {
         bodyBase64: Buffer.from(
@@ -1388,10 +1488,10 @@ test("compareTraceDbStateManifests reports the first divergent boundary", async 
     await writeFile(upstreamSeq2Path, `${JSON.stringify(upstreamDivergentFingerprint, null, 2)}\n`, "utf8");
 
     const unitKey = "test/v1_0_3/Data2.2-FormattingRequirements";
-    const candidateManifestPath = join(tempDir, "runtime-db-state-manifest.json");
+    const runtimeManifestPath = join(tempDir, "runtime-db-state-manifest.json");
     const upstreamManifestPath = join(tempDir, "upstream-db-state-manifest.json");
     await writeFile(
-      candidateManifestPath,
+      runtimeManifestPath,
       `${JSON.stringify(
         {
           capturedExchangeCount: 2,
@@ -1472,7 +1572,7 @@ test("compareTraceDbStateManifests reports the first divergent boundary", async 
     );
 
     const report = await compareTraceDbStateManifests({
-      candidateManifestPath,
+      runtimeManifestPath,
       upstreamManifestPath,
     });
 
@@ -1518,10 +1618,10 @@ test("compareTraceDbStateManifests ignores raw-sequence shifts when node-aligned
     await writeFile(upstreamHookPath, `${JSON.stringify(matchingFingerprint, null, 2)}\n`, "utf8");
 
     const unitKey = "test/v1_0_3/Data2.3-StatementLifecycle";
-    const candidateManifestPath = join(tempDir, "runtime-db-state-manifest.json");
+    const runtimeManifestPath = join(tempDir, "runtime-db-state-manifest.json");
     const upstreamManifestPath = join(tempDir, "upstream-db-state-manifest.json");
     await writeFile(
-      candidateManifestPath,
+      runtimeManifestPath,
       `${JSON.stringify(
         {
           capturedExchangeCount: 21,
@@ -1602,7 +1702,7 @@ test("compareTraceDbStateManifests ignores raw-sequence shifts when node-aligned
     );
 
     const report = await compareTraceDbStateManifests({
-      candidateManifestPath,
+      runtimeManifestPath,
       upstreamManifestPath,
     });
 
@@ -1636,10 +1736,10 @@ test("compareTraceDbStateManifests treats mirrored replay issues as non-divergen
     await writeFile(upstreamPath, `${JSON.stringify(matchingFingerprint, null, 2)}\n`, "utf8");
 
     const unitKey = "test/v1_0_3/Data2.4.1-IDProperty";
-    const candidateManifestPath = join(tempDir, "runtime-db-state-manifest.json");
+    const runtimeManifestPath = join(tempDir, "runtime-db-state-manifest.json");
     const upstreamManifestPath = join(tempDir, "upstream-db-state-manifest.json");
     await writeFile(
-      candidateManifestPath,
+      runtimeManifestPath,
       `${JSON.stringify(
         {
           capturedExchangeCount: 19,
@@ -1732,7 +1832,7 @@ test("compareTraceDbStateManifests treats mirrored replay issues as non-divergen
     );
 
     const report = await compareTraceDbStateManifests({
-      candidateManifestPath,
+      runtimeManifestPath,
       upstreamManifestPath,
     });
 

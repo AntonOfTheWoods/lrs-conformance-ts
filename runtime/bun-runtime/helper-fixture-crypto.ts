@@ -159,18 +159,18 @@ function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
     deepSearchObject: function deepSearchObject(object: Record<string, unknown>, primitive: unknown) {
       const tested: unknown[] = [];
 
-      const _internal = function (candidate: Record<string, unknown>, expected: unknown): boolean {
-        tested.push(candidate);
+      const _internal = function (value: Record<string, unknown>, expected: unknown): boolean {
+        tested.push(value);
         let found = false;
-        for (const i in candidate) {
-          if (candidate[i] === expected) return true;
+        for (const i in value) {
+          if (value[i] === expected) return true;
           else {
             if (
-              typeof candidate[i] === "object" &&
-              candidate[i] !== null &&
-              !tested.includes(candidate[i] as Record<string, unknown>)
+              typeof value[i] === "object" &&
+              value[i] !== null &&
+              !tested.includes(value[i] as Record<string, unknown>)
             ) {
-              found = found || _internal(candidate[i] as Record<string, unknown>, expected);
+              found = found || _internal(value[i] as Record<string, unknown>, expected);
             }
           }
         }

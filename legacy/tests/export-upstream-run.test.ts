@@ -68,7 +68,7 @@ test("patchUpstreamLrsTestSource injects chai-things bootstrap and file filterin
   expect(patchUpstreamLrsTestSource(patched)).toBe(patched);
 });
 
-test("buildExportRunMetadata uses providedSuite keys for local Bun candidates", () => {
+test("buildExportRunMetadata uses providedSuite keys for local Bun runtimes", () => {
   expect(
     buildExportRunMetadata({
       config: {
@@ -97,7 +97,7 @@ test("buildExportRunMetadata uses providedSuite keys for local Bun candidates", 
   });
 });
 
-test("buildExportRunMetadata nulls providedSuite keys for upstream-oracle runs", () => {
+test("buildExportRunMetadata nulls providedSuite keys for legacy-oracle runs", () => {
   expect(
     buildExportRunMetadata({
       config: {
@@ -110,7 +110,7 @@ test("buildExportRunMetadata nulls providedSuite keys for upstream-oracle runs",
       unitSelection: null,
     }),
   ).toEqual({
-    mode: "upstream-oracle",
+    mode: "legacy-oracle",
     providedSuiteRunnerMode: null,
     providedSuiteRuntimeMode: null,
     selectedFiles: null,
