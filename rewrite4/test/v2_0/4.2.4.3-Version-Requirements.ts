@@ -5,13 +5,32 @@
 
 import { describe, expect, it } from "../bun-test.ts";
 import helperImport from "../helper.ts";
-import requestBase from "../super-request.ts";
-import { endAsync } from "../super-request.ts";
+import requestBase, { endAsync, type RequestFactory } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
 
-const helper: any = helperImport;
-const templatingSelection: any = templatingSelectionImport;
-let request: any = requestBase;
+type VersionStatement = {
+  id: string;
+  version: string;
+};
+
+type VersionRequirementsHelper = {
+  OAuthRequest(request: RequestFactory): RequestFactory;
+  addAllHeaders(headers: Record<string, string | undefined>): Record<string, string | undefined>;
+  createFromTemplate(templates: Array<Record<string, string>>): Record<string, unknown>;
+  genDelay(stmtTime: number, query: string, statementId: string): Promise<unknown>;
+  generateUUID(): string;
+  getEndpointAndAuth(): string;
+  getEndpointStatements(): string;
+  getUrlEncoding(object: Record<string, unknown>): string;
+};
+
+type TemplateSelectionSupport = {
+  createTemplate(templateName: string): void;
+};
+
+const helper = helperImport as VersionRequirementsHelper;
+const templatingSelection = templatingSelectionImport as TemplateSelectionSupport;
+let request: RequestFactory = requestBase;
 
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
@@ -34,8 +53,8 @@ describe("Version Property Requirements (Data 2.4.10)", () => {
     const version = "2.0.0";
     const id = helper.generateUUID();
 
-    let statement = helper.createFromTemplate(statementTemplates);
-    statement = statement.statement;
+    const statementContainer = helper.createFromTemplate(statementTemplates) as { statement: VersionStatement };
+    const statement = statementContainer.statement;
     statement.id = id;
     statement.version = version;
 
@@ -57,7 +76,10 @@ describe("Version Property Requirements (Data 2.4.10)", () => {
         .expect(200),
     );
 
-    const results = helper.parse(getRes.body);
-    expect(results.version).toEqual(version);
+    const results =
+      typeof getRes.body === "string"
+        ? (JSON.parse(getRes.body) as Record<string, unknown>)
+        : (getRes.body as Record<string, unknown>);
+    expect(results["version"]).toEqual(version);
   });
 });
