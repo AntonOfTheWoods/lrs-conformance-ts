@@ -7,8 +7,6 @@
     "typecheck": "tsgo --noEmit",
     "lint": "oxlint --config .oxlintrc.jsonc .",
     "format": "oxfmt --config .oxfmtrc.jsonc --write .",
-    "migration:mocha:baseline": "bun ./scripts/mocha-migration-baseline.ts",
-    "migration:mocha:check-boundary": "bun ./scripts/check-mocha-oracle-boundary.ts",
     "migration:traffic:check-budget": "bun ./scripts/check-traffic-drift-budget.ts",
     "rewrite:bootstrap:candidate": "bun ./rewrite/scripts/bootstrap-fresh-candidate.ts",
     "lrsql:up": "podman compose -f compose/lrsql/podman-compose.yml up -d",
@@ -33,8 +31,6 @@
     "rewrite:db:attribute": "bun ./rewrite/scripts/attribute-db-divergence.ts",
     "rewrite:report:compare": "bun ./rewrite/scripts/analyze-compare-output.ts",
     "rewrite:diagnose:scope": "bun ./rewrite/scripts/diagnose-scope.ts",
-    "rewrite:migration:phase1:inventory": "bun ./rewrite/scripts/phase1-codemod-inventory.ts",
-    "rewrite:migration:phase1:inject-imports": "bun ./rewrite/scripts/codemod-inject-bun-test-imports.ts",
     "rewrite:compare": "bun ./rewrite/scripts/compare-parity.ts",
     "validate": "bun run typecheck && bun run lint && bun run test"
   },
