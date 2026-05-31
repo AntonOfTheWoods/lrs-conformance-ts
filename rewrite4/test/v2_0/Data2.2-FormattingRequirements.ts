@@ -101,62 +101,50 @@ describe("Formatting Requirements (Data 2.2)", () => {
     function () {
       it("should reject when statementId value is invalid", async function () {
         const query = helper.getUrlEncoding({ statementId: "wrong" });
-        await expectAsync(
-          request(helper.getEndpointAndAuth())
-            .get(helper.getEndpointStatements() + "?" + query)
-            .headers(helper.addAllHeaders({})),
-          400,
-        );
+        await request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .headers(helper.addAllHeaders({}))
+          .expect(400);
       });
 
       it("should reject when statementId value is invalid", async function () {
         const query = helper.getUrlEncoding({ voidedStatementId: "wrong" });
-        await expectAsync(
-          request(helper.getEndpointAndAuth())
-            .get(helper.getEndpointStatements() + "?" + query)
-            .headers(helper.addAllHeaders({})),
-          400,
-        );
+        await request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .headers(helper.addAllHeaders({}))
+          .expect(400);
       });
 
       it("should reject when statementId value is invalid", async function () {
         const query = helper.getUrlEncoding({ agent: "wrong" });
-        await expectAsync(
-          request(helper.getEndpointAndAuth())
-            .get(helper.getEndpointStatements() + "?" + query)
-            .headers(helper.addAllHeaders({})),
-          400,
-        );
+        await request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .headers(helper.addAllHeaders({}))
+          .expect(400);
       });
 
       it("should reject when statementId value is invalid", async function () {
         const query = helper.getUrlEncoding({ verb: "not.a.valid.iri.com/verb" });
-        await expectAsync(
-          request(helper.getEndpointAndAuth())
-            .get(helper.getEndpointStatements() + "?" + query)
-            .headers(helper.addAllHeaders({})),
-          400,
-        );
+        await request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .headers(helper.addAllHeaders({}))
+          .expect(400);
       });
 
       it("should reject when statementId value is invalid", async function () {
         const query = helper.getUrlEncoding({ activity: "not.a.valid.iri.com/activity" });
-        await expectAsync(
-          request(helper.getEndpointAndAuth())
-            .get(helper.getEndpointStatements() + "?" + query)
-            .headers(helper.addAllHeaders({})),
-          400,
-        );
+        await request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .headers(helper.addAllHeaders({}))
+          .expect(400);
       });
 
       it("should reject when statementId value is invalid", async function () {
         const query = helper.getUrlEncoding({ registration: "wrong" });
-        await expectAsync(
-          request(helper.getEndpointAndAuth())
-            .get(helper.getEndpointStatements() + "?" + query)
-            .headers(helper.addAllHeaders({})),
-          400,
-        );
+        await request(helper.getEndpointAndAuth())
+          .get(helper.getEndpointStatements() + "?" + query)
+          .headers(helper.addAllHeaders({}))
+          .expect(400);
       });
     } as any,
   );
@@ -199,13 +187,11 @@ describe("Formatting Requirements (Data 2.2)", () => {
       data.verb.id = data.verb.id.replace("http://", ""); // remove the scheme portion of the IRI
       const headers = helper.addAllHeaders({});
 
-      await expectAsync(
-        request(helper.getEndpointAndAuth())
-          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-          .headers(headers)
-          .json(data),
-        400,
-      );
+      await request(helper.getEndpointAndAuth())
+        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+        .headers(headers)
+        .json(data)
+        .expect(400);
     });
 
     // openid
@@ -220,13 +206,11 @@ describe("Formatting Requirements (Data 2.2)", () => {
       data.actor.openid = "open.id.com/testUser";
       const headers = helper.addAllHeaders({});
 
-      await expectAsync(
-        request(helper.getEndpointAndAuth())
-          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-          .headers(headers)
-          .json(data),
-        400,
-      );
+      await request(helper.getEndpointAndAuth())
+        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+        .headers(headers)
+        .json(data)
+        .expect(400);
     });
 
     // account homePage
@@ -241,13 +225,11 @@ describe("Formatting Requirements (Data 2.2)", () => {
       data.actor.account = { homePage: "homePage.com/testUser", name: "123456" };
       const headers = helper.addAllHeaders({});
 
-      await expectAsync(
-        request(helper.getEndpointAndAuth())
-          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-          .headers(headers)
-          .json(data),
-        400,
-      );
+      await request(helper.getEndpointAndAuth())
+        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+        .headers(headers)
+        .json(data)
+        .expect(400);
     });
 
     // object id
@@ -262,13 +244,11 @@ describe("Formatting Requirements (Data 2.2)", () => {
       data.object.id = data.object.id.replace("http://", ""); // remove the scheme portion of the IRI
       const headers = helper.addAllHeaders({});
 
-      await expectAsync(
-        request(helper.getEndpointAndAuth())
-          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-          .headers(headers)
-          .json(data),
-        400,
-      );
+      await request(helper.getEndpointAndAuth())
+        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+        .headers(headers)
+        .json(data)
+        .expect(400);
     });
 
     // object type
@@ -286,13 +266,11 @@ describe("Formatting Requirements (Data 2.2)", () => {
       data.object.definition.type = data.object.definition.type.replace("http://", ""); // remove the scheme portion of the IRI
       const headers = helper.addAllHeaders({});
 
-      await expectAsync(
-        request(helper.getEndpointAndAuth())
-          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-          .headers(headers)
-          .json(data),
-        400,
-      );
+      await request(helper.getEndpointAndAuth())
+        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+        .headers(headers)
+        .json(data)
+        .expect(400);
     });
 
     // object moreInfo
@@ -310,13 +288,11 @@ describe("Formatting Requirements (Data 2.2)", () => {
       data.object.definition.moreInfo = data.object.definition.moreInfo.replace("http://", ""); // remove the scheme portion of the IRI
       const headers = helper.addAllHeaders({});
 
-      await expectAsync(
-        request(helper.getEndpointAndAuth())
-          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-          .headers(headers)
-          .json(data),
-        400,
-      );
+      await request(helper.getEndpointAndAuth())
+        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+        .headers(headers)
+        .json(data)
+        .expect(400);
     });
 
     // attachment usageType
@@ -344,13 +320,11 @@ describe("Formatting Requirements (Data 2.2)", () => {
       data.attachments[0].usageType = data.attachments[0].usageType.replace("http://", ""); // remove the scheme portion of the IRI
       const headers = helper.addAllHeaders({});
 
-      await expectAsync(
-        request(helper.getEndpointAndAuth())
-          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-          .headers(headers)
-          .json(data),
-        400,
-      );
+      await request(helper.getEndpointAndAuth())
+        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+        .headers(headers)
+        .json(data)
+        .expect(400);
     });
 
     // attachment fileUrl
@@ -378,13 +352,11 @@ describe("Formatting Requirements (Data 2.2)", () => {
       data.attachments[0].fileUrl = data.attachments[0].fileUrl.replace("http://", ""); // remove the scheme portion of the IRI
       const headers = helper.addAllHeaders({});
 
-      await expectAsync(
-        request(helper.getEndpointAndAuth())
-          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-          .headers(headers)
-          .json(data),
-        400,
-      );
+      await request(helper.getEndpointAndAuth())
+        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+        .headers(headers)
+        .json(data)
+        .expect(400);
     });
 
     // object definition extension
@@ -402,13 +374,11 @@ describe("Formatting Requirements (Data 2.2)", () => {
       data.object.definition.extensions = { "not.valid.com/extension": 1234 };
       const headers = helper.addAllHeaders({});
 
-      await expectAsync(
-        request(helper.getEndpointAndAuth())
-          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-          .headers(headers)
-          .json(data),
-        400,
-      );
+      await request(helper.getEndpointAndAuth())
+        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+        .headers(headers)
+        .json(data)
+        .expect(400);
     });
 
     // context extension
@@ -426,13 +396,11 @@ describe("Formatting Requirements (Data 2.2)", () => {
       data.context.extensions["example.com/extension/wrong"] = 1234;
       const headers = helper.addAllHeaders({});
 
-      await expectAsync(
-        request(helper.getEndpointAndAuth())
-          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-          .headers(headers)
-          .json(data),
-        400,
-      );
+      await request(helper.getEndpointAndAuth())
+        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+        .headers(headers)
+        .json(data)
+        .expect(400);
     });
 
     // result extension
@@ -450,13 +418,11 @@ describe("Formatting Requirements (Data 2.2)", () => {
       data.result.extensions["example.com/extension/wrong"] = 1234;
       const headers = helper.addAllHeaders({});
 
-      await expectAsync(
-        request(helper.getEndpointAndAuth())
-          .put(helper.getEndpointStatements() + "?statementId=" + data.id)
-          .headers(headers)
-          .json(data),
-        400,
-      );
+      await request(helper.getEndpointAndAuth())
+        .put(helper.getEndpointStatements() + "?statementId=" + data.id)
+        .headers(headers)
+        .json(data)
+        .expect(400);
     });
   });
 });
