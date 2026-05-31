@@ -2104,6 +2104,29 @@ function shouldSuppressSignedStatementBoundaryDifference(boundary: TraceDbStateB
   return haveEquivalentSignedStatementOnlySideDifferences(comparison);
 }
 
+function hasSignedStatementOnlyFingerprintDifference(boundary: TraceDbStateBoundaryComparison): boolean {
+  const comparison = boundary.fingerprintComparison;
+  if (!comparison) {
+    return false;
+  }
+
+  if (comparison.rowHashOrCountDifferences.length > 0) {
+    if (
+      !comparison.rowHashOrCountDifferences.every(
+        (difference) =>
+          signedStatementFingerprintTables.has(difference.table) &&
+          difference.left?.rowCount === difference.right?.rowCount,
+      )
+    ) {
+      return false;
+    }
+
+    return comparison.onlyLeft.length === 0 && comparison.onlyRight.length === 0;
+  }
+
+  return haveEquivalentSignedStatementOnlySideDifferences(comparison);
+}
+
 export function suppressSignedStatementAttachmentDbDifferences(
   report: TraceDbStateComparisonReport,
 ): TraceDbStateComparisonReport {
@@ -2116,7 +2139,12 @@ export function suppressSignedStatementAttachmentDbDifferences(
     return report;
   }
 
-  if (!report.divergentBoundaries.every((boundary) => shouldSuppressSignedStatementBoundaryDifference(boundary))) {
+  const firstBoundary = report.divergentBoundaries[0];
+  if (!firstBoundary || !shouldSuppressSignedStatementBoundaryDifference(firstBoundary)) {
+    return report;
+  }
+
+  if (!report.divergentBoundaries.every((boundary) => hasSignedStatementOnlyFingerprintDifference(boundary))) {
     return report;
   }
 
