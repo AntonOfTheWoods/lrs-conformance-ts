@@ -1,3 +1,5 @@
+import { describe, it } from "bun:test";
+
 type TemplateMapping = Record<string, string>;
 
 type TemplateTest = {
@@ -30,18 +32,10 @@ type RequestChain = {
   end(done: (error?: unknown) => void): void;
 };
 
-type DescribeFn = (name: string, callback: () => void) => void;
-type ItFn = (name: string, callback: (done: (error?: unknown) => void) => void) => void;
-
 import helperImport from "./helper.ts";
 import requestModule from "./super-request.ts";
 
 const helper = helperImport as TemplateHelper;
-
-const globalWithOauth = globalThis as typeof globalThis & {
-  describe: DescribeFn;
-  it: ItFn;
-};
 
 const activeRequest =
   process.env["OAUTH1_ENABLED"] === "true"
@@ -52,9 +46,9 @@ export function createTemplate(templateName: string): void {
   const configurations = helper.getSingleTestConfiguration(templateName);
 
   configurations.forEach((configuration) => {
-    globalWithOauth.describe(configuration.name, () => {
+    describe(configuration.name, () => {
       configuration.config.forEach((templateTest) => {
-        globalWithOauth.it(templateTest.name, (done) => {
+        it(templateTest.name, (done) => {
           if (!templateTest.templates && !templateTest.json) {
             done(`Invalid test: "${templateTest.name}`);
             return;

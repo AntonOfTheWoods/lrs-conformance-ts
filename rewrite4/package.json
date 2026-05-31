@@ -18,14 +18,12 @@
   "main": "./bin/console_runner.ts",
   "scripts": {
     "test": "bun test --preload ./test/bun-bootstrap.ts ./test/v1_0_3/*.ts ./test/v2_0/*.ts",
-    "test:legacy:mocha": "bun ./node_modules/mocha/bin/mocha test/v1_0_3/*.ts test/v2_0/*.ts --reporter nyan",
     "start": "bun ./bin/console_runner.ts",
     "update-batteries": "bun ./bin/update-batteries.ts"
   },
   "dependencies": {
     "@hono/node-server": "^2.0.4",
     "hono": "^4.10.3",
-    "jose": "^6.1.0",
-    "mocha": "^1.20.1"
+    "jose": "^6.1.0"
   }
 }

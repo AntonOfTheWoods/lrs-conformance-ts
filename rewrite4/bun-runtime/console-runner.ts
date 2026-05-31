@@ -1,5 +1,5 @@
 import { createRequire } from "node:module";
-import { basename, resolve } from "node:path";
+import { resolve } from "node:path";
 
 import { parseConsoleRunnerArgv, type ConsoleRunnerOptions } from "./cli-args.ts";
 import { normalizeRunnerOptions, type NormalizedRunnerOptions } from "./options.ts";
@@ -7,19 +7,10 @@ import { createRunRecord, createOutputRunRecord } from "./run-record.ts";
 import { installRunnerEnvironment, registerSuiteFiles } from "./suite-loader.ts";
 import { createDescribeRuntime, type RuntimeRunResult } from "./runtime.ts";
 
-export type BunConsoleRunnerMode = "compat-forward" | "native";
-
-export interface CompatConsoleRunnerInvocation {
-  cwd: string;
-  env: Record<string, string>;
-  execPath: string;
-  forwardedArgv: string[];
-  compatConsoleRunnerPath: string;
-}
+export type BunConsoleRunnerMode = "native";
 
 export interface BunConsoleRunnerDependencies {
   cwd?: string;
-  execPath?: string;
   logger?: {
     error: (...args: unknown[]) => void;
     log: (...args: unknown[]) => void;
@@ -36,7 +27,6 @@ export interface BunConsoleRunnerDependencies {
     };
     now?: () => number;
   }) => Promise<number>;
-  runCompatConsoleRunner?: (invocation: CompatConsoleRunnerInvocation) => Promise<number>;
 }
 
 export interface BunConsoleRunnerExecution {
@@ -93,12 +83,6 @@ function pushBooleanArg(argv: string[], flag: string, enabled: boolean | undefin
   argv.push(flag);
 }
 
-function sanitizeEnv(environment: NodeJS.ProcessEnv): Record<string, string> {
-  return Object.fromEntries(
-    Object.entries(environment).filter((entry): entry is [string, string] => typeof entry[1] === "string"),
-  );
-}
-
 export function buildForwardedConsoleRunnerArgv(
   parsedOptions: ConsoleRunnerOptions,
   normalizedOptions: NormalizedRunnerOptions,
@@ -134,18 +118,8 @@ function resolveRuntimeRoot(cwd: string | undefined): string {
   return cwd ?? resolve(import.meta.dir, "..");
 }
 
-function canExecTypeScriptEntry(execPath: string): boolean {
-  const executableName = basename(execPath).toLowerCase();
-
-  return executableName === "bun" || executableName.startsWith("bun.");
-}
-
-function resolveCompatConsoleRunnerPath(runtimeRoot: string): string {
-  return resolve(runtimeRoot, "bin", "console_runner_compat.ts");
-}
-
 function resolveRunnerMode(value: string | undefined): BunConsoleRunnerMode {
-  return value === "compat-forward" ? "compat-forward" : "native";
+  return "native";
 }
 
 function readLegacyVersionNumber(runtimeRoot: string): string {
@@ -264,19 +238,6 @@ async function defaultRunNativeConsoleRunner(options: {
   }
 }
 
-async function defaultRunCompatConsoleRunner(invocation: CompatConsoleRunnerInvocation): Promise<number> {
-  const processHandle = Bun.spawn(
-    [invocation.execPath, invocation.compatConsoleRunnerPath, ...invocation.forwardedArgv],
-    {
-      cwd: invocation.cwd,
-      env: invocation.env,
-      stdio: ["inherit", "inherit", "inherit"],
-    },
-  );
-
-  return await processHandle.exited;
-}
-
 export async function runConsoleRunnerArgv(
   argv: string[],
   dependencies: BunConsoleRunnerDependencies = {},
@@ -287,32 +248,13 @@ export async function runConsoleRunnerArgv(
   const runtimeRoot = resolveRuntimeRoot(dependencies.cwd);
   const runnerMode = resolveRunnerMode(dependencies.runnerMode ?? process.env["LRS_BUN_CONSOLE_RUNNER_MODE"]);
   const logger = dependencies.logger ?? console;
-  const exitCode =
-    runnerMode === "native"
-      ? await (dependencies.runNativeConsoleRunner ?? defaultRunNativeConsoleRunner)({
-          parsedOptions,
-          runtimeRoot,
-          normalizedOptions,
-          logger,
-          now: dependencies.now,
-        })
-      : await (() => {
-          const runCompatConsoleRunner = dependencies.runCompatConsoleRunner ?? defaultRunCompatConsoleRunner;
-          const executionEnvironment = sanitizeEnv(process.env);
-          const execPath = dependencies.execPath ?? process.execPath;
-          if (!canExecTypeScriptEntry(execPath)) {
-            throw new Error(`rewrite4 compat-forward requires Bun as the exec path, received: ${execPath}`);
-          }
-
-          const compatConsoleRunnerPath = resolveCompatConsoleRunnerPath(runtimeRoot);
-          return runCompatConsoleRunner({
-            cwd: runtimeRoot,
-            env: executionEnvironment,
-            execPath,
-            forwardedArgv,
-            compatConsoleRunnerPath,
-          });
-        })();
+  const exitCode = await (dependencies.runNativeConsoleRunner ?? defaultRunNativeConsoleRunner)({
+    parsedOptions,
+    runtimeRoot,
+    normalizedOptions,
+    logger,
+    now: dependencies.now,
+  });
 
   return {
     exitCode,

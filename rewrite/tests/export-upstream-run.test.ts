@@ -30,7 +30,6 @@ test("resolveUpstreamUnitSelection rejects mismatched versioned units", () => {
 });
 
 test("parseProvidedSuiteRunnerMode accepts supported bun runner modes", () => {
-  expect(parseProvidedSuiteRunnerMode("compat-forward")).toBe("compat-forward");
   expect(parseProvidedSuiteRunnerMode("native")).toBe("native");
   expect(parseProvidedSuiteRunnerMode(undefined)).toBeUndefined();
 });

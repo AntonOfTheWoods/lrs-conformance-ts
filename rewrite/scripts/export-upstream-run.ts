@@ -38,7 +38,7 @@ type SuiteLocation = {
 type SupportedVersion = "2.0.0" | "1.0.3";
 
 export type ProvidedSuiteRuntimeMode = "bun-ts";
-export type ProvidedSuiteRunnerMode = "compat-forward" | "native";
+export type ProvidedSuiteRunnerMode = "native";
 
 const flagsWithValues = new Set([
   "--base-url",
@@ -105,7 +105,7 @@ export interface ExportRunMetadata {
 }
 
 function isProvidedSuiteRunnerMode(value: string): value is ProvidedSuiteRunnerMode {
-  return value === "compat-forward" || value === "native";
+  return value === "native";
 }
 
 export function parseProvidedSuiteRunnerMode(value: string | undefined): ProvidedSuiteRunnerMode | undefined {
@@ -207,7 +207,7 @@ export function resolveUpstreamUnitSelection(unitKeys: string[], version: Suppor
 function usage(): string {
   return [
     "Usage:",
-    "  bun run rewrite:export:upstream:lrsql -- [--suite-dir <path>] [--provided-suite-runner-mode compat-forward|native] [--base-url <url>] [--username <user>] [--password <pass>] [--version 2.0.0|1.0.3] [--out <path>] [--grep <pattern>] [--directory <csv>] [--optional <csv>] [--unitKey <csv>] [--log-dir <path>] [--node-image <ref>] [--bun-image <ref>] [--upstream-repo-url <url>] [--upstream-ref <ref>] [--clone-depth <n>] [--clone-base-dir <path>] [--keep-clone]",
+    "  bun run rewrite:export:upstream:lrsql -- [--suite-dir <path>] [--provided-suite-runner-mode native] [--base-url <url>] [--username <user>] [--password <pass>] [--version 2.0.0|1.0.3] [--out <path>] [--grep <pattern>] [--directory <csv>] [--optional <csv>] [--unitKey <csv>] [--log-dir <path>] [--node-image <ref>] [--bun-image <ref>] [--upstream-repo-url <url>] [--upstream-ref <ref>] [--clone-depth <n>] [--clone-base-dir <path>] [--keep-clone]",
     "",
     "Defaults:",
     "  --base-url http://localhost:8080/xapi",
@@ -223,7 +223,7 @@ function usage(): string {
     `  --node-image ${defaultNodeImage}`,
     `  --bun-image ${defaultBunImage}`,
     "  --suite-dir rewrite4",
-    "  --provided-suite-runner-mode defaults to compat-forward for provided suites until the rewrite4 suite is fully native-safe",
+    "  --provided-suite-runner-mode defaults to native for provided suites",
     "",
     "Notes:",
     "  Without --suite-dir, the upstream suite source is fetched from GitHub by shallow clone.",
@@ -285,7 +285,7 @@ function parseConfig(args: string[]): ExportUpstreamConfig {
 
   const version: SupportedVersion = versionFlag;
   const suiteDir = suiteDirArg ? (isAbsolute(suiteDirArg) ? suiteDirArg : resolve(repoRoot, suiteDirArg)) : undefined;
-  const providedSuiteRunnerMode = parseProvidedSuiteRunnerMode(providedSuiteRunnerModeArg) ?? "compat-forward";
+  const providedSuiteRunnerMode = parseProvidedSuiteRunnerMode(providedSuiteRunnerModeArg) ?? "native";
 
   return {
     baseUrl,
@@ -1308,7 +1308,7 @@ async function main(): Promise<number> {
   if (!latestLogName) {
     const runLabel = config.suiteDir ? "Candidate" : "Upstream";
     const runnerHint = config.suiteDir
-      ? ` Provided-suite runner mode was ${config.providedSuiteRunnerMode}. Pass --provided-suite-runner-mode native only for suites that are fully native-safe under Bun.`
+      ? ` Provided-suite runner mode was ${config.providedSuiteRunnerMode}.`
       : " Ensure upstream dependencies are installed.";
     throw new Error(`${runLabel} run finished but no log artifact was found in ${config.logDir}.${runnerHint}`);
   }

@@ -190,67 +190,8 @@ test("rewrite4 bun runtime preserves caller selection mode when forwarding to le
   ]);
 });
 
-test("rewrite4 bun runtime delegates to the direct compat console runner entry", async () => {
-  let invocation:
-    | {
-        cwd: string;
-        env: Record<string, string>;
-        execPath: string;
-        forwardedArgv: string[];
-        compatConsoleRunnerPath: string;
-      }
-    | undefined;
-
-  const execution = await runConsoleRunnerArgv(
-    [
-      "--endpoint",
-      "http://localhost:8080/xapi",
-      "--directory",
-      "v1_0_3",
-      "--file",
-      "test/v1_0_3/Data2.2-FormattingRequirements.js",
-      "--basicAuth",
-      "--authUser",
-      "janedoe",
-      "--authPassword",
-      "supersecret",
-    ],
-    {
-      cwd: "/tmp/rewrite4-suite",
-      execPath: "/usr/bin/bun",
-      runnerMode: "compat-forward",
-      runCompatConsoleRunner: async (nextInvocation) => {
-        invocation = nextInvocation;
-        return 7;
-      },
-    },
-  );
-
-  expect(execution.exitCode).toBe(7);
-  expect(invocation).toBeDefined();
-  expect(invocation?.cwd).toBe("/tmp/rewrite4-suite");
-  expect(invocation?.env["LRS_CANDIDATE_RUNTIME_MODE"]).toBeUndefined();
-  expect(invocation?.execPath).toBe("/usr/bin/bun");
-  expect(invocation?.forwardedArgv).toEqual([
-    "--directory",
-    "v1_0_3",
-    "--endpoint",
-    "http://localhost:8080/xapi",
-    "--authUser",
-    "janedoe",
-    "--authPassword",
-    "supersecret",
-    "--basicAuth",
-    "--file",
-    "test/v1_0_3/Data2.2-FormattingRequirements.js",
-  ]);
-  expect(invocation?.compatConsoleRunnerPath).toBe("/tmp/rewrite4-suite/bin/console_runner_compat.ts");
-  expect(execution.runnerMode).toBe("compat-forward");
-});
-
 test("rewrite4 bun runtime defaults to native mode", async () => {
   let nativeInvocationCount = 0;
-  let legacyInvocationCount = 0;
 
   const execution = await runConsoleRunnerArgv(
     [
@@ -263,10 +204,6 @@ test("rewrite4 bun runtime defaults to native mode", async () => {
     ],
     {
       cwd: "/tmp/rewrite4-suite",
-      runCompatConsoleRunner: async () => {
-        legacyInvocationCount += 1;
-        return 99;
-      },
       runNativeConsoleRunner: async () => {
         nativeInvocationCount += 1;
         return 0;
@@ -277,27 +214,6 @@ test("rewrite4 bun runtime defaults to native mode", async () => {
   expect(execution.exitCode).toBe(0);
   expect(execution.runnerMode).toBe("native");
   expect(nativeInvocationCount).toBe(1);
-  expect(legacyInvocationCount).toBe(0);
-});
-
-test("rewrite4 bun runtime rejects non-Bun exec paths for compat-forward mode", async () => {
-  expect(
-    runConsoleRunnerArgv(
-      [
-        "--endpoint",
-        "http://localhost:8080/xapi",
-        "--directory",
-        "v1_0_3",
-        "--file",
-        "test/v1_0_3/Data2.2-FormattingRequirements.js",
-      ],
-      {
-        cwd: "/tmp/rewrite4-suite",
-        execPath: "node",
-        runnerMode: "compat-forward",
-      },
-    ),
-  ).rejects.toThrow("rewrite4 compat-forward requires Bun as the exec path, received: node");
 });
 
 test("rewrite4 bun test runner prefers the TypeScript lrs-test entry under Bun", () => {
@@ -326,7 +242,6 @@ test("rewrite4 bun runtime dispatches native mode without forwarding to the lega
         runtimeRoot: string;
       }
     | undefined;
-  let legacyInvocationCount = 0;
 
   const execution = await runConsoleRunnerArgv(
     [
@@ -340,10 +255,6 @@ test("rewrite4 bun runtime dispatches native mode without forwarding to the lega
     ],
     {
       cwd: "/tmp/rewrite4-suite",
-      runCompatConsoleRunner: async () => {
-        legacyInvocationCount += 1;
-        return 99;
-      },
       runNativeConsoleRunner: async (invocation) => {
         nativeInvocation = {
           normalizedOptions: invocation.normalizedOptions,
@@ -358,7 +269,6 @@ test("rewrite4 bun runtime dispatches native mode without forwarding to the lega
 
   expect(execution.exitCode).toBe(0);
   expect(execution.runnerMode).toBe("native");
-  expect(legacyInvocationCount).toBe(0);
   expect(nativeInvocation).toEqual({
     normalizedOptions: {
       authPass: undefined,
