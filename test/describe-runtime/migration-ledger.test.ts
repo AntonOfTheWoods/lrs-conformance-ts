@@ -33,7 +33,7 @@ describe("migration ledger", () => {
     recordObservedMigrationUnitTitle("v1_0_3", "Formatting Requirements (Data 2.2)", formattingUnit);
 
     expect(resolveMigrationUnitBinding("v1_0_3", ["Formatting Requirements (Data 2.2)"])).toEqual({
-      sourceFilePath: "archive/deprecated-rewrite3/src/specs/v1_0_3/Data2.2-FormattingRequirements.ts",
+      sourceFilePath: "rewrite4/test/v1_0_3/Data2.2-FormattingRequirements.ts",
       sourceSymbol: "registerFormattingRequirementsV103",
       unitKey: "test/v1_0_3/Data2.2-FormattingRequirements",
     });

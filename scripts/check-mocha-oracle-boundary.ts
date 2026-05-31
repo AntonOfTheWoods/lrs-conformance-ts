@@ -45,7 +45,7 @@ function relativePath(pathValue: string): string {
 }
 
 function findViolations(): Violation[] {
-  const ignoredDirectories = new Set([".git", "node_modules", "tmp", "archive"]);
+  const ignoredDirectories = new Set([".git", "node_modules", "tmp"]);
   const files = collectFiles(repoRoot, ignoredDirectories).filter((filePath) =>
     /\.(?:ts|tsx|js|mjs|cjs|json|lock)$/i.test(filePath),
   );

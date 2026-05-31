@@ -7,7 +7,6 @@
     "typecheck": "tsgo --noEmit",
     "lint": "oxlint --config .oxlintrc.jsonc .",
     "format": "oxfmt --config .oxfmtrc.jsonc --write .",
-    "validate:archive-boundary": "bun ./scripts/validate-archive-boundary.ts",
     "migration:mocha:baseline": "bun ./scripts/mocha-migration-baseline.ts",
     "migration:mocha:check-boundary": "bun ./scripts/check-mocha-oracle-boundary.ts",
     "migration:traffic:check-budget": "bun ./scripts/check-traffic-drift-budget.ts",
@@ -37,7 +36,7 @@
     "rewrite:migration:phase1:inventory": "bun ./rewrite/scripts/phase1-codemod-inventory.ts",
     "rewrite:migration:phase1:inject-imports": "bun ./rewrite/scripts/codemod-inject-bun-test-imports.ts",
     "rewrite:compare": "bun ./rewrite/scripts/compare-parity.ts",
-    "validate": "bun run validate:archive-boundary && bun run typecheck && bun run lint && bun run test"
+    "validate": "bun run typecheck && bun run lint && bun run test"
   },
   "devDependencies": {
     "@types/bun": "^1.3.14",

@@ -50,7 +50,7 @@ function relativePath(pathValue: string): string {
 }
 
 function buildReport(): BaselineReport {
-  const ignoredDirectories = new Set([".git", "node_modules", "tmp", "archive"]);
+  const ignoredDirectories = new Set([".git", "node_modules", "tmp"]);
   const files = collectFiles(repoRoot, ignoredDirectories).filter((filePath) =>
     /\.(?:ts|tsx|js|mjs|cjs|json)$/i.test(filePath),
   );

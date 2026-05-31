@@ -42,10 +42,6 @@ function resolveSafeTargetDirectory(pathValue: string): string {
     throw new Error(`Target directory ${absolutePath} must stay within ${repoRoot}.`);
   }
 
-  if (relative(repoRoot, absolutePath).startsWith("archive/")) {
-    throw new Error(`Target directory ${absolutePath} must not be placed under archive/.`);
-  }
-
   return absolutePath;
 }
 

@@ -7,7 +7,3 @@ These scripts are not the preferred runtime implementation for conformance execu
 - export upstream runs and artifacts
 - compare upstream and local outputs
 - diagnose parity gaps
-
-- Any scripts that depended on the archived proof-slice runtime have been removed from this active directory and moved under `archive/deprecated-rewrite/`.
-
-If an obsoleted rewritten runtime is ever kept in the repository, it must live outside this directory under `archive/deprecated-rewrite/` and must not have any active package-script entrypoints.

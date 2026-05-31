@@ -23,7 +23,7 @@ export interface MigrationUnitBinding {
   unitKey: string;
 }
 
-const archivedRewrite3Root = "archive/deprecated-rewrite3";
+const rewrite4Root = "rewrite4";
 
 type UnitSpec = readonly [
   upstreamFileStem: string,
@@ -39,10 +39,14 @@ function defineUnit(
   directory: string,
   [upstreamFileStem, rewriteRegistrarFilePath, rewriteRegistrarSymbol, version]: UnitSpec,
 ): MigrationLedgerUnit {
+  const normalizedRegistrarFilePath = rewriteRegistrarFilePath.startsWith("src/specs/")
+    ? rewriteRegistrarFilePath.replace("src/specs/", "test/")
+    : rewriteRegistrarFilePath;
+
   return {
     directory,
     mode: "rewrite-active",
-    rewriteRegistrarFilePath: `${archivedRewrite3Root}/${rewriteRegistrarFilePath}`,
+    rewriteRegistrarFilePath: `${rewrite4Root}/${normalizedRegistrarFilePath}`,
     rewriteRegistrarSymbol,
     unitKey: upstreamFileStem,
     upstreamFilePath: `${upstreamFileStem}.js`,
