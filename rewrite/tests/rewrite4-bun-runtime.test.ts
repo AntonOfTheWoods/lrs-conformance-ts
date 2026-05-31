@@ -637,6 +637,44 @@ test("rewrite4 suite loader accepts TypeScript suite files for legacy .js select
   }
 });
 
+test("rewrite4 suite loader prefers TypeScript over duplicate JavaScript suite variants", async () => {
+  const runtimeRoot = await mkdtemp(join(tmpdir(), "rewrite4-suite-loader-"));
+  const globalState = globalThis as GlobalTestShape;
+
+  try {
+    await mkdir(join(runtimeRoot, "bin"), { recursive: true });
+    await mkdir(join(runtimeRoot, "test", "v1_0_3"), { recursive: true });
+    await writeFile(
+      join(runtimeRoot, "test", "v1_0_3", "selected.js"),
+      'global.__suiteLoadTrace.push("v1_0_3/selected.js");\n',
+      "utf8",
+    );
+    await writeFile(
+      join(runtimeRoot, "test", "v1_0_3", "selected.ts"),
+      'global.__suiteLoadTrace.push("v1_0_3/selected.ts");\n',
+      "utf8",
+    );
+
+    globalState.__suiteLoadTrace = [];
+
+    const loadedFiles = await registerSuiteFiles({
+      normalizedOptions: normalizeRunnerOptions({
+        directory: ["v1_0_3"],
+        endpoint: "http://localhost:8080/xapi",
+        file: ["test/v1_0_3/selected.js"],
+      }),
+      runtime: createSuiteLoaderRuntimeMock(),
+      runtimeRoot,
+    });
+
+    expect(globalState.__suiteLoadTrace).toEqual(["v1_0_3/selected.ts"]);
+    expect(loadedFiles).toEqual(["test/v1_0_3/selected.ts"]);
+  } finally {
+    delete globalState.__suiteLoadTrace;
+    await rm(runtimeRoot, { force: true, recursive: true });
+  }
+});
+
 test("rewrite4 batteries generator discovers both JavaScript and TypeScript suite files", async () => {
   const runtimeRoot = await mkdtemp(join(tmpdir(), "rewrite4-batteries-"));
 

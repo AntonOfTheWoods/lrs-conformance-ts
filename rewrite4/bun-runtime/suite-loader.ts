@@ -233,8 +233,24 @@ export function getDirectoriesToLoad(normalizedOptions: NormalizedRunnerOptions)
   return directories;
 }
 
-export function installAssertionPlugins(requireFromRuntimeRoot: NodeJS.Require): void {
-  void requireFromRuntimeRoot;
+function preferTypeScriptSuiteEntries(entries: string[]): string[] {
+  const preferredByStem = new Map<string, string>();
+
+  for (const entry of entries) {
+    const stem = entry.replace(/\.(?:js|ts)$/, "");
+    const existing = preferredByStem.get(stem);
+
+    if (!existing) {
+      preferredByStem.set(stem, entry);
+      continue;
+    }
+
+    if (entry.endsWith(".ts") && existing.endsWith(".js")) {
+      preferredByStem.set(stem, entry);
+    }
+  }
+
+  return [...preferredByStem.values()].sort((left, right) => left.localeCompare(right));
 }
 
 export function needsTimeMarginBootstrap(selectedFiles: Set<string> | null): boolean {
@@ -389,7 +405,6 @@ export async function registerSuiteFiles(options: SuiteLoaderOptions): Promise<s
   const directoriesToLoad = getDirectoriesToLoad(normalizedOptions);
   const selectedFiles = normalizeSelectedFiles(normalizedOptions.file);
   const requireFromRuntimeRoot = createRequire(resolve(runtimeRoot, "package.json"));
-  installAssertionPlugins(requireFromRuntimeRoot);
   installSelectedFileBootstrapHooks({
     requireFromRuntimeRoot,
     runtime: options.runtime,
@@ -402,9 +417,11 @@ export async function registerSuiteFiles(options: SuiteLoaderOptions): Promise<s
   try {
     for (const directory of directoriesToLoad) {
       const testDirectory = resolve(runtimeRoot, "test", directory);
-      const directoryEntries = readdirSync(testDirectory)
-        .filter((entry) => isSuiteDefinitionFile(entry))
-        .sort((left, right) => left.localeCompare(right));
+      const directoryEntries = preferTypeScriptSuiteEntries(
+        readdirSync(testDirectory)
+          .filter((entry) => isSuiteDefinitionFile(entry))
+          .sort((left, right) => left.localeCompare(right)),
+      );
 
       for (const entry of directoryEntries) {
         const relativeFilePath = toPosixPath(join("test", directory, entry));
@@ -415,7 +432,6 @@ export async function registerSuiteFiles(options: SuiteLoaderOptions): Promise<s
         const absoluteFilePath = resolve(testDirectory, entry);
         const sourceText = readFileSync(absoluteFilePath, "utf8");
 
-        delete requireFromRuntimeRoot.cache?.[absoluteFilePath];
         if (shouldLoadLegacySuiteFile(sourceText)) {
           loadLegacySuiteFile(absoluteFilePath, sourceText);
         } else {
