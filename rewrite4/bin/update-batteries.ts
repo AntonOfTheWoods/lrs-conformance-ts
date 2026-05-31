@@ -1,17 +1,12 @@
 #!/usr/bin/env bun
 
 import fs from "node:fs";
-import { createRequire } from "node:module";
 import path from "node:path";
 
+import { normalizeRunnerOptions } from "../bun-runtime/options.ts";
+import { installRunnerEnvironment, registerSuiteFiles } from "../bun-runtime/suite-loader.ts";
+import type { DescribeRuntime } from "../bun-runtime/runtime.ts";
 import specs from "../specConfig.ts";
-
-const cjsRequire = createRequire(import.meta.url);
-const Mocha = cjsRequire("mocha") as new (options: Record<string, unknown>) => {
-  addFile(file: string): void;
-  loadFiles(): void;
-  suite: MochaSuiteShape;
-};
 
 type BatteryTreeNode = {
   children: BatteryTreeNode[];
@@ -23,29 +18,71 @@ type BatteryInfo = {
   tests: BatteryTreeNode;
 };
 
-type MochaSuiteShape = {
-  suites: MochaSuiteShape[];
-  tests: Array<{
-    title: string;
-  }>;
-  title?: string;
+type CollectedSuiteNode = {
+  title: string;
+  suites: CollectedSuiteNode[];
+  tests: string[];
 };
 
-function cleanLog(log: MochaSuiteShape): BatteryTreeNode {
+function toBatteryTreeNode(node: CollectedSuiteNode): BatteryTreeNode {
   return {
-    text: log.title ?? "",
+    text: node.title,
     children: [
-      ...log.suites.map(cleanLog),
-      ...log.tests.map((test) => ({
-        text: test.title,
+      ...node.suites.map(toBatteryTreeNode),
+      ...node.tests.map((testTitle) => ({
+        text: testTitle,
         children: [],
       })),
     ],
   };
 }
 
-function countTests(suite: MochaSuiteShape): number {
-  return suite.tests.length + suite.suites.reduce((sum, childSuite) => sum + countTests(childSuite), 0);
+function countTests(node: CollectedSuiteNode): number {
+  return node.tests.length + node.suites.reduce((sum, childSuite) => sum + countTests(childSuite), 0);
+}
+
+function createCollectorRuntime(root: CollectedSuiteNode): DescribeRuntime {
+  const stack: CollectedSuiteNode[] = [root];
+  const noopContext = {
+    retries: (_count: number) => {},
+    slow: (_ms: number) => {},
+    timeout: (_ms: number) => {},
+  };
+
+  const current = (): CollectedSuiteNode => {
+    const node = stack[stack.length - 1];
+    if (!node) {
+      throw new Error("Collector runtime stack is empty.");
+    }
+
+    return node;
+  };
+
+  return {
+    before: (() => {}) as DescribeRuntime["before"],
+    describe: (title, build) => {
+      const node: CollectedSuiteNode = {
+        title,
+        suites: [],
+        tests: [],
+      };
+
+      current().suites.push(node);
+      stack.push(node);
+      try {
+        build.call(noopContext);
+      } finally {
+        stack.pop();
+      }
+    },
+    getSummary: () => undefined,
+    it: (title) => {
+      current().tests.push(title);
+    },
+    run: async () => {
+      throw new Error("Collector runtime does not execute test bodies.");
+    },
+  };
 }
 
 export function isSuiteDefinitionFile(fileName: string): boolean {
@@ -59,32 +96,38 @@ export function listSuiteDefinitionFiles(testDirectory: string): string[] {
     .sort((left, right) => left.localeCompare(right));
 }
 
-function createBattery(version: string): BatteryInfo {
+async function createBattery(version: string): Promise<BatteryInfo> {
   const rewriteRoot = path.join(__dirname, "..");
   const directory = version === "1.0.3" ? "v1_0_3" : "v2_0";
-
-  process.env["DIRECTORY"] = directory;
-  process.env["LRS_ENDPOINT"] = "http://localhost:3001/xapi";
-  process.env["BASIC_AUTH_ENABLED"] = "true";
-  process.env["BASIC_AUTH_USER"] = "No:";
-  process.env["BASIC_AUTH_PASSWORD"] = "User";
-  process.env["XAPI_VERSION"] = version;
-
-  const mocha = new Mocha({
-    timeout: "15000",
-    ui: "bdd",
+  const root: CollectedSuiteNode = {
+    title: "",
+    suites: [],
+    tests: [],
+  };
+  const runtime = createCollectorRuntime(root);
+  const normalizedOptions = normalizeRunnerOptions({
+    xapiVersion: version,
+    endpoint: "http://localhost:3001/xapi",
+    directory: [directory],
+    basicAuth: true,
+    authUser: "No:",
+    authPass: "User",
   });
-  const testDirectory = path.join(rewriteRoot, "test", directory);
+  const restoreEnvironment = installRunnerEnvironment(normalizedOptions);
 
-  listSuiteDefinitionFiles(testDirectory).forEach((file) => {
-    mocha.addFile(path.join(testDirectory, file));
-  });
-
-  mocha.loadFiles();
+  try {
+    await registerSuiteFiles({
+      normalizedOptions,
+      runtime,
+      runtimeRoot: rewriteRoot,
+    });
+  } finally {
+    restoreEnvironment();
+  }
 
   const info = {
-    conformanceTestCount: countTests(mocha.suite),
-    tests: cleanLog(mocha.suite),
+    conformanceTestCount: countTests(root),
+    tests: toBatteryTreeNode(root),
   };
 
   console.log(`[${version}] found ${info.conformanceTestCount} tests.`);
@@ -92,10 +135,10 @@ function createBattery(version: string): BatteryInfo {
   return info;
 }
 
-function createBatteries(): Record<string, BatteryInfo> {
+async function createBatteries(): Promise<Record<string, BatteryInfo>> {
   const output: Record<string, BatteryInfo> = {};
   for (const version of specs.availableVersions) {
-    output[version] = createBattery(version);
+    output[version] = await createBattery(version);
   }
 
   return output;
@@ -121,7 +164,7 @@ function serializeBatteriesModule(batteryOutput: Record<string, BatteryInfo>): s
 }
 
 async function main(): Promise<void> {
-  const batteryOutput = createBatteries();
+  const batteryOutput = await createBatteries();
   const batteryPath = path.join(__dirname, "../batteries.ts");
   const fileContents = serializeBatteriesModule(batteryOutput);
 
