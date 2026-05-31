@@ -24,23 +24,29 @@ type TemplateHelper = {
   addAllHeaders(headers: Record<string, string>): Record<string, string>;
 };
 
+type RequestRoot = {
+  post(url: string): RequestChain;
+};
+
 type RequestChain = {
   post(url: string): RequestChain;
   headers(headers: Record<string, string>): RequestChain;
   json(data: unknown): RequestChain;
   expect: (...args: unknown[]) => RequestChain;
-  end(done: (error?: unknown) => void): void;
+  end(done: (error?: unknown) => void): RequestChain;
 };
 
+type RequestFactory = (endpoint: string) => RequestRoot;
+
 import helperImport from "./helper.ts";
-import requestModule from "./super-request.ts";
+import requestModule, { endAsync } from "./super-request.ts";
 
 const helper = helperImport as TemplateHelper;
 
-const activeRequest =
+const activeRequest: RequestFactory =
   process.env["OAUTH1_ENABLED"] === "true"
-    ? (helper.OAuthRequest(requestModule) as (target: unknown) => RequestChain)
-    : requestModule;
+    ? (helper.OAuthRequest(requestModule) as RequestFactory)
+    : (requestModule as RequestFactory);
 
 export function createTemplate(templateName: string): void {
   const configurations = helper.getSingleTestConfiguration(templateName);
@@ -48,10 +54,9 @@ export function createTemplate(templateName: string): void {
   configurations.forEach((configuration) => {
     describe(configuration.name, () => {
       configuration.config.forEach((templateTest) => {
-        it(templateTest.name, (done: (error?: unknown) => void) => {
+        it(templateTest.name, async () => {
           if (!templateTest.templates && !templateTest.json) {
-            done(`Invalid test: "${templateTest.name}`);
-            return;
+            throw new Error(`Invalid test: "${templateTest.name}"`);
           }
 
           try {
@@ -73,10 +78,11 @@ export function createTemplate(templateName: string): void {
               .headers(helper.addAllHeaders({}))
               .json(data);
 
-            (promise.expect as (...args: unknown[]) => RequestChain)(...templateTest.expect).end(done);
+            const request = (promise.expect as (...args: unknown[]) => RequestChain)(...templateTest.expect);
+            await endAsync(request);
           } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
-            done(`Invalid test: "${templateTest.name}" with error: ${message}`);
+            throw new Error(`Invalid test: "${templateTest.name}" with error: ${message}`);
           }
         });
       });

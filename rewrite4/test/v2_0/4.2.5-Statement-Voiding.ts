@@ -195,17 +195,13 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
       let data = helper.createFromTemplate(templates);
       data = data.statement;
       data.object.id = nonExistentStatementID;
-      request(helper.getEndpointAndAuth())
-        .post(helper.getEndpointStatements())
-        .headers(helper.addAllHeaders({}))
-        .json(data)
-        .expect(200)
-        .end(function (err: unknown) {
-          if (err) {
-            throw err;
-            return;
-          }
-        });
+      await expectAsync(
+        request(helper.getEndpointAndAuth())
+          .post(helper.getEndpointStatements())
+          .headers(helper.addAllHeaders({}))
+          .json(data),
+        200,
+      );
     });
   });
 });
