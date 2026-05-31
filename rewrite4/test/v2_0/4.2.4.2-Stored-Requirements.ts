@@ -5,11 +5,22 @@
 
 import { describe, expect, it } from "../bun-test.ts";
 import helperImport from "../helper.ts";
-import requestBase from "../super-request.ts";
-import { endAsync } from "../super-request.ts";
+import requestBase, { endAsync, type RequestFactory } from "../super-request.ts";
 
-const helper: any = helperImport;
-let request: any = requestBase;
+type StoredStatement = Record<string, unknown>;
+
+type StoredRequirementsHelper = {
+  OAuthRequest(request: RequestFactory): RequestFactory;
+  addAllHeaders(headers?: Record<string, string | undefined>): Record<string, string | undefined>;
+  createFromTemplate(templates: Array<Record<string, unknown>>): { statement: StoredStatement };
+  genDelay(stmtTime: number, query: string, statementId: string): Promise<unknown>;
+  generateUUID(): string;
+  getEndpointAndAuth(): string;
+  getEndpointStatements(): string;
+};
+
+const helper = helperImport as unknown as StoredRequirementsHelper;
+let request: RequestFactory = requestBase;
 
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
@@ -69,9 +80,12 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
           .expect(200),
       );
 
-      const result = helper.parse(getRes.body);
+      const result =
+        typeof getRes.body === "string"
+          ? (JSON.parse(getRes.body) as Record<string, unknown>)
+          : (getRes.body as Record<string, unknown>);
       expect(result).toHaveProperty("stored");
-      const stmtStored = result.stored;
+      const stmtStored = result["stored"];
       expect(stmtStored).not.toEqual(storedTime);
     });
 
@@ -96,9 +110,12 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
           .expect(200),
       );
 
-      const result = helper.parse(getRes.body);
+      const result =
+        typeof getRes.body === "string"
+          ? (JSON.parse(getRes.body) as Record<string, unknown>)
+          : (getRes.body as Record<string, unknown>);
       expect(result).toHaveProperty("stored");
-      const stmtStored = result.stored;
+      const stmtStored = result["stored"];
       expect(stmtStored).not.toEqual(storedTime);
     });
   });
@@ -115,11 +132,14 @@ describe("Stored Property Requirements (Data 2.4.8)", () => {
           .expect(200),
       );
 
-      const result = helper.parse(res.body);
-      const stmts = result.statements;
+      const result =
+        typeof res.body === "string"
+          ? (JSON.parse(res.body) as Record<string, unknown>)
+          : (res.body as Record<string, unknown>);
+      const stmts = (result["statements"] as Array<Record<string, unknown>>) ?? [];
       const milliChecker = (num: number) => {
         expect(stmts[num]).toHaveProperty("stored");
-        const milliseconds = parseMillisecondsFromIso(stmts[num].stored);
+        const milliseconds = parseMillisecondsFromIso(stmts[num]?.["stored"]);
         expect(milliseconds).not.toEqual(null);
 
         if ((milliseconds as number) % 10 > 0) {

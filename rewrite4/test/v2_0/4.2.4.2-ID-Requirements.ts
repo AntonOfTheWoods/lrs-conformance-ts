@@ -14,13 +14,29 @@
 
 import { describe, expect, it } from "../bun-test.ts";
 import helperImport from "../helper.ts";
-import requestBase from "../super-request.ts";
-import { expectAsync } from "../super-request.ts";
+import requestBase, { expectAsync, type RequestFactory } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
 
-const helper: any = helperImport;
-const templatingSelection: any = templatingSelectionImport;
-let request: any = requestBase;
+type IdStatement = {
+  id?: string;
+};
+
+type IdRequirementsHelper = {
+  OAuthRequest(request: RequestFactory): RequestFactory;
+  addAllHeaders(headers: Record<string, string | undefined>): Record<string, string | undefined>;
+  createFromTemplate(templates: Array<Record<string, unknown>>): { statement: IdStatement };
+  genDelay(stmtTime: number, query: string, statementId: string): Promise<unknown>;
+  getEndpointAndAuth(): string;
+  getEndpointStatements(): string;
+};
+
+type TemplateSelectionSupport = {
+  createTemplate(templateName: string): void;
+};
+
+const helper = helperImport as unknown as IdRequirementsHelper;
+const templatingSelection = templatingSelectionImport as TemplateSelectionSupport;
+let request: RequestFactory = requestBase;
 
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
@@ -33,7 +49,7 @@ if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(requ
  */
 
 describe("Id Property Requirements (Data 2.4.1)", () => {
-  let data: any;
+  let data: IdStatement;
   templatingSelection.createTemplate("uuids.ts");
 
   /**  XAPI-00026,  Data 2.4.1 Id
@@ -63,9 +79,12 @@ describe("Id Property Requirements (Data 2.4.1)", () => {
         200,
       );
 
-      const results = helper.parse(getRes.body);
-      expect(results.id).not.toBeUndefined();
-      expect(results.id).toEqual(stmtId);
+      const results =
+        typeof getRes.body === "string"
+          ? (JSON.parse(getRes.body) as Record<string, unknown>)
+          : (getRes.body as Record<string, unknown>);
+      expect(results["id"]).not.toBeUndefined();
+      expect(results["id"]).toEqual(stmtId);
     });
   });
 });

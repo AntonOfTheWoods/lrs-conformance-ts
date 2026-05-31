@@ -4,12 +4,25 @@
  */
 
 import helperImport from "../helper.ts";
-import requestBase from "../super-request.ts";
-import { endAsync } from "../super-request.ts";
+import requestBase, { endAsync, type RequestFactory } from "../super-request.ts";
 
 import { describe, it } from "../bun-test.ts";
-const helper: any = helperImport;
-let request: any = requestBase;
+
+type AuthenticationStatement = {
+  id: string;
+};
+
+type AuthenticationHelper = {
+  OAuthRequest(request: RequestFactory): RequestFactory;
+  addAllHeaders(headers: Record<string, string | undefined>): Record<string, string | undefined>;
+  createFromTemplate(templates: Array<Record<string, unknown>>): { statement: AuthenticationStatement };
+  generateUUID(): string;
+  getEndpointAndAuth(): string;
+  getEndpointStatements(): string;
+};
+
+const helper = helperImport as unknown as AuthenticationHelper;
+let request: RequestFactory = requestBase;
 
 describe("Authentication Requirements (Communication 4.0)", () => {
   /**  XAPI-00334, Communication 2.1.3 GET Statements

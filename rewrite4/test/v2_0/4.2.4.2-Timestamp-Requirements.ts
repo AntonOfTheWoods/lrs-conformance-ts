@@ -4,13 +4,22 @@
  */
 
 import helperImport from "../helper.ts";
-import requestBase from "../super-request.ts";
+import requestBase, { type RequestFactory } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
 
 import { describe } from "../bun-test.ts";
-const helper: any = helperImport;
-const templatingSelection: any = templatingSelectionImport;
-let request: any = requestBase;
+
+type TimestampRequirementsHelper = {
+  OAuthRequest(request: RequestFactory): RequestFactory;
+};
+
+type TemplateSelectionSupport = {
+  createTemplate(templateName: string): void;
+};
+
+const helper = helperImport as TimestampRequirementsHelper;
+const templatingSelection = templatingSelectionImport as TemplateSelectionSupport;
+let request: RequestFactory = requestBase;
 
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 

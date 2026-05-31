@@ -5,13 +5,40 @@
 
 import { describe, expect, it } from "../bun-test.ts";
 import helperImport from "../helper.ts";
-import requestBase from "../super-request.ts";
-import { expectAsync } from "../super-request.ts";
+import requestBase, { expectAsync, type RequestFactory } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
 
-const helper: any = helperImport;
-const templatingSelection: any = templatingSelectionImport;
-let request: any = requestBase;
+type ContextActivitiesMap = Record<string, unknown>;
+
+type ContextStatement = {
+  context?: {
+    contextActivities?: ContextActivitiesMap;
+  };
+  id: string;
+  object?: {
+    context?: {
+      contextActivities?: ContextActivitiesMap;
+    };
+  };
+};
+
+type ContextRequirementsHelper = {
+  OAuthRequest(request: RequestFactory): RequestFactory;
+  addAllHeaders(headers: Record<string, string | undefined>): Record<string, string | undefined>;
+  createFromTemplate(templates: Array<Record<string, unknown>>): Record<string, unknown>;
+  genDelay(stmtTime: number, query: string, statementId: string): Promise<unknown>;
+  generateUUID(): string;
+  getEndpointAndAuth(): string;
+  getEndpointStatements(): string;
+};
+
+type TemplateSelectionSupport = {
+  createTemplate(templateName: string): void;
+};
+
+const helper = helperImport as ContextRequirementsHelper;
+const templatingSelection = templatingSelectionImport as TemplateSelectionSupport;
+let request: RequestFactory = requestBase;
 
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
@@ -52,8 +79,8 @@ describe("Context Property Requirements (Data 2.4.6)", function () {
         'should return array for statement context "' + type + '"  when single ContextActivity is passed',
         async function () {
           const templates = [{ statement: "{{statements.context}}" }, { context: "{{contexts." + type + "}}" }];
-          let data = helper.createFromTemplate(templates);
-          data = data.statement;
+          const statementContainer = helper.createFromTemplate(templates) as { statement: ContextStatement };
+          const data = statementContainer.statement;
           data.id = helper.generateUUID();
           const query = "?statementId=" + data.id;
           const stmtTime = Date.now();
@@ -73,10 +100,13 @@ describe("Context Property Requirements (Data 2.4.6)", function () {
             200,
           );
 
-          const statement = helper.parse(getRes.body);
+          const statement =
+            typeof getRes.body === "string"
+              ? (JSON.parse(getRes.body) as ContextStatement)
+              : (getRes.body as ContextStatement);
           expect(statement).toHaveProperty("context.contextActivities");
-          expect(statement.context.contextActivities).toHaveProperty(type);
-          expect(Array.isArray(statement.context.contextActivities[type])).toBe(true);
+          expect(statement.context?.contextActivities).toHaveProperty(type);
+          expect(Array.isArray(statement.context?.contextActivities?.[type])).toBe(true);
         },
       );
     });
@@ -90,8 +120,8 @@ describe("Context Property Requirements (Data 2.4.6)", function () {
             { object: "{{substatements.context}}" },
             { context: "{{contexts." + type + "}}" },
           ];
-          let data = helper.createFromTemplate(templates);
-          data = data.statement;
+          const statementContainer = helper.createFromTemplate(templates) as { statement: ContextStatement };
+          const data = statementContainer.statement;
           data.id = helper.generateUUID();
           const query = "?statementId=" + data.id;
           const stmtTime = Date.now();
@@ -112,10 +142,13 @@ describe("Context Property Requirements (Data 2.4.6)", function () {
             200,
           );
 
-          const statement = helper.parse(getRes.body);
+          const statement =
+            typeof getRes.body === "string"
+              ? (JSON.parse(getRes.body) as ContextStatement)
+              : (getRes.body as ContextStatement);
           expect(statement).toHaveProperty("object.context.contextActivities");
-          expect(statement.object.context.contextActivities).toHaveProperty(type);
-          expect(Array.isArray(statement.object.context.contextActivities[type])).toBe(true);
+          expect(statement.object?.context?.contextActivities).toHaveProperty(type);
+          expect(Array.isArray(statement.object?.context?.contextActivities?.[type])).toBe(true);
         },
       );
     });

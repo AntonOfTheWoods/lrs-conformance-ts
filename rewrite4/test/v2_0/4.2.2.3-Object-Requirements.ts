@@ -4,14 +4,51 @@
  */
 
 import helperImport from "../helper.ts";
-import requestBase from "../super-request.ts";
-import { expectAsync } from "../super-request.ts";
+import requestBase, { expectAsync, type RequestFactory } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
 
 import { describe, it } from "../bun-test.ts";
-const helper: any = helperImport;
-const templatingSelection: any = templatingSelectionImport;
-let request: any = requestBase;
+
+type ObjectStatement = {
+  actor?: {
+    account?: {
+      homePage?: string;
+      name?: string;
+    };
+    openid?: string;
+  };
+  attachments?: Array<{
+    usageType?: string;
+  }>;
+  id?: string;
+  object: {
+    definition: {
+      interactionType?: unknown;
+      moreInfo?: string;
+      type?: string;
+    };
+    objectType?: unknown;
+  };
+  verb?: {
+    id?: string;
+  };
+};
+
+type ObjectRequirementsHelper = {
+  OAuthRequest(request: RequestFactory): RequestFactory;
+  addAllHeaders(headers: Record<string, string | undefined>): Record<string, string | undefined>;
+  createFromTemplate(templates: Array<Record<string, unknown>>): { statement: ObjectStatement };
+  getEndpointAndAuth(): string;
+  getEndpointStatements(): string;
+};
+
+type TemplateSelectionSupport = {
+  createTemplate(templateName: string): void;
+};
+
+const helper = helperImport as unknown as ObjectRequirementsHelper;
+const templatingSelection = templatingSelectionImport as TemplateSelectionSupport;
+let request: RequestFactory = requestBase;
 
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 

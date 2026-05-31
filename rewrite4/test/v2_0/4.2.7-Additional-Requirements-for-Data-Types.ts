@@ -1,11 +1,43 @@
 import requestImport from "../super-request.ts";
+import type { RequestFactory } from "../super-request.ts";
 import { describe, expect, it } from "../bun-test.ts";
 import helperImport from "../helper.ts";
 import xapiRequestsImport from "./util/requests.ts";
 
-let request: any = requestImport;
-const helper: any = helperImport;
-const xapiRequests: any = xapiRequestsImport;
+type StatementRecord = Record<string, unknown> & {
+  id: string;
+  object: {
+    id: string;
+  };
+  result?: {
+    duration?: string;
+  };
+  timestamp?: string;
+};
+
+type DataTypesHelper = {
+  OAuthRequest(request: RequestFactory): RequestFactory;
+  buildStatement(): StatementRecord;
+  generateUUID(): string;
+};
+
+type RequestResult = {
+  data: Record<string, unknown>;
+  status: number;
+};
+
+type XapiRequestsSupport = {
+  generateRandomMultipartBoundary(): string;
+  generateSignedStatementBody(statement: StatementRecord, boundary: string): Promise<string>;
+  getActivityWithIRI(iri: string): Promise<RequestResult>;
+  getStatementExact(statementId: string): Promise<RequestResult>;
+  sendSignedStatementBody(body: string, boundary: string): Promise<RequestResult>;
+  sendStatement(statement: StatementRecord): Promise<RequestResult>;
+};
+
+let request: RequestFactory = requestImport;
+const helper = helperImport as unknown as DataTypesHelper;
+const xapiRequests = xapiRequestsImport as unknown as XapiRequestsSupport;
 
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
@@ -34,8 +66,8 @@ describe("(4.2.7) Additional Requirements for Data Types", () => {
         let activityA = resA.data;
         let activityB = resB.data;
 
-        let matchesA = activityA.id === iriA;
-        let matchesB = activityB.id === iriB;
+        let matchesA = activityA["id"] === iriA;
+        let matchesB = activityB["id"] === iriB;
 
         expect(matchesA || matchesB).toBe(true);
       },
@@ -73,7 +105,11 @@ describe("(4.2.7) Additional Requirements for Data Types", () => {
       await xapiRequests.sendStatement(statement);
       let getRes = await xapiRequests.getStatementExact(statement.id);
 
-      let statementFromLRS = getRes.data;
+      const statementFromLRS = getRes.data as {
+        result: {
+          duration: string;
+        };
+      };
 
       expect(statementFromLRS.result).not.toBeUndefined();
       expect(statementFromLRS.result.duration).not.toBeUndefined();
@@ -138,7 +174,9 @@ describe("(4.2.7) Additional Requirements for Data Types", () => {
       expect(res.status).toEqual(200);
 
       let getResponse = await xapiRequests.getStatementExact(id);
-      let statementFromLRS = getResponse.data;
+      const statementFromLRS = getResponse.data as {
+        timestamp: string;
+      };
 
       expect(statementFromLRS).not.toBeUndefined();
       expect(statementFromLRS).not.toBeNull();

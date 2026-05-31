@@ -5,13 +5,30 @@
 
 import { describe, expect, it } from "../bun-test.ts";
 import helperImport from "../helper.ts";
-import requestBase from "../super-request.ts";
-import { expectAsync, endAsync } from "../super-request.ts";
+import requestBase, { expectAsync, endAsync, type RequestFactory } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
 
-const helper: any = helperImport;
-const templatingSelection: any = templatingSelectionImport;
-let request: any = requestBase;
+type AuthorityStatement = {
+  id: string;
+};
+
+type AuthorityRequirementsHelper = {
+  OAuthRequest(request: RequestFactory): RequestFactory;
+  addAllHeaders(headers: Record<string, string | undefined>): Record<string, string | undefined>;
+  createFromTemplate(templates: Array<Record<string, unknown>>): Record<string, unknown>;
+  genDelay(stmtTime: number, query: string, statementId: string): Promise<unknown>;
+  generateUUID(): string;
+  getEndpointAndAuth(): string;
+  getEndpointStatements(): string;
+};
+
+type TemplateSelectionSupport = {
+  createTemplate(templateName: string): void;
+};
+
+const helper = helperImport as AuthorityRequirementsHelper;
+const templatingSelection = templatingSelectionImport as TemplateSelectionSupport;
+let request: RequestFactory = requestBase;
 
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
@@ -43,8 +60,8 @@ describe("Authority Property Requirements (Data 2.4.9)", () => {
         },
       },
     ];
-    let data = helper.createFromTemplate(templates);
-    data = data.statement;
+    const statementContainer = helper.createFromTemplate(templates) as { statement: AuthorityStatement };
+    const data = statementContainer.statement;
     await expectAsync(
       request(helper.getEndpointAndAuth())
         .post(helper.getEndpointStatements())
@@ -60,8 +77,8 @@ describe("Authority Property Requirements (Data 2.4.9)", () => {
   describe('An LRS populates the "authority" property if it is not provided in the Statement, based on header information with the Agent corresponding to the user (contained within the header) (Implicit, Data 2.4.9.s3.b4, XAPI-00099) ', function () {
     it("should populate authority ", async function () {
       const templates = [{ statement: "{{statements.default}}" }];
-      let data = helper.createFromTemplate(templates);
-      data = data.statement;
+      const statementContainer = helper.createFromTemplate(templates) as { statement: AuthorityStatement };
+      const data = statementContainer.statement;
       data.id = helper.generateUUID();
       const query = "?statementId=" + data.id;
       const stmtTime = Date.now();
@@ -82,7 +99,10 @@ describe("Authority Property Requirements (Data 2.4.9)", () => {
           .expect(200),
       );
 
-      const statement = helper.parse(res.body);
+      const statement =
+        typeof res.body === "string"
+          ? (JSON.parse(res.body) as Record<string, unknown>)
+          : (res.body as Record<string, unknown>);
       expect(statement).toHaveProperty("authority");
     });
   });
