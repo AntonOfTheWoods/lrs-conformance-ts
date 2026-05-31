@@ -167,11 +167,25 @@ function createCombinedFingerprintSqlCacheKey(schema: string, tableNames: string
 }
 
 export function isRetryablePsqlExecFailure(result: PsqlCommandResult): boolean {
-  if (result.exitCode !== 255) {
+  const stderr = result.stderr;
+  if (!stderr) {
     return false;
   }
 
-  return /can only create exec sessions on running containers|container state improper/i.test(result.stderr);
+  const retryablePatterns = [
+    /can only create exec sessions on running containers/i,
+    /container state improper/i,
+    /no container with name or id .* found/i,
+    /container .* not found/i,
+    /terminating connection due to administrator command/i,
+    /server closed the connection unexpectedly/i,
+    /connection to server was lost/i,
+    /the database system is (starting up|shutting down)/i,
+    /could not connect to server/i,
+    /connection reset by peer/i,
+  ];
+
+  return retryablePatterns.some((pattern) => pattern.test(stderr));
 }
 
 export async function resolvePsqlCommandOutput(
@@ -181,8 +195,8 @@ export async function resolvePsqlCommandOutput(
     retryDelayMs?: number;
   },
 ): Promise<string> {
-  const maxAttempts = options?.maxAttempts ?? 5;
-  const retryDelayMs = options?.retryDelayMs ?? 250;
+  const maxAttempts = options?.maxAttempts ?? 8;
+  const retryDelayMs = options?.retryDelayMs ?? 500;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     const result = await runCommand();

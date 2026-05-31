@@ -556,9 +556,44 @@ async function runRequiredCommand(
   }
 }
 
+async function runRequiredCommandWithRetry(
+  command: string,
+  args: string[],
+  env: Record<string, string>,
+  context: string,
+  options?: {
+    maxAttempts?: number;
+    retryDelayMs?: number;
+  },
+): Promise<void> {
+  const maxAttempts = options?.maxAttempts ?? 3;
+  const retryDelayMs = options?.retryDelayMs ?? 1000;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const exitCode = await runCommand(command, args, env);
+    if (exitCode === 0) {
+      return;
+    }
+
+    if (attempt === maxAttempts) {
+      throw new Error(`${context} exited with status ${exitCode}`);
+    }
+
+    console.warn(
+      `[traffic-diagnostic] ${context} failed with status ${exitCode}; retrying (${attempt + 1}/${maxAttempts}).`,
+    );
+    await Bun.sleep(retryDelayMs * attempt);
+  }
+
+  throw new Error(`${context} failed without producing a result.`);
+}
+
 async function ensureLrsql(version: SupportedVersion): Promise<void> {
   const env = createVersionEnvironment(version);
-  await runRequiredCommand("bash", ["./scripts/lrsql-reset-best-effort.sh"], env, "LRSQL reset");
+  await runRequiredCommandWithRetry("bash", ["./scripts/lrsql-reset-best-effort.sh"], env, "LRSQL reset", {
+    maxAttempts: 4,
+    retryDelayMs: 1500,
+  });
   await runRequiredCommand("bash", ["./scripts/lrsql-wait.sh"], env, "LRSQL wait");
   await runRequiredCommand("bash", ["./scripts/lrsql-auth-check.sh"], env, "LRSQL auth check");
 }
