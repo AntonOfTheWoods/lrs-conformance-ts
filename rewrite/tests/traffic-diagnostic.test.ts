@@ -956,6 +956,248 @@ test("suppressSignedStatementAttachmentDbDifferences ignores hash-only signed st
   expect(effective.firstDivergentBoundary).toBeNull();
 });
 
+test("suppressSignedStatementAttachmentDbDifferences ignores signed-table hash drift after signed-statement suites", () => {
+  const report: TraceDbStateComparisonReport = {
+    candidateCapturedExchangeCount: 1675,
+    candidateCompletedRawSequenceEnd: 1758,
+    candidateManifestPath: "/tmp/candidate-manifest.json",
+    candidateReplayIssues: [],
+    comparedBoundaryCount: 1758,
+    different: true,
+    divergentBoundaries: [
+      {
+        candidate: {
+          entryKinds: ["case"],
+          fingerprintPath: "/tmp/candidate-sequence-1368.json",
+          nodeKeys: ["case:v2_0:Formatting Requirements (Data 2.2):XAPI-00072 > actor missing name and mbox_sha1sum"],
+          rawSequenceEnd: 1368,
+          unitKeys: ["test/v2_0/Data2.2-FormattingRequirements"],
+        },
+        different: true,
+        fingerprintComparison: {
+          different: true,
+          onlyLeft: [],
+          onlyRight: [],
+          rowHashOrCountDifferences: [
+            {
+              left: {
+                columnNames: ["id", "statement_id", "attachment_sha", "content_type", "content_length", "contents"],
+                rowCount: 12,
+                rowHash: "candidate-attachment-hash-1368",
+              },
+              right: {
+                columnNames: ["id", "statement_id", "attachment_sha", "content_type", "content_length", "contents"],
+                rowCount: 12,
+                rowHash: "upstream-attachment-hash-1368",
+              },
+              table: "attachment",
+            },
+            {
+              left: {
+                columnNames: [
+                  "id",
+                  "statement_id",
+                  "registration",
+                  "verb_iri",
+                  "is_voided",
+                  "payload",
+                  "timestamp",
+                  "stored",
+                  "reaction_id",
+                  "trigger_id",
+                ],
+                rowCount: 451,
+                rowHash: "candidate-statement-hash-1368",
+              },
+              right: {
+                columnNames: [
+                  "id",
+                  "statement_id",
+                  "registration",
+                  "verb_iri",
+                  "is_voided",
+                  "payload",
+                  "timestamp",
+                  "stored",
+                  "reaction_id",
+                  "trigger_id",
+                ],
+                rowCount: 451,
+                rowHash: "upstream-statement-hash-1368",
+              },
+              table: "xapi_statement",
+            },
+          ],
+        },
+        rawSequenceEnd: 1368,
+        upstream: {
+          entryKinds: ["case"],
+          fingerprintPath: "/tmp/upstream-sequence-1368.json",
+          nodeKeys: ["case:v2_0:Formatting Requirements (Data 2.2):XAPI-00072 > actor missing name and mbox_sha1sum"],
+          rawSequenceEnd: 1368,
+          unitKeys: ["test/v2_0/Data2.2-FormattingRequirements"],
+        },
+      },
+      {
+        candidate: {
+          entryKinds: ["case"],
+          fingerprintPath: "/tmp/candidate-sequence-1758.json",
+          nodeKeys: ["case:v2_0:Statement API (Communication 2.1):XAPI-00142 > statementId query"],
+          rawSequenceEnd: 1758,
+          unitKeys: ["test/v2_0/H.Communication2.1-StatementResource"],
+        },
+        different: true,
+        fingerprintComparison: {
+          different: true,
+          onlyLeft: [],
+          onlyRight: [],
+          rowHashOrCountDifferences: [
+            {
+              left: {
+                columnNames: ["id", "statement_id", "attachment_sha", "content_type", "content_length", "contents"],
+                rowCount: 16,
+                rowHash: "candidate-attachment-hash-1758",
+              },
+              right: {
+                columnNames: ["id", "statement_id", "attachment_sha", "content_type", "content_length", "contents"],
+                rowCount: 16,
+                rowHash: "upstream-attachment-hash-1758",
+              },
+              table: "attachment",
+            },
+            {
+              left: {
+                columnNames: [
+                  "id",
+                  "statement_id",
+                  "registration",
+                  "verb_iri",
+                  "is_voided",
+                  "payload",
+                  "timestamp",
+                  "stored",
+                  "reaction_id",
+                  "trigger_id",
+                ],
+                rowCount: 561,
+                rowHash: "candidate-statement-hash-1758",
+              },
+              right: {
+                columnNames: [
+                  "id",
+                  "statement_id",
+                  "registration",
+                  "verb_iri",
+                  "is_voided",
+                  "payload",
+                  "timestamp",
+                  "stored",
+                  "reaction_id",
+                  "trigger_id",
+                ],
+                rowCount: 561,
+                rowHash: "upstream-statement-hash-1758",
+              },
+              table: "xapi_statement",
+            },
+          ],
+        },
+        rawSequenceEnd: 1758,
+        upstream: {
+          entryKinds: ["case"],
+          fingerprintPath: "/tmp/upstream-sequence-1758.json",
+          nodeKeys: ["case:v2_0:Statement API (Communication 2.1):XAPI-00142 > statementId query"],
+          rawSequenceEnd: 1758,
+          unitKeys: ["test/v2_0/H.Communication2.1-StatementResource"],
+        },
+      },
+    ],
+    firstDivergentBoundary: {
+      candidate: {
+        entryKinds: ["case"],
+        fingerprintPath: "/tmp/candidate-sequence-1368.json",
+        nodeKeys: ["case:v2_0:Formatting Requirements (Data 2.2):XAPI-00072 > actor missing name and mbox_sha1sum"],
+        rawSequenceEnd: 1368,
+        unitKeys: ["test/v2_0/Data2.2-FormattingRequirements"],
+      },
+      different: true,
+      fingerprintComparison: {
+        different: true,
+        onlyLeft: [],
+        onlyRight: [],
+        rowHashOrCountDifferences: [
+          {
+            left: {
+              columnNames: ["id", "statement_id", "attachment_sha", "content_type", "content_length", "contents"],
+              rowCount: 12,
+              rowHash: "candidate-attachment-hash-1368",
+            },
+            right: {
+              columnNames: ["id", "statement_id", "attachment_sha", "content_type", "content_length", "contents"],
+              rowCount: 12,
+              rowHash: "upstream-attachment-hash-1368",
+            },
+            table: "attachment",
+          },
+          {
+            left: {
+              columnNames: [
+                "id",
+                "statement_id",
+                "registration",
+                "verb_iri",
+                "is_voided",
+                "payload",
+                "timestamp",
+                "stored",
+                "reaction_id",
+                "trigger_id",
+              ],
+              rowCount: 451,
+              rowHash: "candidate-statement-hash-1368",
+            },
+            right: {
+              columnNames: [
+                "id",
+                "statement_id",
+                "registration",
+                "verb_iri",
+                "is_voided",
+                "payload",
+                "timestamp",
+                "stored",
+                "reaction_id",
+                "trigger_id",
+              ],
+              rowCount: 451,
+              rowHash: "upstream-statement-hash-1368",
+            },
+            table: "xapi_statement",
+          },
+        ],
+      },
+      rawSequenceEnd: 1368,
+      upstream: {
+        entryKinds: ["case"],
+        fingerprintPath: "/tmp/upstream-sequence-1368.json",
+        nodeKeys: ["case:v2_0:Formatting Requirements (Data 2.2):XAPI-00072 > actor missing name and mbox_sha1sum"],
+        rawSequenceEnd: 1368,
+        unitKeys: ["test/v2_0/Data2.2-FormattingRequirements"],
+      },
+    },
+    firstReplayIssue: null,
+    upstreamCapturedExchangeCount: 1675,
+    upstreamCompletedRawSequenceEnd: 1758,
+    upstreamManifestPath: "/tmp/upstream-manifest.json",
+    upstreamReplayIssues: [],
+  };
+
+  const effective = suppressSignedStatementAttachmentDbDifferences(report);
+  expect(effective.different).toBe(false);
+  expect(effective.divergentBoundaries).toHaveLength(0);
+  expect(effective.firstDivergentBoundary).toBeNull();
+});
+
 test("writeTraceArtifacts emits per-unit manifests and filtered slices", async () => {
   const tempDir = await createAgentsTempDir("traffic-trace-");
 

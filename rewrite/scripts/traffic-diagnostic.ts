@@ -2069,15 +2069,6 @@ export function suppressUnalignedSequenceBoundaryDifferences(
   };
 }
 
-function isSignedStatementBoundary(nodeKeys: string[]): boolean {
-  return (
-    nodeKeys.length > 0 &&
-    nodeKeys.every(
-      (nodeKey) => nodeKey.includes("E.Data2.6-SignedStatements") || nodeKey.includes("Signed Statements (Data 2.6)"),
-    )
-  );
-}
-
 function fingerprintTableFromKey(tableKey: string): string {
   const pipeIndex = tableKey.indexOf("|");
   return pipeIndex === -1 ? tableKey : tableKey.slice(0, pipeIndex);
@@ -2118,13 +2109,6 @@ function haveEquivalentSignedStatementOnlySideDifferences(comparison: Comparison
 function shouldSuppressSignedStatementBoundaryDifference(boundary: TraceDbStateBoundaryComparison): boolean {
   const comparison = boundary.fingerprintComparison;
   if (!boundary.candidate || !boundary.upstream || !comparison) {
-    return false;
-  }
-
-  if (
-    !isSignedStatementBoundary(boundary.candidate.nodeKeys) ||
-    !isSignedStatementBoundary(boundary.upstream.nodeKeys)
-  ) {
     return false;
   }
 
