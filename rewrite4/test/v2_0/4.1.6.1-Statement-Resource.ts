@@ -6,7 +6,7 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 
-import { beforeAll, describe, expect, it } from "bun:test";
+import { beforeAll, describe, expect, it } from "../bun-test.ts";
 import extend from "../../bun-runtime/extend-compat.ts";
 import helperImport from "../helper.ts";
 import multipartParser from "../multipartParser.ts";

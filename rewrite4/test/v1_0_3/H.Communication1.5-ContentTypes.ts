@@ -9,7 +9,7 @@ import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { expectAsync } from "../super-request.ts";
 
-import { beforeAll, describe, it } from "bun:test";
+import { beforeAll, describe, it } from "../bun-test.ts";
 const helper: any = helperImport;
 let request: any = requestBase;
 

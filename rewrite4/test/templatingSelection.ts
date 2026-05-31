@@ -1,4 +1,4 @@
-import { describe, it } from "bun:test";
+import { describe, it } from "./bun-test.ts";
 
 type TemplateMapping = Record<string, string>;
 
@@ -48,7 +48,7 @@ export function createTemplate(templateName: string): void {
   configurations.forEach((configuration) => {
     describe(configuration.name, () => {
       configuration.config.forEach((templateTest) => {
-        it(templateTest.name, (done) => {
+        it(templateTest.name, (done: (error?: unknown) => void) => {
           if (!templateTest.templates && !templateTest.json) {
             done(`Invalid test: "${templateTest.name}`);
             return;

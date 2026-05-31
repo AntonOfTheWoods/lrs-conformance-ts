@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { beforeAll, describe, expect, it } from "bun:test";
+import { beforeAll, describe, expect, it } from "../bun-test.ts";
 import helperImport from "../helper.ts";
 import xapiRequestsImport from "./util/requests.ts";
 

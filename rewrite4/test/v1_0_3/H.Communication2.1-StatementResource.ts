@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { beforeAll, describe, expect, it } from "bun:test";
+import { beforeAll, describe, expect, it } from "../bun-test.ts";
 import crypto from "crypto";
 import extend from "../../bun-runtime/extend-compat.ts";
 import fs from "fs";

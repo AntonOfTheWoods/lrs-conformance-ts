@@ -4,7 +4,7 @@
  */
 import requestModule from "../super-request.ts";
 import { expectAsync } from "../super-request.ts";
-import { beforeAll, describe, expect, it } from "bun:test";
+import { beforeAll, describe, expect, it } from "../bun-test.ts";
 import helperModule from "../helper.ts";
 import xapiRequestsModule from "./util/requests.ts";
 

@@ -10,7 +10,7 @@ import { expectAsync } from "../super-request.ts";
 
 import helperModule from "../helper.ts";
 
-import { beforeAll, describe, it } from "bun:test";
+import { beforeAll, describe, it } from "../bun-test.ts";
 let request = requestModule as unknown as (target: string) => any;
 const helper = helperModule as any;
 
