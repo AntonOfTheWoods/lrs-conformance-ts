@@ -2043,6 +2043,43 @@ function isSignedStatementBoundary(nodeKeys: string[]): boolean {
   );
 }
 
+function fingerprintTableFromKey(tableKey: string): string {
+  const pipeIndex = tableKey.indexOf("|");
+  return pipeIndex === -1 ? tableKey : tableKey.slice(0, pipeIndex);
+}
+
+function haveEquivalentSignedStatementOnlySideDifferences(comparison: ComparisonResult): boolean {
+  if (comparison.onlyLeft.length === 0 || comparison.onlyRight.length === 0) {
+    return false;
+  }
+
+  if (comparison.onlyLeft.length !== comparison.onlyRight.length) {
+    return false;
+  }
+
+  const leftCounts = new Map<string, number>();
+  const rightCounts = new Map<string, number>();
+
+  for (const key of comparison.onlyLeft) {
+    const table = fingerprintTableFromKey(key);
+    if (!signedStatementFingerprintTables.has(table)) {
+      return false;
+    }
+    leftCounts.set(table, (leftCounts.get(table) ?? 0) + 1);
+  }
+
+  for (const key of comparison.onlyRight) {
+    const table = fingerprintTableFromKey(key);
+    if (!signedStatementFingerprintTables.has(table)) {
+      return false;
+    }
+    rightCounts.set(table, (rightCounts.get(table) ?? 0) + 1);
+  }
+
+  const tables = [...new Set([...leftCounts.keys(), ...rightCounts.keys()])];
+  return tables.every((table) => (leftCounts.get(table) ?? 0) === (rightCounts.get(table) ?? 0));
+}
+
 function shouldSuppressSignedStatementBoundaryDifference(boundary: TraceDbStateBoundaryComparison): boolean {
   const comparison = boundary.fingerprintComparison;
   if (!boundary.candidate || !boundary.upstream || !comparison) {
@@ -2056,19 +2093,15 @@ function shouldSuppressSignedStatementBoundaryDifference(boundary: TraceDbStateB
     return false;
   }
 
-  if (
-    comparison.onlyLeft.length > 0 ||
-    comparison.onlyRight.length > 0 ||
-    comparison.rowHashOrCountDifferences.length === 0
-  ) {
-    return false;
+  if (comparison.rowHashOrCountDifferences.length > 0) {
+    return comparison.rowHashOrCountDifferences.every(
+      (difference) =>
+        signedStatementFingerprintTables.has(difference.table) &&
+        difference.left?.rowCount === difference.right?.rowCount,
+    );
   }
 
-  return comparison.rowHashOrCountDifferences.every(
-    (difference) =>
-      signedStatementFingerprintTables.has(difference.table) &&
-      difference.left?.rowCount === difference.right?.rowCount,
-  );
+  return haveEquivalentSignedStatementOnlySideDifferences(comparison);
 }
 
 export function suppressSignedStatementAttachmentDbDifferences(
