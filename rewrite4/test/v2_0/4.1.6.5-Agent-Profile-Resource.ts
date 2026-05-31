@@ -2,7 +2,7 @@
  * Description : This is a test suite that tests an LRS endpoint based on the testing requirements document
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
-import { expect } from "bun:test";
+import { beforeAll, describe, expect, it } from "bun:test";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { expectAsync } from "../super-request.ts";
@@ -543,7 +543,7 @@ describe("Agent Profile Resource Requirements (Communication 2.6)", () => {
     let resourcePath = xapiRequests.resourcePaths.agentsProfile;
     let resourceParams = helper.buildAgentProfile();
 
-    before("Add the document", async () => {
+    beforeAll(async () => {
       await xapiRequests.deleteDocument(resourcePath, resourceParams);
       await xapiRequests.postDocument(resourcePath, document, resourceParams);
     });

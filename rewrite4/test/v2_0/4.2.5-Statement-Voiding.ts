@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "bun:test";
+import { beforeAll, describe, expect, it } from "bun:test";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { expectAsync, endAsync } from "../super-request.ts";
@@ -34,7 +34,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
     const voidedId = helper.generateUUID();
     let stmtTime: number;
 
-    before("Persist voided statement", async () => {
+    beforeAll(async () => {
       const templates = [{ statement: "{{statements.default}}" }];
       let voided = helper.createFromTemplate(templates);
       voided = voided.statement;
@@ -49,7 +49,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
       );
     });
 
-    before("Persist voiding statement", async () => {
+    beforeAll(async () => {
       const templates = [{ statement: "{{statements.voiding}}" }];
       let voiding = helper.createFromTemplate(templates);
       voiding = voiding.statement;
@@ -65,10 +65,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
       );
     });
 
-    it('Should return a voided statement when using GET "voidedStatementId"', async function (this: {
-      timeout(ms: number): void;
-    }) {
-      this.timeout(0);
+    it('Should return a voided statement when using GET "voidedStatementId"', async function () {
       const query = helper.getUrlEncoding({ voidedStatementId: voidedId });
       const res = await endAsync(
         request(helper.getEndpointAndAuth())
@@ -82,8 +79,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
       expect(statement.id).toEqual(voidedId);
     });
 
-    it('Should return 404 when using GET with "statementId"', async function (this: { timeout(ms: number): void }) {
-      this.timeout(0);
+    it('Should return 404 when using GET with "statementId"', async function () {
       const query = helper.getUrlEncoding({ statementId: voidedId });
       await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -105,7 +101,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
     let voidedId: string;
     let voidingId: string;
 
-    before("Persist voided statement", async () => {
+    beforeAll(async () => {
       const templates = [{ statement: "{{statements.default}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
@@ -121,7 +117,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
       voidedId = (res.body as string[])[0] as string;
     });
 
-    before("Persist voiding statement", async () => {
+    beforeAll(async () => {
       const templates = [{ statement: "{{statements.voiding}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
@@ -138,8 +134,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
       voidingId = (res.body as string[])[0] as string;
     });
 
-    it("Should not void an already voided statement", async function (this: { timeout(ms: number): void }) {
-      this.timeout(0);
+    it("Should not void an already voided statement", async function () {
       const templates = [{ statement: "{{statements.object_statementref}}" }, { verb: "{{verbs.voided}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
@@ -163,8 +158,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
       );
     });
 
-    it("Should not void a voiding statement", async function (this: { timeout(ms: number): void }) {
-      this.timeout(0);
+    it("Should not void a voiding statement", async function () {
       const templates = [{ statement: "{{statements.object_statementref}}" }, { verb: "{{verbs.voided}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;
@@ -196,8 +190,7 @@ describe("Statement Lifecycle Requirements (Data 2.3)", () => {
   describe("An LRS SHALL NOT reject a voided statement because it cannot find the ID of the Object of that statement, nor does the LRS have to try to find it. (4.2.4.1 LRS Rejection Cases, XAPI-00016)", () => {
     const nonExistentStatementID = helper.generateUUID();
 
-    it("Shall not reject a voided statement.", async function (this: { timeout(ms: number): void }) {
-      this.timeout(0);
+    it("Shall not reject a voided statement.", async function () {
       const templates = [{ statement: "{{statements.object_statementref}}" }, { verb: "{{verbs.voided}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;

@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "bun:test";
+import { beforeAll, describe, expect, it } from "bun:test";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { expectAsync } from "../super-request.ts";
@@ -723,7 +723,7 @@ describe("State Resource Requirements (Communication 2.3)", () => {
     let resourcePath = xapiRequests.resourcePaths.activityState;
     let resourceParams = helper.buildState();
 
-    before("Add the document", async () => {
+    beforeAll(async () => {
       await xapiRequests.deleteDocument(resourcePath, resourceParams);
       await xapiRequests.postDocument(resourcePath, document, resourceParams);
     });

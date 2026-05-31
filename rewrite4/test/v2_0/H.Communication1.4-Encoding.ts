@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { endAsync } from "../super-request.ts";
@@ -18,8 +18,7 @@ describe("Encoding Requirements (Communication 1.4)", () => {
    * All Strings are encoded and interpreted as UTF-8
    * This req should stay here (Communication 1.4).  This is the only place which mentions UTF-8 in the spec, other than Comm 1.3
    */
-  it("All Strings are encoded and interpreted as UTF-8 (Communication 1.4.s1.b1, XAPI-00015)", async function (this: { timeout(ms: number): void }) {
-    this.timeout(0);
+  it("All Strings are encoded and interpreted as UTF-8 (Communication 1.4.s1.b1, XAPI-00015)", async function () {
     const verbTemplate = "http://adlnet.gov/expapi/test/unicode/target/";
     const verb = verbTemplate + helper.generateUUID();
     const unicodeTemplates = [{ statement: "{{statements.unicode}}" }];

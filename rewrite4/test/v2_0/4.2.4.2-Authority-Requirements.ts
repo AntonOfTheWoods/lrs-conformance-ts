@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { expectAsync, endAsync } from "../super-request.ts";
@@ -57,12 +57,8 @@ describe("Authority Property Requirements (Data 2.4.9)", () => {
   /**  XAPI-00099, Data 2.4.9 Authority
    * An LRS populates the "authority" property if it is not provided in the Statement
    */
-  describe('An LRS populates the "authority" property if it is not provided in the Statement, based on header information with the Agent corresponding to the user (contained within the header) (Implicit, Data 2.4.9.s3.b4, XAPI-00099) ', function (this: {
-    timeout(ms: number): void;
-  }) {
-    it("should populate authority ", async function (this: { timeout(ms: number): void }) {
-      this.timeout(0);
-
+  describe('An LRS populates the "authority" property if it is not provided in the Statement, based on header information with the Agent corresponding to the user (contained within the header) (Implicit, Data 2.4.9.s3.b4, XAPI-00099) ', function () {
+    it("should populate authority ", async function () {
       const templates = [{ statement: "{{statements.default}}" }];
       let data = helper.createFromTemplate(templates);
       data = data.statement;

@@ -12,7 +12,7 @@
  * XAPI-00025 - in attachments.js
  */
 
-import { expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { expectAsync } from "../super-request.ts";
@@ -39,11 +39,8 @@ describe("Id Property Requirements (Data 2.4.1)", () => {
   /**  XAPI-00026,  Data 2.4.1 Id
    * An LRS generates the "id" property of a Statement if none is provided (Modify, 4.1.1.a)
    */
-  describe('An LRS generates the "id" property of a Statement if none is provided (Modify, Data 2.4.1.s2.b1, XAPI-00026)', function (this: {
-    timeout(ms: number): void;
-  }) {
-    it("should complete an empty id property", async function (this: { timeout(ms: number): void }) {
-      this.timeout(0);
+  describe('An LRS generates the "id" property of a Statement if none is provided (Modify, Data 2.4.1.s2.b1, XAPI-00026)', function () {
+    it("should complete an empty id property", async function () {
       const templates = [{ statement: "{{statements.default}}" }];
       data = helper.createFromTemplate(templates).statement;
       const stmtTime = Date.now();

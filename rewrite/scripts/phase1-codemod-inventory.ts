@@ -5,6 +5,7 @@ type FileInventory = {
   file: string;
   hasBunTestImport: boolean;
   usesGlobals: boolean;
+  usesGlobalExpect: boolean;
   usesDone: number;
   usesThisTimeout: number;
   importInjectionCandidate: boolean;
@@ -57,6 +58,7 @@ function buildFileInventory(filePath: string): FileInventory {
   const text = readFileSync(filePath, "utf8");
   const hasBunTestImport = /from\s+["']bun:test["']/.test(text);
   const usesGlobals = /\b(?:describe|context|it|specify|before)\s*\(/.test(text);
+  const usesGlobalExpect = /(^|[^.$\w])expect\s*\(/m.test(text);
   const usesDone = countMatches(text, /\bdone\b/g);
   const usesThisTimeout = countMatches(text, /\bthis\.timeout\s*\(/g);
 
@@ -64,9 +66,10 @@ function buildFileInventory(filePath: string): FileInventory {
     file: relativePath(filePath),
     hasBunTestImport,
     usesGlobals,
+    usesGlobalExpect,
     usesDone,
     usesThisTimeout,
-    importInjectionCandidate: usesGlobals && !hasBunTestImport,
+    importInjectionCandidate: usesGlobalExpect && !hasBunTestImport,
   };
 }
 

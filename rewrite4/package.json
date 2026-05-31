@@ -17,8 +17,8 @@
   },
   "main": "./bin/console_runner.ts",
   "scripts": {
-    "test": "bun ./node_modules/mocha/bin/mocha test/v1_0_3/*.ts test/v2_0/*.ts --reporter nyan",
-    "test:bun:pilot": "bun test --preload ./test/bun-bootstrap.ts ./test/v1_0_3/*.ts ./test/v2_0/*.ts",
+    "test": "bun test --preload ./test/bun-bootstrap.ts ./test/v1_0_3/*.ts ./test/v2_0/*.ts",
+    "test:legacy:mocha": "bun ./node_modules/mocha/bin/mocha test/v1_0_3/*.ts test/v2_0/*.ts --reporter nyan",
     "start": "bun ./bin/console_runner.ts",
     "update-batteries": "bun ./bin/update-batteries.ts"
   },

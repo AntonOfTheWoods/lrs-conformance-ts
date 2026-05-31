@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "bun:test";
+import { beforeAll, describe, expect, it } from "bun:test";
 import helperImport from "../helper.ts";
 
 const helper: any = helperImport;
@@ -87,7 +87,7 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
 
     describe("With a valid etag", () => {
       let parameters: any, document: any;
-      before("before", () => {
+      beforeAll(() => {
         parameters = helper.buildAgentProfile();
         document = helper.buildDocument();
         return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204);
@@ -130,7 +130,7 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
       let parameters = helper.buildAgentProfile(),
         document = helper.buildDocument();
 
-      before("post the document and get the etag", () => {
+      beforeAll(() => {
         return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then((
           res: any,
         ) => {
@@ -165,7 +165,7 @@ describe("Concurrency Requirements (Communication 3.1)", () => {
       let document = helper.buildDocument();
       let document2 = helper.buildDocument();
 
-      before("post the document and get the etag", () => {
+      beforeAll(() => {
         return helper
           .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204)
           .then((res: any) => {

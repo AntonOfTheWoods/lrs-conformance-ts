@@ -8,6 +8,7 @@ import requestBase from "../super-request.ts";
 import { expectAsync } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
 
+import { describe, it } from "bun:test";
 const helper: any = helperImport;
 const templatingSelection: any = templatingSelectionImport;
 let request: any = requestBase;

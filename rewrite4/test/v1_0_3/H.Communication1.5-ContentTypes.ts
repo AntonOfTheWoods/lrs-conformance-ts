@@ -9,6 +9,7 @@ import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { expectAsync } from "../super-request.ts";
 
+import { beforeAll, describe, it } from "bun:test";
 const helper: any = helperImport;
 let request: any = requestBase;
 
@@ -25,7 +26,7 @@ describe("Content Type Requirements (Communication 1.5)", () => {
   let t2attHash: string;
   let t3attHash: string;
 
-  before("create attachments templates", () => {
+  beforeAll(() => {
     txtAtt1 = fs.readFileSync("test/v1_0_3/templates/attachments/simple_text1.txt");
     txtAtt2 = fs.readFileSync("test/v1_0_3/templates/attachments/simple_text2.txt");
     txtAtt3 = fs.readFileSync("test/v1_0_3/templates/attachments/simple_text3.txt");
@@ -68,7 +69,7 @@ describe("Content Type Requirements (Communication 1.5)", () => {
     let pattSize: number;
     let pattHash: string;
 
-    before("create attachment templates", () => {
+    beforeAll(() => {
       let templates = [
         { statement: "{{statements.attachment}}" },
         {

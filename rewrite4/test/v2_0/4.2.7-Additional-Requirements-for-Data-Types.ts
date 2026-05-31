@@ -1,5 +1,5 @@
 import requestImport from "../super-request.ts";
-import { expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import helperImport from "../helper.ts";
 import xapiRequestsImport from "./util/requests.ts";
 

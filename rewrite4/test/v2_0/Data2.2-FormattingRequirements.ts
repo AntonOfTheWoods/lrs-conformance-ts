@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "bun:test";
+import { beforeAll, describe, expect, it } from "bun:test";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { expectAsync, endAsync } from "../super-request.ts";
@@ -15,7 +15,7 @@ let request: any = requestBase;
 
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
-before("Before all tests are run", async function (this: { timeout(ms: number): void }) {
+beforeAll(async function () {
   console.log("Setting up\nAccounting for time differential between test suite and lrs");
   await new Promise<void>((resolve, reject) => {
     helper.setTimeMargin((err: unknown) => {
@@ -52,12 +52,8 @@ describe("Formatting Requirements (Data 2.2)", () => {
   /**  XAPI-00002, Data 2.2 Formatting Requirements
    * An LRS stores 32-bit floating point numbers with at least the precision of IEEE 754
    */
-  describe("An LRS stores 32-bit floating point numbers with at least the precision of IEEE 754 (Data 2.2.s4.b3, XAPI-00002)", function (this: {
-    timeout(ms: number): void;
-  }) {
-    this.timeout(0);
-
-    it("should pass and keep precision", async function (this: { timeout(ms: number): void }) {
+  describe("An LRS stores 32-bit floating point numbers with at least the precision of IEEE 754 (Data 2.2.s4.b3, XAPI-00002)", function () {
+    it("should pass and keep precision", async function () {
       const templates = [{ statement: "{{statements.result}}" }, { result: "{{results.default}}" }];
       const data = helper.createFromTemplate(templates).statement;
       const id = helper.generateUUID();
@@ -102,8 +98,8 @@ describe("Formatting Requirements (Data 2.2)", () => {
    */
   describe(
     "The LRS rejects with error code 400 Bad Request parameter values which do not validate to the same standards required for values of the same types in Statements (Data 2.2.s4.b4, XAPI-00012)",
-    function (this: { timeout(ms: number): void }) {
-      it("should reject when statementId value is invalid", async function (this: { timeout(ms: number): void }) {
+    function () {
+      it("should reject when statementId value is invalid", async function () {
         const query = helper.getUrlEncoding({ statementId: "wrong" });
         await expectAsync(
           request(helper.getEndpointAndAuth())
@@ -113,7 +109,7 @@ describe("Formatting Requirements (Data 2.2)", () => {
         );
       });
 
-      it("should reject when statementId value is invalid", async function (this: { timeout(ms: number): void }) {
+      it("should reject when statementId value is invalid", async function () {
         const query = helper.getUrlEncoding({ voidedStatementId: "wrong" });
         await expectAsync(
           request(helper.getEndpointAndAuth())
@@ -123,7 +119,7 @@ describe("Formatting Requirements (Data 2.2)", () => {
         );
       });
 
-      it("should reject when statementId value is invalid", async function (this: { timeout(ms: number): void }) {
+      it("should reject when statementId value is invalid", async function () {
         const query = helper.getUrlEncoding({ agent: "wrong" });
         await expectAsync(
           request(helper.getEndpointAndAuth())
@@ -133,7 +129,7 @@ describe("Formatting Requirements (Data 2.2)", () => {
         );
       });
 
-      it("should reject when statementId value is invalid", async function (this: { timeout(ms: number): void }) {
+      it("should reject when statementId value is invalid", async function () {
         const query = helper.getUrlEncoding({ verb: "not.a.valid.iri.com/verb" });
         await expectAsync(
           request(helper.getEndpointAndAuth())
@@ -143,7 +139,7 @@ describe("Formatting Requirements (Data 2.2)", () => {
         );
       });
 
-      it("should reject when statementId value is invalid", async function (this: { timeout(ms: number): void }) {
+      it("should reject when statementId value is invalid", async function () {
         const query = helper.getUrlEncoding({ activity: "not.a.valid.iri.com/activity" });
         await expectAsync(
           request(helper.getEndpointAndAuth())
@@ -153,7 +149,7 @@ describe("Formatting Requirements (Data 2.2)", () => {
         );
       });
 
-      it("should reject when statementId value is invalid", async function (this: { timeout(ms: number): void }) {
+      it("should reject when statementId value is invalid", async function () {
         const query = helper.getUrlEncoding({ registration: "wrong" });
         await expectAsync(
           request(helper.getEndpointAndAuth())
@@ -168,12 +164,10 @@ describe("Formatting Requirements (Data 2.2)", () => {
   /**  XAPI-00014, Data 2.2 Formatting Requirements
    * All Objects are well-created JSON Objects (Nature of Binding)
    */
-  describe("All Objects are well-created JSON Objects (Nature of binding, Data 2.1, XAPI-00014) **Implicit**", function (this: {
-    timeout(ms: number): void;
-  }) {
+  describe("All Objects are well-created JSON Objects (Nature of binding, Data 2.1, XAPI-00014) **Implicit**", function () {
     templatingSelection.createTemplate("verify.ts");
 
-    it("An LRS rejects a not well-created JSON Object", async function (this: { timeout(ms: number): void }) {
+    it("An LRS rejects a not well-created JSON Object", async function () {
       const malformedTemplates = [{ statement: "{{statements.default}}" }];
       const malformed = helper.createFromTemplate(malformedTemplates).statement;
       const string = '"objectType": "Agent"';
@@ -192,11 +186,9 @@ describe("Formatting Requirements (Data 2.2)", () => {
   /**  XAPI-00011, Data 2.2 Formatting Requirements
    * An LRS rejects with error code 400 Bad Request a Statement containing IRL or IRI values without a scheme.
    */
-  describe("An LRS rejects with error code 400 Bad Request a Statement containing IRL or IRI values without a scheme. (Data 2.2.s4.b1.b8, XAPI-00011)", function (this: {
-    timeout(ms: number): void;
-  }) {
+  describe("An LRS rejects with error code 400 Bad Request a Statement containing IRL or IRI values without a scheme. (Data 2.2.s4.b1.b8, XAPI-00011)", function () {
     // verb id
-    it("should fail with bad verb id scheme", async function (this: { timeout(ms: number): void }) {
+    it("should fail with bad verb id scheme", async function () {
       const templates = [
         {
           statement: "{{statements.default}}",
@@ -217,7 +209,7 @@ describe("Formatting Requirements (Data 2.2)", () => {
     });
 
     // openid
-    it("should fail with bad verb openid scheme", async function (this: { timeout(ms: number): void }) {
+    it("should fail with bad verb openid scheme", async function () {
       const templates = [
         {
           statement: "{{statements.actor}}",
@@ -238,7 +230,7 @@ describe("Formatting Requirements (Data 2.2)", () => {
     });
 
     // account homePage
-    it("should fail with bad account homePage", async function (this: { timeout(ms: number): void }) {
+    it("should fail with bad account homePage", async function () {
       const templates = [
         {
           statement: "{{statements.actor}}",
@@ -259,7 +251,7 @@ describe("Formatting Requirements (Data 2.2)", () => {
     });
 
     // object id
-    it("should fail with bad object id", async function (this: { timeout(ms: number): void }) {
+    it("should fail with bad object id", async function () {
       const templates = [
         {
           statement: "{{statements.default}}",
@@ -280,7 +272,7 @@ describe("Formatting Requirements (Data 2.2)", () => {
     });
 
     // object type
-    it("should fail with bad object type", async function (this: { timeout(ms: number): void }) {
+    it("should fail with bad object type", async function () {
       const templates = [
         {
           statement: "{{statements.default}}",
@@ -304,7 +296,7 @@ describe("Formatting Requirements (Data 2.2)", () => {
     });
 
     // object moreInfo
-    it("should fail with bad object moreInfo", async function (this: { timeout(ms: number): void }) {
+    it("should fail with bad object moreInfo", async function () {
       const templates = [
         {
           statement: "{{statements.default}}",
@@ -328,7 +320,7 @@ describe("Formatting Requirements (Data 2.2)", () => {
     });
 
     // attachment usageType
-    it("should fail with attachment bad usageType", async function (this: { timeout(ms: number): void }) {
+    it("should fail with attachment bad usageType", async function () {
       const templates = [
         {
           statement: "{{statements.attachment}}",
@@ -362,7 +354,7 @@ describe("Formatting Requirements (Data 2.2)", () => {
     });
 
     // attachment fileUrl
-    it("should fail with bad attachment fileUrl", async function (this: { timeout(ms: number): void }) {
+    it("should fail with bad attachment fileUrl", async function () {
       const templates = [
         {
           statement: "{{statements.attachment}}",
@@ -396,7 +388,7 @@ describe("Formatting Requirements (Data 2.2)", () => {
     });
 
     // object definition extension
-    it("should fail with bad object definition extension", async function (this: { timeout(ms: number): void }) {
+    it("should fail with bad object definition extension", async function () {
       const templates = [
         {
           statement: "{{statements.default}}",
@@ -420,7 +412,7 @@ describe("Formatting Requirements (Data 2.2)", () => {
     });
 
     // context extension
-    it("should fail with bad context extension", async function (this: { timeout(ms: number): void }) {
+    it("should fail with bad context extension", async function () {
       const templates = [
         {
           statement: "{{statements.default}}",
@@ -444,7 +436,7 @@ describe("Formatting Requirements (Data 2.2)", () => {
     });
 
     // result extension
-    it("should fail with bad result extension", async function (this: { timeout(ms: number): void }) {
+    it("should fail with bad result extension", async function () {
       const templates = [
         {
           statement: "{{statements.default}}",

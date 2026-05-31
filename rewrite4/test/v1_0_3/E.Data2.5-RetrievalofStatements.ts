@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "bun:test";
+import { beforeAll, describe, expect, it } from "bun:test";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { expectAsync, endAsync } from "../super-request.ts";
@@ -27,7 +27,7 @@ function isValidRelativeUrl(value: unknown): boolean {
   }
 }
 
-describe("Retrieval of Statements (Data 2.5)", function (this: { timeout(ms: number): void }) {
+describe("Retrieval of Statements (Data 2.5)", function () {
   /**  Matchup with Conformance Requirements Document
    * XAPI-00108 - below
    * XAPI-00109 - below
@@ -41,10 +41,8 @@ describe("Retrieval of Statements (Data 2.5)", function (this: { timeout(ms: num
   /**  XAPI-00113, Data 2.5 Retrieval of Statements
    * An LRS's Statement API, upon processing a successful GET request, will return a single "statements" property and a single "more" property. A single "more" property must be present if there are additional results available.
    */
-  describe('An LRS\'s Statement API, upon processing a successful GET request, will return a single "statements" property and a single "more" property. (Data 2.5.s2.table1, XAPI-00113)', function (this: {
-    timeout(ms: number): void;
-  }) {
-    before("guarantee two statements in LRS", async function (this: { timeout(ms: number): void }) {
+  describe('An LRS\'s Statement API, upon processing a successful GET request, will return a single "statements" property and a single "more" property. (Data 2.5.s2.table1, XAPI-00113)', function () {
+    beforeAll(async function () {
       let template = [{ statement: "{{statements.default}}" }],
         s1 = helper.createFromTemplate(template).statement,
         s2 = helper.createFromTemplate(template).statement,
@@ -58,8 +56,7 @@ describe("Retrieval of Statements (Data 2.5)", function (this: { timeout(ms: num
       );
     });
 
-    it("will return single statements property and may return", async function (this: { timeout(ms: number): void }) {
-      this.timeout(0);
+    it("will return single statements property and may return", async function () {
       let query = "?limit=1";
       let stmtTime = Date.now();
       const res = await expectAsync(
@@ -79,15 +76,11 @@ describe("Retrieval of Statements (Data 2.5)", function (this: { timeout(ms: num
   /**  XAPI-00110, Data 2.5 Retrieval of Statements
    * A "statements" property is an Array of Statements. Make a GET request which will return at least one statement and confirm the “statements” property is a valid Array of Statements.
    */
-  describe('A "statements" property is an Array of Statements (Type, Data 2.5.s2.table1.row1, XAPI-00110)', function (this: {
-    timeout(ms: number): void;
-  }) {
+  describe('A "statements" property is an Array of Statements (Type, Data 2.5.s2.table1.row1, XAPI-00110)', function () {
     let statement: any;
     let substatement: any;
     let stmtTime: number;
-    this.timeout(0);
-
-    before("persist statement", async function (this: { timeout(ms: number): void }) {
+    beforeAll(async function () {
       let templates = [
         { statement: "{{statements.context}}" },
         { context: "{{contexts.category}}" },
@@ -121,7 +114,7 @@ describe("Retrieval of Statements (Data 2.5)", function (this: { timeout(ms: num
       );
     });
 
-    before("persist substatement", async function (this: { timeout(ms: number): void }) {
+    beforeAll(async function () {
       let templates = [
         { statement: "{{statements.object_substatement}}" },
         { object: "{{substatements.context}}" },
@@ -156,9 +149,7 @@ describe("Retrieval of Statements (Data 2.5)", function (this: { timeout(ms: num
       );
     });
 
-    it('should return StatementResult with statements as array using GET without "statementId" or "voidedStatementId"', async function (this: {
-      timeout(ms: number): void;
-    }) {
+    it('should return StatementResult with statements as array using GET without "statementId" or "voidedStatementId"', async function () {
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
           .get(helper.getEndpointStatements())
@@ -176,10 +167,7 @@ describe("Retrieval of Statements (Data 2.5)", function (this: { timeout(ms: num
   /**  XAPI-00114, Data 2.5 Retrieval of Statements
    * A "statements" property result which is paginated will create a container for each additional page.
    */
-  it('A "statements" property which is too large for a single page will create a container for each additional page (Data 2.5.s2.table1.row1, XAPI-00114)', async function (this: {
-    timeout(ms: number): void;
-  }) {
-    this.timeout(0);
+  it('A "statements" property which is too large for a single page will create a container for each additional page (Data 2.5.s2.table1.row1, XAPI-00114)', async function () {
     let statementTemplates = [{ statement: "{{statements.default}}" }];
 
     let statement1 = helper.createFromTemplate(statementTemplates);
@@ -215,12 +203,8 @@ describe("Retrieval of Statements (Data 2.5)", function (this: { timeout(ms: num
   /**  XAPI-00109, Data 2.5 Retrieval of Statements
    * The "more" property is absent or an empty string (no whitespace) if the entire results of the original GET request have been returned. To test make a GET request which will return a known number of statements and check to make sure the LRS either returns an empty string or the more property is absent.
    */
-  describe('The "more" property is absent or an empty string (no whitespace) if the entire results of the original GET request have been returned. (Data 2.5.s2.table1.row2, XAPI-00109)', function (this: {
-    timeout(ms: number): void;
-  }) {
-    it('should return empty "more" property or no "more" property when all statements returned', async function (this: {
-      timeout(ms: number): void;
-    }) {
+  describe('The "more" property is absent or an empty string (no whitespace) if the entire results of the original GET request have been returned. (Data 2.5.s2.table1.row2, XAPI-00109)', function () {
+    it('should return empty "more" property or no "more" property when all statements returned', async function () {
       let query = helper.getUrlEncoding({ verb: "http://adlnet.gov/expapi/non/existent/344588672021038" });
       const res = await expectAsync(
         request(helper.getEndpointAndAuth())
@@ -241,12 +225,8 @@ describe("Retrieval of Statements (Data 2.5)", function (this: { timeout(ms: num
   /**  XAPI-00108, Data 2.5 Retrieval of Statements
    * If not empty, the "more" property's IRL refers to a specific container object corresponding to the next page of results from the original GET request. To test make a GET request which will return a known number of statements and confirm the LRS returns a “more” property which has an IRL with a container of the remaining statements and that the IRL is valid.
    */
-  describe('If not empty, the "more" property\'s IRL refers to a specific container object corresponding to the next page of results from the orignal GET request (Data 2.5.s2.table1.row2, XAPI-00108)', function (this: {
-    timeout(ms: number): void;
-  }) {
-    it('should return "more" which refers to next page of results', async function (this: {
-      timeout(ms: number): void;
-    }) {
+  describe('If not empty, the "more" property\'s IRL refers to a specific container object corresponding to the next page of results from the orignal GET request (Data 2.5.s2.table1.row2, XAPI-00108)', function () {
+    it('should return "more" which refers to next page of results', async function () {
       const res = await endAsync(
         request(helper.getEndpointAndAuth())
           .get(helper.getEndpointStatements() + "?limit=1")
@@ -270,10 +250,7 @@ describe("Retrieval of Statements (Data 2.5)", function (this: { timeout(ms: num
   /**  XAPI-00111, Data 2.5 Retrieval of Statements
    * A "more" property's referenced container object follows the same rules as the original GET request, originating with a single "statements" property and a single "more" property.
    */
-  it('A "more" property\'s referenced container object follows the same rules as the original GET request, originating with a single "statements" property and a single "more" property (Data 2.5.s2.table1.row2, XAPI-00111)', async function (this: {
-    timeout(ms: number): void;
-  }) {
-    this.timeout(0);
+  it('A "more" property\'s referenced container object follows the same rules as the original GET request, originating with a single "statements" property and a single "more" property (Data 2.5.s2.table1.row2, XAPI-00111)', async function () {
     let verbTemplate = "http://adlnet.gov/expapi/test/more/target/";
     let id1 = helper.generateUUID();
     let id2 = helper.generateUUID();

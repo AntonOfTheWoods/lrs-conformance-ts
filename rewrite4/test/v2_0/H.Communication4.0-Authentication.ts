@@ -7,6 +7,7 @@ import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { endAsync } from "../super-request.ts";
 
+import { describe, it } from "bun:test";
 const helper: any = helperImport;
 let request: any = requestBase;
 

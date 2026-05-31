@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import { endAsync } from "../super-request.ts";
@@ -28,10 +28,7 @@ describe("Version Property Requirements (Data 2.4.10)", () => {
   /**  XAPI-00332, Communication 3.3 Versioning which should be moved to Data 2.4.10 Version Property
    * Statements returned by an LRS MUST retain the version property they are accepted with.
    */
-  it("Statements returned by an LRS MUST retain the version property they are accepted with (Format, Data 2.4.10, XAPI-00332)", async function (this: {
-    timeout(ms: number): void;
-  }) {
-    this.timeout(0);
+  it("Statements returned by an LRS MUST retain the version property they are accepted with (Format, Data 2.4.10, XAPI-00332)", async function () {
     let stmtTime = Date.now();
 
     let statementTemplates = [{ statement: "{{statements.default}}" }];

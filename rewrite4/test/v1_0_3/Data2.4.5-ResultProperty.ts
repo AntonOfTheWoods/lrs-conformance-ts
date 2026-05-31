@@ -7,6 +7,7 @@ import helperImport from "../helper.ts";
 import requestBase from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
 
+import { describe } from "bun:test";
 const helper: any = helperImport;
 const templatingSelection: any = templatingSelectionImport;
 let request: any = requestBase;

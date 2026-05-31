@@ -4,8 +4,7 @@
  */
 import requestModule from "../super-request.ts";
 import { expectAsync } from "../super-request.ts";
-import { expect } from "bun:test";
-
+import { beforeAll, describe, expect, it } from "bun:test";
 import helperModule from "../helper.ts";
 import xapiRequestsModule from "./util/requests.ts";
 
@@ -484,7 +483,7 @@ describe("Activity Profile Resource Requirements (Communication 2.7)", () => {
     let resourcePath = xapiRequests.resourcePaths.activityProfile;
     let resourceParams = helper.buildActivityProfile();
 
-    before("Add the document", async () => {
+    beforeAll(async () => {
       await xapiRequests.deleteDocument(resourcePath, resourceParams);
       await xapiRequests.postDocument(resourcePath, document, resourceParams);
     });

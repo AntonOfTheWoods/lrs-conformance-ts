@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements.
  */
 
-import { expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import oldHelpers from "../helper.ts";
 import superRequestBase from "../super-request.ts";
 

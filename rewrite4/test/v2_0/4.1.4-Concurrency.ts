@@ -3,7 +3,7 @@
  * found at https://github.com/adlnet/xapi-lrs-conformance-requirements
  */
 
-import { expect } from "bun:test";
+import { beforeAll, describe, expect, it } from "bun:test";
 import helperImport from "../helper.ts";
 import xapiRequestsImport from "./util/requests.ts";
 
@@ -14,7 +14,7 @@ function runConcurrencyTestsForDocumentResource(resourceName: string, resourcePa
   describe(`Concurrency for the ${resourceName} Resource.`, () => {
     let document = helper.buildDocument();
 
-    before("before", async () => {
+    beforeAll(async () => {
       await xapiRequests.deleteDocument(resourcePath, resourceParams);
       await xapiRequests.postDocument(resourcePath, document, resourceParams);
     });
@@ -70,7 +70,7 @@ function runConcurrencyTestsForDocumentResource(resourceName: string, resourcePa
         };
         let correctTag: string;
 
-        before("Get the current ETag", async () => {
+        beforeAll(async () => {
           await xapiRequests.deleteDocument(resourcePath, resourceParams);
           await xapiRequests.postDocument(resourcePath, document, resourceParams);
 
@@ -114,7 +114,7 @@ function runConcurrencyTestsForDocumentResource(resourceName: string, resourcePa
         };
         let correctTag: string;
 
-        before("Get the current ETag", async () => {
+        beforeAll(async () => {
           await xapiRequests.deleteDocument(resourcePath, resourceParams);
           await xapiRequests.postDocument(resourcePath, document, resourceParams);
 
@@ -154,7 +154,7 @@ function runConcurrencyTestsForDocumentResource(resourceName: string, resourcePa
         let originalName = document.name;
         let correctTag: string;
 
-        before("Get the current ETag", async () => {
+        beforeAll(async () => {
           await xapiRequests.deleteDocument(resourcePath, resourceParams);
           await xapiRequests.postDocument(resourcePath, document, resourceParams);
 
@@ -212,7 +212,7 @@ function runConcurrencyTestsForDocumentResource(resourceName: string, resourcePa
       let originalDocument = helper.buildDocument();
       let updatedDocument = helper.buildDocument();
 
-      before("Create the document and get the etag", async () => {
+      beforeAll(async () => {
         await xapiRequests.deleteDocument(resourcePath, resourceParams);
         let postResponse = await xapiRequests.postDocument(resourcePath, originalDocument, resourceParams);
 

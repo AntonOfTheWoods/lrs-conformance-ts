@@ -10,6 +10,7 @@ import { expectAsync } from "../super-request.ts";
 
 import helperModule from "../helper.ts";
 
+import { beforeAll, describe, it } from "bun:test";
 let request = requestModule as unknown as (target: string) => any;
 const helper = helperModule as any;
 
@@ -26,7 +27,7 @@ describe("Content Type Requirements (Communication 1.5)", () => {
     t2attHash: string,
     t3attHash: string;
 
-  before("create attachments templates", () => {
+  beforeAll(() => {
     txtAtt1 = fs.readFileSync("test/v1_0_3/templates/attachments/simple_text1.txt");
     txtAtt2 = fs.readFileSync("test/v1_0_3/templates/attachments/simple_text2.txt");
     txtAtt3 = fs.readFileSync("test/v1_0_3/templates/attachments/simple_text3.txt");
@@ -66,7 +67,7 @@ describe("Content Type Requirements (Communication 1.5)", () => {
   describe('An LRS rejects with error code 400 Bad Request, a Request which uses Attachments and does not have a "Content-Type" header with value "application/json" or "multipart/mixed" (Format, Data 2.4.11, XAPI-00127)', () => {
     let data: any, pictureAtt: string, pattSize: number, pattHash: string, templates: any[];
 
-    before("create attachment templates", () => {
+    beforeAll(() => {
       templates = [
         { statement: "{{statements.attachment}}" },
         {
