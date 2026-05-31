@@ -36,7 +36,7 @@
   },
   "ignorePatterns": [
     "archive/",
-    "rewrite4/",
+    "runtime/",
     "tmp/",
     "dist/",
     "build/",

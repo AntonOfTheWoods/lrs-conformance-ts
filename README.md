@@ -19,9 +19,10 @@ This project was created using `bun init` in bun v1.3.14. [Bun](https://bun.com)
 
 ## Parity Notes
 
-- LRSQL parity notes and diagnostics for active comparison tooling live under `rewrite/docs/`.
+- LRSQL parity notes and diagnostics for active comparison tooling live under `legacy/`.
 
-## Rewrite Helpers
+## Repository Layout
 
-- The `rewrite/` directory is active helper/validator tooling for upstream export, traffic capture, DB comparison, and the fresh migration workflow.
-- `rewrite:*` package scripts are intentionally kept when they operate on upstream-original artifacts, active rewrite comparisons, or migration traces.
+- The `runtime/` directory contains the active conformance runtime and test suites.
+- The `legacy/` directory contains comparison/oracle tooling for upstream export, traffic capture, and parity analysis.
+- `legacy:*` package scripts operate on upstream-original artifacts and runtime-vs-upstream comparisons.
