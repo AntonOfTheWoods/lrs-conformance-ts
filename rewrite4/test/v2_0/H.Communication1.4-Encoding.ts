@@ -5,11 +5,28 @@
 
 import { describe, expect, it } from "../bun-test.ts";
 import helperImport from "../helper.ts";
-import requestBase from "../super-request.ts";
-import { endAsync } from "../super-request.ts";
+import requestBase, { endAsync, type RequestFactory } from "../super-request.ts";
 
-const helper: any = helperImport;
-let request: any = requestBase;
+type UnicodeStatement = {
+  verb: {
+    display: Record<string, string>;
+    id: string;
+  };
+};
+
+type EncodingHelper = {
+  OAuthRequest(request: RequestFactory): RequestFactory;
+  addAllHeaders(headers: Record<string, string | undefined>): Record<string, string | undefined>;
+  createFromTemplate(templates: Array<Record<string, string>>): Record<string, unknown>;
+  genDelay(stmtTime: number, query: string, statementId: string | null): Promise<unknown>;
+  generateUUID(): string;
+  getEndpointAndAuth(): string;
+  getEndpointStatements(): string;
+  getUrlEncoding(object: Record<string, unknown>): string;
+};
+
+const helper = helperImport as EncodingHelper;
+let request: RequestFactory = requestBase;
 
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
@@ -23,7 +40,8 @@ describe("Encoding Requirements (Communication 1.4)", () => {
     const verb = verbTemplate + helper.generateUUID();
     const unicodeTemplates = [{ statement: "{{statements.unicode}}" }];
 
-    const unicode = helper.createFromTemplate(unicodeTemplates).statement;
+    const statementContainer = helper.createFromTemplate(unicodeTemplates) as { statement: UnicodeStatement };
+    const unicode = statementContainer.statement;
     unicode.verb.id = verb;
 
     const query = helper.getUrlEncoding({
@@ -47,8 +65,11 @@ describe("Encoding Requirements (Communication 1.4)", () => {
         .expect(200),
     );
 
-    const results = helper.parse(res.body);
-    const languages = results.statements[0].verb.display;
+    const results =
+      typeof res.body === "string"
+        ? (JSON.parse(res.body) as { statements: Array<{ verb: { display: Record<string, string> } }> })
+        : (res.body as { statements: Array<{ verb: { display: Record<string, string> } }> });
+    const languages = results.statements[0]?.verb.display ?? {};
     let unicodeConformant = true;
     for (const key in languages) {
       if (languages[key] !== unicode.verb.display[key]) unicodeConformant = false;
