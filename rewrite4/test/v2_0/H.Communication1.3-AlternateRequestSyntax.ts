@@ -5,12 +5,18 @@
 
 import { describe, expect, it } from "../bun-test.ts";
 import oldHelpers from "../helper.ts";
-import superRequestBase from "../super-request.ts";
+import superRequestBase, { type RequestFactory } from "../super-request.ts";
 
-const helper: any = oldHelpers;
-let superRequest = superRequestBase;
+type AlternateSyntaxHelper = {
+  OAuthRequest(request: RequestFactory): RequestFactory;
+};
 
-if (process.env["OAUTH1_ENABLED"] === "true") superRequest = helper.OAuthRequest(superRequest);
+const helper = oldHelpers as unknown as AlternateSyntaxHelper;
+let superRequest: RequestFactory = superRequestBase;
+
+if (process.env["OAUTH1_ENABLED"] === "true") {
+  superRequest = helper.OAuthRequest(superRequest) as unknown as RequestFactory;
+}
 
 describe("Alternate Request Syntax Requirements", () => {
   it("The LRS Spec does not mandate any properties regarding Alternate Request Syntax in xAPI 2.0", async () => {

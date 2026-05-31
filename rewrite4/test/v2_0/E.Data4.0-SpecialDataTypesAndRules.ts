@@ -5,15 +5,27 @@
 
 import { describe, expect, it } from "../bun-test.ts";
 import helperImport from "../helper.ts";
-import requestBase from "../super-request.ts";
-import { expectAsync, endAsync } from "../super-request.ts";
+import requestBase, { expectAsync, endAsync, type RequestFactory } from "../super-request.ts";
 import templatingSelectionImport from "../templatingSelection.ts";
 
-const helper: any = helperImport;
-const templatingSelection: any = templatingSelectionImport;
-let request: any = requestBase;
+type SpecialDataHelper = {
+  OAuthRequest(request: RequestFactory): RequestFactory;
+  addAllHeaders(headers?: Record<string, string | undefined>): Record<string, string | undefined>;
+  createFromTemplate(template: Array<Record<string, unknown>>): { statement: any };
+  generateUUID(): string;
+  getEndpointAndAuth(): string;
+  getEndpointStatements(): string;
+  parse(input: unknown): any;
+  sendRequest(requests: unknown[]): Promise<unknown>;
+};
 
-if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
+const helper = helperImport as unknown as SpecialDataHelper;
+const templatingSelection = templatingSelectionImport;
+let request: RequestFactory = requestBase;
+
+if (process.env["OAUTH1_ENABLED"] === "true") {
+  request = helper.OAuthRequest(request) as unknown as RequestFactory;
+}
 
 function parseMillisecondsFromIso(value: unknown): number | null {
   if (typeof value !== "string") {

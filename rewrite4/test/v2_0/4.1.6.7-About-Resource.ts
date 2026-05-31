@@ -5,13 +5,14 @@
 
 import { describe, expect, it } from "../bun-test.ts";
 import helperImport from "../helper.ts";
-import requestBase from "../super-request.ts";
-import { endAsync } from "../super-request.ts";
+import requestBase, { endAsync, type RequestFactory } from "../super-request.ts";
 
-const helper: any = helperImport;
-let request: any = requestBase;
+const helper = helperImport;
+let request: RequestFactory = requestBase;
 
-if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
+if (process.env["OAUTH1_ENABLED"] === "true") {
+  request = helper.OAuthRequest(request) as unknown as RequestFactory;
+}
 
 describe("About Resource Requirements (Communication 2.8)", () => {
   /**  Matchup with Conformance Requirements Document

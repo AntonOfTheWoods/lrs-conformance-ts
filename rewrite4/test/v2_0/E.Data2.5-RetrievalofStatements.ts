@@ -4,15 +4,28 @@
  */
 
 import { beforeAll, describe, expect, it } from "../bun-test.ts";
-import requestBase from "../super-request.ts";
-import { expectAsync, endAsync } from "../super-request.ts";
+import requestBase, { expectAsync, endAsync, type RequestFactory } from "../super-request.ts";
 import helperImport from "../helper.ts";
 import { resolve } from "url";
 
-const helper: any = helperImport;
-let request: any = requestBase;
+type RetrievalHelper = {
+  OAuthRequest(request: RequestFactory): RequestFactory;
+  addAllHeaders(headers?: Record<string, string | undefined>): Record<string, string | undefined>;
+  createFromTemplate(templates: Array<Record<string, unknown>>): { statement: any };
+  genDelay(stmtTime: number, query?: string, statementId?: string | null): Promise<unknown>;
+  generateUUID(): string;
+  getEndpointAndAuth(): string;
+  getEndpointStatements(): string;
+  getUrlEncoding(object: Record<string, unknown>): string;
+  parse(input: unknown): any;
+};
 
-if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
+const helper = helperImport as unknown as RetrievalHelper;
+let request: RequestFactory = requestBase;
+
+if (process.env["OAUTH1_ENABLED"] === "true") {
+  request = helper.OAuthRequest(request) as unknown as RequestFactory;
+}
 
 function isValidRelativeUrl(value: unknown): boolean {
   if (typeof value !== "string" || value.length === 0) {

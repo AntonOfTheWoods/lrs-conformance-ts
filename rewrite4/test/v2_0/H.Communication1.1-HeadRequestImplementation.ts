@@ -5,13 +5,45 @@
 
 import { describe, expect, it } from "../bun-test.ts";
 import helperImport from "../helper.ts";
-import requestBase from "../super-request.ts";
-import { expectAsync } from "../super-request.ts";
+import requestBase, { expectAsync, type RequestFactory } from "../super-request.ts";
 
-const helper: any = helperImport;
-let request: any = requestBase;
+type HeadStatement = {
+  object: { id: string };
+  actor: unknown;
+};
 
-if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
+type HeadRequestHelper = {
+  OAuthRequest(request: RequestFactory): RequestFactory;
+  addAllHeaders(headers?: Record<string, string | undefined>): Record<string, string | undefined>;
+  buildActivityProfile(): Record<string, unknown>;
+  buildAgent(): Record<string, unknown>;
+  buildAgentProfile(): Record<string, unknown>;
+  buildDocument(): string | Record<string, unknown>;
+  buildState(): Record<string, unknown>;
+  buildStatement(): HeadStatement;
+  createFromTemplate(templates: Array<Record<string, unknown>>): { statement: HeadStatement };
+  getEndpointActivities(): string;
+  getEndpointActivitiesProfile(): string;
+  getEndpointActivitiesState(): string;
+  getEndpointAgents(): string;
+  getEndpointAgentsProfile(): string;
+  getEndpointAndAuth(): string;
+  getEndpointStatements(): string;
+  sendRequest(
+    method: string,
+    endpoint: string,
+    parameters: Record<string, unknown> | undefined,
+    body: string | Record<string, unknown> | Array<unknown> | undefined,
+    expectedStatus: number,
+  ): Promise<any>;
+};
+
+const helper = helperImport as unknown as HeadRequestHelper;
+let request: RequestFactory = requestBase;
+
+if (process.env["OAUTH1_ENABLED"] === "true") {
+  request = helper.OAuthRequest(request) as unknown as RequestFactory;
+}
 
 describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
   /**  Matchup with Conformance Requirements Document
@@ -42,21 +74,17 @@ describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
     it("should succeed HEAD activities profile with no body", () => {
       const parameters = helper.buildActivityProfile();
       const document = helper.buildDocument();
-      return helper
-        .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204)
-        .then(() => {
-          return helper.sendRequest("head", helper.getEndpointActivitiesProfile(), parameters, undefined, 200);
-        });
+      return helper.sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204).then(() => {
+        return helper.sendRequest("head", helper.getEndpointActivitiesProfile(), parameters, undefined, 200);
+      });
     });
 
     it("should succeed HEAD activities state with no body", () => {
       const parameters = helper.buildState();
       const document = helper.buildDocument();
-      return helper
-        .sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204)
-        .then(() => {
-          return helper.sendRequest("head", helper.getEndpointActivitiesState(), parameters, undefined, 200);
-        });
+      return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(() => {
+        return helper.sendRequest("head", helper.getEndpointActivitiesState(), parameters, undefined, 200);
+      });
     });
 
     it("should succeed HEAD agents with no body", () => {
@@ -103,70 +131,66 @@ describe("HEAD Request Implementation Requirements (Communication 1.1)", () => {
         activityId: data.statement.object.id,
       };
       return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(() => {
-        return helper.sendRequest("head", helper.getEndpointActivities(), parameters, undefined, 200).then((
-          res: any,
-        ) => {
-          expect(Object.keys(res.body)).toHaveLength(0);
-        });
+        return helper
+          .sendRequest("head", helper.getEndpointActivities(), parameters, undefined, 200)
+          .then((res: any) => {
+            expect(Object.keys(res.body)).toHaveLength(0);
+          });
       });
     });
 
     it("should succeed HEAD activities profile with no body", () => {
       const parameters = helper.buildActivityProfile();
       const document = helper.buildDocument();
-      return helper
-        .sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204)
-        .then(() => {
-          return helper
-            .sendRequest("head", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
-            .then((res: any) => {
-              expect(Object.keys(res.body)).toHaveLength(0);
-            });
-        });
+      return helper.sendRequest("post", helper.getEndpointActivitiesProfile(), parameters, document, 204).then(() => {
+        return helper
+          .sendRequest("head", helper.getEndpointActivitiesProfile(), parameters, undefined, 200)
+          .then((res: any) => {
+            expect(Object.keys(res.body)).toHaveLength(0);
+          });
+      });
     });
 
     it("should succeed HEAD activities state with no body", () => {
       const parameters = helper.buildState();
       const document = helper.buildDocument();
-      return helper
-        .sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204)
-        .then(() => {
-          return helper
-            .sendRequest("head", helper.getEndpointActivitiesState(), parameters, undefined, 200)
-            .then((res: any) => {
-              expect(Object.keys(res.body)).toHaveLength(0);
-            });
-        });
+      return helper.sendRequest("post", helper.getEndpointActivitiesState(), parameters, document, 204).then(() => {
+        return helper
+          .sendRequest("head", helper.getEndpointActivitiesState(), parameters, undefined, 200)
+          .then((res: any) => {
+            expect(Object.keys(res.body)).toHaveLength(0);
+          });
+      });
     });
 
     it("should succeed HEAD agents with no body", () => {
-      return helper.sendRequest("head", helper.getEndpointAgents(), helper.buildAgent(), undefined, 200).then((
-        res: any,
-      ) => {
-        expect(Object.keys(res.body)).toHaveLength(0);
-      });
+      return helper
+        .sendRequest("head", helper.getEndpointAgents(), helper.buildAgent(), undefined, 200)
+        .then((res: any) => {
+          expect(Object.keys(res.body)).toHaveLength(0);
+        });
     });
 
     it("should succeed HEAD agents profile with no body", () => {
       const parameters = helper.buildAgentProfile();
       const document = helper.buildDocument();
       return helper.sendRequest("post", helper.getEndpointAgentsProfile(), parameters, document, 204).then(() => {
-        return helper.sendRequest("head", helper.getEndpointAgentsProfile(), parameters, undefined, 200).then((
-          res: any,
-        ) => {
-          expect(Object.keys(res.body)).toHaveLength(0);
-        });
+        return helper
+          .sendRequest("head", helper.getEndpointAgentsProfile(), parameters, undefined, 200)
+          .then((res: any) => {
+            expect(Object.keys(res.body)).toHaveLength(0);
+          });
       });
     });
 
     it("should succeed HEAD statements with no body", () => {
       const statement = helper.buildStatement();
       return helper.sendRequest("post", helper.getEndpointStatements(), undefined, [statement], 200).then(() => {
-        return helper.sendRequest("head", helper.getEndpointStatements(), undefined, undefined, 200).then((
-          res: any,
-        ) => {
-          expect(Object.keys(res.body)).toHaveLength(0);
-        });
+        return helper
+          .sendRequest("head", helper.getEndpointStatements(), undefined, undefined, 200)
+          .then((res: any) => {
+            expect(Object.keys(res.body)).toHaveLength(0);
+          });
       });
     });
   });
