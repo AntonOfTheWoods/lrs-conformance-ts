@@ -5,12 +5,31 @@
 
 import extend from "../../bun-runtime/extend-compat.ts";
 import helperImport from "../helper.ts";
-import requestBase from "../super-request.ts";
+import requestBase, { type RequestFactory } from "../super-request.ts";
 import { expectAsync } from "../super-request.ts";
 
 import { describe, it } from "../bun-test.ts";
-const helper: any = helperImport;
-let request: any = requestBase;
+
+type StatementShape = {
+  id: string;
+  verb: {
+    id: string;
+  };
+};
+
+type ErrorCodesHelper = {
+  OAuthRequest(request: RequestFactory): RequestFactory;
+  addAllHeaders(headers: Record<string, string | undefined>): Record<string, string | undefined>;
+  createFromTemplate(templates: Array<Record<string, string>>): Record<string, unknown>;
+  genDelay(stmtTime: number, query: string, statementId: string): Promise<unknown>;
+  generateUUID(): string;
+  getEndpointAndAuth(): string;
+  getEndpointStatements(): string;
+  getUrlEncoding(object: Record<string, unknown>): string;
+};
+
+const helper = helperImport as ErrorCodesHelper;
+let request: RequestFactory = requestBase;
 
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
@@ -43,7 +62,8 @@ describe("Error Codes Requirements (Communication 3.2)", () => {
   describe("An LRS rejects with error code 400 Bad Request any request to an Resource which uses a parameter with differing case (Communication 3.2.s3.b8, XAPI-00325)", function () {
     it('should fail on PUT statement when not using "statementId"', async function () {
       const templates = [{ statement: "{{statements.default}}" }];
-      const data = helper.createFromTemplate(templates).statement;
+      const statementContainer = helper.createFromTemplate(templates) as { statement: StatementShape };
+      const data = statementContainer.statement;
       data.id = helper.generateUUID();
 
       const query = helper.getUrlEncoding({ StatementId: data.id });
@@ -206,7 +226,8 @@ describe("Error Codes Requirements (Communication 3.2)", () => {
   describe("An LRS does not process any batch of Statements in which one or more Statements is rejected and if necessary, restores the LRS to the state in which it was before the batch began processing (Communication 3.2.s3.b9, XAPI-00326, **Implicit**)", function () {
     it("should not persist any statements on a single failure", async function () {
       const templates = [{ statement: "{{statements.default}}" }];
-      const correct = helper.createFromTemplate(templates).statement;
+      const statementContainer = helper.createFromTemplate(templates) as { statement: StatementShape };
+      const correct = statementContainer.statement;
       const incorrect = extend(true, {}, correct);
 
       correct.id = helper.generateUUID();

@@ -5,11 +5,34 @@
 
 import { beforeAll, describe, expect, it } from "../bun-test.ts";
 import helperImport from "../helper.ts";
-import requestBase from "../super-request.ts";
+import requestBase, { type RequestFactory } from "../super-request.ts";
 import { expectAsync, endAsync } from "../super-request.ts";
 
-const helper: any = helperImport;
-let request: any = requestBase;
+type StatementShape = {
+  actor: unknown;
+  id: string;
+  object: unknown;
+  verb: {
+    id?: string;
+  };
+};
+
+type VersioningHelper = {
+  OAuthRequest(request: RequestFactory): RequestFactory;
+  addAllHeaders(headers: Record<string, string | undefined>): Record<string, string | undefined>;
+  addBasicAuthenicationHeader(headers: Record<string, string | undefined>): Record<string, string | undefined>;
+  createFromTemplate(templates: Array<Record<string, string>>): Record<string, unknown>;
+  genDelay(stmtTime: number, query: string, statementId: string): Promise<unknown>;
+  generateUUID(): string;
+  getEndpointAbout(): string;
+  getEndpointAndAuth(): string;
+  getEndpointStatements(): string;
+  getUrlEncoding(object: Record<string, unknown>): string;
+  isEqual(left: unknown, right: unknown): boolean;
+};
+
+const helper = helperImport as VersioningHelper;
+let request: RequestFactory = requestBase;
 
 const REG_ALLOWED_VERSIONS = /^2\.0\.0$|^1\.0(\.[1-3])$/;
 
@@ -30,7 +53,8 @@ describe("Versioning Requirements (Communication 3.3)", () => {
     const id = helper.generateUUID();
     const statementTemplates = [{ statement: "{{statements.default}}" }];
 
-    const statement = helper.createFromTemplate(statementTemplates).statement;
+    const statementContainer = helper.createFromTemplate(statementTemplates) as { statement: StatementShape };
+    const statement = statementContainer.statement;
     statement.id = id;
     const query = helper.getUrlEncoding({ statementId: id });
     const stmtTime = Date.now();
@@ -61,7 +85,8 @@ describe("Versioning Requirements (Communication 3.3)", () => {
   describe('An LRS will not modify Statements based on a "version" before "1.0.1" (Communication 3.3.s3.b4, XAPI-00330)', function () {
     it("should not convert newer version format to prior version format", async function () {
       const templates = [{ statement: "{{statements.default}}" }];
-      const data = helper.createFromTemplate(templates).statement;
+      const statementContainer = helper.createFromTemplate(templates) as { statement: StatementShape };
+      const data = statementContainer.statement;
       data.id = helper.generateUUID();
       const query = "?statementId=" + data.id;
       const stmtTime = Date.now();
@@ -82,10 +107,13 @@ describe("Versioning Requirements (Communication 3.3)", () => {
           .expect(200),
       );
 
-      const statement = helper.parse(res.body);
-      expect(helper.isEqual(data.actor, statement.actor)).toBe(true);
-      expect(helper.isEqual(data.object, statement.object)).toBe(true);
-      expect(helper.isEqual(data.verb, statement.verb)).toBe(true);
+      const responseBody =
+        typeof res.body === "string"
+          ? (JSON.parse(res.body) as Record<string, unknown>)
+          : (res.body as Record<string, unknown>);
+      expect(helper.isEqual(data.actor, responseBody["actor"])).toBe(true);
+      expect(helper.isEqual(data.object, responseBody["object"])).toBe(true);
+      expect(helper.isEqual(data.verb, responseBody["verb"])).toBe(true);
     });
   });
 
@@ -102,7 +130,8 @@ describe("Versioning Requirements (Communication 3.3)", () => {
       const stmtId = helper.generateUUID();
       beforeAll(async function () {
         const templates = [{ statement: "{{statements.default}}" }];
-        const data = helper.createFromTemplate(templates).statement;
+        const statementContainer = helper.createFromTemplate(templates) as { statement: StatementShape };
+        const data = statementContainer.statement;
 
         await expectAsync(
           request(helper.getEndpointAndAuth())
@@ -132,7 +161,8 @@ describe("Versioning Requirements (Communication 3.3)", () => {
 
     it('Should fail when Statement POST without header "X-Experience-API-Version"', async function () {
       const templates = [{ statement: "{{statements.default}}" }];
-      const data = helper.createFromTemplate(templates).statement;
+      const statementContainer = helper.createFromTemplate(templates) as { statement: StatementShape };
+      const data = statementContainer.statement;
 
       const res = await endAsync(
         request(helper.getEndpointAndAuth())
@@ -154,7 +184,8 @@ describe("Versioning Requirements (Communication 3.3)", () => {
 
     it('Should fail when Statement PUT without header "X-Experience-API-Version"', async function () {
       const templates = [{ statement: "{{statements.default}}" }];
-      const data = helper.createFromTemplate(templates).statement;
+      const statementContainer = helper.createFromTemplate(templates) as { statement: StatementShape };
+      const data = statementContainer.statement;
 
       const res = await endAsync(
         request(helper.getEndpointAndAuth())
