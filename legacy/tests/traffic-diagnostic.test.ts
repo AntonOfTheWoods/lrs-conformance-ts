@@ -539,15 +539,23 @@ test("resolveReusableOracleVersionDir skips reusable oracles with mismatched DB-
     await writeFile(join(compatibleVersionDir, "upstream-raw.json"), "{}\n", "utf8");
     await writeFile(join(compatibleVersionDir, "upstream-run.json"), "{}\n", "utf8");
 
-    const incompatibleFingerprintPath = join(incompatibleVersionDir, "upstream-db-states", "sequence-000001.json");
-    const compatibleFingerprintPath = join(compatibleVersionDir, "upstream-db-states", "sequence-000001.json");
+    const incompatibleFingerprintPath = join(
+      incompatibleVersionDir,
+      "upstream-db-state-all-all-units-states",
+      "sequence-000001.json",
+    );
+    const compatibleFingerprintPath = join(
+      compatibleVersionDir,
+      "upstream-db-state-mutations-all-units-states",
+      "sequence-000001.json",
+    );
     await mkdir(dirname(incompatibleFingerprintPath), { recursive: true });
     await mkdir(dirname(compatibleFingerprintPath), { recursive: true });
     await writeFile(incompatibleFingerprintPath, "{}\n", "utf8");
     await writeFile(compatibleFingerprintPath, "{}\n", "utf8");
 
     await writeFile(
-      join(incompatibleVersionDir, "upstream-db-state-manifest.json"),
+      join(incompatibleVersionDir, "upstream-db-state-all-all-units-manifest.json"),
       `${JSON.stringify(
         {
           capturedExchangeCount: 1,
@@ -579,7 +587,7 @@ test("resolveReusableOracleVersionDir skips reusable oracles with mismatched DB-
     );
 
     await writeFile(
-      join(compatibleVersionDir, "upstream-db-state-manifest.json"),
+      join(compatibleVersionDir, "upstream-db-state-mutations-all-units-manifest.json"),
       `${JSON.stringify(
         {
           capturedExchangeCount: 1,

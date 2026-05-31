@@ -129,6 +129,10 @@ interface DiagnosticConfig {
 type TraceSelectionMode = "captured-execution" | "requested-unit-fallback";
 type TraceDbStateMode = "all" | "mutations" | "none" | "unit";
 
+function defaultOracleTypeRoot(mode: TraceDbStateMode): string {
+  return resolve(defaultOracleTrafficRoot, `type-${mode}`);
+}
+
 type TraceNodeEntryKind = "case" | "hook" | "unit";
 
 export interface TraceNodeIndexEntry {
@@ -278,8 +282,8 @@ function usage(): string {
     "  --target-base-url http://localhost:8080/xapi",
     "  --username janedoe",
     "  --password supersecret",
-    "  --out-dir tmp/validation/oracles/traffic/<timestamp>",
-    "  --oracle-dir tmp/validation/oracles/traffic",
+    "  --out-dir tmp/validation/oracles/traffic/type-<db-state-mode>/<timestamp>",
+    "  --oracle-dir tmp/validation/oracles/traffic/type-<db-state-mode>",
     "  --refresh-upstream reruns upstream even when reusable oracle artifacts exist",
     "  --unitKey is single-unit only and is mutually exclusive with --grep and --directory.",
   ].join("\n");
@@ -357,9 +361,8 @@ function parseConfig(args: string[]): DiagnosticConfig {
   const targetBaseUrl = getFlagValue(args, "--target-base-url") ?? "http://localhost:8080/xapi";
   const username = getFlagValue(args, "--username") ?? "janedoe";
   const password = getFlagValue(args, "--password") ?? "supersecret";
-  const outDirArg =
-    getFlagValue(args, "--out-dir") ?? resolve(repoRoot, "tmp/validation/oracles/traffic", `${Date.now()}`);
-  const oracleDirArg = getFlagValue(args, "--oracle-dir") ?? defaultOracleTrafficRoot;
+  const oracleDirArg = getFlagValue(args, "--oracle-dir") ?? defaultOracleTypeRoot(dbStateMode);
+  const outDirArg = getFlagValue(args, "--out-dir") ?? resolve(oracleDirArg, `${Date.now()}`);
   const grep = getFlagValue(args, "--grep");
   const directory = getFlagValue(args, "--directory");
   const refreshUpstream = args.includes("--refresh-upstream");
@@ -527,18 +530,6 @@ async function resolveCompatibleDbStateManifestPath(options: {
     })
   ) {
     return keyedManifestPath;
-  }
-
-  // Backward compatibility for legacy single-manifest layout.
-  const legacyManifestPath = resolve(options.versionDir, `${options.runner}-db-state-manifest.json`);
-  if (
-    await isReusableDbStateManifestCompatible({
-      manifestPath: legacyManifestPath,
-      requiredMode: options.requiredMode,
-      requiredSelectedUnitKeys: options.requiredSelectedUnitKeys,
-    })
-  ) {
-    return legacyManifestPath;
   }
 
   return null;
