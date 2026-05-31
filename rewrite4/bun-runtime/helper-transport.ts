@@ -1,6 +1,6 @@
 import requestFactoryImport from "../test/super-request.ts";
 
-type AnyRecord = Record<string, any>;
+type AnyRecord = Record<string, unknown>;
 type HeaderMap = Record<string, string | undefined>;
 
 type HelperState = {
@@ -82,6 +82,17 @@ type OAuthSettings = {
   token: string;
   token_secret: string;
   verifier: string;
+};
+
+type OAuthAdapter = {
+  _buildAuthorizationHeaders(params: unknown): string;
+  _prepareParameters(
+    token: string,
+    secret: string,
+    method: unknown,
+    url: unknown,
+    additionalData: Record<string, unknown>,
+  ): unknown;
 };
 
 function getOAuthSettings(): OAuthSettings | undefined {
@@ -394,7 +405,7 @@ function createHelperTransportSupport(context: HelperTransportContext) {
 
     extendRequestWithOauth: function extendRequestWithOauth(pre: RequestChain) {
       const preWithSign = pre as AnyRecord;
-      preWithSign["sign"] = function (oa: AnyRecord, token: string, secret: string) {
+      preWithSign["sign"] = function (oa: OAuthAdapter, token: string, secret: string) {
         let additionalData: AnyRecord = {};
         additionalData = JSON.parse(JSON.stringify(additionalData));
         additionalData["oauth_verifier"] = getOAuthSettings()?.verifier;

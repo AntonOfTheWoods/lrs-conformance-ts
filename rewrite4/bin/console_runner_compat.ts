@@ -6,6 +6,7 @@ import path from "node:path";
 import { auth as doOAuth1Auth } from "./OAuth.ts";
 import { testRunner as TestRunner } from "./testRunner.ts";
 import { parseConsoleRunnerArgv } from "../bun-runtime/cli-args.ts";
+import { main as runNativeConsoleRunner } from "../bun-runtime/console-runner.ts";
 
 type RunnerMessage = {
   action?: string;
@@ -73,6 +74,12 @@ type OAuthResponse = {
 };
 
 const parsedArgv = parseConsoleRunnerArgv(process.argv.slice(2));
+
+// Keep OAuth compatibility behavior, but route standard usage through the native Bun runner.
+if (!parsedArgv.oAuth1) {
+  const exitCode = await runNativeConsoleRunner(process.argv.slice(2));
+  process.exit(exitCode);
+}
 
 const options: Record<string, unknown> = {
   xapiVersion: parsedArgv.xapiVersion,
@@ -195,31 +202,27 @@ function start(runnerOptions: Record<string, unknown>): void {
   });
 }
 
-if (!parsedArgv.oAuth1) {
+const config: OAuthConfig = {
+  consumer_key: typeof options["consumer_key"] === "string" ? options["consumer_key"] : undefined,
+  consumer_secret: typeof options["consumer_secret"] === "string" ? options["consumer_secret"] : undefined,
+  request_token_path:
+    typeof options["request_token_path"] === "string" ? options["request_token_path"] : "/OAuth/initiate",
+  auth_token_path: typeof options["auth_token_path"] === "string" ? options["auth_token_path"] : "/OAuth/token",
+  authorization_path:
+    typeof options["authorization_path"] === "string"
+      ? options["authorization_path"]
+      : "/../accounts/login?next=/XAPI/OAuth/authorize",
+  endpoint: typeof options["endpoint"] === "string" ? options["endpoint"] : undefined,
+};
+
+doOAuth1Auth(config, function (error: unknown, oAuth?: OAuthResponse) {
+  if (error || !oAuth) {
+    console.log(error);
+    return;
+  }
+
+  options["token"] = oAuth.token;
+  options["token_secret"] = oAuth.token_secret;
+  options["verifier"] = oAuth.verifier;
   start(options);
-} else {
-  const config: OAuthConfig = {
-    consumer_key: typeof options["consumer_key"] === "string" ? options["consumer_key"] : undefined,
-    consumer_secret: typeof options["consumer_secret"] === "string" ? options["consumer_secret"] : undefined,
-    request_token_path:
-      typeof options["request_token_path"] === "string" ? options["request_token_path"] : "/OAuth/initiate",
-    auth_token_path: typeof options["auth_token_path"] === "string" ? options["auth_token_path"] : "/OAuth/token",
-    authorization_path:
-      typeof options["authorization_path"] === "string"
-        ? options["authorization_path"]
-        : "/../accounts/login?next=/XAPI/OAuth/authorize",
-    endpoint: typeof options["endpoint"] === "string" ? options["endpoint"] : undefined,
-  };
-
-  doOAuth1Auth(config, function (error: unknown, oAuth?: OAuthResponse) {
-    if (error || !oAuth) {
-      console.log(error);
-      return;
-    }
-
-    options["token"] = oAuth.token;
-    options["token_secret"] = oAuth.token_secret;
-    options["verifier"] = oAuth.verifier;
-    start(options);
-  });
-}
+});

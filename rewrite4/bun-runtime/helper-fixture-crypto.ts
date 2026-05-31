@@ -1,6 +1,6 @@
 import { CompactSign } from "jose";
 
-type AnyRecord = Record<string, any>;
+type AnyRecord = Record<string, unknown>;
 type JsonMapping = Record<string, Record<string, unknown>>;
 
 type HelperState = {

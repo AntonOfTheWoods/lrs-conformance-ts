@@ -21,10 +21,11 @@ type RequestResponse = {
 };
 
 type RequestChain = {
-  [key: string]: any;
   _options?: {
     oauth?: OAuthOptions;
   };
+  method?: string;
+  url?: string;
   body(payload: string | Buffer): RequestChain;
   end(callback?: (error?: unknown, response?: RequestResponse) => void): RequestChain;
   expect(status: number, callback?: (error?: unknown, response?: RequestResponse) => void): RequestChain;
@@ -35,15 +36,13 @@ type RequestChain = {
   wait(delay: Promise<unknown> | { then?: unknown }): RequestChain;
 };
 
-type RequestFactory = ((endpoint: string) => {
+type RequestFactory = (endpoint: string) => {
   get(path: string): RequestChain;
   post(path: string): RequestChain;
   put(path: string): RequestChain;
   del(path: string): RequestChain;
   delete(path: string): RequestChain;
   head(path: string): RequestChain;
-}) & {
-  [key: string]: any;
 };
 
 export function endAsync(chain: RequestChain): Promise<RequestResponse> {
@@ -304,7 +303,10 @@ function createChain(endpoint: string, method: string, path: string): RequestCha
           const response = await fetch(url, {
             method: state.method,
             headers: requestHeaders,
-            body: state.method === "GET" || state.method === "HEAD" ? undefined : (state.body as any),
+            body:
+              state.method === "GET" || state.method === "HEAD"
+                ? undefined
+                : (state.body as string | Buffer | Uint8Array | ArrayBuffer | null | undefined),
           });
 
           const text = await response.text();

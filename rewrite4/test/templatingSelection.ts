@@ -24,14 +24,30 @@ type TemplateHelper = {
   addAllHeaders(headers: Record<string, string>): Record<string, string>;
 };
 
+type OAuthOptions = {
+  consumer_key?: string;
+  consumer_secret?: string;
+  token?: string;
+  token_secret?: string;
+  verifier?: string;
+};
+
 type RequestRoot = {
   post(url: string): RequestChain;
 };
 
 type RequestChain = {
-  post(url: string): RequestChain;
+  _options?: {
+    oauth?: OAuthOptions;
+  };
+  body(payload: string | Buffer): RequestChain;
+  form(value: Record<string, unknown>): RequestChain;
   headers(headers: Record<string, string>): RequestChain;
   json(data: unknown): RequestChain;
+  method?: string;
+  set(name: string, value: string): RequestChain;
+  wait(delay: Promise<unknown> | { then?: unknown }): RequestChain;
+  url?: string;
   expect: (...args: unknown[]) => RequestChain;
   end(done: (error?: unknown) => void): RequestChain;
 };
@@ -46,7 +62,7 @@ const helper = helperImport as TemplateHelper;
 const activeRequest: RequestFactory =
   process.env["OAUTH1_ENABLED"] === "true"
     ? (helper.OAuthRequest(requestModule) as RequestFactory)
-    : (requestModule as RequestFactory);
+    : (requestModule as unknown as RequestFactory);
 
 export function createTemplate(templateName: string): void {
   const configurations = helper.getSingleTestConfiguration(templateName);
