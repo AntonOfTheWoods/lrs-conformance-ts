@@ -24,7 +24,7 @@ type HelperExports = {
   getJsonMapping(): JsonMapping;
 };
 
-type FixtureCryptoContext = {
+export type FixtureCryptoContext = {
   crypto: typeof import("crypto");
   extend(deep: boolean, target: AnyRecord, source: AnyRecord): AnyRecord;
   fs: typeof import("fs");
@@ -467,6 +467,7 @@ function createHelperFixtureCryptoSupport(context: FixtureCryptoContext) {
 }
 
 export { createHelperFixtureCryptoSupport };
+export type HelperFixtureCryptoSupport = ReturnType<typeof createHelperFixtureCryptoSupport>;
 
 export default {
   createHelperFixtureCryptoSupport,

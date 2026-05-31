@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 
-type OAuthOptions = {
+export type OAuthOptions = {
   consumer_key?: string;
   consumer_secret?: string;
   token?: string;
@@ -10,7 +10,7 @@ type OAuthOptions = {
 
 type HeaderMap = Record<string, string | undefined>;
 
-type RequestResponse = {
+export type RequestResponse = {
   body: string | unknown;
   headers: Record<string, string | undefined>;
   request: {
@@ -20,7 +20,7 @@ type RequestResponse = {
   text?: string;
 };
 
-type RequestChain = {
+export type RequestChain = {
   _options?: {
     oauth?: OAuthOptions;
   };
@@ -36,7 +36,7 @@ type RequestChain = {
   wait(delay: Promise<unknown> | { then?: unknown }): RequestChain;
 };
 
-type RequestFactory = (endpoint: string) => {
+export type RequestRoot = {
   get(path: string): RequestChain;
   post(path: string): RequestChain;
   put(path: string): RequestChain;
@@ -44,6 +44,8 @@ type RequestFactory = (endpoint: string) => {
   delete(path: string): RequestChain;
   head(path: string): RequestChain;
 };
+
+export type RequestFactory = (endpoint: string) => RequestRoot;
 
 export function endAsync(chain: RequestChain): Promise<RequestResponse> {
   return new Promise((resolve, reject) => {

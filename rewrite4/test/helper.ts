@@ -8,10 +8,12 @@ import extend from "../bun-runtime/extend-compat.ts";
 
 import * as fixtureCryptoSupportModule from "../bun-runtime/helper-fixture-crypto.ts";
 import * as transportSupportModule from "../bun-runtime/helper-transport.ts";
+import type { FixtureCryptoContext, HelperFixtureCryptoSupport } from "../bun-runtime/helper-fixture-crypto.ts";
+import type { HelperTransportContext, HelperTransportSupport } from "../bun-runtime/helper-transport.ts";
 
 const helperRequire = createRequire(import.meta.url);
 
-type HelperExports = Record<string, unknown>;
+type HelperExports = HelperTransportSupport & HelperFixtureCryptoSupport;
 
 type HelperState = {
   CAPTURE_OWNER_HEADER: string;
@@ -101,7 +103,7 @@ function getState(): HelperState {
   };
 }
 
-const helperContext = {
+const helperContext: HelperTransportContext & FixtureCryptoContext = {
   crypto,
   extend,
   fs,
@@ -116,14 +118,9 @@ const helperContext = {
   },
 };
 
-const transportSupport = (
-  transportSupportModule as { createHelperTransportSupport: (context: unknown) => HelperExports }
-).createHelperTransportSupport(helperContext);
-const fixtureSupport = (
-  fixtureCryptoSupportModule as {
-    createHelperFixtureCryptoSupport: (context: unknown) => HelperExports;
-  }
-).createHelperFixtureCryptoSupport(helperContext);
+const transportSupport: HelperTransportSupport = transportSupportModule.createHelperTransportSupport(helperContext);
+const fixtureSupport: HelperFixtureCryptoSupport =
+  fixtureCryptoSupportModule.createHelperFixtureCryptoSupport(helperContext);
 
 helperExports = {
   ...transportSupport,

@@ -6,11 +6,40 @@
 import { describe, expect, it } from "../bun-test.ts";
 import extend from "../../bun-runtime/extend-compat.ts";
 import helperImport from "../helper.ts";
-import requestBase from "../super-request.ts";
-import { expectAsync } from "../super-request.ts";
+import requestBase, { expectAsync, type RequestFactory, type RequestResponse } from "../super-request.ts";
 
-const helper: any = helperImport;
-let request: any = requestBase;
+type RequestMethod = "get" | "post" | "put" | "delete";
+
+type StateParams = Record<string, unknown>;
+
+type StatementShape = {
+  id: string;
+  verb: {
+    id: string;
+  };
+};
+
+type DocumentHelper = {
+  OAuthRequest(request: RequestFactory): RequestFactory;
+  addAllHeaders(headers: Record<string, string | undefined>): Record<string, string | undefined>;
+  buildState(): StateParams;
+  createFromTemplate(templates: Array<Record<string, string>>): Record<string, unknown>;
+  genDelay(stmtTime: number, query: string, statementId: string): Promise<unknown>;
+  generateUUID(): string;
+  getEndpointActivitiesState(): string;
+  getEndpointAndAuth(): string;
+  getEndpointStatements(): string;
+  sendRequest(
+    method: RequestMethod,
+    url: string,
+    params: StateParams,
+    body: unknown,
+    expectedStatus: number,
+  ): Promise<RequestResponse>;
+};
+
+const helper = helperImport as DocumentHelper;
+let request: RequestFactory = requestBase;
 
 if (process.env["OAUTH1_ENABLED"] === "true") request = helper.OAuthRequest(request);
 
@@ -28,7 +57,8 @@ describe("Document Resource Requirements (Communication 2.2)", function () {
    */
   it("An LRS makes no modifications to stored data for any rejected request (Multiple, including Communication 2.1.2.s2.b4, XAPI-00182)", async function () {
     const templates = [{ statement: "{{statements.default}}" }];
-    const correct = helper.createFromTemplate(templates).statement;
+    const statementContainer = helper.createFromTemplate(templates) as { statement: StatementShape };
+    const correct = statementContainer.statement;
     const incorrect = extend(true, {}, correct);
 
     correct.id = helper.generateUUID();
@@ -71,7 +101,7 @@ describe("Document Resource Requirements (Communication 2.2)", function () {
         .then(() => {
           return helper
             .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
-            .then((res: any) => {
+            .then((res: RequestResponse) => {
               const body = res.body;
               expect(body).toEqual({
                 car: "MKZ",
@@ -116,7 +146,7 @@ describe("Document Resource Requirements (Communication 2.2)", function () {
         .then(() => {
           return helper
             .sendRequest("get", helper.getEndpointActivitiesState(), parameters, undefined, 200)
-            .then((res: any) => {
+            .then((res: RequestResponse) => {
               const body = res.body;
               expect(body).toEqual({
                 car: {

@@ -15,7 +15,7 @@ type TemplateConfiguration = {
 };
 
 type TemplateHelper = {
-  OAuthRequest(request: unknown): unknown;
+  OAuthRequest(request: RequestFactory): RequestFactory;
   getSingleTestConfiguration(templateName: string): TemplateConfiguration[];
   convertTemplate(templates: TemplateMapping[]): unknown;
   createTestObject(converted: unknown): Record<string, unknown>;
@@ -24,45 +24,13 @@ type TemplateHelper = {
   addAllHeaders(headers: Record<string, string>): Record<string, string>;
 };
 
-type OAuthOptions = {
-  consumer_key?: string;
-  consumer_secret?: string;
-  token?: string;
-  token_secret?: string;
-  verifier?: string;
-};
-
-type RequestRoot = {
-  post(url: string): RequestChain;
-};
-
-type RequestChain = {
-  _options?: {
-    oauth?: OAuthOptions;
-  };
-  body(payload: string | Buffer): RequestChain;
-  form(value: Record<string, unknown>): RequestChain;
-  headers(headers: Record<string, string>): RequestChain;
-  json(data: unknown): RequestChain;
-  method?: string;
-  set(name: string, value: string): RequestChain;
-  wait(delay: Promise<unknown> | { then?: unknown }): RequestChain;
-  url?: string;
-  expect: (...args: unknown[]) => RequestChain;
-  end(done: (error?: unknown) => void): RequestChain;
-};
-
-type RequestFactory = (endpoint: string) => RequestRoot;
-
 import helperImport from "./helper.ts";
-import requestModule, { endAsync } from "./super-request.ts";
+import requestModule, { endAsync, type RequestChain, type RequestFactory } from "./super-request.ts";
 
 const helper = helperImport as TemplateHelper;
 
 const activeRequest: RequestFactory =
-  process.env["OAUTH1_ENABLED"] === "true"
-    ? (helper.OAuthRequest(requestModule) as RequestFactory)
-    : (requestModule as unknown as RequestFactory);
+  process.env["OAUTH1_ENABLED"] === "true" ? helper.OAuthRequest(requestModule) : requestModule;
 
 export function createTemplate(templateName: string): void {
   const configurations = helper.getSingleTestConfiguration(templateName);

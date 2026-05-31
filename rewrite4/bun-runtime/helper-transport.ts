@@ -1,4 +1,5 @@
 import requestFactoryImport from "../test/super-request.ts";
+import type { RequestFactory as SuperRequestFactory } from "../test/super-request.ts";
 
 type AnyRecord = Record<string, unknown>;
 type HeaderMap = Record<string, string | undefined>;
@@ -18,7 +19,7 @@ type HelperState = {
 };
 
 type RequestResponse = {
-  body: string;
+  body: unknown;
   headers: Record<string, string | undefined>;
   statusCode?: number;
   text?: string;
@@ -28,22 +29,28 @@ type RequestChain = AnyRecord & {
   _options?: {
     oauth?: unknown;
   };
-  body: (payload: string | Buffer) => RequestChain;
-  end: (callback: (error: unknown, response: RequestResponse) => void) => unknown;
-  expect: (status: number) => RequestChain;
-  form?: (payload: Record<string, unknown>) => RequestChain;
-  get: (url: string) => RequestChain;
-  headers: (headers: HeaderMap) => RequestChain;
-  json: (payload: unknown) => RequestChain;
+  body(payload: string | Buffer): RequestChain;
+  end(callback: (error?: unknown, response?: RequestResponse) => void): RequestChain;
+  expect(status: number): RequestChain;
+  form?(payload: Record<string, unknown>): RequestChain;
+  headers(headers: HeaderMap): RequestChain;
+  json(payload: unknown): RequestChain;
   method?: string;
-  post: (url: string) => RequestChain;
-  put: (url: string) => RequestChain;
-  set: (name: string, value: string) => void;
-  wait?: (delay: Promise<unknown> | { then?: unknown }) => RequestChain;
+  set(name: string, value: string): RequestChain;
   url?: string;
+  wait(delay: Promise<unknown> | { then?: unknown }): RequestChain;
 };
 
-type RequestFactory = AnyRecord & ((endpoint: string) => RequestChain);
+type RequestRoot = AnyRecord & {
+  get(url: string): RequestChain;
+  post(url: string): RequestChain;
+  put(url: string): RequestChain;
+  del(url: string): RequestChain;
+  delete(url: string): RequestChain;
+  head(url: string): RequestChain;
+};
+
+type RequestFactory = (endpoint: string) => RequestRoot;
 
 type HelperExports = {
   OAuthRequest(request: RequestFactory): RequestFactory;
@@ -62,7 +69,7 @@ type HelperExports = {
   getXapiVersion(): string | undefined;
 };
 
-type HelperTransportContext = {
+export type HelperTransportContext = {
   extend(deep: boolean, target: AnyRecord, source: AnyRecord): HeaderMap;
   getHelperExports(): HelperExports;
   getState(): HelperState;
@@ -201,7 +208,7 @@ function createHelperTransportSupport(context: HelperTransportContext) {
     },
 
     genDelay: function genDelay(time: number, query?: string, id?: string) {
-      let requestFactory = requestFactoryImport as unknown as RequestFactory;
+      let requestFactory: RequestFactory = requestFactoryImport as unknown as RequestFactory;
 
       const delay = function () {
         let resolved = false;
@@ -235,10 +242,15 @@ function createHelperTransportSupport(context: HelperTransportContext) {
           requestFactory(helper().getEndpointAndAuth())
             .get(endP)
             .headers(helper().addAllHeaders({}))
-            .end(function (err: unknown, res: RequestResponse) {
+            .end(function (err?: unknown, res?: RequestResponse) {
               let result: AnyRecord;
               if (err) {
                 rejectPromise(err);
+                return;
+              }
+
+              if (!res) {
+                rejectPromise(new Error("Missing response object in consistency callback."));
                 return;
               }
 
@@ -353,7 +365,7 @@ function createHelperTransportSupport(context: HelperTransportContext) {
       expectedStatus: number,
       extraHeaders?: HeaderMap,
     ) {
-      let requestFactory = requestFactoryImport as unknown as RequestFactory;
+      let requestFactory: RequestFactory = requestFactoryImport as unknown as RequestFactory;
       const methodName = type === "delete" ? "del" : type;
       if (getOAuthSettings()) {
         requestFactory = helper().OAuthRequest(requestFactory);
@@ -381,9 +393,14 @@ function createHelperTransportSupport(context: HelperTransportContext) {
       pre.headers(headers);
 
       return new Promise(function (resolve, reject) {
-        pre.expect(expectedStatus).end(function (error: unknown, response: RequestResponse) {
+        pre.expect(expectedStatus).end(function (error?: unknown, response?: RequestResponse) {
           if (error) {
             reject(error);
+            return;
+          }
+
+          if (!response) {
+            reject(new Error("Missing response object in request callback."));
             return;
           }
 
@@ -442,7 +459,7 @@ function createHelperTransportSupport(context: HelperTransportContext) {
         .headers(helper().addAllHeaders({}))
         .json(stmt)
         .expect(200)
-        .end(function (err: unknown, _res: RequestResponse) {
+        .end(function (err?: unknown, _res?: RequestResponse) {
           if (err) {
             done(err);
           } else {
@@ -450,9 +467,11 @@ function createHelperTransportSupport(context: HelperTransportContext) {
               requestFactory(helper().getEndpointAndAuth())
                 .get(helper().getEndpointStatements() + "?" + query)
                 .headers(helper().addAllHeaders({}))
-                .end(function (redoErr: unknown, redoRes: RequestResponse) {
+                .end(function (redoErr?: unknown, redoRes?: RequestResponse) {
                   if (redoErr) {
                     done(redoErr);
+                  } else if (!redoRes) {
+                    done(new Error("Missing response object in retry callback."));
                   } else if (redoRes.statusCode === 200) {
                     const result =
                       typeof redoRes.body === "string"
@@ -494,7 +513,7 @@ function createHelperTransportSupport(context: HelperTransportContext) {
       function authRequest(e: string) {
         const r = originalRequest(e);
 
-        function wrapPromise(p: RequestChain | undefined) {
+        function wrapPromise(p: AnyRecord | undefined) {
           if (!p) return;
           if (p["__wrapped"]) return;
           p["__wrapped"] = true;
@@ -507,9 +526,9 @@ function createHelperTransportSupport(context: HelperTransportContext) {
                 const test = preAuthMethod.apply(p, arguments as unknown as []);
                 if (test) {
                   if (methodName === "end") {
-                    wrapPromise(test as RequestChain | undefined);
+                    wrapPromise(test as AnyRecord | undefined);
                   } else {
-                    wrapMethods(test as RequestChain | undefined);
+                    wrapMethods(test as AnyRecord | undefined);
                   }
                 }
                 return test;
@@ -518,12 +537,13 @@ function createHelperTransportSupport(context: HelperTransportContext) {
           }
         }
 
-        function wrapMethods(testRequest: RequestChain | undefined) {
+        function wrapMethods(testRequest: AnyRecord | undefined) {
           if (!testRequest) return;
           if (testRequest["__wrapped"]) return;
           testRequest["__wrapped"] = true;
           const oauthSettings = getOAuthSettings();
-          if (testRequest._options) testRequest._options.oauth = oauthSettings;
+          const requestOptions = testRequest["_options"] as { oauth?: unknown } | undefined;
+          if (requestOptions) requestOptions.oauth = oauthSettings;
           for (const i in testRequest) {
             (function (methodName) {
               if (typeof testRequest[methodName] !== "function") return;
@@ -531,9 +551,10 @@ function createHelperTransportSupport(context: HelperTransportContext) {
               testRequest["_preAuth_" + methodName] = preAuthMethod;
               testRequest[methodName] = function () {
                 const nextTest = preAuthMethod.apply(testRequest, arguments as unknown as []);
-                const wrappedNextTest = nextTest as RequestChain | undefined;
-                if (wrappedNextTest && wrappedNextTest._options && !wrappedNextTest._options.oauth) {
-                  wrappedNextTest._options.oauth = getOAuthSettings();
+                const wrappedNextTest = nextTest as AnyRecord | undefined;
+                const wrappedOptions = wrappedNextTest?.["_options"] as { oauth?: unknown } | undefined;
+                if (wrappedNextTest && wrappedOptions && !wrappedOptions.oauth) {
+                  wrappedOptions.oauth = getOAuthSettings();
                   wrapMethods(wrappedNextTest);
                   return wrappedNextTest;
                 }
@@ -551,12 +572,13 @@ function createHelperTransportSupport(context: HelperTransportContext) {
         return r;
       }
 
-      return authRequest as RequestFactory;
+      return authRequest as SuperRequestFactory as RequestFactory;
     },
   };
 }
 
 export { createHelperTransportSupport };
+export type HelperTransportSupport = ReturnType<typeof createHelperTransportSupport>;
 
 export default {
   createHelperTransportSupport,

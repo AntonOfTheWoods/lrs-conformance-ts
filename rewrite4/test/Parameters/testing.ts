@@ -9,7 +9,33 @@
  */
 import helperImport from "../helper.ts";
 
-const helper = helperImport as any;
+type RequestMethod = "get" | "post" | "put" | "delete";
+
+type ParametersPayload = Record<string, unknown> & {
+  activityId?: unknown;
+  agent?: unknown;
+  profileId?: unknown;
+  stateId?: unknown;
+};
+
+type ParametersHelper = {
+  buildActivityProfile(): ParametersPayload;
+  buildAgentProfile(): ParametersPayload;
+  buildDocument(): unknown;
+  buildState(): ParametersPayload;
+  getEndpointActivitiesProfile(): string;
+  getEndpointActivitiesState(): string;
+  getEndpointAgentsProfile(): string;
+  sendRequest(
+    type: RequestMethod,
+    url: string,
+    params?: ParametersPayload,
+    body?: unknown,
+    expect?: number,
+  ): Promise<unknown>;
+};
+
+const helper = helperImport as ParametersHelper;
 /**
  * Sends an HTTP request using supertest
  * @param {string} type ex. GET, POST, PUT, DELETE and HEAD
@@ -19,8 +45,14 @@ const helper = helperImport as any;
  * @param {number} expect the result of the request
  * @returns {*} promise
  */
-function sendRequest(type: string, url: string, params: unknown, body: unknown, expect: number): any {
-  return helper.sendRequest(type, url, params as Record<string, unknown> | undefined, body as any, expect);
+function sendRequest(
+  type: RequestMethod,
+  url: string,
+  params: unknown,
+  body: unknown,
+  expect: number,
+): Promise<unknown> {
+  return helper.sendRequest(type, url, params as ParametersPayload | undefined, body, expect);
 }
 
 describe("These are tests with specific parameters that need to be met", () => {
